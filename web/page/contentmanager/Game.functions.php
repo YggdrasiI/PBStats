@@ -55,12 +55,13 @@ function gameFull($game,$online /* False for preview during creation of new game
 		$dHtml .= "{L_CM_GAME_URL}: ". $game['url'];
 		if(hasValue('port',$game)) $dHtml .= ":" . $game['port']; 
 		$dHtml .= "</p><p>";
-	}*/
+	}
 	if(hasValue('description',$game)){
 		//$dHtml .= "{L_CM_GAME_DESCRIPTION}: ". $game['description'] . "</p><p>";
 		$dHtml .= $game['description'] ; 
 	}
 	if(hasValue('infolink',$game)) $dHtml .= '{L_FURTHER_INFO}: <a href="'.(isRelativePath($game['infolink'])?$subdir:"").$game['infolink'].'">Link</a></p>';
+*/
 
 
 	if( $online ){

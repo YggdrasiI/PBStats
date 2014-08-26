@@ -301,9 +301,9 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 		#1. Check which saves already exists for this player
 		#   and remove old recovery saves
 		folder = self.getSaveFolder(True)
-		RecoverPrefix = 'Logoff_P'
+		RecoverPrefix = 'Logoff_'
 		if bOnline:
-			RecoverPrefix = 'Login_P'
+			RecoverPrefix = 'Login_'
 
 		existingRecoverySaves = glob.glob(folder + RecoverPrefix + str(playerId) + '*.CivBeyondSwordSave')
 		# Add timestamp (as tuple)
@@ -316,7 +316,7 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 			os.remove(old[0])
 
 		#2. Save new recovery save
-		filename = RecoverPrefix + str(int(time.time())) + '_' + str(playerId) + '_' + playerName + '.CivBeyondSwordSave'
+		filename = RecoverPrefix + str(int(time.time())) + '_P' + str(playerId) + '_' + playerName + '.CivBeyondSwordSave'
 		self.createSave( str(filename), True)
 
 
