@@ -73,11 +73,12 @@ fi
 cd "$CIV4BTS_PATH"
 for(( ; ; )) do
 	echo "Dir: ${ALTROOT_W}"
-
-wine Civ4BeyondSword_PitBoss2014.exe  mod= "PB Mod_v1"\" /ALTROOT="${ALTROOT_W}"
-
-# Variant for server management without X support, i.e ssh sessions.
-# xvfb-run -s " -screen 0 640x480x24"	wine Civ4BeyondSword_PitBoss2014.exe  mod= "PB Mod_v1"\" /ALTROOT="${ALTROOT_W}" 
+	if [ -z "$DISPLAY" ]; then
+		echo "No display detected, running with xvfb-run"
+		xvfb-run -s "-screen 0 640x480x24" wine "$CIV4BTS_PATH/Civ4BeyondSword_PitBoss2014.exe"  mod= "PB Mod_v1"\" /ALTROOT="${ALTROOT_W}"
+	else
+		wine "$CIV4BTS_PATH/Civ4BeyondSword_PitBoss2014.exe"  mod= "PB Mod_v1"\" /ALTROOT="${ALTROOT_W}"
+	fi
 
 	sleep 1
 done
