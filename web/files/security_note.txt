@@ -1,0 +1,5 @@
+The private folder is probably lesser save as you think:
+All files in the private folder are reachable by everyone if they know
+the download url!
+If you want prevent this security issue you should secure it by hand, i.e.
+with a .htaccess file. 

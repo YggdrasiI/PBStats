@@ -1,0 +1,2 @@
+bg1.jpg: http://www.civfanatics.com/gallery/files/1/civ4main1280x1024_original.jpg
+bg2.png: http://www.civforum.de/attachment.php?attachmentid=1111979

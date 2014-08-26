@@ -1,0 +1,41 @@
+
+.logContainer {  }
+.playerContainer {  }
+.statusContainer {  }
+.linkContainer {   }
+
+/* Status */
+.statusContainer div {
+	margin-left:6em; 
+}
+.status {
+	padding:0.5em;
+}
+
+
+/* Player table */
+.players tr a { font-weight: bold; text-decoration:none; }
+.players * td {padding: 5px; }
+.players * td:first-child { 
+	text-align:right;
+/*	width:1em;
+	white-space: nowrap;
+	overflow:visible;*/
+	display:block;
+}
+.players * td:nth-child(2), .players * td:nth-child(6) { text-align:right; }
+
+/* Game Log */
+.logContainer table  {
+	margin-left:6em !important; 
+}
+.log, .status {
+	background-color:#111111;
+}
+.log * td {padding: 5px;min-width:10em; }
+h2 { padding-top:1em}
+a,a:visited { color: inherit; }
+tr.eliminated td:nth-child(3) { background-color:#330000; }
+tr.turn td:nth-child(3) { background-color:#000033; }
+tr.score td:nth-child(3) { background-color:#003300; }
+tr.name td:nth-child(3) { background-color:#111111; }

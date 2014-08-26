@@ -1,0 +1,434 @@
+
+/*some color clases*/
+.backgroundColor1{
+	background-color:#FDFDFD;/* Hintergrundfarbe, body */
+	background-color:#008899;
+}
+
+.backgroundColor2{
+	background-color:#FDFDFD;
+	background-color:#008899;
+}
+
+.backgroundColor3{
+	background-color:#7f9cbe;/* beim Header verwendet */
+	background-color:#94a9b3;
+}
+
+.backgroundColor4{
+	background-color:#ccd6e0;/* Rahmenfarbe */
+}
+
+.backgroundColorT{
+	background-image:url(b70.png);
+}
+
+.fontColor1{
+	color:#ffffff;
+}
+
+.fontColorWarn{
+	color:#dd0000;
+}
+
+.invalidFormInput{
+	background-color:#dd0000;
+}
+
+.backgroundImage{
+	/*background-color:#94a9b3;*/
+	background-color:#000000;
+	background-image:url(../pictures/bg1.low.jpg);
+	background-position:left bottom;
+	/*background-repeat:repeat-x;*/
+	background-repeat:no-repeat;
+	background-attachment:fixed;
+}
+
+body{
+	padding:0px;
+	margin:0px;
+	font-size:100%;
+	font-family: Verdana, Helvetica, Arial;
+	color:#FFFFFF;
+}
+
+h1 {font-size:1.7em;}
+h2 {font-size:1.675em;}
+
+
+#rightFrame{ 
+	position:fixed;
+	top:0px;
+	bottom:0px;
+	right:0px;
+	width:204px;
+	background: #000000 url(logo.png) center 18px no-repeat;
+	/*padding:1em;*/
+	/*padding-top:150px;*/
+	padding-top:120px;
+	color:#FFFFFF;
+}
+
+#rightFrame a, #rightFrame a:visited {
+	color:#FFFFFF;
+	display:block;
+	text-decoration: none;
+	padding: 0.2em;
+	/*margin-left:1.0em;/* overwritten via php*/
+	margin-right:0.5em;
+}
+#rightFrame a:hover, #rightFrame a:active, #rightFrame a.active{
+	color:#d2c067;
+}
+
+#flaggen{
+	padding-top:0.5em;
+	margin-left:0.5em;
+	/*margin-top:5em;*/
+	position:absolute;
+	left:0px;bottom:5em;
+	z-index:100;
+}
+#flaggen img{
+	border:0px;
+}
+#flaggen a{
+	display:inline ! important;/*hm, warum gehts nicht ohne important?!*/
+	margin:0px ! important;
+	/*margin-right:0.1em;*/
+}
+#fontSizeSelector{
+	padding-top:0.5em;
+	margin-left:0.5em;
+	position:absolute;
+	left:0px;bottom:1em;
+	z-index:99;
+	cursor:pointer;
+}
+
+
+#leftFrame{ /* subsite content */
+	position:absolute;
+	top:0px;
+	left:0px;
+	right:204px;
+	bottom:0px;
+	padding-top:5.5em;
+	/*border-right:2px solid white;*/
+	overflow:hidden;
+}
+
+#header{
+	position:absolute;
+	top:0px;
+	left:0px;
+	right:0px;
+	/*right:-2px;*//*overlap right white border of #leftFrame */
+	height:5em;
+	/*text-align:center;*/
+	color:#FFFFFF;
+	/*border-bottom: 0.5em solid #ccd6e0;*/
+	/*background-image:url(verlaufVertikal2.png);*/
+	background-position:left bottom;
+	background-repeat:repeat-x;
+}
+
+#logo{
+	position:relative;
+	left:0em;
+	top:0px;
+	width:260px;
+	height:6em;
+	padding-bottom:18px;
+	/*background-image:url(logo.png);*/
+	background-repeat:no-repeat;
+	background-position:right bottom;
+	z-index:5;
+}
+
+#header h1{
+	display:inline;
+	z-index:6;
+}
+
+#header h1 a, #header h1 a:hover, #header h1 a:visited {
+	text-decoration:none;
+	color:#FFFFFF;
+	/*padding-left:1em*/;
+	z-index:10;
+}
+
+#headerCenter{
+	position:relative;
+	width:56em;
+	margin-left:auto;
+	margin-right:auto;
+	/*border-left: 1em solid #ccd6e0;*/
+	/*text-align:center;*/
+	border-bottom: 0.5em solid #d2c067;
+	height:5em;
+}
+
+#headerCenterBottom{
+	position:absolute;
+	bottom:0px;
+	left:0em;
+	right:0px;
+	z-index:10;
+	/*border-left: 1em solid #ccd6e0;*/
+	/*padding-left:1em;*/
+	line-height:0.9;
+}
+
+#headerCenterCIV4{
+	font-size:360%;
+	font-weight:bold;
+	width:3em;
+	float:left;
+}
+
+#headerCenterText{
+	position:relative;
+	left:0px;
+	bottom:-0.1em;
+}
+
+#mainBlock{
+	position:relative;
+	width:56em;
+	margin-left:auto;
+	margin-right:auto;
+	/*border-left:1em solid #ccd6e0;*/
+	z-index:5/*15*/;
+	overflow:auto;
+	height:100%;
+}
+#centerBlock{
+	width:52em;
+	/*height:100%;*/
+	padding:1em;
+	/*overflow:auto;
+	height:80%;*/
+min-height:80%;
+}
+
+#leftBlock{
+	position:fixed;
+	top:0px;
+	left:0px;
+	right:40%;
+	bottom:0px;
+	/*background-color:#999966;*/
+	z-index:-1;
+}
+
+#centerBlock a, #centerBlock a:visited, span.liam {
+	color:#CCCCCC;
+	text-decoration:underline;
+	cursor:pointer;
+}
+
+#centerBlock a:hover, #centerBlock a:active, span.liam:hover {
+	/*color:#003366;*/
+	color:#d2c067;
+}
+
+#centerBlock img{
+	border: 0px solid white;
+}
+
+#centerBlock h2{
+	color:#d2c067;
+	font-size:140%;
+}
+
+#footer{
+	font-size:80%;
+}
+
+#centerBlock h2 a{
+	/*color:#003366 !important;*/
+	color:#d2c067 !important;
+	text-decoration:none;
+}
+
+#centerBlock h3 a{
+	color:#FFFFFF;
+	text-decoration:none;
+}
+
+
+/* Schachtelung für die innere Hintergrundfarbe,
+damit sie den rechten Rand nicht verdeckt.*/
+#workbench{
+	margin-right:1px;
+	/*padding:1em;*/
+	border-left: 1em solid #ccd6e0;
+}
+
+#centerBlock table{
+	padding:0px;
+	margin:0px;
+	border-collapse:collapse;
+	/*border-style:hidden;*/
+}
+#centerBlock table td /* > tr > td*/{
+	vertical-align:top;
+}
+
+table.memberlist, table.courselist{
+	padding:0px;
+	/*margin-bottom:2em;*/
+	border-collapse:collapse;
+	border-style:hidden;
+	padding-top:0px;
+	padding-bottom:0px;
+}
+
+table.marginbottom{
+	margin-bottom:2em;
+}
+
+table.memberlist td /* > tr > td*/{
+	vertical-align:top;
+}
+
+table.courselist td /* > tr > td*/{
+	padding-bottom:0.5em;
+}
+
+table.memberlist .hr, table.courselist .hr{
+	border-bottom: 0.2em solid /*#ccd6e0*/black; 
+}
+
+h2.hr, h3.hr {
+	border-top: 0.1em solid /*#ccd6e0*/#cccccc; 
+}
+h2.pad, h3.pad {
+	padding-top:3em;
+}
+
+table.memberlist .pad, table.courselist .pad{
+	padding-bottom: 0.3em;
+	padding-top: 1em;
+}
+
+table.memberlist h4{
+	margin:0.1em;
+}
+table.memberlist p{
+	margin:0.2em;
+}
+
+.maxwidth{
+	width:100%;
+} 
+
+pre{
+	/*width:10em;*/
+	white-space:normal;
+}
+
+
+span.liam span:after {
+	content:"\0040";
+}
+
+
+#centerBlock .formularInfo{
+	display:inline;
+}
+
+.formPreview {
+	background-color:#000000;
+	border:solid 0.1em #d2c067;
+	padding:1em;
+	margin-bottom:3em;
+}
+
+/*
+#centerBlock div.formularInfo:hover:before { content:" "attr(infotext); color:#222; font-size:70%; font-style:italic; position:absolute;top:inherit;left:4em; border-bottom:0.2em solid #369; border-top:0.2em solid #369; background-image:url(y80.png); margin-left:0.4em; padding-left:0.2em; padding-right:0.4em;margin-right:0.4em; padding-top:0.2em;}
+ */
+
+/* Display Information during hovering elements.*/
+#centerBlock .formularInfo:hover:after, #centerBlock .info:hover:before, #centerBlock .infoLeft:hover:before {
+	color:#FFFFFF;
+	font-size:70%;
+	font-style:italic;
+	border-top: 0.2em solid #d2c067; /*#036;#7f9cbe;*/
+	/*border-left: 0.2em solid #d2c067 */;
+	/*border-right: 0.2em solid #d2c067*/;
+	border-bottom: 0.2em solid #d2c067;
+	background-image:url(b70.png);
+	padding:1em;
+	z-index:100;
+}
+
+#centerBlock .formularInfo:hover:after {
+	content:" "attr(infotext);
+	position:absolute;
+	top:inherit;
+	left:inherit;
+	margin-right:0.4em;
+	margin-left:0.2em;
+}
+
+/* Infotext rechts vom Element ausgerichtet */
+#centerBlock .info:hover:before {
+	content:" "attr(infotext);
+	position:absolute;
+	top:inherit;
+	left:inherit;
+	margin-right:0.4em;
+	margin-left:0.2em;
+	margin-top:2em;
+}
+
+/* Infotext am rechten Rand ausgerichtet, aber bel. weit nach links. */
+#centerBlock .infoLeft:hover:before {
+	content:" "attr(infotext);
+	position:absolute;
+	top:inherit;
+	right:0px;
+	margin-right:0.4em;
+	margin-left:0.2em;
+	margin-top:2em;
+}
+
+span.nav {
+}
+
+span.nav a{
+	text-decoration:none !important;
+	font-size:200%;
+	font-weight:bold;
+}
+
+
+/* Formular fields */
+input, textarea {
+	color:#F0F0F0;
+	background-color:#000000;
+	border: 1px solid #d2c067;
+	width:29em;
+}
+input, textarea{
+	padding-left:0.5em;
+	padding-right:0.5em;
+	font-size:100%;
+}
+select {
+	color:#F0F0F0;
+	background-color:#000000;
+	border: 1px solid #d2c067;
+	width:14em;
+	font-size:100%;
+}
+
+input[type="radio"], input[type="checkbox"] {
+	width:3em; 
+}
+input[type="button"], input[type="submit"] {
+	width:15em; 
+}

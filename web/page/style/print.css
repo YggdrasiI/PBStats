@@ -1,0 +1,202 @@
+/* Formartierung zum Ausdrucken. Alles schwarzweiß gehalten und unwichtige Sachen ausgeblendet.*/
+
+/*some color clases*/
+.backgroundColor1, .backgroundColor2, .backgroundColor3, .backgroundColor4{
+background-color:#FFFFFF;/*lightgrey*/
+}
+
+
+.fontColor1{
+color:#000000;
+}
+
+.backgroundImage2{}
+
+.backgroundImage{}
+
+
+body{
+/*padding:auto;
+margin:auto;*/
+margin-top:2cm;
+font-size:100%;
+}
+
+#rightFrame{ 
+display:none;
+}
+
+#leftFrame{ /* subsite content */
+/* no absolute position */
+}
+
+#header{
+/*position:absolute;
+top:0px;
+left:0cm;*/
+width:100%;
+/*height:7em;*/
+/*border-bottom: 2px solid white;*/
+}
+
+#header h1{
+/*position:fixed;
+top:0px;
+left:0px;*/
+font-size:120%;
+display:block;
+color:#000000;
+z-index:6;
+}
+
+#header h1 a, #header h1 a:hover, #header h1 a:visited{
+text-decoration:none;
+padding-left:1em;
+color:#000000;
+z-index:10;
+}
+
+#header h1 a:after { content: " <" attr(href) ">"; }
+
+#headerbottom{
+/*position:relative;*/
+width:44em;
+margin-left:auto;
+margin-right:auto;
+margin-top:auto;
+margin-bottom:0cm;
+/*margin-bottom:0.8em;*/
+/*height:2em;*/
+z-index:10;
+}
+
+#headerlinks{
+/*position:relative;*/
+/*width:50%;
+margin-left:auto;
+margin-right:auto;*/
+/*margin-top:auto;
+margin-bottom:0px;*/
+/*width:100%;
+height:100%;*/
+/*background-color:#000000 !important;*/
+/*text-align:center;*/
+}
+
+#headerlinks a, #headerlinks a:visited{
+display:inline;
+text-decoration:none;
+color:#000000;
+padding-right:0.6em;
+/*border-left:1em solid transparent;*/
+border-top:0.1em solid transparent;
+/*border-bottom:0.1em solid white;*/
+visibility:hidden;
+}
+
+#headerlinks a:hover{
+/*border-left:1em dotted white;*/
+}
+#headerlinks a:active, #headerlinks a.active{
+/*margin-right:0.2em;
+padding-right:0.8em;*/
+padding-left:1.0em;
+padding-right:1.0em;
+border-top:0.1em solid #AAAAAA;
+/*border-bottom:0.1em solid black;*/
+visibility:visible;
+}
+
+
+#middleFrame{
+/*position:relative;*/
+width:44em;
+max-width:100%;
+/*height:100%;*/
+margin-left:auto;
+margin-right:auto;
+border-left: 0.1em solid #AAAAAA;
+border-top: 0.1em solid #AAAAAA;
+/*margin-top:7em;*/
+z-index:5/*15*/;
+}
+
+#leftBorder, #rightBorder{
+display:none;
+}
+
+
+#centerBlock{
+margin-left:1.0em;
+margin-right:1em;
+}
+
+#centerBlock a, #centerBlock a:visited, span.liam{
+color:#000000;
+text-decoration:underline;
+cursor:pointer;
+}
+
+#centerBlock a:hover, #centerBlock a:active, span.liam:hover{
+}
+
+#centerBlock img{
+border: 0px solid black;
+}
+
+#centerBlock h2{
+ font-size:120%;
+}
+
+/* Schachtelung für die innere Hintergrundfarbe,
+ damit sie den rechten Rand nicht verdeckt.*/
+#workbench{
+/*margin-right:1px;*/
+padding:1em;
+}
+
+
+
+table.memberlist, table.courselist{
+padding:0px;
+margin-bottom:2em;
+border-collapse:collapse;
+}
+
+table.memberlist td /* > tr > td*/{
+ vertical-align:top;
+}
+
+table.courselist td /* > tr > td*/{
+ padding-bottom:0.5em;
+}
+
+table.memberlist .hr, table.courselist .hr{
+	border-bottom: 0.1em solid #333333; 
+}
+
+table.memberlist .pad, table.courselist .pad{
+	padding-bottom: 0.3em;
+	padding-top: 1em;
+}
+
+.maxwidth{
+width:100%;
+} 
+
+pre{
+/*width:10em;*/
+white-space:normal;
+}
+
+
+span.liam span:after{
+content:"\0040";
+}
+
+
+/*Links erweitern */
+/*
+a:link:after { content: " <" attr(href) ">"; }
+span.liam:after { content: " <" attr(pre) "\0040" attr(sur) ">"; }
+*/
