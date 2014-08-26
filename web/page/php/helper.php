@@ -366,7 +366,7 @@ function get_game_data($gameId){
 			$ret = $res;
 		}
 	}catch(Exception $e){
-		$dHtml .= 'Exception : '.$e->getMessage();
+		echo 'get_game_data(id) failed. Exception : '.$e->getMessage();
 		$ret = null;
 	}
 	return $ret;
@@ -519,6 +519,7 @@ function pdo_db_exec($sql){
 
 function get_cached_game_status($gameId){
 	$db = get_db_handle();
+	$ret = null;
 	if( $db == null ) return null;
 
 	//init_game_database_tables($gameId);
@@ -533,17 +534,16 @@ function get_cached_game_status($gameId){
 			$ret = $res;
 		}
 	}catch(Exception $e){
-		$dHtml .= 'Exception : '.$e->getMessage();
+		echo 'get_cached_game_status() failed. Exception : '.$e->getMessage();
 		$ret = null;
 	}
 
 	//Trim big caches and log
 	//FIXME: This method is not reliable. Trim could only be operate on a
 	//	subset of all game ids.
-	if( $ret["id"] % 101 == 0 ){
+	if( isset($ret["id"]) &&  $ret["id"] % 101 == 0 ){
 		trim_database_tables($gameId);
 	}
-	
 
 	return $ret;
 }

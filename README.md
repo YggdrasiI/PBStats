@@ -60,11 +60,12 @@ with ALTROOT parameter. See below for more instructions.
 3. The web-folder contains the HTML front end for the game. 
 It's similar to the well known civstats.com page, 
 but allows the admininstration of games, too.  
-Place the web-folder on your webserver with PHP5 and SQLite3 support. If you don't want 
-setup an own webserver for this frontent, you can use your server on [XYZ Server], too. 
-Look into the file **web/page/php/globalVars.php** to adapt the password and path settings 
-to your server environment. Give the server read/write access in the folders **sqlite** and **files** 
+Place the web-folder on your webserver with PHP5 and MySQL or SQLite3 support. Give the server read/write access in the folders **sqlite** (if you use SQLite3) and **files** 
 and read access for the other files. 
+Copy web/page/php/config.dist.php to web/page/php/config.php and adapt the default passwords and environment paths of this configuration file to your needs. 
+Finally, call web/page/install.php in your browser to initialise all database tables. 
+
+If you don't want setup an own webserver for this frontent, you can use your server, *http://civ.zulan.net/pb*, too. 
 
 
 Configuration of the ALTROOT Folder
