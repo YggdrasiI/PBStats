@@ -37,7 +37,7 @@ If you do not want patch your executables you can also use the following entries
 
 Note that all players have to use the same NATNEG server. 
 Visit http://realmsbeyond.net/forums/showthread.php?tid=7123 (English) or  
-http://civ-wiki.de/wiki/Mehrspieler\_(Civ4) (German)  for more information.
+http://civ-wiki.de/wiki/Mehrspieler_(Civ4) (German)  for more information.
 
 
 Installation
