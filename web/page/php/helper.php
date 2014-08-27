@@ -644,18 +644,36 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 
 	global $newRound;
 	$newRound = ( $newStatus->gameTurn != $oldStatus->gameTurn );
-	$logMsgs = array_map("comparePlayer", $newPlayers, $oldPlayers);
 
-	if( $newRound ){
-		$newTurn = array (
+	/*Check if the name of the game or number of players was changed
+	 * This indicates the loading of an other game. Try to omit the
+	 * creation of wrong log messages in this case.
+	 */
+	if( $newStatus->gameName !== $oldStatus->gameName || 
+		count($newPlayers) != count($oldPlayers)
+	){
+		$logMsgs = array ( array (
 			array(
-				"type" => "turn",
+				"type" => "game",
 				"name" => "",
 				"id" => -1,
-				"msg" => "A new turn has begun. It is now ". $oldStatus->gameDate . ".",
-			) );
+				"msg" =>	"New game was loaded."
+			)
+		) );
+	}else{
+		$logMsgs = array_map("comparePlayer", $newPlayers, $oldPlayers);
 
-		$logMsgs[count($logMsgs)] = $newTurn;
+		if( $newRound ){
+			$newTurn = array (
+				array(
+					"type" => "turn",
+					"name" => "",
+					"id" => -1,
+					"msg" => "A new turn has begun. It is now ". $oldStatus->gameDate . ".",
+				) );
+
+			$logMsgs[count($logMsgs)] = $newTurn;
+		}
 	}
 
 

@@ -39,3 +39,4 @@ tr.eliminated td:nth-child(3) { background-color:#330000; }
 tr.turn td:nth-child(3) { background-color:#000033; }
 tr.score td:nth-child(3) { background-color:#003300; }
 tr.name td:nth-child(3) { background-color:#111111; }
+tr.game td:nth-child(3) { background-color:#d2c067; }

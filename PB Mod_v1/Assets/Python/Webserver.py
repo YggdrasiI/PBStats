@@ -1,8 +1,10 @@
 from CvPythonExtensions import *
 import CvUtil
 
-import SocketServer
+from SocketServer import ThreadingMixIn
+from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 import re
+import cgi
 import os.path
 #import os.listdir
 import os
@@ -11,7 +13,7 @@ import time
 import thread 
 from threading import Timer,Thread,Event
 import urllib
-#import hashlib #Python 2.4 has no haslib use md5
+#import hashlib #Python 2.4 has no hashlib use md5
 import md5
 import simplejson 
 
@@ -80,7 +82,7 @@ def getPbSettings():
 		pbFn = None
 		return pbDefaultSettings
 
-# Attention: Use the ThreadedTCPServer.savePbSettings to wrap this into a mutex if you saved the file over the webinterface.
+# Attention: Use the ThreadedHTTPServer.savePbSettings to wrap this into a mutex if you saved the file over the webinterface.
 # This function should only be called direct if the webserver wasn't started.
 def savePbSettings():
 	global pbFn
@@ -94,177 +96,224 @@ def savePbSettings():
 	except Exception, e:
 		pass
 
+# The do_POTH method of this class handle the control commands
+# of the webinterface
+class HTTPRequestHandler(BaseHTTPRequestHandler):
 
+	# Redefine is ness. to omit python error popups!!
+	def log_message(self, format, *args):
+		return
 
-class service(SocketServer.BaseRequestHandler):
-	def handle(self):
-		global pbSettings
-		data = 'dummy'
-		#print "Client connected with ", self.client_address
-		try:
-			while len(data):
-				rawinputdata = self.request.recv(1024)
-				inputdata = simplejson.loads(rawinputdata)
+	def do_POST(self):
+		if None != re.search('/api/v1/', self.path):
+			ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
+			#ctype = self.headers.getheader('content-type').strip(" \n\r\t")
+			if ctype == 'application/json':
+				self.send_response(200)
+				self.end_headers()
 
-				action = inputdata.get("action")
+				try:
+					length = int(self.headers.getheader('content-length'))
+					rawdata = self.rfile.read(length)
 
-				if( action == "chat" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
-					msg =  str(inputdata.get("msg","Default message. Missing msg argument?!"))
-					PB.sendChat( msg )
-					self.request.sendall( simplejson.dumps( {'return':'ok','info':'Send: '+msg } ) +"\n" ) 
+					parseddata = cgi.parse_qs(rawdata, keep_blank_values=1)
+					inputdata = simplejson.loads( parseddata.keys()[0] )
+					"""
+					parseddata = rawdata.split("&");
+					inputdata = simplejson.loads( parseddata[0] )
+					""" 
 
-				elif( action == "setAutostart" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+					action = inputdata.get("action")
+
+					if( action == "chat" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+						msg =  str(inputdata.get("msg","Default message. Missing msg argument?!"))
+						PB.sendChat( msg )
+						self.wfile.write( simplejson.dumps( {'return':'ok','info':'Send: '+msg } ) +"\n" ) 
+
+					elif( action == "setAutostart" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+							self.server.lock.acquire()
+							pbSettings["save"]["autostart"] = int(inputdata.get("value",0))
+							self.server.lock.release()
+							self.server.savePbSettings()
+							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Autostart flag: ' + str(pbSettings["save"]["autostart"]) } ) +"\n" )
+
+					elif( action == "setHeadless" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+							self.server.lock.acquire()
+							pbSettings["noGui"] = int(inputdata.get("value",0))
+							self.server.lock.release()
+							self.server.savePbSettings()
+							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Headless/noGui flag: ' + str(pbSettings["noGui"]) } ) +"\n" )
+
+					elif( action == "save" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+						defaultFile="Pitboss_" + PB.getGamedate(True)
+						filename =  str( inputdata.get("filename",defaultFile) ) + ".CivBeyondSwordSave"
+						#remove "\ or /" chars to cut of directory changes
+						filename = filename[max(filename.rfind("/"),filename.rfind("\\"))+1:len(filename)]
+
+						ret = self.server.createSave(filename)
+						self.wfile.write( simplejson.dumps( ret ) +"\n" ) 
+
+					elif( action == "setTurnTimer" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+							iHours = int( inputdata.get("value",24) )
+							PB.turnTimerChanged(iHours);
+							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Deactivate pause.' } ) +"\n" )
+
+					elif( action == "setPause" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+							bPause = int(inputdata.get("value",0))
+							if bPause:
+								if not gc.getGame().isPaused():
+									PB.sendChat( "(Webinterface) Activate pause."  )
+									gc.getGame().setPausePlayer(1) 
+								self.wfile.write( simplejson.dumps( {'return':'ok','info':'Activate pause.' } ) +"\n" )
+							else:
+								if gc.getGame().isPaused():
+									PB.sendChat( "(Webinterface) Deactivate pause."  )
+									gc.getGame().setPausePlayer(1) #Do not remove this line !!!
+									gc.getGame().setPausePlayer(-1)
+								self.wfile.write( simplejson.dumps( {'return':'ok','info':'Deactivate pause.' } ) +"\n" )
+
+					elif( action == "endTurn" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+							#Create Backup save in auto-Folder
+							filename = r"Auto_" + PB.getGamename() + r"_R" + str(PB.getGameturn()) + r"end_" + PB.getGamedate(False) + r".CivBeyondSwordSave"
+							self.server.createSave(str(filename), True)
+
+							#gc.getGame().doControl(ControlTypes.CONTROL_FORCEENDTURN)#wrong
+							messageControl = CyMessageControl()
+							messageControl.sendTurnCompleteAll()
+
+							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Start new round.' } ) +"\n" )
+
+					elif( action == "restart" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+						# Save current game and reload this save if no expicit filename is given
+						bReload = True
+
+						filename = str(inputdata.get("filename",""))
+						autoDir =  inputdata.get("autoDir",0)
+						#remove "\ or /" chars to cut of directory changes
+						filename = filename[max(filename.rfind("/"),filename.rfind("\\"))+1:len(filename)]
+
+						# Disable autoDir flag if no filename was given.
+						if len(filename) == 0 :
+							autoDir = 0
+
+						# Force single autostart
 						self.server.lock.acquire()
-						pbSettings["save"]["autostart"] = int(inputdata.get("value",0))
-						self.server.lock.release()
-						self.server.savePbSettings()
-						self.request.sendall( simplejson.dumps( {'return':'ok','info':'Autostart flag: ' + str(pbSettings["save"]["autostart"]) } ) +"\n" )
-
-				elif( action == "setHeadless" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
-						self.server.lock.acquire()
-						pbSettings["noGui"] = int(inputdata.get("value",0))
-						self.server.lock.release()
-						self.server.savePbSettings()
-						self.request.sendall( simplejson.dumps( {'return':'ok','info':'Headless/noGui flag: ' + str(pbSettings["noGui"]) } ) +"\n" )
-
-				elif( action == "save" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
-					defaultFile="Pitboss_" + PB.getGamedate(True)
-					filename =  str( inputdata.get("filename",defaultFile) ) + ".CivBeyondSwordSave"
-					#remove "\ or /" chars to cut of directory changes
-					filename = filename[max(filename.rfind("/"),filename.rfind("\\"))+1:len(filename)]
-
-					ret = self.server.createSave(filename)
-					self.request.sendall( simplejson.dumps( ret ) +"\n" ) 
-
-				elif( action == "setTurnTimer" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
-						iHours = int( inputdata.get("value",24) )
-						PB.turnTimerChanged(iHours);
-						self.request.sendall( simplejson.dumps( {'return':'ok','info':'Deactivate pause.' } ) +"\n" )
-
-				elif( action == "setPause" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
-						bPause = int(inputdata.get("value",0))
-						if bPause:
-							if not gc.getGame().isPaused():
-								PB.sendChat( "(Webinterface) Activate pause."  )
-								gc.getGame().setPausePlayer(1) 
-							self.request.sendall( simplejson.dumps( {'return':'ok','info':'Activate pause.' } ) +"\n" )
-						else:
-							if gc.getGame().isPaused():
-								PB.sendChat( "(Webinterface) Deactivate pause."  )
-								gc.getGame().setPausePlayer(1) #Do not remove this line !!!
-								gc.getGame().setPausePlayer(-1)
-							self.request.sendall( simplejson.dumps( {'return':'ok','info':'Deactivate pause.' } ) +"\n" )
-
-				elif( action == "endTurn" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
-						#Create Backup save in auto-Folder
-						filename = r"Auto_" + PB.getGamename() + r"_R" + str(PB.getGameturn()) + r"end_" + PB.getGamedate(False) + r".CivBeyondSwordSave"
-						self.server.createSave(str(filename), True)
-
-						#gc.getGame().doControl(ControlTypes.CONTROL_FORCEENDTURN)#wrong
-						messageControl = CyMessageControl()
-						messageControl.sendTurnCompleteAll()
-
-						self.request.sendall( simplejson.dumps( {'return':'ok','info':'Start new round.' } ) +"\n" )
-
-				elif( action == "restart" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
-					# Save current game and reload this save if no expicit filename is given
-					bReload = True
-
-					filename = str(inputdata.get("filename",""))
-					autoDir =  inputdata.get("autoDir",0)
-					#remove "\ or /" chars to cut of directory changes
-					filename = filename[max(filename.rfind("/"),filename.rfind("\\"))+1:len(filename)]
-
-					# Disable autoDir flag if no filename was given.
-					if len(filename) == 0 :
-						autoDir = 0
-
-					# Force single autostart
-					self.server.lock.acquire()
-					pbSettings["save"]["oneOffAutostart"] = 1
-					pbSettings["save"]["autoDir"] = autoDir
-					self.server.lock.release()
-
-					if len(filename) > 0 :
-						#Save selected filename for reloading in the settings file
-						filename =  filename + ".CivBeyondSwordSave"
-						self.server.lock.acquire()
-						pbSettings["save"]["filename"] = filename
+						pbSettings["save"]["oneOffAutostart"] = 1
 						pbSettings["save"]["autoDir"] = autoDir
 						self.server.lock.release()
-						self.server.savePbSettings()
+
+						if len(filename) > 0 :
+							#Save selected filename for reloading in the settings file
+							filename =  filename + ".CivBeyondSwordSave"
+							self.server.lock.acquire()
+							pbSettings["save"]["filename"] = filename
+							pbSettings["save"]["autoDir"] = autoDir
+							self.server.lock.release()
+							self.server.savePbSettings()
+						else:
+							filename = "Reload.CivBeyondSwordSave"
+							ret = self.server.createSave(filename)
+							if ret["return"] != "ok" :
+								bReload = False
+								self.wfile.write( simplejson.dumps( {'return':'fail','info':'Abort reloading. Was not able to save game.' } ) +"\n" )
+
+						if bReload:
+							# Quit server. The loop in the batch file should restart the server....
+							if self.server.adminWindow != None:
+								self.wfile.write( simplejson.dumps( {'return':'ok','info':'Quit pb server window.' } ) +"\n" )
+								#Close socket before OnExit-Method was called
+								self.request.close()
+								self.server.adminWindow.OnExit(None)
+							else:
+								self.wfile.write( simplejson.dumps( {'return':'fail','info':'Abort reloading. Was not able to quit pb server window.' } ) +"\n" )
+
+					elif( action == "setPlayerPassword" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+							playerId = int(inputdata.get("playerId",-1))
+							newCivPW = str(inputdata.get("newCivPW",r""))
+							ret = -1
+							if playerId > -1:
+								ret = gc.getGame().setCivPassword( playerId, newCivPW, str(pbSettings.get("save",{}).get("adminpw","")) )
+
+							if ret == 0:	
+								self.wfile.write( simplejson.dumps( {'return':'ok','info':'Passwort of player ' + str(playerId) + ' changed to "' + newCivPW + '"' } ) +"\n" )
+							else:
+								self.wfile.write( simplejson.dumps( {'return':'fail','info':'Passwort change failed.' } ) +"\n" )
+
+					elif( action == "info" ):
+						gamedata = self.server.createGamedata()
+
+						self.wfile.write( simplejson.dumps( {'return':'ok','info':gamedata} ) +"\n" ) 
+
+					elif( action == "listSaves" ):
+						# Print list of saves of the selected folder. This can be used for a dropdown list 
+						# of available saves.
+						global altrootDir
+						folderpaths = [ {"path":altrootDir + "\\" + str(pbSettings["save"]["path"]), "autosave":False},
+								{"path":altrootDir + "\\" + str(pbSettings["save"]["path"] + "auto\\" ), "autosave":True} ]
+						saveList = []
+
+						for fp in folderpaths:
+							folderpath = fp["path"]
+							for savefile in os.listdir(folderpath):
+								if savefile.endswith(".CivBeyondSwordSave"):
+									timestamp = os.path.getctime( folderpath+savefile )
+									saveList.append( {
+										'name':str(savefile),
+										'autosave':fp["autosave"],
+										'date':time.ctime(timestamp),
+										'timestamp':timestamp
+											})
+
+						self.wfile.write( simplejson.dumps( {'return':'ok','list':saveList} ) +"\n" ) 
+
 					else:
-						filename = "Reload.CivBeyondSwordSave"
-						ret = self.server.createSave(filename)
-						if ret["return"] != "ok" :
-							bReload = False
-							self.request.sendall( simplejson.dumps( {'return':'fail','info':'Abort reloading. Was not able to save game.' } ) +"\n" )
+						self.wfile.write( simplejson.dumps( {'return':'fail','info':'Wrong password or unknown action. Available actions info, chat, save, restart, listSaves, setAutostart, setHeadless'} ) +"\n" ) 
 
-					if bReload:
-						# Quit server. The loop in the batch file should restart the server....
-						if self.server.adminWindow != None:
-							self.request.sendall( simplejson.dumps( {'return':'ok','info':'Quit pb server window.' } ) +"\n" )
-							#Close socket before OnExit-Method was called
-							self.request.close()
-							self.server.adminWindow.OnExit(None)
-						else:
-							self.request.sendall( simplejson.dumps( {'return':'fail','info':'Abort reloading. Was not able to quit pb server window.' } ) +"\n" )
+				except Exception, e:
+					self.wfile.write( simplejson.dumps( {'return':'fail','info': "Exception: " + str(e) } ) + "\n" )
 
-				elif( action == "setPlayerPassword" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
-						playerId = int(inputdata.get("playerId",-1))
-						newCivPW = str(inputdata.get("newCivPW",r""))
-						ret = -1
-						if playerId > -1:
-							ret = gc.getGame().setCivPassword( playerId, newCivPW, str(pbSettings.get("save",{}).get("adminpw","")) )
 
-						if ret == 0:	
-							self.request.sendall( simplejson.dumps( {'return':'ok','info':'Passwort of player ' + str(playerId) + ' changed to "' + newCivPW + '"' } ) +"\n" )
-						else:
-							self.request.sendall( simplejson.dumps( {'return':'fail','info':'Passwort change failed.' } ) +"\n" )
+			else:
+				data = {"return":"fail","info":"Wrong content type. Assume JSON data."}
+				self.send_response(200)
+				self.end_headers()
+				self.wfile.write( simplejson.dumps(data) + "\n" )
 
-				elif( action == "info" ):
-					gamedata = self.server.createGamedata()
+		else:
+			self.send_response(403)
+			self.send_header('Content-Type', 'application/json')
+			self.end_headers()
+		return
 
-					self.request.sendall( simplejson.dumps( {'return':'ok','info':gamedata} ) +"\n" ) 
 
-				elif( action == "listSaves" ):
-					# Print list of saves of the selected folder. This can be used for a dropdown list 
-					# of available saves.
-					global altrootDir
-					folderpaths = [ {"path":altrootDir + "\\" + str(pbSettings["save"]["path"]), "autosave":False},
-							{"path":altrootDir + "\\" + str(pbSettings["save"]["path"] + "auto\\" ), "autosave":True} ]
-					saveList = []
-
-					for fp in folderpaths:
-						folderpath = fp["path"]
-						for savefile in os.listdir(folderpath):
-							if savefile.endswith(".CivBeyondSwordSave"):
-								timestamp = os.path.getctime( folderpath+savefile )
-								saveList.append( {
-									'name':str(savefile),
-									'autosave':fp["autosave"],
-									'date':time.ctime(timestamp),
-									'timestamp':timestamp
-										})
-
-					self.request.sendall( simplejson.dumps( {'return':'ok','list':saveList} ) +"\n" ) 
-
-				else:
-					self.request.sendall( simplejson.dumps( {'return':'fail','info':'Wrong password or unknown action. Available actions info, chat, save, restart, listSaves, setAutostart, setHeadless'} ) +"\n" ) 
-
-		except Exception, e:
-			#print "Exception while receiving message: ", e
-			data = ''
-			self.request.sendall( simplejson.dumps( {'return':'fail','info': "Exception:" + str(e)} ) + "\n" )
-
-		self.request.close()
+	# No get functionality
+	def do_GET(self):
+		if None != re.search('/api/v1/somepage/*', self.path):
+			if True:
+				self.send_response(200)
+				self.send_header('Content-Type', 'application/json')
+				self.end_headers()
+				self.wfile.write("Bitte weitergehen. Hier gibts nichts zu sehen.")
+			else:
+				self.send_response(400, 'Bad Request: record does not exist')
+				self.send_header('Content-Type', 'application/json')
+				self.end_headers()
+		else:
+			self.send_response(403)
+			self.send_header('Content-Type', 'application/json')
+			self.end_headers()
+		return
 
 
 
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+	allow_reuse_address = True
 
-class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
-	#def __init__(self):
-	#	self.adminWindow = None
+	def shutdown(self):
+		self.socket.close()
+		#In Python 2.4 the method 'shutdown' does not exists.
+		#But we set the Deamon flag to true, thus it should shutdown.
+		#HTTPServer.shutdown(self)
 
 	def setPbWin(self, adminWindow):
 		self.adminWindow = adminWindow
@@ -366,9 +415,10 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 
 
-# Class to invoke request from to the 'client' side of webinterface
 
-class PerpetualTimer:#():
+
+# Class to invoke request from to the 'client' side of webinterface
+class PerpetualTimer:
 
 	def __init__(self,settings,webserver):
 		self.settings = settings

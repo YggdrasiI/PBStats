@@ -45,7 +45,7 @@ if noGui:
 			"constructor"
 			
 			#Webserver
-			self.webserver = Webserver.ThreadedTCPServer((pbSettings['webserver']['host'],pbSettings['webserver']['port']), Webserver.service)
+			self.webserver = Webserver.ThreadedHTTPServer((pbSettings['webserver']['host'],pbSettings['webserver']['port']), Webserver.HTTPRequestHandler)
 			self.webserver.setPbWin(self)
 			self.t = Thread(target=self.webserver.serve_forever)
 			self.t.setDaemon(True)
@@ -82,7 +82,7 @@ if noGui:
 			PB.quit()
 			if( pbSettings['webfrontend']['sendPeriodicalData'] != 0 ):
 				self.webupload.cancel()
-				self.webserver.socket.close()
+				self.webserver.shutdown()
 			
 		def OnCloseWindow(self, event):
 			"'close window' event handler"
@@ -306,7 +306,7 @@ else:
 			self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
 			#Webserver
-			self.webserver = Webserver.ThreadedTCPServer((pbSettings['webserver']['host'],pbSettings['webserver']['port']), Webserver.service)
+			self.webserver = Webserver.ThreadedHTTPServer((pbSettings['webserver']['host'],pbSettings['webserver']['port']), Webserver.HTTPRequestHandler)
 			self.webserver.setPbWin(self)
 			self.t = Thread(target=self.webserver.serve_forever)
 			self.t.setDaemon(True)
@@ -501,18 +501,13 @@ else:
 			"'exit' event handler"
 			if( pbSettings['webfrontend']['sendPeriodicalData'] != 0 ):
 				self.webupload.cancel()
-				self.webserver.socket.close()
+				self.webserver.shutdown()
 			self.Close(True)
 			
 		def OnCloseWindow(self, event):
 			"'close window' event handler"
 			PB.quit()
 			self.Destroy()
-
-			#No shutdown method available...
-			#self.webserver.shutdown()
-			#self.webserver.socket.close()
-			#self.join(self.t)
 
 		def IsNumericString(self, myStr):
 			for myChar in myStr:

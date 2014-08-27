@@ -92,7 +92,7 @@ function append_status($players){
 	return $players;
 }
 
-function handle_pitboss_action($gameData, $arr_in) {
+function handle_pitboss_actionOld($gameData, $arr_in) {
 
 	try{
 		$address = gethostbyname($gameData["url"]);
@@ -135,6 +135,90 @@ function handle_pitboss_action($gameData, $arr_in) {
 
 	return $result;
 }
+
+function handle_pitboss_action($gameData, $arr_in) {
+
+	$error = null;
+	try{
+		$address = gethostbyname($gameData["url"]);
+		$port = $gameData["port"];
+		$host = "";
+		$url = "/api/v1/";
+
+	/* gethostbyname return value sucks if hostname in gameData is ip
+		if( $address === "?" ){
+			$error = array( "return"=>"failed","info" => "Can not resolve hostname.");
+			return json_encode($error);
+	}*/
+
+		$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+		if ($socket === false) {
+			unset($socket);
+			throw new Exception ( "socket_create() failed. Reason: " .
+				socket_strerror(socket_last_error()) );
+		}
+
+		//$timeout = array('sec'=>0,'usec'=>500000);
+		$timeout = array('sec'=>1,'usec'=>0);
+		socket_set_option($socket,SOL_SOCKET,SO_RCVTIMEO,$timeout);
+
+		if (!socket_connect ($socket, $address, $port)) {
+			throw new Exception ( "socket_connect() failed. Reason: " .
+				socket_strerror(socket_last_error()) );
+		}
+
+		$request = json_encode( $arr_in );
+
+		$httpQuery = "POST ". $url ." HTTP/1.0\r\n";
+		//$httpQuery .= "User-Agent: jsonrpc\r\n";
+		$httpQuery .= "Host: ". $host ."\r\n";
+		$httpQuery .= "Content-Type: application/json\r\n";
+		$httpQuery .= "Content-Length: ". strlen($request) ."\r\n\r\n";
+		$httpQuery .= $request ."\r\n";
+
+		if (!socket_send($socket, $httpQuery , strlen($httpQuery), MSG_EOR /*0, MSG_EOF*/)) {
+			throw new Exception ( "socket_send() failed. Reason: " .
+				socket_strerror(socket_last_error()) );
+		}
+
+		//2. Get reply
+		$jsonResponse = "";
+		$buff = "";
+		while ($bytes = socket_recv($socket, $buff, 1024, MSG_WAITALL) > 0) {
+			$jsonResponse .= $buff;
+		}
+
+		if( strlen($jsonResponse) < 1 ){
+			throw new Exception( "socket_recv() failed. Reply string was empty . Error: " .
+				socket_strerror(socket_last_error($socket))  );
+		}
+
+		// Just for debugging
+		if( socket_last_error($socket) ){
+			throw new Exception( "socket_recv() failed. Reason: " .
+				socket_strerror(socket_last_error($socket)) . "\n" );
+		}
+
+		socket_close($socket);
+		unset($socket);
+
+		//Cut of header, which ends with \r\n\r\n
+		//echo $jsonResponse;
+		$jsonResponse = substr($jsonResponse,3+strpos($jsonResponse,"\n\r\n"));
+
+	}catch(Exception $e){
+		$error = array('return'=>'failed','info'=>'Socket connection failed. Error: '.$e->getMessage() );
+	} /*finally (require >= PHP 5.5) */ if( isset($socket) ) {
+		socket_close($socket);
+		unset($socket);
+	}
+
+	if( $error !== null ){
+		return json_encode($error);
+	}
+	return $jsonResponse;
+}
+
 
 //Check counter in the cookie to omit multiple calls of same command.
 function operation_already_done($val){
