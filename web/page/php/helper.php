@@ -585,7 +585,8 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 				"type" => "name",
 				"name" => $oldP->name,
 				"id" => $newP->id,
-				"msg" =>	"Changed name to ".$newP->name,
+				//"msg" =>	"Changed name to ".$newP->name,
+				"msg" =>	"{L_LOG_PLAYER_CHANGE_NAME|".$newP->name."}",
 			);
 		}
 		if( $newP->score != $oldP->score ){
@@ -593,7 +594,8 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 				"type" => "score",
 				"name" => $newP->name,
 				"id" => $newP->id,
-				"msg" =>	"Score ".($newP>$oldP?"increased":"decreased")." to ".$newP->score,
+				//"msg" =>	"Score ".($newP>$oldP?"increased":"decreased")." to ".$newP->score,
+				"msg" =>	"{L_LOG_PLAYER_SCORE_".($newP>$oldP?"INCREASED":"DECREASED")."|".$newP->score."}",
 			);
 		}
 		if( $newP->statusId != 1 /*a.k.a. player is no AI*/ &&
@@ -604,7 +606,8 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 				"type" => "turn",
 				"name" => $newP->name,
 				"id" => $newP->id,
-				"msg" =>	"Finished turn"
+				//"msg" =>	"Finished turn",
+				"msg" =>	"{L_LOG_PLAYER_FINISHED_TURN}",
 			);
 		}
 		if( $newP->statusId != $oldP->statusId ){
@@ -613,19 +616,19 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 			//	"msg" =>	"Score ".($newP>$oldP?"increased":"decreased")."to ".$newP->score;
 			switch( $newP->statusId ){
 			case 0:
-				$msg = "Eliminated";
+				$msg = "{L_LOG_ELIMINATED}";
 				$type = "eliminated";
 				break;
 			case 1:
-				$msg = "Switched to AI";
+				$msg = "{L_LOG_SWITCHED_TO_AI}";
 				$type = "ai";
 				break;
 			case 2:
-				$msg = "Logged out";
+				$msg = "{L_LOG_LOGGED_OUT}";
 				$type = "login";
 				break;
 			case 3:
-				$msg = ($oldP->statusId == 2?"Logged in":"Claimed by human");
+				$msg = ($oldP->statusId == 2?"{L_LOG_LOGGED_IN}":"{L_LOG_CLAIMED_BY_HUMAN}");
 				$type = "login";
 				break;
 			}
@@ -657,20 +660,34 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 				"type" => "game",
 				"name" => "",
 				"id" => -1,
-				"msg" =>	"New game was loaded."
+				//"msg" =>	"New game was loaded.",
+				"msg" =>	"{L_LOG_NEW_GAME|". $newStatus->gameDate ."}",
 			)
 		) );
 	}else{
 		$logMsgs = array_map("comparePlayer", $newPlayers, $oldPlayers);
 
 		if( $newRound ){
-			$newTurn = array (
-				array(
-					"type" => "turn",
-					"name" => "",
-					"id" => -1,
-					"msg" => "A new turn has begun. It is now ". $oldStatus->gameDate . ".",
-				) );
+			if($newStatus->gameTurn > $oldStatus->gameTurn ){
+				$newTurn = array (
+					array(
+						"type" => "turnNew",
+						"name" => "",
+						"id" => -1,
+						//"msg" => "A new turn has begun. It is now ". $newStatus->gameDate . ".",
+						"msg" =>	"{L_LOG_NEW_TURN|". $newStatus->gameDate ."}",
+					) );
+			}else{
+				$newTurn = array (
+					array(
+						"type" => "turnOld",
+						"name" => "",
+						"id" => -1,
+						//"msg" => "An earlier turn was loaded. It is now ". $newStatus->gameDate . ".",
+						"msg" =>	"{L_LOG_OLD_TURN|". $newStatus->gameDate ."}",
+					) );
+
+			}
 
 			$logMsgs[count($logMsgs)] = $newTurn;
 		}

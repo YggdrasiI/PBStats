@@ -35,8 +35,10 @@
 .log * td {padding: 5px;min-width:10em; }
 h2 { padding-top:1em}
 a,a:visited { color: inherit; }
-tr.eliminated td:nth-child(3) { background-color:#330000; }
-tr.turn td:nth-child(3) { background-color:#000033; }
-tr.score td:nth-child(3) { background-color:#003300; }
-tr.name td:nth-child(3) { background-color:#111111; }
-tr.game td:nth-child(3) { background-color:#d2c067; }
+tr.eliminated td:nth-child(3) { background-color:#330000; } /* Player was eliminated */
+tr.turn td:nth-child(3) { background-color:#000033; } /* Player end turn */
+tr.turnNew td:nth-child(3) { background-color:#000033; } /* Beginning of new round */
+tr.turnOld td:nth-child(3) { background-color:#330033; } /* Reloading older round */
+tr.score td:nth-child(3) { background-color:#003300; } /* Score of player was changed */
+tr.name td:nth-child(3) { background-color:#111111; } /* Other game was loaded */
+tr.game td:nth-child(3) { background-color:#a29037; }

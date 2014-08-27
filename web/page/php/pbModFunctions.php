@@ -321,7 +321,7 @@ function display_game_log($gameData){
 		check_pdo_error($db);
 		while($res = $result->fetch(PDO::FETCH_ASSOC)){
 			$dHtml .= "<tr class='".$res["messageType"]."'><td>" .	gmdate("d M H:i", $res["timestamp"]) . "</td><td>"
-				. $res["playerName"] . "</td><td>" . $res["message"] . "</td></tr>\n";
+				. $res["playerName"] . "</td><td>" . translate($res["message"]) . "</td></tr>\n";
 		}
 	}
 	$dHtml .= "</table>";

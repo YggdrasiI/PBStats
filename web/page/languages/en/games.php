@@ -78,4 +78,19 @@ $lang['game_notes_end_round'] = "Attention! Currently, no AI action (i.e. automa
 
 $lang['game_notes_player_password'] = "Note: Please use no special chars. They could be interpreted wrong.";
 
+// Log messages
+$lang['log_player_change_name'] = "Changed name to %s.";
+$lang['log_player_score_increased'] = "Score increased to %s.";
+$lang['log_player_score_decreased'] = "Score decreased to %s.";
+$lang['log_player_finished_turn'] = "Finished turn.";
+$lang['log_eliminated'] = "Eliminated";
+$lang['log_switched_to_ai'] = "Switched to AI.";
+$lang['log_logged_out'] = "Logged out.";
+$lang['log_logged_in'] = "Logged in.";
+$lang['log_claimed_by_human'] = "Claimed by human.";
+$lang['log_new_game'] = "New game was loaded. It is now %s.";
+$lang['log_new_turn'] = "A new turn has begun. It is now %s.";
+$lang['log_old_turn'] = "An earlier turn was loaded. It is now %s.";
+
+
 ?> 
