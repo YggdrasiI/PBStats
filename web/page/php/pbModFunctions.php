@@ -311,15 +311,23 @@ function display_game_log($gameData){
 
 	$db = get_db_handle();
 	if( $db != null ){
-		$where = "";
-		if( isset($_GET["logId"]) ){
-			$where="WHERE gameId=$gameId AND (playerId=".intval($_GET["logId"]) . " OR playerId=-1)";
+		$bRestrictOnUser = isset($_GET["logId"]);
+		if( $bRestrictOnUser ){
+			$where="WHERE gameId=? AND (playerId=? OR playerId=-1)";
+		}else{
+			$where="WHERE gameId=?";
 		}
 		$sql = "SELECT timestamp,playerName,message,messageType FROM log $where ORDER BY id DESC LIMIT 200";
+		$statement = $db->prepare($sql);
+		$statement->bindValue(1, $gameId,  PDO::PARAM_INT);
+		if( $bRestrictOnUser ){
+			$statement->bindValue(2, intval($_GET["logId"]),  PDO::PARAM_INT);
+		}
+		$result = $statement->execute();
 
-		$result = $db->query($sql);
 		check_pdo_error($db);
-		while($res = $result->fetch(PDO::FETCH_ASSOC)){
+		while( $result && $res = $statement->fetch(PDO::FETCH_ASSOC) )
+		{
 			$dHtml .= "<tr class='".$res["messageType"]."'><td>" .	gmdate("d M H:i", $res["timestamp"]) . "</td><td>"
 				. $res["playerName"] . "</td><td>" . translate($res["message"]) . "</td></tr>\n";
 		}
