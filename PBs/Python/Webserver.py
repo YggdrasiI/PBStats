@@ -268,19 +268,27 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 						self.wfile.write( simplejson.dumps( {'return':'fail','info':'Wrong password or unknown action. Available actions info, chat, save, restart, listSaves, setAutostart, setHeadless'} ) +"\n" ) 
 
 				except Exception, e:
-					self.wfile.write( simplejson.dumps( {'return':'fail','info': "Exception: " + str(e) } ) + "\n" )
+					# It was a bad idea to write output in the error case... Just pass now.
+					#self.wfile.write( simplejson.dumps( {'return':'fail','info': "Exception: " + str(e) } ) + "\n" )
+					pass
 
 
 			else:
-				data = {"return":"fail","info":"Wrong content type. Assume JSON data."}
-				self.send_response(200)
-				self.end_headers()
-				self.wfile.write( simplejson.dumps(data) + "\n" )
+				try:
+					data = {"return":"fail","info":"Wrong content type. Assume JSON data."}
+					self.send_response(200)
+					self.end_headers()
+					self.wfile.write( simplejson.dumps(data) + "\n" )
+				except Exception, e:
+					pass
 
 		else:
-			self.send_response(403)
-			self.send_header('Content-Type', 'application/json')
-			self.end_headers()
+			try:
+				self.send_response(403)
+				self.send_header('Content-Type', 'application/json')
+				self.end_headers()
+			except Exception, e:
+				pass
 		return
 
 
