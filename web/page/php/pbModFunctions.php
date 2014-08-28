@@ -92,50 +92,6 @@ function append_status($players){
 	return $players;
 }
 
-function handle_pitboss_actionOld($gameData, $arr_in) {
-
-	try{
-		$address = gethostbyname($gameData["url"]);
-		$port = $gameData["port"];
-
-	/* gethostbyname return value sucks if hostname in gameData is ip
-	if( $address === "?" ){
-		$error = array( "return"=>"failed","info" => "Can not resolve hostname.");
-		return json_encode($error);;
-	}*/
-		$fsock = @fsockopen($address, $port, $errno, $errstr, 2);
-		if( $fsock == false ){
-			throw new Exception($errstr);
-		}
-
-		//1. Send Data
-		$msg = json_encode( $arr_in );
-		fwrite($fsock, $msg);
-
-		//2. Get reply
-		$c = 0;
-		$result = "";
-		while (!feof($fsock)) {
-			$c++;
-			$resultPart = fread($fsock, 1024);
-			if( $resultPart == false ) break;
-			$result = $result . $resultPart;
-			if( $resultPart[strlen($resultPart)-1] === "\n" ) break;
-
-		}
-
-
-	}catch(Exception $e){
-		$error = array('return'=>'failed','info'=>'Socket connection failed. Error: '.$e->getMessage() );
-		return json_encode($error);
-	} /*finally (require >= PHP 5.5) */ if( isset($fsock) ) {
-		fclose($fsock);
-		unset($fsock);
-	}
-
-	return $result;
-}
-
 function handle_pitboss_action($gameData, $arr_in) {
 
 	$error = null;
@@ -212,6 +168,59 @@ function handle_pitboss_action($gameData, $arr_in) {
 		socket_close($socket);
 		unset($socket);
 	}
+
+	if( $error !== null ){
+		return json_encode($error);
+	}
+	return $jsonResponse;
+}
+
+/*
+ * This variant use http_put_data()
+ * which require the PECL extension.
+ * http://php.net/manual/de/http.setup.php
+ */
+function handle_pitboss_action_variant2($gameData, $arr_in) {
+
+	$error = null;
+	try{
+		$address = gethostbyname($gameData["url"]);
+		$port = $gameData["port"];
+		$host = "";
+		$url = "/api/v1/";
+
+	/* gethostbyname return value sucks if hostname in gameData is ip
+		if( $address === "?" ){
+			$error = array( "return"=>"failed","info" => "Can not resolve hostname.");
+			return json_encode($error);
+	}*/
+
+		$headers = array(
+			"Host" => $host,
+			"Content-Type" => "application/json",
+		);
+		$options = array(
+			'useragent'      => "PBStats",
+			'connecttimeout' => 2, 
+			'timeout'        => 2,
+			'redirect'       => 5,
+			'headers'        => $headers,
+		);
+
+		$request = json_encode( $arr_in );
+
+		$jsonResponse = http_put_data($address.$port.$url, $request, $options);
+
+		if( $jsonResponse === FALSE /*|| strlen($jsonResponse) < 1*/ ){
+			throw new Exception( "http_put_data() failed." );
+		}
+
+		echo $jsonResponse;
+		$jsonResponse = substr($jsonResponse,3+strpos($jsonResponse,"\n\r\n"));
+
+	}catch(Exception $e){
+		$error = array('return'=>'failed','info'=>'Socket connection failed. Error: '.$e->getMessage() );
+	} 
 
 	if( $error !== null ){
 		return json_encode($error);

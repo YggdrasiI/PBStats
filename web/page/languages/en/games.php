@@ -88,9 +88,9 @@ $lang['log_switched_to_ai'] = "Switched to AI.";
 $lang['log_logged_out'] = "Logged out.";
 $lang['log_logged_in'] = "Logged in.";
 $lang['log_claimed_by_human'] = "Claimed by human.";
-$lang['log_new_game'] = "New game was loaded. It is now %s.";
-$lang['log_new_turn'] = "A new turn has begun. It is now %s.";
-$lang['log_old_turn'] = "An earlier turn was loaded. It is now %s.";
+$lang['log_new_game'] = "New game was loaded. It is now %s (round %s).";
+$lang['log_new_turn'] = "A new turn has begun. It is now %s (round %s).";
+$lang['log_old_turn'] = "An earlier turn was loaded. It is now %s (round %s).";
 
 
 ?> 

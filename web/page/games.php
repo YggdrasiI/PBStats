@@ -32,6 +32,7 @@ if(isset($_GET['game'])){
 	}else
 		echo gamesListShort("Games",0,$nbrOfEntrys);
 }
+echo translate("{L_LOG_NEW_GAME|A|B}");
 ?>
 <br><br><br>
 <?php 

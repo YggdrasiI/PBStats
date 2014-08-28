@@ -90,8 +90,8 @@ $lang['log_switched_to_ai'] = "Kontrolle auf KI gestellt.";
 $lang['log_logged_out'] = "Ausgeloggt.";
 $lang['log_logged_in'] = "Eingeloggt.";
 $lang['log_claimed_by_human'] = "Durch menschlichen Spieler übernommen.";
-$lang['log_new_game'] = "Es wurde ein anderes Spiel geladen. Es ist nun %s.";
-$lang['log_new_turn'] = "Eine neue Runde hat begonnen. Es ist nun %s.";
-$lang['log_old_turn'] = "Eine frühere Runde wurde geladen. Es ist nun %s.";
+$lang['log_new_game'] = "Es wurde ein anderes Spiel geladen. Es ist nun %s (Runde %s).";
+$lang['log_new_turn'] = "Eine neue Runde hat begonnen. Es ist nun %s (Runde %s).";
+$lang['log_old_turn'] = "Eine frühere Runde wurde geladen. Es ist nun %s (Runde %s).";
 
 ?> 

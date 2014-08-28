@@ -661,7 +661,7 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 				"name" => "",
 				"id" => -1,
 				//"msg" =>	"New game was loaded.",
-				"msg" =>	"{L_LOG_NEW_GAME|". $newStatus->gameDate ."}",
+				"msg" =>	"{L_LOG_NEW_GAME|". $newStatus->gameDate ."|" . $newStatus->gameTurn . "}",
 			)
 		) );
 	}else{
@@ -675,7 +675,7 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 						"name" => "",
 						"id" => -1,
 						//"msg" => "A new turn has begun. It is now ". $newStatus->gameDate . ".",
-						"msg" =>	"{L_LOG_NEW_TURN|". $newStatus->gameDate ."}",
+						"msg" =>	"{L_LOG_NEW_TURN|". $newStatus->gameDate ."|" . $newStatus->gameTurn . "}"
 					) );
 			}else{
 				$newTurn = array (
@@ -684,7 +684,7 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 						"name" => "",
 						"id" => -1,
 						//"msg" => "An earlier turn was loaded. It is now ". $newStatus->gameDate . ".",
-						"msg" =>	"{L_LOG_OLD_TURN|". $newStatus->gameDate ."}",
+						"msg" =>	"{L_LOG_OLD_TURN|". $newStatus->gameDate ."|" . $newStatus->gameTurn . "}"
 					) );
 
 			}
