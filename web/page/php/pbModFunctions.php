@@ -335,9 +335,12 @@ function display_game_log($gameData){
 		$result = $statement->execute();
 
 		check_pdo_error($db);
+		$localDate = localDateTime();
+
 		while( $result && $res = $statement->fetch(PDO::FETCH_ASSOC) )
 		{
-			$dHtml .= "<tr class='".$res["messageType"]."'><td>" .	gmdate("d M H:i", $res["timestamp"]) . "</td><td>"
+			$localDate->setTimestamp($res["timestamp"]);
+			$dHtml .= "<tr class='".$res["messageType"]."'><td>" .	$localDate->format("d M H:i") . "</td><td>"
 				. $res["playerName"] . "</td><td>" . translate($res["message"]) . "</td></tr>\n";
 		}
 	}

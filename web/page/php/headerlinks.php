@@ -95,6 +95,12 @@ $html .= '<div id="fontSizeSelector"><p>
 	</div>
 	';
 
+$timezone = "Select Timezone";
+if( isset( $_COOKIE["timezone"] ) ){
+		$timezone = $_COOKIE["timezone"];
+}
+$html .= '<div id="timezoneSelector"><span onClick="getTimezoneList(this,\''.$timezone.'\');">'.$timezone.'</span></div>';
+
 
 
 //Indexseiten Template laden

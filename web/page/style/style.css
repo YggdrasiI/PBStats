@@ -87,7 +87,7 @@ h2 {font-size:1.675em;}
 	margin-left:0.5em;
 	/*margin-top:5em;*/
 	position:absolute;
-	left:0px;bottom:5em;
+	left:0px;bottom:4em;
 	z-index:100;
 }
 #flaggen img{
@@ -102,11 +102,26 @@ h2 {font-size:1.675em;}
 	padding-top:0.5em;
 	margin-left:0.5em;
 	position:absolute;
-	left:0px;bottom:1em;
+	left:0px;bottom:0em;
 	z-index:99;
 	cursor:pointer;
 }
-
+#timezoneSelector{
+	padding-top:0.5em;
+	margin-left:0.5em;
+	position:absolute;
+	/*left:6em;bottom:2em;*/
+	left:0px;bottom:7em;
+	z-index:98;
+	cursor:pointer;
+}
+#timezoneSelector select{
+	width:100%;
+}
+#timezoneSelector select option{
+	width:80%;
+	text-align:right;
+}
 
 #leftFrame{ /* subsite content */
 	position:absolute;

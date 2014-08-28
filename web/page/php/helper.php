@@ -324,6 +324,19 @@ function formatFilesize($dsize) {
 		return "$dsize KB";
 	}
 }
+
+/* Returns dateTime object which was set to 
+ * the local time of the user. The local time will 
+ * be detected by javascript+cookie */
+function localDateTime($time="now"){
+	$date = new DateTime($time);
+	if( isset( $_COOKIE["timezone"] ) ){
+		$date->setTimezone(new DateTimeZone($_COOKIE["timezone"]) );
+	}
+	return $date;	
+}
+
+
 /*
 	=========== END General Functions =============
  */
