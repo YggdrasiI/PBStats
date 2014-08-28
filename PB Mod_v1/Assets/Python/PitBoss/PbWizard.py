@@ -10,11 +10,11 @@
 
 from CvPythonExtensions import *
 import sys
+import os
 import string
 gc = CyGlobalContext()
 
 # Extra path for extra python modules
-pythonDir = gc.getAltrootDir()+'\\..\\Python\\'
-#sys.path.append(pythonDir)
-execfile(pythonDir + '\\PbWizard.py')
+pythonDir = os.path.join(gc.getAltrootDir(),'..','Python')
+execfile( os.path.join(pythonDir,'PbWizard.py'))
 
