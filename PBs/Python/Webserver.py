@@ -317,6 +317,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 	def shutdown(self):
 		self.socket.close()
+		self.server_close()
 		#In Python 2.4 the method 'shutdown' does not exists.
 		#But we set the Deamon flag to true, thus it should shutdown.
 		#HTTPServer.shutdown(self)
