@@ -25,7 +25,10 @@ class Game(models.Model):
     )
     description      = models.TextField(blank=True, null=True)
     url              = models.CharField(max_length=200, blank=True, null=True)
+
+    is_paused        = models.BooleanField(default=False)
     year             = models.SmallIntegerField(blank=True, null=True)
+    pb_name          = models.CharField(max_length=200)
     turn             = models.PositiveSmallIntegerField(blank=True, null=True)
     # In hours
     turn_timer_max_h  = models.PositiveIntegerField(blank=True, null=True)
@@ -34,6 +37,16 @@ class Game(models.Model):
 
     def turn_timer(self):
         return not self.turn_timer_max_h is None
+
+    def set_year(self, year_str):
+        (year, qual) = year_str.split(' ')
+        year = int(year)
+        if qual == 'AD':
+            self.year = year
+        elif qual == 'BC':
+            self.year = -year
+        else:
+            raise ValueError('invalid year suffix')
 
     def year_str(self):
         return format_year(self.year)
