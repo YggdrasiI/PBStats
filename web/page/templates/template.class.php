@@ -111,6 +111,7 @@ class Template
 	protected $rightDelimiterL = '\}';
 
 	protected $argumentDelimiterL = '\|';
+	protected $argumentDelimiterLunescaped = '|';
 
 	/**
 	 * Der komplette Pfad der Templatedatei.
@@ -346,7 +347,7 @@ class Template
 	 * */
 	public function preg_callback2($treffer) {
 		$key = strtolower( $treffer[1] );
-		$args = explode( $this->argumentDelimiterL, $treffer[2] ); 
+		$args = explode( $this->argumentDelimiterLunescaped, $treffer[2] ); 
 		return vsprintf( $this->replaceToken($key,$this->lang), $args );
 	}
 

@@ -348,16 +348,18 @@ function gameFull($game,$online /* False for preview during creation of new game
 						$dHtml .= "<h3 class='hr pad'><a href='$this_page?game=$gameId&action=admin&opid=$opid&step=2'>{L_GAME_END_ROUND}</a></h3>";
 						$dHtml .= "<p>{L_GAME_NOTES_END_ROUND}</p>";
 
-						$dHtml .= "<h3 class='hr pad'>{L_GAME_SET_TIMER}</h3>";
-						$dHtml .= "<p>{L_GAME_NOTES_SET_TIMER}</p>";
-						$dHtml .= "<form action='$this_page' method='get'>\n
-							<p>{L_HOURS}: <input type='text' name='hours' value='".$infos->info->turnTimerMax."' />\n
-							<input type='submit' />\n
-							<input type='hidden' name='action' value='admin' />\n
-							<input type='hidden' name='game' value='$gameId' />\n
-							<input type='hidden' name='step' value='4' />\n
-							<input type='hidden' name='opid' value='$opid' />\n
-							</p></form>\n";
+						if( isset( $infos->info->turnTimerMax ) ){
+							$dHtml .= "<h3 class='hr pad'>{L_GAME_SET_TIMER}</h3>";
+							$dHtml .= "<p>{L_GAME_NOTES_SET_TIMER}</p>";
+							$dHtml .= "<form action='$this_page' method='get'>\n
+								<p>{L_HOURS}: <input type='text' name='hours' value='".$infos->info->turnTimerMax."' />\n
+								<input type='submit' />\n
+								<input type='hidden' name='action' value='admin' />\n
+								<input type='hidden' name='game' value='$gameId' />\n
+								<input type='hidden' name='step' value='4' />\n
+								<input type='hidden' name='opid' value='$opid' />\n
+								</p></form>\n";
+						}
 
 						$dHtml .= "<h3 class='hr pad'>{L_GAME_CHAT_MESSAGE}</h3>";
 						$dHtml .= "<form action='$this_page' method='get'>\n

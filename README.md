@@ -37,7 +37,7 @@ If you do not want patch your executables you can also use the following entries
 
 Note that all players have to use the same NATNEG server. 
 Visit http://realmsbeyond.net/forums/showthread.php?tid=7123 (English) or  
-http://civ-wiki.de/wiki/Mehrspieler\_(Civ4) (German)  for more information.
+http://civ-wiki.de/wiki/Mehrspieler_(Civ4) (German)  for more information.
 
 
 Installation
@@ -95,18 +95,11 @@ the game will  restart if you close the window. Use Ctrl+C to abort the script.
 
 1. (Windows)
 For Windows users exists the script **startPitboss.bat**. 
-    * Place the script into your Civ4:BTS-Mods folder and open it 
-in a text editor.  Edit the lines of the form 
-`..\Civ4BeyondSword_PitBoss.exe mod= "PB Mod_v1"\" /ALTROOT="I:\PBs\PB1"`
-and adapt the ALTROOT path to your environment. 
-
-    * Copy the seed-folder (here I:\PBs\seed) 
-    into the ALTROOT-Folder (here: I:\PBs\PB1 ) and open 
-    Civilization.ini in PB1. 
-    * Set the value of **PitbossSMTPLogin** to the ALTROOT-path! 
-(here: PitbossSMTPLogin=I:\PBs\PB1 ) 
-    * Now, if you start the Batch-File and enter the game number (here: 1) 
-The Pitboss server should start. The startup is capsuled by a loop. 
+		* Open it in a text editor and alter the values of ALTROOT_BASEDIR and CIV4BTS_PATH
+		* The script contains two sample setups for the games 'PB1' and 'PB2'. Invoke the script
+		* one time and start PB1. This will copy the seed folder into %ALTROOT_BASEDIR%\PB1.
+    * Now, set the value of **PitbossSMTPLogin** in %ALTROOT_BASEDIR%\PB1\CivilizationIV.ini !
+    * If you start the Batch-File a second time, the Pitboss server should start  and load the default save.The startup is capsuled by a loop. 
 Thus, the game will restart if you close the window. Use Ctrl+C to 
 abort the script. 
 

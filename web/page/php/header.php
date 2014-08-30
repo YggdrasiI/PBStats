@@ -51,6 +51,7 @@ echo '<title>'.$htmlTitle.'</title>
 	<!--<link rel=stylesheet type="text/css" href="'.$subdir.'style/print.css" media="print">-->
 	<script src="'.$subdir.'js/helpers.js" type="text/javascript"></script>
 <script src="'.$subdir.'js/liam.js" type="text/javascript"></script>
+<script src="'.$subdir.'js/timezone.js" type="text/javascript"></script>
 <script src="'.$subdir.'js/ajax.js" type="text/javascript"></script>'.
 $htmlHead.'</head>
 <body class="backgroundImage" '.(hasValue("fontsize",$_COOKIE)?'style="font-size:'.$_COOKIE["fontsize"].'"':'').' >';

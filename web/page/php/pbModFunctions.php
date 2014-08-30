@@ -94,47 +94,140 @@ function append_status($players){
 
 function handle_pitboss_action($gameData, $arr_in) {
 
+	$error = null;
 	try{
 		$address = gethostbyname($gameData["url"]);
 		$port = $gameData["port"];
+		$host = "";
+		$url = "/api/v1/";
 
 	/* gethostbyname return value sucks if hostname in gameData is ip
-	if( $address === "?" ){
-		$error = array( "return"=>"failed","info" => "Can not resolve hostname.");
-		return json_encode($error);;
+		if( $address === "?" ){
+			$error = array( "return"=>"failed","info" => "Can not resolve hostname.");
+			return json_encode($error);
 	}*/
-		$fsock = @fsockopen($address, $port, $errno, $errstr, 2);
-		if( $fsock == false ){
-			throw new Exception($errstr);
+
+		$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+		if ($socket === false) {
+			unset($socket);
+			throw new Exception ( "socket_create() failed. Reason: " .
+				socket_strerror(socket_last_error()) );
 		}
 
-		//1. Send Data
-		$msg = json_encode( $arr_in );
-		fwrite($fsock, $msg);
+		//$timeout = array('sec'=>0,'usec'=>500000);
+		$timeout = array('sec'=>1,'usec'=>0);
+		socket_set_option($socket,SOL_SOCKET,SO_RCVTIMEO,$timeout);
+
+		if (!socket_connect ($socket, $address, $port)) {
+			throw new Exception ( "socket_connect() failed. Reason: " .
+				socket_strerror(socket_last_error()) );
+		}
+
+		$request = json_encode( $arr_in );
+
+		$httpQuery = "POST ". $url ." HTTP/1.0\r\n";
+		//$httpQuery .= "User-Agent: jsonrpc\r\n";
+		$httpQuery .= "Host: ". $host ."\r\n";
+		$httpQuery .= "Content-Type: application/json\r\n";
+		$httpQuery .= "Content-Length: ". strlen($request) ."\r\n\r\n";
+		$httpQuery .= $request ."\r\n";
+
+		if (!socket_send($socket, $httpQuery , strlen($httpQuery), MSG_EOR /*0, MSG_EOF*/)) {
+			throw new Exception ( "socket_send() failed. Reason: " .
+				socket_strerror(socket_last_error()) );
+		}
 
 		//2. Get reply
-		$c = 0;
-		$result = "";
-		while (!feof($fsock)) {
-			$c++;
-			$resultPart = fread($fsock, 1024);
-			if( $resultPart == false ) break;
-			$result = $result . $resultPart;
-			if( $resultPart[strlen($resultPart)-1] === "\n" ) break;
-
+		$jsonResponse = "";
+		$buff = "";
+		while ($bytes = socket_recv($socket, $buff, 1024, MSG_WAITALL) > 0) {
+			$jsonResponse .= $buff;
 		}
 
+		if( strlen($jsonResponse) < 1 ){
+			throw new Exception( "socket_recv() failed. Reply string was empty . Error: " .
+				socket_strerror(socket_last_error($socket))  );
+		}
+
+		// Just for debugging
+		if( socket_last_error($socket) ){
+			throw new Exception( "socket_recv() failed. Reason: " .
+				socket_strerror(socket_last_error($socket)) . "\n" );
+		}
+
+		socket_close($socket);
+		unset($socket);
+
+		//Cut of header, which ends with \r\n\r\n
+		//echo $jsonResponse;
+		$jsonResponse = substr($jsonResponse,3+strpos($jsonResponse,"\n\r\n"));
 
 	}catch(Exception $e){
 		$error = array('return'=>'failed','info'=>'Socket connection failed. Error: '.$e->getMessage() );
-		return json_encode($error);
-	} /*finally (require >= PHP 5.5) */ if( isset($fsock) ) {
-		fclose($fsock);
-		unset($fsock);
+	} /*finally (require >= PHP 5.5) */ if( isset($socket) ) {
+		socket_close($socket);
+		unset($socket);
 	}
 
-	return $result;
+	if( $error !== null ){
+		return json_encode($error);
+	}
+	return $jsonResponse;
 }
+
+/*
+ * This variant use http_put_data()
+ * which require the PECL extension.
+ * http://php.net/manual/de/http.setup.php
+ */
+function handle_pitboss_action_variant2($gameData, $arr_in) {
+
+	$error = null;
+	try{
+		$address = gethostbyname($gameData["url"]);
+		$port = $gameData["port"];
+		$host = "";
+		$url = "/api/v1/";
+
+	/* gethostbyname return value sucks if hostname in gameData is ip
+		if( $address === "?" ){
+			$error = array( "return"=>"failed","info" => "Can not resolve hostname.");
+			return json_encode($error);
+	}*/
+
+		$headers = array(
+			"Host" => $host,
+			"Content-Type" => "application/json",
+		);
+		$options = array(
+			'useragent'      => "PBStats",
+			'connecttimeout' => 2, 
+			'timeout'        => 2,
+			'redirect'       => 5,
+			'headers'        => $headers,
+		);
+
+		$request = json_encode( $arr_in );
+
+		$jsonResponse = http_put_data($address.$port.$url, $request, $options);
+
+		if( $jsonResponse === FALSE /*|| strlen($jsonResponse) < 1*/ ){
+			throw new Exception( "http_put_data() failed." );
+		}
+
+		echo $jsonResponse;
+		$jsonResponse = substr($jsonResponse,3+strpos($jsonResponse,"\n\r\n"));
+
+	}catch(Exception $e){
+		$error = array('return'=>'failed','info'=>'Socket connection failed. Error: '.$e->getMessage() );
+	} 
+
+	if( $error !== null ){
+		return json_encode($error);
+	}
+	return $jsonResponse;
+}
+
 
 //Check counter in the cookie to omit multiple calls of same command.
 function operation_already_done($val){
@@ -227,17 +320,28 @@ function display_game_log($gameData){
 
 	$db = get_db_handle();
 	if( $db != null ){
-		$where = "";
-		if( isset($_GET["logId"]) ){
-			$where="WHERE gameId=$gameId AND (playerId=".intval($_GET["logId"]) . " OR playerId=-1)";
+		$bRestrictOnUser = isset($_GET["logId"]);
+		if( $bRestrictOnUser ){
+			$where="WHERE gameId=? AND (playerId=? OR playerId=-1)";
+		}else{
+			$where="WHERE gameId=?";
 		}
 		$sql = "SELECT timestamp,playerName,message,messageType FROM log $where ORDER BY id DESC LIMIT 200";
+		$statement = $db->prepare($sql);
+		$statement->bindValue(1, $gameId,  PDO::PARAM_INT);
+		if( $bRestrictOnUser ){
+			$statement->bindValue(2, intval($_GET["logId"]),  PDO::PARAM_INT);
+		}
+		$result = $statement->execute();
 
-		$result = $db->query($sql);
 		check_pdo_error($db);
-		while($res = $result->fetch(PDO::FETCH_ASSOC)){
-			$dHtml .= "<tr class='".$res["messageType"]."'><td>" .	gmdate("d M H:i", $res["timestamp"]) . "</td><td>"
-				. $res["playerName"] . "</td><td>" . $res["message"] . "</td></tr>\n";
+		$localDate = localDateTime();
+
+		while( $result && $res = $statement->fetch(PDO::FETCH_ASSOC) )
+		{
+			$localDate->setTimestamp($res["timestamp"]);
+			$dHtml .= "<tr class='".$res["messageType"]."'><td>" .	$localDate->format("d M H:i") . "</td><td>"
+				. $res["playerName"] . "</td><td>" . translate($res["message"]) . "</td></tr>\n";
 		}
 	}
 	$dHtml .= "</table>";

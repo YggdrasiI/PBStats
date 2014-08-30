@@ -324,6 +324,19 @@ function formatFilesize($dsize) {
 		return "$dsize KB";
 	}
 }
+
+/* Returns dateTime object which was set to 
+ * the local time of the user. The local time will 
+ * be detected by javascript+cookie */
+function localDateTime($time="now"){
+	$date = new DateTime($time);
+	if( isset( $_COOKIE["timezone"] ) ){
+		$date->setTimezone(new DateTimeZone($_COOKIE["timezone"]) );
+	}
+	return $date;	
+}
+
+
 /*
 	=========== END General Functions =============
  */
@@ -585,7 +598,8 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 				"type" => "name",
 				"name" => $oldP->name,
 				"id" => $newP->id,
-				"msg" =>	"Changed name to ".$newP->name,
+				//"msg" =>	"Changed name to ".$newP->name,
+				"msg" =>	"{L_LOG_PLAYER_CHANGE_NAME|".$newP->name."}",
 			);
 		}
 		if( $newP->score != $oldP->score ){
@@ -593,7 +607,8 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 				"type" => "score",
 				"name" => $newP->name,
 				"id" => $newP->id,
-				"msg" =>	"Score ".($newP>$oldP?"increased":"decreased")." to ".$newP->score,
+				//"msg" =>	"Score ".($newP>$oldP?"increased":"decreased")." to ".$newP->score,
+				"msg" =>	"{L_LOG_PLAYER_SCORE_".($newP>$oldP?"INCREASED":"DECREASED")."|".$newP->score."}",
 			);
 		}
 		if( $newP->statusId != 1 /*a.k.a. player is no AI*/ &&
@@ -604,7 +619,8 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 				"type" => "turn",
 				"name" => $newP->name,
 				"id" => $newP->id,
-				"msg" =>	"Finished turn"
+				//"msg" =>	"Finished turn",
+				"msg" =>	"{L_LOG_PLAYER_FINISHED_TURN}",
 			);
 		}
 		if( $newP->statusId != $oldP->statusId ){
@@ -613,19 +629,19 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 			//	"msg" =>	"Score ".($newP>$oldP?"increased":"decreased")."to ".$newP->score;
 			switch( $newP->statusId ){
 			case 0:
-				$msg = "Eliminated";
+				$msg = "{L_LOG_ELIMINATED}";
 				$type = "eliminated";
 				break;
 			case 1:
-				$msg = "Switched to AI";
+				$msg = "{L_LOG_SWITCHED_TO_AI}";
 				$type = "ai";
 				break;
 			case 2:
-				$msg = "Logged out";
+				$msg = "{L_LOG_LOGGED_OUT}";
 				$type = "login";
 				break;
 			case 3:
-				$msg = ($oldP->statusId == 2?"Logged in":"Claimed by human");
+				$msg = ($oldP->statusId == 2?"{L_LOG_LOGGED_IN}":"{L_LOG_CLAIMED_BY_HUMAN}");
 				$type = "login";
 				break;
 			}
@@ -644,18 +660,50 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 
 	global $newRound;
 	$newRound = ( $newStatus->gameTurn != $oldStatus->gameTurn );
-	$logMsgs = array_map("comparePlayer", $newPlayers, $oldPlayers);
 
-	if( $newRound ){
-		$newTurn = array (
+	/*Check if the name of the game or number of players was changed
+	 * This indicates the loading of an other game. Try to omit the
+	 * creation of wrong log messages in this case.
+	 */
+	if( $newStatus->gameName !== $oldStatus->gameName || 
+		count($newPlayers) != count($oldPlayers)
+	){
+		$logMsgs = array ( array (
 			array(
-				"type" => "turn",
+				"type" => "game",
 				"name" => "",
 				"id" => -1,
-				"msg" => "A new turn has begun. It is now ". $oldStatus->gameDate . ".",
-			) );
+				//"msg" =>	"New game was loaded.",
+				"msg" =>	"{L_LOG_NEW_GAME|". $newStatus->gameDate ."|" . $newStatus->gameTurn . "}",
+			)
+		) );
+	}else{
+		$logMsgs = array_map("comparePlayer", $newPlayers, $oldPlayers);
 
-		$logMsgs[count($logMsgs)] = $newTurn;
+		if( $newRound ){
+			if($newStatus->gameTurn > $oldStatus->gameTurn ){
+				$newTurn = array (
+					array(
+						"type" => "turnNew",
+						"name" => "",
+						"id" => -1,
+						//"msg" => "A new turn has begun. It is now ". $newStatus->gameDate . ".",
+						"msg" =>	"{L_LOG_NEW_TURN|". $newStatus->gameDate ."|" . $newStatus->gameTurn . "}"
+					) );
+			}else{
+				$newTurn = array (
+					array(
+						"type" => "turnOld",
+						"name" => "",
+						"id" => -1,
+						//"msg" => "An earlier turn was loaded. It is now ". $newStatus->gameDate . ".",
+						"msg" =>	"{L_LOG_OLD_TURN|". $newStatus->gameDate ."|" . $newStatus->gameTurn . "}"
+					) );
+
+			}
+
+			$logMsgs[count($logMsgs)] = $newTurn;
+		}
 	}
 
 
