@@ -1,0 +1,25 @@
+{% extends "pbspy/base.html" %}
+{% load i18n %}
+
+{% block content %}
+{% if game_log %}
+    <table class='game_log'>
+        <tr>
+            <th>Name</th>
+            <th>Players</th>
+            <th>Current Year</th>
+            <th>Turn</th>
+        </tr>
+    {% for game in game_list %}
+        <tr>
+            <td>{{ gamelog.date }}</td>
+            <td>{{ gamelog.turn }}</td>
+            <td>{{ gamelog.player_name }}</td>
+            <td>{{ gamelog.message }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+{% else %}
+    <p>No games are available.</p>
+{% endif %}
+{% endblock %}

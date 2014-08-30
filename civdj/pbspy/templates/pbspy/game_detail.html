@@ -1,0 +1,47 @@
+{% extends "pbspy/base.html" %}
+{% load i18n %}
+
+{% block content %}
+    <div id="game_summary">
+        <h1 id="game_name">{{ game.name }}</h1>
+        <div class="game_info">{% trans "Turn" %}: {{ game.turn }}</div>
+        <div class="game_info">{% trans "Date" %}: {{ game.year_str }}</div>
+        <div class="game_info">{% trans "Timer" %}:
+            {% blocktrans %} {{ game.timer_remaining }} of {{ game.timer_hours }} {% endblocktrans %}
+        </div>
+        <div class="game_info">
+            {% if game.paused %}
+                {% trans "The game is paused." %}
+            {% else %}
+                {% trans "The game is not paused." %}
+            {% endif %}
+        </div>
+        <div id="game_description">{{ game.description }}</div>
+    </div>
+    <div id="game_players">
+
+    </div>
+    <div id="game_log">
+        {% if game_log %}
+            <table class='game_log'>
+                <tr>
+                    <th>Time</th>
+                    <th>Turn</th>
+                    <th>Player</th>
+                    <th>Event</th>
+                </tr>
+            {% for game in game_list %}
+                <tr>
+                    <td>{{ gamelog.date }}</td>
+                    <td>{{ gamelog.turn }}</td>
+                    <td>{{ gamelog.player_name }}</td>
+                    <td>{{ gamelog.message }}</td>
+                </tr>
+            {% endfor %}
+            </table>
+        {% else %}
+            <p>{% trans "No game log entry available yet." %}</p>
+        {% endif %}
+
+    </div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "pbspy/base.html" %}
+{% load i18n %}
+
+{% block content %}
+{% if game_list %}
+    <table class='game_list'>
+        <tr>
+            <th>Name</th>
+            <th>Players</th>
+            <th>Current Year</th>
+            <th>Turn</th>
+        </tr>
+    {% for game in game_list %}
+        <tr>
+            <td><a href="{% url 'game_detail' game.id %}">{{ game.name }}</a></td>
+            <td>{{ game.player_count }}</td>
+            <td>{{ game.year }}</td>
+            <td>{{ game.turn }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+{% else %}
+    <p>No games are available.</p>
+{% endif %}
+{% endblock %}
