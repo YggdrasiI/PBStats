@@ -63,36 +63,6 @@ def game_update(request):
     if info['return'] != 'ok':
         return HttpResponseBadRequest('bad request (return)')
 
-    info = info['info']  # ?!
-
-    game.pb_name   = info['gameName']
-    game.turn      = info['gameTurn']
-    game.is_paused = info['bPaused']
-    game.set_year(info['gameDate'])
-
-    if info['turnTimer']:
-        game.turn_timer_max_h  = info['turnTimerMax']
-        game.turn_timer_left_s = info['turnTimerValue']
-    else:
-        game.turn_timer_max_h  = None
-        game.turn_timer_left_s = None
-
-    for player_info in info['players']:
-        try:
-            player = game.player_set.get(ingame_id=player_info['id'])
-        except Player.DoesNotExist:
-            player = Player(ingame_id=player_info['id'], game=game)
-        player.finished_turn = player_info['finishedTurn']
-        player.name          = player_info['name']
-        player.score         = int(player_info['score'])
-        player.ping          = player_info['ping']
-        player.is_human      = player_info['bHuman']
-        player.is_claimed    = player_info['bClaimed']
-        player.civilization  = player_info['civilization']
-        player.leader        = player_info['leader']
-        player.color         = player_info['color']
-        player.save()
-
-    game.save()
+    game.set_from_dict(info, info['info'])
 
     return HttpResponse('ok')

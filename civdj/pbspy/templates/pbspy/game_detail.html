@@ -29,10 +29,10 @@
         {% if game_log %}
             <table class='game_log'>
                 <tr>
-                    <th>Time</th>
-                    <th>Turn</th>
-                    <th>Player</th>
-                    <th>Event</th>
+                    <th>{% trans "Time" %}</th>
+                    <th>{% trans "Turn" %}</th>
+                    <th>{% trans "Player" %}</th>
+                    <th>{% trans "Event" %}</th>
                 </tr>
             {% for game in game_list %}
                 <tr>
@@ -46,6 +46,5 @@
         {% else %}
             <p>{% trans "No game log entry available yet." %}</p>
         {% endif %}
-
     </div>
 {% endblock %}

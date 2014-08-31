@@ -1,13 +1,25 @@
 from django.utils.translation import ugettext as _
-from django.db import models
+from django.db import models, transaction
 from django.core.validators import MaxValueValidator, MinValueValidator
 from polymorphic import PolymorphicModel
+from django.utils import timezone
 
 
 def format_year(number):
     if number >= 0:
         return _("{year} AD").format(year=number)
     return _("{year} BC").format(year=-number)
+
+
+def parse_year(year_str):
+    (year, qual) = year_str.split(' ')
+    year = int(year)
+    if qual == 'AD':
+        return year
+    elif qual == 'BC':
+        return -year
+    else:
+        raise ValueError('invalid year suffix')
 
 
 class Game(models.Model):
@@ -25,10 +37,12 @@ class Game(models.Model):
     )
     description     = models.TextField(blank=True, null=True)
     url             = models.CharField(max_length=200, blank=True, null=True)
+
+    update_date     = models.DateTimeField(blank=True, null=True)
     is_paused       = models.BooleanField(default=False)
-    year            = models.SmallIntegerField(blank=True, null=True)
+    year            = models.FloatField(blank=True, null=True)
     pb_name         = models.CharField(blank=True, null=True, max_length=200)
-    turn            = models.PositiveSmallIntegerField(blank=True, null=True)
+    turn            = models.PositiveSmallIntegerField(default=0)
     # In hours
     timer_max_h     = models.PositiveIntegerField(blank=True, null=True)
     # In seconds!
@@ -37,18 +51,58 @@ class Game(models.Model):
     def timer(self):
         return self.timer_max_h is not None
 
-    def set_year(self, year_str):
-        (year, qual) = year_str.split(' ')
-        year = int(year)
-        if qual == 'AD':
-            self.year = year
-        elif qual == 'BC':
-            self.year = -year
-        else:
-            raise ValueError('invalid year suffix')
-
     def year_str(self):
         return format_year(self.year)
+
+    @transaction.atomic
+    def set_from_dict(self, info):
+        date = timezone.now()
+
+        year = parse_year(info['gameDate'])
+        turn = int(info['turn'])
+
+        logargs = {'game': self, 'date': date,
+                   'year': year, 'turn': turn}
+
+        if info['turnTimer']:
+            timer_max_h  = int(info['turnTimerMax'])
+            timer_left_s = int(info['turnTimerValue'])
+        else:
+            timer_max_h  = None
+            timer_left_s = None
+
+        if timer_max_h != self.timer_max_h:
+            GameLogTimerChanged(timer_max_h, **logargs).save()
+
+        player_count_old = self.player_set.count()
+        if (self.pb_name != info['gameName'] or
+                player_count_old != len(info['players'])):
+            GameLogMetaChange(pb_name_old=self.pb_name, pb_name=info['gameName'],
+                              player_count_old=player_count_old,
+                              player_count=len(info['players']))
+
+        if turn > self.turn:
+            GameLogTurn(**logargs).save()
+        elif (turn < self.turn or
+                (timer_left_s is not None and self.timer_left_s is not None and
+                 timer_left_s > self.timer_left_s)):
+            GameLogReload(**logargs).save()
+
+        self.timer_max_h  = timer_max_h
+        self.timer_left_s = timer_left_s
+        self.update_date  = date
+        self.pb_name      = info['gameName']
+        self.turn         = turn
+        self.is_paused    = info['bPaused']
+        self.year         = year
+        self.save()
+
+        for player_info in info['players']:
+            try:
+                player = self.player_set.get(ingame_id=player_info['id'])
+            except Player.DoesNotExist:
+                player = Player(ingame_id=player_info['id'], game=self)
+            player.set_from_dict(player_info, logargs)
 
     def __str__(self):
         return self.name
@@ -79,6 +133,7 @@ class Player(models.Model):
     # Id as a fieldname is not allowed except for primary keys
     ingame_id     = models.PositiveSmallIntegerField()
     game          = models.ForeignKey(Game, db_index=True)
+
     name          = models.TextField(max_length=200)
     score         = models.PositiveIntegerField()
     finished_turn = models.BooleanField(default=False)
@@ -86,11 +141,58 @@ class Player(models.Model):
     ping          = models.TextField(max_length=200, verbose_name='connection status')
     is_human      = models.BooleanField(default=False)
     is_claimed    = models.BooleanField(default=False)
+    is_online     = models.BooleanField(default=False)
     civilization  = models.TextField(max_length=200)
     leader        = models.TextField(max_length=200)
     # Formatted as "RRR,GGG,BBB" decimal
     color_rgb     = models.TextField(max_length=3 * 3 + 2)
 
+    def set_from_dict(self, info, logargs):
+        logargs['player'] = self
+        logargs['player_name'] = self.name
+
+        score    = int(info['score'])
+        # for online players ping is " [123 ms]"
+        is_online = info['ping'][1] == '['
+
+        if self.name != info['name']:
+            GameLogNameChange(player_name_new=info['name'], **logargs).save()
+
+        if info['bClaimed'] and not self.is_claimed:
+            GameLogClaimed(**logargs).save()
+
+        if not info['bHuman'] and self.is_human:
+            GameLogAI(**logargs).save()
+
+        if is_online and not self.is_online:
+            GameLogLogin(**logargs).save()
+
+        if self.score != score:
+            if score > 0:
+                GameLogScore(score=score, increase=(score > self.score), **logargs).save()
+            else:
+                GameLogEliminated(**logargs).save()
+
+        if (not self.finished_turn) and info['finishedTurn'] and self.is_human:
+            GameLogFinish(**logargs).save()
+
+        if not is_online and self.is_online:
+            GameLogLogout(**logargs).save()
+
+        self.name          = info['name']
+        self.score         = score
+        self.finished_turn = info['finishedTurn']
+    #    if self.ping == "" info['ping'] == "Disconnected":
+        self.ping          = info['ping']
+        self.is_human      = info['bHuman']
+        self.is_online     = is_online
+        self.is_claimed    = info['bClaimed']
+        self.civilization  = info['civilization']
+        self.leader        = info['leader']
+        self.color_rgb     = info['color']
+        self.save()
+
+    @property
     def color(self):
         return Color(self.color_rgb)
 
@@ -122,12 +224,44 @@ class GameLogTurn(GameLog):
 
 class GameLogReload(GameLog):
     def message(self):
-        return _("game was reloaded")
+        return _("The game was reloaded on year {year}").\
+            format(year=format_year(self.year))
+
+
+class GameLogMetaChange(GameLog):
+    pb_name_old      = models.CharField(max_length=200)
+    pb_name          = models.CharField(max_length=200)
+    player_count_old = models.SmallIntegerField()
+    player_count     = models.SmallIntegerField()
+
+    def message(self):
+        return _("A game named {name} was started with {num_players} players.").\
+            format(name=self.game_name_new, num_players=self.num_players_new)
+
+
+class GameLogTimerChanged(GameLog):
+    timer_max_h = models.PositiveSmallIntegerField(blank=True, null=True)
+
+    def message(self):
+        if self.timer_max_h is not None:
+            return _("Turn timer changed to {timer} hours.").\
+                format(timer=self.timer_max_h)
+        return _("Turn timer disabled.")
+
+
+class GameLogPause(GameLog):
+    paused = models.BooleanField(default=None)
+
+    def message(self):
+        if self.paused:
+            return _("Game paused.")
+        else:
+            return _("Game resumed")
 
 
 class GameLogServerTimeout(GameLog):
     def message(self):
-        return _("server timed out")
+        return _("Server timed out.")
 
 
 class GameLogPlayer(GameLog):
@@ -157,7 +291,7 @@ class GameLogScore(GameLogPlayer):
     increase = models.BooleanField(default=None)
 
     def message(self):
-        if self.increse:
+        if self.increase:
             return _("Score increased to {score}").format(score=self.score)
         else:
             return _("Score decreased to {score}").format(score=self.score)
@@ -167,7 +301,7 @@ class GameLogNameChange(GameLogPlayer):
     player_name_new = models.CharField(max_length=200)
 
     def message(self):
-        return _("Changed name to {new_name}").format(self.player_name_new)
+        return _("Changed name to {new_name}").format(new_name=self.player_name_new)
 
 
 class GameLogEliminated(GameLogPlayer):
@@ -180,9 +314,3 @@ class GameLogAI(GameLogPlayer):
 
 class GameLogClaimed(GameLogPlayer):
     text = "Claimed"
-
-
-class StatusCache(models.Model):
-    game = models.ForeignKey(Game)
-    date = models.DateTimeField(db_index=True)
-    json_status = models.TextField()

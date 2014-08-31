@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'polymorphic',
     'pbspy',
     'debug_toolbar',
+    'erroneous',
 )
 
 MIDDLEWARE_CLASSES = (
