@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="PitbossSniffer" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/PitbossSniffer" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/PitbossSniffer" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+			</Target>
+		</Build>
+		<Compiler>
+			<Add directory="../WpdPack/Include" />
+		</Compiler>
+		<Linker>
+			<Add option="-lws2_32" />
+			<Add option="-lwsock32" />
+			<Add option="-lkernel32" />
+			<Add library="..\WpdPack\Lib\wpcap.lib" />
+			<Add library="..\WpdPack\Lib\Packet.lib" />
+			<Add directory="../WpdPack/Lib" />
+		</Linker>
+		<Unit filename="hashmap.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="packetConstruction.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
