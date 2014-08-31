@@ -4,8 +4,11 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from polymorphic import PolymorphicModel
 from django.utils import timezone
 
+import datetime
 
 def format_year(number):
+    if number is None:
+        return None
     if number >= 0:
         return _("{year} AD").format(year=number)
     return _("{year} BC").format(year=-number)
@@ -46,10 +49,15 @@ class Game(models.Model):
     # In hours
     timer_max_h     = models.PositiveIntegerField(blank=True, null=True)
     # In seconds!
-    timer_left_s    = models.PositiveIntegerField(blank=True, null=True)
+    timer_remaining_4s = models.PositiveIntegerField(blank=True, null=True)
 
     def timer(self):
         return self.timer_max_h is not None
+
+    def timer_end(self):
+        delta = datetime.timedelta(seconds=round(self.timer_remaining_4s / 4))
+        print(self.update_date + delta)
+        return self.update_date + delta
 
     def year_str(self):
         return format_year(self.year)
@@ -58,21 +66,23 @@ class Game(models.Model):
     def set_from_dict(self, info):
         date = timezone.now()
 
-        year = parse_year(info['gameDate'])
-        turn = int(info['turn'])
+        year      = parse_year(info['gameDate'])
+        turn      = int(info['gameTurn'])
+        is_paused = bool(info['bPaused'])
+        pb_name   = info['gameName']
 
         logargs = {'game': self, 'date': date,
                    'year': year, 'turn': turn}
 
         if info['turnTimer']:
-            timer_max_h  = int(info['turnTimerMax'])
-            timer_left_s = int(info['turnTimerValue'])
+            timer_max_h        = int(info['turnTimerMax'])
+            timer_remaining_4s = int(info['turnTimerValue'])
         else:
-            timer_max_h  = None
-            timer_left_s = None
+            timer_max_h        = None
+            timer_remaining_4s = None
 
         if timer_max_h != self.timer_max_h:
-            GameLogTimerChanged(timer_max_h, **logargs).save()
+            GameLogTimerChanged(timer_max_h=timer_max_h, **logargs).save()
 
         player_count_old = self.player_set.count()
         if (self.pb_name != info['gameName'] or
@@ -84,17 +94,20 @@ class Game(models.Model):
         if turn > self.turn:
             GameLogTurn(**logargs).save()
         elif (turn < self.turn or
-                (timer_left_s is not None and self.timer_left_s is not None and
-                 timer_left_s > self.timer_left_s)):
+                (timer_remaining_4s is not None and self.timer_remaining_4s is not None and
+                 timer_remaining_4s > self.timer_remaining_4s)):
             GameLogReload(**logargs).save()
 
-        self.timer_max_h  = timer_max_h
-        self.timer_left_s = timer_left_s
-        self.update_date  = date
-        self.pb_name      = info['gameName']
-        self.turn         = turn
-        self.is_paused    = info['bPaused']
-        self.year         = year
+        if is_paused != self.is_paused:
+            GameLogPause(paused=is_paused, **logargs).save()
+
+        self.timer_max_h        = timer_max_h
+        self.timer_remaining_4s = timer_remaining_4s
+        self.update_date        = date
+        self.pb_name            = pb_name
+        self.turn               = turn
+        self.is_paused          = is_paused
+        self.year               = year
         self.save()
 
         for player_info in info['players']:
@@ -147,6 +160,17 @@ class Player(models.Model):
     # Formatted as "RRR,GGG,BBB" decimal
     color_rgb     = models.TextField(max_length=3 * 3 + 2)
 
+    def status(self):
+#        if not self.is_claimed:
+#            return _('unclaimed')
+        if self.score == 0:
+            return _('eliminated')
+        if not self.is_human:
+            return _('AI')
+        if self.is_online:
+            return _('online')
+        return _('offline')
+
     def set_from_dict(self, info, logargs):
         logargs['player'] = self
         logargs['player_name'] = self.name
@@ -155,29 +179,31 @@ class Player(models.Model):
         # for online players ping is " [123 ms]"
         is_online = info['ping'][1] == '['
 
-        if self.name != info['name']:
-            GameLogNameChange(player_name_new=info['name'], **logargs).save()
+        # don't crate log entries for first entry
+        if self.id is not None:
+            if self.name != info['name']:
+                GameLogNameChange(player_name_new=info['name'], **logargs).save()
 
-        if info['bClaimed'] and not self.is_claimed:
-            GameLogClaimed(**logargs).save()
+            if info['bClaimed'] and not self.is_claimed:
+                GameLogClaimed(**logargs).save()
 
-        if not info['bHuman'] and self.is_human:
-            GameLogAI(**logargs).save()
+            if not info['bHuman'] and self.is_human:
+                GameLogAI(**logargs).save()
 
-        if is_online and not self.is_online:
-            GameLogLogin(**logargs).save()
+            if is_online and not self.is_online:
+                GameLogLogin(**logargs).save()
 
-        if self.score != score:
-            if score > 0:
-                GameLogScore(score=score, increase=(score > self.score), **logargs).save()
-            else:
-                GameLogEliminated(**logargs).save()
+            if self.score != score:
+                if score > 0:
+                    GameLogScore(score=score, increase=(score > self.score), **logargs).save()
+                else:
+                    GameLogEliminated(**logargs).save()
 
-        if (not self.finished_turn) and info['finishedTurn'] and self.is_human:
-            GameLogFinish(**logargs).save()
+            if (not self.finished_turn) and info['finishedTurn'] and self.is_human:
+                GameLogFinish(**logargs).save()
 
-        if not is_online and self.is_online:
-            GameLogLogout(**logargs).save()
+            if not is_online and self.is_online:
+                GameLogLogout(**logargs).save()
 
         self.name          = info['name']
         self.score         = score

@@ -20,7 +20,14 @@ game_list = GameListView.as_view()
 
 class GameDetailView(generic.DetailView):
     model = Game
-    
+
+    def get_context_data(self, **kwargs):
+        context = super(GameDetailView, self).get_context_data(**kwargs)
+        game = self.object
+        context['players'] = list(game.player_set.all())
+        context['log'] = game.gamelog_set.order_by('-id')
+        return context
+
 game_detail = GameDetailView.as_view()
 
 
@@ -63,6 +70,6 @@ def game_update(request):
     if info['return'] != 'ok':
         return HttpResponseBadRequest('bad request (return)')
 
-    game.set_from_dict(info, info['info'])
+    game.set_from_dict(info['info'])
 
     return HttpResponse('ok')
