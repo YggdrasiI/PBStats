@@ -11,32 +11,31 @@ def format_year(number):
 
 
 class Game(models.Model):
-    auth_token_hash  = models.CharField(max_length=200)
-    create_date      = models.DateTimeField(auto_now_add=True)
-    name             = models.CharField(max_length=200, unique=True)
-    hostname         = models.CharField(max_length=200)
-    port             = models.PositiveIntegerField(
+    auth_token_hash = models.CharField(max_length=200)
+    create_date     = models.DateTimeField(auto_now_add=True)
+    name            = models.CharField(max_length=200, unique=True)
+    hostname        = models.CharField(max_length=200)
+    port            = models.PositiveIntegerField(
         default=2056,
         validators=[MaxValueValidator(65535), MinValueValidator(1)]
     )
-    manage_port      = models.PositiveIntegerField(
+    manage_port     = models.PositiveIntegerField(
         default=13373,
         validators=[MaxValueValidator(65535), MinValueValidator(1)]
     )
-    description      = models.TextField(blank=True, null=True)
-    url              = models.CharField(max_length=200, blank=True, null=True)
-
-    is_paused        = models.BooleanField(default=False)
-    year             = models.SmallIntegerField(blank=True, null=True)
-    pb_name          = models.CharField(max_length=200)
-    turn             = models.PositiveSmallIntegerField(blank=True, null=True)
+    description     = models.TextField(blank=True, null=True)
+    url             = models.CharField(max_length=200, blank=True, null=True)
+    is_paused       = models.BooleanField(default=False)
+    year            = models.SmallIntegerField(blank=True, null=True)
+    pb_name         = models.CharField(blank=True, null=True, max_length=200)
+    turn            = models.PositiveSmallIntegerField(blank=True, null=True)
     # In hours
-    turn_timer_max_h  = models.PositiveIntegerField(blank=True, null=True)
+    timer_max_h     = models.PositiveIntegerField(blank=True, null=True)
     # In seconds!
-    turn_timer_left_s = models.PositiveIntegerField(blank=True, null=True)
+    timer_left_s    = models.PositiveIntegerField(blank=True, null=True)
 
-    def turn_timer(self):
-        return not self.turn_timer_max_h is None
+    def timer(self):
+        return self.timer_max_h is not None
 
     def set_year(self, year_str):
         (year, qual) = year_str.split(' ')
@@ -59,7 +58,7 @@ class Color():
     def __init__(self, rgbstr):
         darkness = 0
         try:
-            rgb = self.rgbstr.split(',')
+            rgb = rgbstr.split(',')
             self.web = "#"
             for idx in range(0, 3):
                 comp = int(rgb[idx])
@@ -74,8 +73,12 @@ class Color():
 
 
 class Player(models.Model):
-    id            = models.PositiveSmallIntegerField(primary_key=True)
-    game          = models.ForeignKey(Game)
+    # We leave it Django to make us a nice auto/unique PK for ForeignKey
+    # Allthough it would be nice to have a composite primary key (game, ingame_id).
+    # https://github.com/simone/django-compositekey doesn't work with Django 1.7 / Python3
+    # Id as a fieldname is not allowed except for primary keys
+    ingame_id     = models.PositiveSmallIntegerField()
+    game          = models.ForeignKey(Game, db_index=True)
     name          = models.TextField(max_length=200)
     score         = models.PositiveIntegerField()
     finished_turn = models.BooleanField(default=False)
@@ -90,6 +93,10 @@ class Player(models.Model):
 
     def color(self):
         return Color(self.color_rgb)
+
+    class Meta:
+        unique_together = (('ingame_id', 'game'),)
+        index_together  = (('ingame_id', 'game'),)
 
 
 class GameLog(PolymorphicModel):

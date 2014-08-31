@@ -4,11 +4,15 @@
 {% block content %}
     <div id="game_summary">
         <h1 id="game_name">{{ game.name }}</h1>
-        <div class="game_info">{% trans "Turn" %}: {{ game.turn }}</div>
-        <div class="game_info">{% trans "Date" %}: {{ game.year_str }}</div>
-        <div class="game_info">{% trans "Timer" %}:
-            {% blocktrans %} {{ game.timer_remaining }} of {{ game.timer_hours }} {% endblocktrans %}
-        </div>
+        <div class="game_info">{% trans "Turn" %}: {{ game.turn|default:_("n/a") }}</div>
+        <div class="game_info">{% trans "Year" %}: {{ game.year_str|default:_("n/a") }}</div>
+        {% if game.timer %}
+            <div class="game_info">{% trans "Timer" %}:
+                {% blocktrans %} {{ game.timer_remaining }} of {{ game.timer_hours }} {% endblocktrans %}
+            </div>
+        {% else %}
+            <div class="game_info">{% trans "No timer set." %}:</div>
+        {% endif %}
         <div class="game_info">
             {% if game.paused %}
                 {% trans "The game is paused." %}
