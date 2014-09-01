@@ -1,4 +1,4 @@
-
+/* Adaption of https://github.com/arian/hashmap */
 #include <stdlib.h>
 #include <stddef.h>
 #include "hashmap.h"

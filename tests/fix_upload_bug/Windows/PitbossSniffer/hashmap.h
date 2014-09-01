@@ -1,4 +1,4 @@
-
+/* Adaption of https://github.com/arian/hashmap */
 #ifndef HASHMAP_HEADER
 #define HASHMAP_HEADER
 
