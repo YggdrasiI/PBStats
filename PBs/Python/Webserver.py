@@ -92,7 +92,8 @@ def savePbSettings():
 
 	try:
 		fp = file(pbFn,"w")
-		simplejson.dump(pbSettings,fp)
+		# Note that it's ness. to use the old syntax (integer value) for indent argument!
+		simplejson.dump(pbSettings, fp, indent=1 )
 	except Exception, e:
 		pass
 
