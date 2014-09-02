@@ -16,12 +16,10 @@ Look at **PBs/convertSavesToMod.sh** if you want convert your saves.
 Extras
 =======
 
-We developed two solution for Civ4:BTS players which are useable **without** this modification, too. 
+We developed two solution for Civ4:BTS players which are usable **without** this modification, too. 
 
-1. test/fix_upload_bug contains a solution for the upload bug problematic of Pitboss servers. It will 
-analyze the traffic of your PB servers and force the end of sending data to clients 
-which are already disconnected.
-Currently, the Python-Script only run on Linux hosts. It will be ported to Windows in a few days.
+1. test/fix_upload_bug contains a solution for the upload bug problematic of Pitboss servers. The executable (Windows) or Python script (Linux) will 
+analyze the traffic of your PB servers. If it detects that a client does not response but the server sends data, it will fake the reply of the client (to simulate a normal disconnection).
 
 2. The shutdown of the Gamespy NATNEG Servers causes many issues for Multiplayer games. This was solved 
 by the community with open NATNEG servers for several games. We've patched the Civ4:BTS executable to 
@@ -84,12 +82,13 @@ Use this as root for your ALTROOT folders.
 1. (Linux/Wine) 
 For Linux exists a script to automate a few steps… 
    * Open the script startPitboss.sh and adapt the follwing values: 
-_CIV4BTS_PATH="$HOME/Civ4/Beyond the Sword"_ 
-_ALTROOT_SEED="$HOME/PBs/seed"_  
+_CIV4BTS_PATH="$HOME/Civ4/Beyond the Sword"_  
+_ALTROOT_BASEDIR="$HOME/PBStats/PBs"_  
 Look at the case-switch where I place two example entries (PB1 and PB2) 
 Extend this list if you need more game slots. 
     * If all paths are set, run the script and enter the numer of your game 
 slot. At first startup the **seed** directory will be copied to the ALTROOT path. 
+ 
 Note that the startup of the pitboss window is capsuled into a loop. Thus, 
 the game will  restart if you close the window. Use Ctrl+C to abort the script. 
 
