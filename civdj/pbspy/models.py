@@ -183,6 +183,7 @@ class Player(models.Model):
         if self.id is not None:
             if self.name != info['name']:
                 GameLogNameChange(player_name_new=info['name'], **logargs).save()
+                logargs['player_name'] = info['name']
 
             if info['bClaimed'] and not self.is_claimed:
                 GameLogClaimed(**logargs).save()
