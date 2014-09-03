@@ -29,7 +29,7 @@ CIV4BTS_PATH="$HOME/Civ4/Beyond the Sword"
 # Folder which will be used as container for all ALTROOT directories.
 # It should contains the configuration seed folder (seed) 
 # Set this to the subfolder '[...]/PBStats/PBs' !
-ALTROOT_BASEDIR="$HOME/PBs"
+ALTROOT_BASEDIR="$HOME/PBStats/PBs"
 
 GAMEID="menu"
 test -n "$1" && GAMEID="$1"

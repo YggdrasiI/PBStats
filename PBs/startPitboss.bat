@@ -22,8 +22,8 @@ rem
 
 rem ### Begin of configuration ###
 
-SET ALTROOT_BASEDIR=I:\PBs
-SET CIV4BTS_PATH=I:\Olaf\Civ4\Beyond the Sword\
+SET ALTROOT_BASEDIR=C:\PBStats\PBs
+SET CIV4BTS_PATH=C:\Civ4\Beyond the Sword\
 
 
 echo...........................................................
