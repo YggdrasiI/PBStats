@@ -9,12 +9,12 @@ function sortById($a, $b) {
 	$s = 0;
 	if( $s == 0 ) $s = $a->id - $b->id;
 	if( $s == 0 ) $s = $b->score - $a->score;
-	if( $s == 0 ) $s = strcmp($a->name, $b->name);
+	if( $s == 0 ) $s = strcasecmp($a->name, $b->name);
 	return $s;
 };
 function sortByName($a, $b) {
 	$s = 0;
-	if( $s == 0 ) $s = strcmp($a->name, $b->name);
+	if( $s == 0 ) $s = strcasecmp($a->name, $b->name);
 	if( $s == 0 ) $s = $b->score - $a->score;
 	if( $s == 0 ) $s = $a->id - $b->id;
 	return $s;
@@ -22,7 +22,7 @@ function sortByName($a, $b) {
 function sortByScore($a, $b) {
 	$s = 0;
 	if( $s == 0 ) $s = $b->score - $a->score;
-	if( $s == 0 ) $s = strcmp($a->name, $b->name);
+	if( $s == 0 ) $s = strcasecmp($a->name, $b->name);
 	if( $s == 0 ) $s = $a->id - $b->id;
 	return $s;
 };
@@ -30,32 +30,32 @@ function sortByEndTurn($a, $b) {
 	$s = 0;
 	if( $s == 0 ) $s = $a->finishedTurn - $b->finishedTurn;
 	if( $s == 0 ) $s = $a->id - $b->id;
-	if( $s == 0 ) $s = strcmp($a->name, $b->name);
+	if( $s == 0 ) $s = strcasecmp($a->name, $b->name);
 	if( $s == 0 ) $s = $b->score - $a->score;
 	return $s;
 };
 function sortByStatus($a, $b) {
 	$s = 0;
 	if( $s == 0 ) $s = -strcmp($a->ping, $b->ping);
-	if( $s == 0 ) $s = strcmp($a->name, $b->name);
+	if( $s == 0 ) $s = strcasecmp($a->name, $b->name);
 	if( $s == 0 ) $s = $b->score - $a->score;
 	if( $s == 0 ) $s = $b->id - $a->id;
 	return $s;
 };
 function sortByLeader($a, $b) {
 	$s = 0;
-	if( $s == 0 ) $s = strcmp($a->leader, $b->leader);
+	if( $s == 0 ) $s = strcasecmp($a->leader, $b->leader);
 	if( $s == 0 ) $s = $b->score - $a->score;
 	if( $s == 0 ) $s = $b->id - $a->id;
-	if( $s == 0 ) $s = strcmp($a->name, $b->name);
+	if( $s == 0 ) $s = strcasecmp($a->name, $b->name);
 	return $s;
 };
 function sortByCiv($a, $b) {
 	$s = 0;
-	if( $s == 0 ) $s = strcmp($a->civilization, $b->civilization);
+	if( $s == 0 ) $s = strcasecmp($a->civilization, $b->civilization);
 	if( $s == 0 ) $s = $b->score - $a->score;
 	if( $s == 0 ) $s = $b->id - $a->id;
-	if( $s == 0 ) $s = strcmp($a->name, $b->name);
+	if( $s == 0 ) $s = strcasecmp($a->name, $b->name);
 	return $s;
 };
 

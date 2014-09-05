@@ -73,7 +73,7 @@ $lang['game_notes_password'] = "Um den Pitboss-Server zu steuern, ist das Webpas
 $lang['game_notes_autostart'] = "Achtung, solange der PB-Server kein Spielstand geladen hat, kann auch nicht auf diese Weboberfläche zugegriffen werden. D.h. wenn der Autostart von Spielständen deaktiviert ist, muss der Serverbetreiber manuell ein Spiel laden.</p><p>
 	Es ist allerdings auch ohne aktivierten Autostart möglich die Restart-Funktion im Webinterface zu nutzen. Der Autostart wird dann für genau einen Start aktiviert.";
 
-$lang['game_notes_headless'] = "Das Zeichnen des Pitboss-Fensters belastet die CPU unnötig stark. Falls alle Aufgaben über die Weboberfläche erledigt werden, kann man mit dieser Option die GUI deativieren.";
+$lang['game_notes_headless'] = "Das Zeichnen des Pitboss-Fensters belastet die CPU unnötig stark. Falls alle Aufgaben über die Weboberfläche erledigt werden, kann man mit dieser Option die GUI deaktivieren.";
 
 $lang['game_notes_set_timer'] = "Der neue Wert  gilt ab der nächsten Runde.";
 $lang['game_notes_end_round'] = "Achtung, derzeit werden bei dieser Funktion keinerlei KI-Aktionen durchgeführt.";

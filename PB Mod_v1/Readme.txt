@@ -1,32 +1,41 @@
-This Mod tries to fix some bugs
-in the Pitboss game mode.
+This Mod tries to fix some bugs in the Pitboss game mode.
 
-Fixed Bugs:
-- Unbreakable pause during open diplomacy screens.
-  Solution: The pause can now be removed by the player over
-			the F1 Screen. This screen can be reached my mouse.
-			Moreover, the web interface allows to pause/unpause
-			the game without logging in.
+Fixed bugs and new features:
 
-- TCP/IP-Interface which can be used to manage the server
-	or get information about the current game round.
+- Webfrontend which communicates to your PB servers over TCP/IP. The webfrontend was inspired by civstats.com, but allows the 
+	administration of games. 
 
-- Automatic restart of Pitboss server. (No boring clicking in the wizard required anymore.) 
+- Unbreakable pause during open diplomacy screens. 
+  Solutions:  
+    A) The pause can now be removed by the player over 
+      the F1 Screen. ( This screen can be reached per mouse if the diplo menu is open.) 
+    B)  The web interface allows to pause/unpause the game, too. 
 
-- Remove window freeze of Pitboss wizard due Gamespy shutdown.
+- Reload of last savegame after server restart. 
+  (No boring clicking in the wizard required anymore.) 
 
-- Fix of the upload bug: It's now possible to close open network connections to clients which
+- Remove window freeze of Pitboss wizard due Gamespy shutdown. 
+  (This was solved by python in this mod. A more general solution is the usage 
+  of a modified executable, see test/Civ4BeyondSword_Pitboss2014.exe ) 
+
+- Fix of the upload bug: It's now possible to close open network connections to clients which 
 has already leaved the game. (This bug can cause extremely high traffic!) 
-Look at test/fix_upload_bug for more instructions. The solution runs independently from this mod.
+Look into test/fix_upload_bug for more instructions. The solution runs independently from this mod.
 
-- Headless Mode. Disables the GUI of your Pitboss server and reduce the CPU usage. (Almost every load
-was caused due the redrawing of the GUI...) Please setup your game correctly before you disable the
-GUI. This option assumes the the automatic save game loading at startup is working.
+- Headless Mode. Disables the GUI of your Pitboss server and reduce the CPU usage. (Almost every cpu load (>90%)
+is caused due the redrawing of the GUI...) Please setup your game correctly before you disable the 
+GUI. This option assumes that a savegame will be loaded at startup. Thus, enable and test the reloading of save games.
+
+- Increase maximal number of players to 52. 
+
+- Add extra nation/player color combinations.
+
+- Player password could be changed over webinterface.
 
 
 
 (Removed from master branch)
-- Password change for one special Game.
+- Admin password change in one special Game.
 	Some players ( http://univers-civilization.leforum.eu/f286-Pit2014.htm )
 	lost their admin password.
 	I transfer the save from normal BTS into a Save for this mod
@@ -37,6 +46,3 @@ GUI. This option assumes the the automatic save game loading at startup is worki
 	cheating...
 
 
-Other changes:
-- Increase maximal number of players to 52.
-- Add extra nation/player color combinations.
