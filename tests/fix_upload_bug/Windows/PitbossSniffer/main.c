@@ -360,10 +360,14 @@ void packet_handler(unsigned char *param, const struct pcap_pkthdr *header, cons
 		fill_in_ips(pkt_data, sip, dip);
 
 
-		if( size_payload == 25 ){
+		if( size_payload == 25 || size_payload == 37 ){
 			/* This package could be indicate an upload error. Add the payload
 			 * for this client (destination ip) to an set. Force analysation
-			 * of the packages if an sufficient amount of packages reached. */
+			 * of the packages if an sufficient amount of packages reached.
+			 *
+			 * The length 37 occours if the connections was aborted during the loading 
+			 * of a game.
+			 * */
 
 			//Compare with existing packets
 			all_packets_identical = 1;
