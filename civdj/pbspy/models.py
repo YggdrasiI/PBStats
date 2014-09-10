@@ -3,8 +3,21 @@ from django.db import models, transaction
 from django.core.validators import MaxValueValidator, MinValueValidator
 from polymorphic import PolymorphicModel
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 import datetime
+import re
+import json
+from six.moves import urllib
+
+
+class InvalidCharacterError(Exception):
+    pass
+
+
+class InvalidPBResponse(Exception):
+    pass
+
 
 def format_year(number):
     if number is None:
@@ -24,30 +37,33 @@ def parse_year(year_str):
     else:
         raise ValueError('invalid year suffix')
 
+savegame_allowed_name_re = re.compile('^[0-9a-zA-Z_\-][0-9a-zA-Z_\.\-]*\Z')
+
 
 class Game(models.Model):
-    auth_token_hash = models.CharField(max_length=200)
-    create_date     = models.DateTimeField(auto_now_add=True)
-    name            = models.CharField(max_length=200, unique=True)
-    hostname        = models.CharField(max_length=200)
-    port            = models.PositiveIntegerField(
+    auth_token_hash    = models.CharField(max_length=200)
+    pb_remote_password = models.CharField(max_length=200)
+    create_date        = models.DateTimeField(auto_now_add=True)
+    name               = models.CharField(max_length=200, unique=True)
+    hostname           = models.CharField(max_length=200)
+    port               = models.PositiveIntegerField(
         default=2056,
         validators=[MaxValueValidator(65535), MinValueValidator(1)]
     )
-    manage_port     = models.PositiveIntegerField(
+    manage_port        = models.PositiveIntegerField(
         default=13373,
         validators=[MaxValueValidator(65535), MinValueValidator(1)]
     )
-    description     = models.TextField(blank=True, null=True)
-    url             = models.CharField(max_length=200, blank=True, null=True)
+    description        = models.TextField(blank=True, null=True)
+    url                = models.CharField(max_length=200, blank=True, null=True)
 
-    update_date     = models.DateTimeField(blank=True, null=True)
-    is_paused       = models.BooleanField(default=False)
-    year            = models.FloatField(blank=True, null=True)
-    pb_name         = models.CharField(blank=True, null=True, max_length=200)
-    turn            = models.PositiveSmallIntegerField(default=0)
+    update_date        = models.DateTimeField(blank=True, null=True)
+    is_paused          = models.BooleanField(default=False)
+    year               = models.FloatField(blank=True, null=True)
+    pb_name            = models.CharField(blank=True, null=True, max_length=200)
+    turn               = models.PositiveSmallIntegerField(default=0)
     # In hours
-    timer_max_h     = models.PositiveIntegerField(blank=True, null=True)
+    timer_max_h        = models.PositiveIntegerField(blank=True, null=True)
     # In seconds!
     timer_remaining_4s = models.PositiveIntegerField(blank=True, null=True)
 
@@ -94,7 +110,8 @@ class Game(models.Model):
         if turn > self.turn:
             GameLogTurn(**logargs).save()
         elif (turn < self.turn or
-                (timer_remaining_4s is not None and self.timer_remaining_4s is not None and
+                (timer_remaining_4s is not None and
+                 self.timer_remaining_4s is not None and
                  timer_remaining_4s > self.timer_remaining_4s)):
             GameLogReload(**logargs).save()
 
@@ -116,6 +133,73 @@ class Game(models.Model):
             except Player.DoesNotExist:
                 player = Player(ingame_id=player_info['id'], game=self)
             player.set_from_dict(player_info, logargs)
+
+    def pb_action(self, **kwargs):
+        url = "http://" + self.hostname + ":" + self.manage_port + "/api/v1/"
+        values = kwargs
+        if not 'password' in values:
+            values['password'] = self.pb_remote_password
+        json_data = json.dumps(values)
+
+        # should we maybe use 'ascii' or the default 'utf-8'
+        data = json_data.encode()
+
+        headers = {'Content-Type': 'application/json'}
+        # Note: urllib will add Content-Length and a nice user-agent for us
+
+        # TODO proper exception handling\
+        request = urllib.request.Request(url, data, headers)
+        response = urllib.urlopen(request, timeout=20)
+
+        # which decoding? Let's just hope default (probably utf-8) is ok
+        ret_str = response.read().decode()
+        ret = json.loads(ret_str)
+        if ret['return'] != 'ok':
+            # some info may be in ret['info'], but I don't want to leak anything
+            raise InvalidPBResponse()
+        return ret
+
+    def pb_info(self):
+        return self.pb_action(action='info')
+
+    def pb_chat(self, message, user=None):
+        text = "{}: {}".format(user.username, message)
+        return self.pb_action(action='chat', text=text)
+
+    def pb_set_autostart(self, value, user=None):
+        return self.pb_action(action='setAutostart', value=bool(value))
+
+    def pb_set_headless(self, value, user=None):
+        return self.pb_action(action='setHeadless', value=bool(value))
+
+    def pb_save(self, filename, user=None):
+        if not savegame_allowed_name_re.match(filename):
+            raise InvalidCharacterError()
+        result = self.pb_action(action='save', filename=filename)
+        GameLogAdminSave(user=user, filename=filename).save()
+        return result
+
+    def pb_set_turn_timer(self, value, user=None):
+        return self.pb_action(action='setTurnTimer', value=int(value))
+
+    def pb_set_pause(self, value, user=None):
+        result = self.pb_action(action='setPause', value=bool(value))
+        GameLogAdminPause(user=user)
+        return result
+
+    def pb_end_turn(self, user=None):
+        return self.pb_action(action='endTurn')
+
+    def pb_restart(self, filename, auto_dir, user=None):
+        return self.pb_action(action='restart', filename=filename, autoDir=auto_dir)
+
+    def pb_set_player_password(self, player_id, new_password, user=None):
+        return self.pb_action(action='setPlayerPassword',
+                              playerId=player_id, newCivPW=new_password)
+
+    def pb_list_saves(self, user=None):
+        result = self.pb_action(action='listSaves')
+        return result['list']
 
     def __str__(self):
         return self.name
@@ -341,3 +425,37 @@ class GameLogAI(GameLogPlayer):
 
 class GameLogClaimed(GameLogPlayer):
     text = "Claimed"
+
+
+class GameLogAdminAction(GameLog):
+    user = models.ForeignKey(User, blank=True, null=True)
+
+    def get_username(self):
+        try:
+            return self.user.username
+        except AttributeError:
+            return _("unknown user")
+
+
+class GameLogAdminSave(GameLogAdminAction):
+    filename = models.CharField(max_length=200)
+
+    def message(self):
+        return _("Game saved by {username}").format(username=self.get_username())
+
+
+class GameLogAdminPause(GameLog):
+    paused = models.BooleanField(default=None)
+
+    def message(self):
+        if self.paused:
+            return _("Pause activated by {username}").\
+                format(username=self.get_username())
+        else:
+            return _("Pause deactivated by {username}").\
+                format(username=self.get_username())
+
+
+class GameLogAdminEndTurn(GameLog):
+    def message(self):
+        return _("Turn ended by {username}").format(username=self.get_username())
