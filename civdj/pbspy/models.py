@@ -135,36 +135,41 @@ class Game(models.Model):
             player.set_from_dict(player_info, logargs)
 
     def pb_action(self, **kwargs):
-        url = "http://" + self.hostname + ":" + self.manage_port + "/api/v1/"
+        url = "http://{}:{}/api/v1/".format(self.hostname, self.manage_port)
         values = kwargs
         if not 'password' in values:
             values['password'] = self.pb_remote_password
         json_data = json.dumps(values)
-
+        print("json_data: ", json_data)
         # should we maybe use 'ascii' or the default 'utf-8'
-        data = json_data.encode()
+        data = urllib.parse.urlencode({json_data : None}).encode()
 
         headers = {'Content-Type': 'application/json'}
         # Note: urllib will add Content-Length and a nice user-agent for us
 
         # TODO proper exception handling\
         request = urllib.request.Request(url, data, headers)
-        response = urllib.urlopen(request, timeout=20)
+        response = urllib.request.urlopen(request, timeout=20)
 
         # which decoding? Let's just hope default (probably utf-8) is ok
         ret_str = response.read().decode()
+        print("ret_str: ", ret_str)
         ret = json.loads(ret_str)
         if ret['return'] != 'ok':
             # some info may be in ret['info'], but I don't want to leak anything
-            raise InvalidPBResponse()
+            raise InvalidPBResponse(ret)
         return ret
 
     def pb_info(self):
         return self.pb_action(action='info')
 
     def pb_chat(self, message, user=None):
-        text = "{}: {}".format(user.username, message)
-        return self.pb_action(action='chat', text=text)
+        try:
+            name = user.username
+        except AttributeError:
+            name = 'unknown'
+        text = "{}: {}".format(name, message)
+        return self.pb_action(action='chat', msg=text)
 
     def pb_set_autostart(self, value, user=None):
         return self.pb_action(action='setAutostart', value=bool(value))
@@ -176,15 +181,19 @@ class Game(models.Model):
         if not savegame_allowed_name_re.match(filename):
             raise InvalidCharacterError()
         result = self.pb_action(action='save', filename=filename)
-        GameLogAdminSave(user=user, filename=filename).save()
+        GameLogAdminSave(game=self, user=user, date=timezone.now(),
+                         year=self.year, turn=self.turn,
+                         filename=filename).save()
         return result
 
     def pb_set_turn_timer(self, value, user=None):
         return self.pb_action(action='setTurnTimer', value=int(value))
 
     def pb_set_pause(self, value, user=None):
-        result = self.pb_action(action='setPause', value=bool(value))
-        GameLogAdminPause(user=user)
+        value = bool(value)
+        result = self.pb_action(action='setPause', value=value)
+        GameLogAdminPause(game=self, user=user, date=timezone.now(), paused=value,
+                          year=self.year, turn=self.turn).save()
         return result
 
     def pb_end_turn(self, user=None):
@@ -444,7 +453,7 @@ class GameLogAdminSave(GameLogAdminAction):
         return _("Game saved by {username}").format(username=self.get_username())
 
 
-class GameLogAdminPause(GameLog):
+class GameLogAdminPause(GameLogAdminAction):
     paused = models.BooleanField(default=None)
 
     def message(self):
@@ -456,6 +465,6 @@ class GameLogAdminPause(GameLog):
                 format(username=self.get_username())
 
 
-class GameLogAdminEndTurn(GameLog):
+class GameLogAdminEndTurn(GameLogAdminAction):
     def message(self):
         return _("Turn ended by {username}").format(username=self.get_username())
