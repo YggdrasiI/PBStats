@@ -21,6 +21,9 @@
 #define PB_PORT_LOW 2056
 #define PB_PORT_HIGH PB_PORT_LOW
 
+// Logfile handler
+FILE *logfile = NULL;
+
 //d store info about selected network device.
 pcap_if_t *alldevs, *d;
 
@@ -124,7 +127,18 @@ main(int argc, char **argv)
 	int server_portLow = PB_PORT_LOW;
 	int server_portHigh = PB_PORT_HIGH;
 	int interface_index = -1;
+	char defaultLogfileName[] = "detections.log";
+	char *logfileName = &(defaultLogfileName[0]);
 
+	if (argc < 3){
+		printf("Usage: %s [min port] [max port] [interface index] [logfile]\n", argv[0] );
+		printf(" Where \n" \
+				"- min port: Lowest port of your PB servers.\n" \
+				"- max port: Highest port of your PB servers.\n" \
+				"- interface index: Index of network card which should be sniffed.\n" \
+				"- logfile: Name of logfile.\n\n" );
+		printf("No input arguments given. Use default values.\n");
+	}
 	if (argc > 1){
 		server_portLow = atoi(argv[1]);
 		server_portHigh = server_portLow;
@@ -135,7 +149,10 @@ main(int argc, char **argv)
 	if (argc > 3){
 		interface_index = atoi(argv[3]);
 	}
-	printf("Selected Pitboss port range: %d-%d. Interface index: %d.\n\n", server_portLow, server_portHigh, interface_index);
+	if (argc > 4){
+		logfileName = argv[4];
+	}
+	printf("Selected Pitboss port range: %d-%d.\nInterface index: %d\nLogfile: %s\n\n", server_portLow, server_portHigh, interface_index, logfileName);
 
 	current_packet = calloc( 30, sizeof(unsigned char) );
 
@@ -232,6 +249,26 @@ main(int argc, char **argv)
 
 	}
 
+	//Check logfilename and limit filename length
+	int maxNameLen = 30;
+	int logfileNameLen = strlen(logfileName); //strnlen(logfileName, maxNameLen);//lib on windows?!
+	if( logfileNameLen > maxNameLen ) logfileNameLen = maxNameLen;
+
+	if( logfileNameLen > 0 ){ 
+		char tmpFilename[maxNameLen+1]; 
+		memcpy(tmpFilename,logfileName,logfileNameLen);
+		tmpFilename[logfileNameLen] = '\0';
+		logfile=fopen(tmpFilename, "a");
+	}
+
+	printf(" List of detected upload bugs\n");
+	char tableHead[] = "      Timestamp           |    Client            |    Server          \n";
+	printf(tableHead);
+	if( logfile != NULL ){
+		fprintf(logfile, tableHead);
+		fflush(logfile);
+	}
+
 	/* start the capture */
 	pcap_loop(fp, 0, packet_handler, NULL);
 
@@ -245,6 +282,11 @@ main(int argc, char **argv)
 	hashmap_each(clients, freeClients);
 	hashmap_free(clients);
 
+	if( logfile != NULL ){
+		fclose(logfile);
+		logfile = NULL;
+	}
+
 	return 0;
 }
 
@@ -256,11 +298,33 @@ void sendUdpReply( pcap_if_t* device,
 		unsigned short sport, unsigned short dport,
 		unsigned char *data, size_t dataLen )
 {
-	printf("    MAC/IP/PORT\n");
-	printf("SRC: %2X:%2X:%2X:%2X:%2X:%2X / %3u.%3u.%3u.%3u / %d \n",
-			smac[0], smac[1], smac[2], smac[3], smac[4], smac[5], sip[0], sip[1], sip[2], sip[3], sport);
-	printf("DST: %2X:%2X:%2X:%2X:%2X:%2X / %3u.%3u.%3u.%3u / %d \n\n",
-			dmac[0], dmac[1], dmac[2], dmac[3], dmac[4], dmac[5], dip[0], dip[1], dip[2], dip[3], dport);
+
+	/* Create log message */
+	// 1. Fill in timestamp into log message
+	char msg[100];
+	time_t rawtime;
+	struct tm *info;
+	time( &rawtime );
+	info = localtime( &rawtime );
+
+	int msgLen = 0; 
+  msgLen = strftime(msg,100,"%a, %d %b %Y %H:%M:%S ", info);
+	if( msgLen > 0 ){
+
+		// 2. Fill in ip's and port's 
+		msgLen += snprintf(msg+msgLen-1, 100-26, " | %3u.%3u.%3u.%3u:%d | %3u.%3u.%3u.%3u:%d \n",
+				sip[0], sip[1], sip[2], sip[3], sport,
+				dip[0], dip[1], dip[2], dip[3], dport );
+
+		printf(msg);
+		if( logfile != NULL ){
+			fprintf(logfile, msg);
+			fflush(logfile);
+		}
+	}else{
+		printf("Error: Creation of timestamp failed.\n");
+	}
+
 	//Create package
 	RawPacket *rawPacket = rawPacket_create(smac,dmac,sip,dip,sport,dport,data,dataLen);
 
@@ -365,7 +429,7 @@ void packet_handler(unsigned char *param, const struct pcap_pkthdr *header, cons
 			 * for this client (destination ip) to an set. Force analysation
 			 * of the packages if an sufficient amount of packages reached.
 			 *
-			 * The length 37 occours if the connections was aborted during the loading 
+			 * The length 37 occours if the connections was aborted during the loading
 			 * of a game.
 			 * */
 
@@ -380,7 +444,7 @@ void packet_handler(unsigned char *param, const struct pcap_pkthdr *header, cons
 				hashmap_each(cl1->packets, comparePackets);
 
 				if( all_packets_identical ){
-					printf("Upload bug detected\n");
+					//printf("Upload bug detected\n");
 
 					unsigned short totalLen=0;
 					memcpy( (void*)&totalLen, pkt_data+16, 2);
