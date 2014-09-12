@@ -19,6 +19,19 @@ localText = CyTranslator()
 msgBox = None
 
 pbSettings = Webserver.getPbSettings() 
+
+# Pipe error messages into a file to avoid popup windows
+errorLogFile = pbSettings.get("errorLogFile",None)
+if errorLogFile != None :
+	logName = os.path.join(gc.getAltrootDir(), str(errorLogFile) )
+	try:
+		os.rename(logName, logName+".old" )
+	except Exception, e:
+		pass
+
+	sys.stderr = open( logName, 'w')
+
+
 noGui =  pbSettings.get("noGui",False)
 playerWasOnline = [] # To track login and logout events
 for rowNum in range(gc.getMAX_CIV_PLAYERS()):

@@ -16,6 +16,7 @@ import urllib
 #import hashlib #Python 2.4 has no hashlib use md5
 import md5
 import simplejson 
+import sys
 
 PB = CyPitboss()
 gc = CyGlobalContext()
@@ -43,7 +44,8 @@ pbDefaultSettings = {
 	},
 	"numRecoverySavesPerPlayer" : 5,
 	"MotD" : "Welcome on the modified PitBoss Server",
-	"noGui" : 0
+	"noGui" : 0,
+	"errorLogFile" : None
 }
 pbSettings = None
 
@@ -58,7 +60,7 @@ altrootDir = gc.getAltrootDir()
 #altrootDir = altrootDir[altrootDir.rfind("@")+1:len(altrootDir)]
 
 # If the loading of the setting file failed the path will be set no None in getPbSettings()
-pbFn = altrootDir + "\\pbSettings.json"
+pbFn = os.path.join(altrootDir, "pbSettings.json")
 
 def getPbSettings():
 	global altrootDir
@@ -247,8 +249,13 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 						# Print list of saves of the selected folder. This can be used for a dropdown list 
 						# of available saves.
 						global altrootDir
-						folderpaths = [ {"path":altrootDir + "\\" + str(pbSettings["save"]["path"]), "autosave":False},
-								{"path":altrootDir + "\\" + str(pbSettings["save"]["path"] + "auto\\" ), "autosave":True} ]
+
+						folderpaths = [
+								{"path": altrootDir + "\\" + str(pbSettings["save"]["path"]), "autosave":False},
+								{"path": altrootDir + "\\" + str(pbSettings["save"]["path"]) + "auto\\", "autosave":True},
+								{"path": altrootDir + "\\saves\\pitboss", "autosave":False},
+								{"path": altrootDir + "\\saves\\pitboss\\auto\\", "autosave":True},
+								]
 						saveList = []
 
 						for fp in folderpaths:
@@ -347,7 +354,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 	def getSaveFolder(self, autoDir):
 		global altrootDir
-		folderpath = altrootDir + "\\" + str(pbSettings["save"]["path"])
+		folderpath = os.path.join(altrootDir, str(pbSettings["save"]["path"]) )
 		if autoDir:	
 			folderpath += "auto\\"
 
