@@ -36,9 +36,11 @@ import udp as udp2
 # === Configuration === 
 
 device = "eth0" # Interface name
-server_ip = "148.251.126.92" # Ip of your PB Server
+#server_ip = "148.251.126.92" # Ip of your PB Server
+server_ip = "192.168.0.35" # Ip of your PB Server
 server_portLow = 2056 # Default value if you use no arguments
 server_portHigh = server_portLow 
+logfileName = "detections.log" # Default logfile name
 
 ttl = 100
 timeouts = {}
@@ -134,9 +136,15 @@ def analyseUdpTraffic(device, server, clients, timeout):
 				src = (packet[1].destination,packet[2].destinationport)
 				dst = (packet[1].source,packet[2].sourceport)
 				data = chr(254)+chr(254)+chr(06) + B + A1
-				print "Upload bug detected send fake packet for client %s:%s to server %s:%s" % (src[0], src[1], dst[0], dst[1])
-				#print ord(data[0]),ord(data[1]),ord(data[2]),ord(data[3]),ord(data[4]),ord(data[5]),ord(data[6])
-				print "%X %X %X %X %X %X %X" % (ord(data[0]),ord(data[1]),ord(data[2]),ord(data[3]),ord(data[4]),ord(data[5]),ord(data[6]))
+
+				msg = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()) 
+				msg += " | %s:%s | %s:%s \n" % (src[0], src[1], dst[0], dst[1])
+
+				print msg,
+				if logfile != None:
+					logfile.write(msg)
+					logfile.flush()
+
 				sendUdpReply(src,dst,data)
 				# End detection for all clients
 				break
@@ -149,9 +157,9 @@ def analyseUdpTraffic(device, server, clients, timeout):
 
 
 # === Main === 
-if len(sys.argv) < 2:
-	print "Usage: ./", sys.argv[0] , "[port]", "[port]", "[network device]" 
-	print "No arguments given. Assume default interface %s and Pitboss server portrange=%i-%i." % (device, server_portLow, server_portHigh)
+if len(sys.argv) < 3:
+	print "Usage: ./", sys.argv[0] , "[port]", "[port]", "[network device]", "[logfile]" 
+	print "No arguments given. Assume default interface %s,\n Pitboss server portrange=%i-%i, and \n Logfile %s." % (device, server_portLow, server_portHigh, logfileName)
 else:
 	server_portLow = int(sys.argv[1])
 
@@ -162,8 +170,25 @@ else:
 
 	if len(sys.argv) > 3:
 		device = sys.argv[3]
-	
+
+	if len(sys.argv) > 4:
+		logfileName = sys.argv[4]
+
+	if len(logfileName) > 0:
+		logfile = file(logfileName,"a")
+	else:
+		logfile = None
+
 	print "Use network device %s and Pitboss server portrange=%i-%i." % (device, server_portLow, server_portHigh)
+	print "\n\n"
+	print " List of detected upload bugs"
+
+	msg = "      Timestamp           |    Client         |    Server          \n"
+	print msg,
+	if logfile != None:
+		logfile.write(msg)
+		logfile.flush()
+
 
 while True:
 	analyseUdpTraffic(device, (server_ip,server_portLow,server_portHigh), clients, timeout)
