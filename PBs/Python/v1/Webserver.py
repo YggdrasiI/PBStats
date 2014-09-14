@@ -129,9 +129,15 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 					action = inputdata.get("action")
 
 					if( action == "chat" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
-						msg =  str(inputdata.get("msg","Default message. Missing msg argument?!"))
-						PB.sendChat( msg )
-						self.wfile.write( simplejson.dumps( {'return':'ok','info':'Send: '+msg } ) +"\n" ) 
+						try:
+							msg =  str(inputdata.get("msg","Default message. Missing msg argument?!"))
+							msg = msg.replace('&', '&amp;')
+							msg = msg.replace('<', '&lt;')
+							msg = msg.replace('>', '&gt;')
+							PB.sendChat( msg )
+							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Send: '+msg } ) +"\n" ) 
+						except:
+							self.wfile.write( simplejson.dumps( {'return':'fail','info':'Some error occured trying to send the message. Probably a character that cannot be encoded.' } ) +"\n" )
 
 					elif( action == "setAutostart" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
 							self.server.lock.acquire()
