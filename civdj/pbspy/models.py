@@ -203,6 +203,8 @@ class Game(models.Model):
         return self.pb_action(action='restart', filename=filename, autoDir=auto_dir)
 
     def pb_set_player_password(self, player_id, new_password, user=None):
+        if isinstance(player_id, Player):
+            player_id = player_id.ingame_id
         return self.pb_action(action='setPlayerPassword',
                               playerId=player_id, newCivPW=new_password)
 
@@ -281,7 +283,7 @@ class Player(models.Model):
                 GameLogNameChange(player_name_new=info['name'], **logargs).save()
                 logargs['player_name'] = info['name']
 
-            if not info['bHuman'] and self.is_human:
+            if not info['bHuman'] and self.is_human and score != 0:
                 GameLogAI(**logargs).save()
 
             if is_online and not self.is_online:
