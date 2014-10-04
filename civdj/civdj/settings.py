@@ -30,7 +30,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = (
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -40,6 +39,8 @@ INSTALLED_APPS = (
     'pbspy',
     'debug_toolbar',
     'erroneous',
+    'registration',
+    'django.contrib.admin',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -90,3 +91,11 @@ STATIC_URL = '/static/'
 DEBUG_TOOLBAR_CONFIG = {
     'SHOW_TEMPLATE_CONTEXT': True,
 }
+
+ACCOUNT_ACTIVATION_DAYS = 7
+
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = '/tmp/django-messages'
+DEFAULT_FROM_EMAIL = 'pbspy@zulan.net'
+
+LOGIN_REDIRECT_URL = 'game_list'
