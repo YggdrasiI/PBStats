@@ -2,9 +2,15 @@ from django.http import HttpResponseBadRequest, HttpResponse
 from django.views import generic
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
 from pbspy.models import Game, GameLog, Player
+from pbspy.forms import GameForm
+
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count
+from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from django.core.urlresolvers import reverse
 
 import json
 
@@ -47,6 +53,21 @@ game_log = GameLogView.as_view()
 # def game_log(request, game_id):
 #     log_entries = GameLog.objects.filter(game_id__exact=game_id).order_by('-id')[:30]
 #     return HttpResponse("404")
+
+
+@login_required()
+def game_create(request):
+    if request.method == 'POST':
+        form = GameForm(request.POST)
+        if form.is_valid():
+            game = form.save()
+            game.admins.add(request.user)
+            game.save()
+            game.update()
+            return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
+    else:
+        form = GameForm()
+    return render(request, 'pbspy/game_create.html', {'form': form})
 
 
 @csrf_exempt

@@ -22,7 +22,11 @@
                 {% trans "The game is not paused." %}
             {% endif %}
         </div>
+        <div class="game_info">
+            Admins for this game: {{ game.admins.all | join:", " }}
+        </div>
         <div id="game_description">{{ game.description }}</div>
+        <div id="game_info"><a href="{{ game.url }}">{{ game.url }}</a></div>
     </div>
     <div id="game_players">
         {% if players %}
@@ -38,6 +42,7 @@
                 {% for player in players %}
                     <tr>
                         <td>{% if player.finished_turn %}*{% endif %}</td>
+                        <td>{{ player.name }}</td>
                         <td>{{ player.leader }}</td>
                         <td>{{ player.civilization }}</td>
                         <td>{{ player.score }}</td>

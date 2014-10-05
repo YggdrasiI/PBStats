@@ -1,3 +1,5 @@
+from urllib.error import URLError
+from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 from django.db import models, transaction
 from django.core.validators import MaxValueValidator, MinValueValidator, URLValidator
@@ -21,17 +23,43 @@ class InvalidPBResponse(Exception):
     pass
 
 
+# NOTE: Year is stored as number (should be integer but actually float) with month prefix
+# 1000 BC => -1000
+# 500 AD => 500
+# January, 2050 AD => 12050
+# July, 2044 AD => 72044
 def format_year(number):
     if number is None:
         return None
     if number >= 0:
-        return _("{year} AD").format(year=number)
-    return _("{year} BC").format(year=-number)
+        if number >= 10000:
+            year = int(number % 10000)
+            imonth = int(number / 10000)
+            if imonth == 1:
+                month = _('January')
+            elif imonth == 7:
+                month = _('July')
+            else:
+                raise ValueError('Invalid month for format_year')
+            return _("{month}, {year} AD").format(month=month, year=year)
+        return _("{year} AD").format(year=int(number))
+    return _("{year} BC").format(year=-int(number))
 
 
 def parse_year(year_str):
-    (year, qual) = year_str.split(' ')
-    year = int(year)
+    try:
+        (year, qual) = year_str.split()
+        year = int(year)
+    except ValueError:
+        (month, year, qual) = year_str.split()
+        if month.lower().find('jan'):
+            imonth = 1
+        elif month.lower().find('jul'):
+            imonth = 7
+        else:
+            raise ValueError('Failed to parse month part of date')
+        year = int(year) + 10000 * imonth
+
     if qual == 'AD':
         return year
     elif qual == 'BC':
@@ -57,7 +85,7 @@ class Game(models.Model):
     )
     description        = models.TextField(blank=True, null=True)
     url                = models.CharField(max_length=200, blank=True, null=True,
-                                          validators=[URLValidator])
+                                          validators=[URLValidator()])
 
     update_date        = models.DateTimeField(blank=True, null=True)
     is_paused          = models.BooleanField(default=False)
@@ -68,6 +96,8 @@ class Game(models.Model):
     timer_max_h        = models.PositiveIntegerField(blank=True, null=True)
     # In seconds!
     timer_remaining_4s = models.PositiveIntegerField(blank=True, null=True)
+
+    admins             = models.ManyToManyField(User)
 
     def auth_hash(self):
         return hashlib.md5(self.pb_remote_password.encode()).hexdigest()
@@ -145,7 +175,6 @@ class Game(models.Model):
         if not 'password' in values:
             values['password'] = self.pb_remote_password
         json_data = json.dumps(values)
-        print("json_data: ", json_data)
         # should we maybe use 'ascii' or the default 'utf-8'
         data = urllib.parse.urlencode({json_data : None}).encode()
 
@@ -158,7 +187,6 @@ class Game(models.Model):
 
         # which decoding? Let's just hope default (probably utf-8) is ok
         ret_str = response.read().decode()
-        print("ret_str: ", ret_str)
         ret = json.loads(ret_str)
         if ret['return'] != 'ok':
             # some info may be in ret['info'], but I don't want to leak anything
@@ -166,7 +194,8 @@ class Game(models.Model):
         return ret
 
     def pb_info(self):
-        return self.pb_action(action='info')
+        result = self.pb_action(action='info')
+        return result['info']
 
     def pb_chat(self, message, user=None):
         try:
@@ -216,6 +245,19 @@ class Game(models.Model):
     def pb_list_saves(self, user=None):
         result = self.pb_action(action='listSaves')
         return result['list']
+
+    def update(self):
+        info = self.pb_info()
+        self.set_from_dict(info)
+
+    def clean(self):
+        # This will raise InvalidPBResponse or something else when we cannot connect
+        try:
+            info = self.pb_info()
+        except InvalidPBResponse as e:
+            raise ValidationError("Invalid response from the pitboss management interface. Possibly invalid password.")
+        except URLError as e:
+            raise ValidationError("Could not connect to the pitboss management interface.")
 
     def __str__(self):
         return self.name

@@ -10,14 +10,26 @@
     <div id="sidebar">
         {% block sidebar %}
         <ul>
+            {% if user.is_authenticated %}
+                <li>{% blocktrans %}
+                    Logged in as {{ user }}.
+                {% endblocktrans %}</li>
+                <li><a href="{% url 'auth_logout' %}">
+                    {% trans "logout" %}
+                </a></li>
+                <li><a href="{% url 'game_create' %}">
+                    {% trans "register new PitBoss" %}
+                </a></li>
+            {% else %}
+                <li><a href="{% url 'auth_login' %}">
+                    {% trans "login" %}
+                </a></li>
+                <li><a href="{% url 'registration_register' %}">
+                    {% trans "register" %}
+                </a></li>
+            {% endif %}
             <li><a href="{% url 'game_list' %}">
                 {% trans "games" %}
-            </a></li>
-            <li><a href="{% url 'auth_login' %}">
-                {% trans "login" %}
-            </a></li>
-            <li><a href="{ url 'logout' }">
-                {% trans "logout" %}
             </a></li>
         </ul>
         {% endblock %}
