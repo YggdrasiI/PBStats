@@ -1,6 +1,6 @@
 from django.utils.translation import ugettext as _
 from django.db import models, transaction
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, URLValidator
 from polymorphic import PolymorphicModel
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -8,6 +8,8 @@ from django.contrib.auth.models import User
 import datetime
 import re
 import json
+import hashlib
+
 from six.moves import urllib
 
 
@@ -41,7 +43,6 @@ savegame_allowed_name_re = re.compile('^[0-9a-zA-Z_\-][0-9a-zA-Z_\.\-]*\Z')
 
 
 class Game(models.Model):
-    auth_token_hash    = models.CharField(max_length=200)
     pb_remote_password = models.CharField(max_length=200)
     create_date        = models.DateTimeField(auto_now_add=True)
     name               = models.CharField(max_length=200, unique=True)
@@ -55,7 +56,8 @@ class Game(models.Model):
         validators=[MaxValueValidator(65535), MinValueValidator(1)]
     )
     description        = models.TextField(blank=True, null=True)
-    url                = models.CharField(max_length=200, blank=True, null=True)
+    url                = models.CharField(max_length=200, blank=True, null=True,
+                                          validators=[URLValidator])
 
     update_date        = models.DateTimeField(blank=True, null=True)
     is_paused          = models.BooleanField(default=False)
@@ -66,6 +68,9 @@ class Game(models.Model):
     timer_max_h        = models.PositiveIntegerField(blank=True, null=True)
     # In seconds!
     timer_remaining_4s = models.PositiveIntegerField(blank=True, null=True)
+
+    def auth_hash(self):
+        return hashlib.md5(self.pb_remote_password.encode()).hexdigest()
 
     def timer(self):
         return self.timer_max_h is not None

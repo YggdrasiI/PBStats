@@ -59,7 +59,7 @@ def game_update(request):
         return HttpResponseBadRequest('bad request')
 
     game = Game.objects.get(id=game_id)
-    if pw_hash != game.auth_token_hash:
+    if pw_hash != game.auth_hash():
         return HttpResponse('unauthorized', status=401)  # Unauthorized
 
     try:
