@@ -42,6 +42,7 @@ def format_year(number):
             else:
                 raise ValueError('Invalid month for format_year')
             return _("{month}, {year} AD").format(month=month, year=year)
+
         return _("{year} AD").format(year=int(number))
     return _("{year} BC").format(year=-int(number))
 
@@ -89,7 +90,7 @@ class Game(models.Model):
 
     update_date        = models.DateTimeField(blank=True, null=True)
     is_paused          = models.BooleanField(default=False)
-    year               = models.FloatField(blank=True, null=True)
+    year               = models.IntegerField(blank=True, null=True)
     pb_name            = models.CharField(blank=True, null=True, max_length=200)
     turn               = models.PositiveSmallIntegerField(default=0)
     # In hours
@@ -373,7 +374,7 @@ class Player(models.Model):
 class GameLog(PolymorphicModel):
     game = models.ForeignKey(Game)
     date = models.DateTimeField(db_index=True)
-    year = models.SmallIntegerField()
+    year = models.IntegerField()
     turn = models.PositiveSmallIntegerField()
 
     def message(self):
