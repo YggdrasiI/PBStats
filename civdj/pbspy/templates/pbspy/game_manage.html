@@ -7,14 +7,14 @@
         <p>Performed action {{ action }}</p>
         <div class="game_management_section">
             {% if game.is_paused %}
-             <form method="post" action="{% url 'game_manage' game.id 'pause_enable' %}">
-                 {% csrf_token %}
-                 <input type="submit" value="{% trans "pause game" %}" />
-             </form>
-            {% else %}
              <form method="post" action="{% url 'game_manage' game.id 'pause_disable' %}">
                  {% csrf_token %}
                  <input type="submit" value="{% trans "unpause game" %}" />
+             </form>
+            {% else %}
+             <form method="post" action="{% url 'game_manage' game.id 'pause_enable' %}">
+                 {% csrf_token %}
+                 <input type="submit" value="{% trans "pause game" %}" />
              </form>
             {% endif %}
         </div>
