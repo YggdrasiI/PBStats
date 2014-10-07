@@ -4,7 +4,10 @@
 {% block content %}
     <div id="game_summary">
         <h1 id="game_name">{{ game.name }}</h1>
-        <div class="game_info">{% trans "Turn" %}: {{ game.turn|default:_("n/a") }}</div>
+    {% if can_manage %}
+        (<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
+    {% endif %}
+        <div class="game_info">{% trans "Turn" %}: {{ game.turn|default_if_none:_("n/a") }}</div>
         <div class="game_info">{% trans "Year" %}: {{ game.year_str|default:_("n/a") }}</div>
         {% if game.timer %}
             <div class="game_info">{% trans "Timer" %}:
@@ -30,7 +33,7 @@
                 {{ game.description }}
             </pre>
         </div>
-        <div id="game_info"><a href="{{ game.url }}">{{ game.url }}</a></div>
+        <div class="game_info"><a href="{{ game.url }}">{{ game.url }}</a></div>
     </div>
     <div id="game_players">
         {% if players %}

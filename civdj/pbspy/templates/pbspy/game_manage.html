@@ -1,0 +1,62 @@
+{% extends "pbspy/base.html" %}
+{% load i18n %}
+
+{% block content %}
+    <div id="game_management">
+        <h1 id="game_name">Management for {{ game.name }}</h1>
+        <p>Performed action {{ action }}</p>
+        <div class="game_management_section">
+            {% if game.is_paused %}
+             <form method="post" action="{% url 'game_manage' game.id 'pause_enable' %}">
+                 {% csrf_token %}
+                 <input type="submit" value="{% trans "pause game" %}" />
+             </form>
+            {% else %}
+             <form method="post" action="{% url 'game_manage' game.id 'pause_disable' %}">
+                 {% csrf_token %}
+                 <input type="submit" value="{% trans "unpause game" %}" />
+             </form>
+            {% endif %}
+        </div>
+        <div class="game_management_section">
+             <form method="post" action="{% url 'game_manage' game.id 'end_turn' %}">
+                 {% csrf_token %}
+                 <input type="submit" value="{% trans "end turn" %}" />
+             </form>
+        </div>
+        <div class="game_management_section">
+             <form method="post" action="{% url 'game_manage' game.id 'set_turn_timer' %}">
+                 {% csrf_token %}
+                 {{ timer_form }}
+                 <input type="submit" value="{% trans "set timer" %}" />
+             </form>
+        </div>
+        <div class="game_management_section">
+             <form method="post" action="{% url 'game_manage' game.id 'save' %}">
+                 {% csrf_token %}
+                 {{ save_form }}
+                 <input type="submit" value="{% trans "save game" %}" />
+             </form>
+        </div>
+        <div class="game_management_section">
+             <form method="post" action="{% url 'game_manage' game.id 'load' %}">
+                 {% csrf_token %}
+                 {{ load_form }}
+                 <input type="submit" value="{% trans "load game" %}" />
+             </form>
+        </div>
+        <div class="game_management_section">
+             <form method="post" action="{% url 'game_manage' game.id 'set_player_password' %}">
+                 {% csrf_token %}
+                 {{ set_player_password_form }}
+                 <input type="submit" value="{% trans "change player password" %}" />
+             </form>
+        </div>
+        <div class="game_management_section">
+             <form method="post" action="{% url 'game_manage' game.id 'end_turn' %}">
+                 {% csrf_token %}
+                 <input type="submit" value="{% trans "unpause game" %}" />
+             </form>
+        </div>
+    </div>
+{% endblock %}

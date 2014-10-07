@@ -114,6 +114,9 @@ class Game(models.Model):
     def year_str(self):
         return format_year(self.year)
 
+    def can_manage(self, user):
+        return len(self.admins.filter(id=user.id)) == 1
+
     @transaction.atomic
     def set_from_dict(self, info):
         date = timezone.now()
@@ -182,9 +185,12 @@ class Game(models.Model):
         headers = {'Content-Type': 'application/json'}
         # Note: urllib will add Content-Length and a nice user-agent for us
 
-        # TODO proper exception handling\
+        # TODO proper exception handling
         request = urllib.request.Request(url, data, headers)
-        response = urllib.request.urlopen(request, timeout=20)
+        try:
+            response = urllib.request.urlopen(request, timeout=20)
+        except URLError:
+            raise InvalidPBResponse(_("Failed to connect to server."))
 
         # which decoding? Let's just hope default (probably utf-8) is ok
         ret_str = response.read().decode()
@@ -304,8 +310,8 @@ class Player(models.Model):
     color_rgb     = models.TextField(max_length=3 * 3 + 2)
 
     def status(self):
-#        if not self.is_claimed:
-#            return _('unclaimed')
+        if not self.is_claimed:
+            return _('unclaimed')
         if self.score == 0:
             return _('eliminated')
         if not self.is_human:
@@ -370,6 +376,8 @@ class Player(models.Model):
         unique_together = (('ingame_id', 'game'),)
         index_together  = (('ingame_id', 'game'),)
 
+    def __str__(self):
+        return _("{} ({} of {})").format(self.name, self.leader, self.civilization)
 
 class GameLog(PolymorphicModel):
     game = models.ForeignKey(Game)
