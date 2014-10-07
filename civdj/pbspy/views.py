@@ -3,7 +3,7 @@ from django.views import generic
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
 from pbspy.models import Game, GameLog, Player
 from pbspy.forms import GameForm, GameManagementChatForm, GameManagementTimerForm, GameManagementLoadForm, \
-    GameManagementSetPlayerPasswordForm
+    GameManagementSetPlayerPasswordForm, GameManagementSaveForm
 
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
@@ -82,18 +82,35 @@ def game_manage(request, game_id, action=""):
             game.pb_set_pause(True)
         elif action == 'pause_disable':
             game.pb_set_pause(False)
+        elif action == 'end_turn':
+            game.pb_end_turn()
         elif action == 'set_turn_timer':
             form = GameManagementTimerForm(request.POST)
             if not form.is_valid():
                 return HttpResponseBadRequest('invalid form')
             game.pb_set_turn_timer(form.timer)
-        elif action == 'end_turn':
-            game.pb_end_turn()
         elif action == 'chat':
             form = GameManagementChatForm(request.POST)
             if not form.is_valid():
                 return HttpResponseBadRequest('invalid form')
             game.pb_chat(form.message)
+        elif action == 'save':
+            form = GameManagementSaveForm(request.POST)
+            if not form.is_valid():
+                return HttpResponseBadRequest('invalid form')
+            game.pb_save(form.filename, request.user)
+        elif action == 'load':
+            form = GameManagementLoadForm(request.POST)
+            if not form.is_valid():
+                return HttpResponseBadRequest('invalid form')
+            (is_autosave_str, filename) = form.filename.split('/', 1)
+            is_autosave = bool(int(is_autosave_str))
+            game.pb_restart(filename, is_autosave, request.user)
+        elif action == 'set_player_password':
+            form = GameManagementSetPlayerPasswordForm(request.POST)
+            if not form.is_valid():
+                return HttpResponseBadRequest('invalid form')
+            game.pb_set_player_password(form.player.id, form.password)
         else:
             return HttpResponseBadRequest('bad request')
 
@@ -101,8 +118,15 @@ def game_manage(request, game_id, action=""):
     context['timer_form'] = GameManagementTimerForm(initial={'timer': game.timer_max_h})
     context['chat_form'] = GameManagementChatForm()
     saves = sorted(game.pb_list_saves(), key=lambda k: -k['timestamp'])
-    load_choices = [(save['name'], "{} ({})".format(save['name'], save['date']))
-                    for save in saves]
+
+    load_choices = []
+    for save in saves:
+        is_autosave = int(save['autosave'])
+        key = "/".join([str(is_autosave), save['name']])
+        label = "{}{} ({})".format('*' if save['autosave'] else '', save['name'], save['date'])
+        choice = (key, label)
+        load_choices.append(choice)
+
     context['load_form'] = GameManagementLoadForm(load_choices)
     context['set_player_password_form'] = GameManagementSetPlayerPasswordForm(game.player_set)
     context['action'] = action

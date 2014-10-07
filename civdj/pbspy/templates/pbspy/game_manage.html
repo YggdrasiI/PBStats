@@ -52,11 +52,5 @@
                  <input type="submit" value="{% trans "change player password" %}" />
              </form>
         </div>
-        <div class="game_management_section">
-             <form method="post" action="{% url 'game_manage' game.id 'end_turn' %}">
-                 {% csrf_token %}
-                 <input type="submit" value="{% trans "unpause game" %}" />
-             </form>
-        </div>
     </div>
 {% endblock %}

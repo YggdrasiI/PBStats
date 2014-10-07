@@ -25,7 +25,7 @@ class GameManagementSaveForm(Form):
 class GameManagementLoadForm(Form):
     def __init__(self, savegames, *args, **kwargs):
         super(GameManagementLoadForm, self).__init__(*args, **kwargs)
-        self.fields['savegame'] = forms.ChoiceField(choices=savegames, label=_('Savegame'))
+        self.fields['filename'] = forms.ChoiceField(choices=savegames, label=_('Savegame'))
 
 
 class GameManagementSetPlayerPasswordForm(Form):
