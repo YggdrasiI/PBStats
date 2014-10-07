@@ -25,7 +25,11 @@
         <div class="game_info">
             Admins for this game: {{ game.admins.all | join:", " }}
         </div>
-        <div id="game_description">{{ game.description }}</div>
+        <div id="game_description">
+            <pre>
+                {{ game.description }}
+            </pre>
+        </div>
         <div id="game_info"><a href="{{ game.url }}">{{ game.url }}</a></div>
     </div>
     <div id="game_players">
