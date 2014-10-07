@@ -36,9 +36,9 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'registration',
-    'django.contrib.admin',
     'polymorphic',
     'pbspy',
+    'django.contrib.admin',
     'debug_toolbar',
     'erroneous',
 )
