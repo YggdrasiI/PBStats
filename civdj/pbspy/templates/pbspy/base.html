@@ -1,0 +1,43 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
+<head>
+<meta charset="UTF-8">
+<title>{% block title %}{% trans "PBSPY: Civilization 4 PitBoss Statistics" %}{% endblock %}</title>
+</head>
+{% spaceless %}
+<body>
+    <div id="sidebar">
+        {% block sidebar %}
+        <ul>
+            {% if user.is_authenticated %}
+                <li>{% blocktrans %}
+                    Logged in as {{ user }}.
+                {% endblocktrans %}</li>
+                <li><a href="{% url 'auth_logout' %}">
+                    {% trans "logout" %}
+                </a></li>
+                <li><a href="{% url 'game_create' %}">
+                    {% trans "register new PitBoss" %}
+                </a></li>
+            {% else %}
+                <li><a href="{% url 'auth_login' %}">
+                    {% trans "login" %}
+                </a></li>
+                <li><a href="{% url 'registration_register' %}">
+                    {% trans "register" %}
+                </a></li>
+            {% endif %}
+            <li><a href="{% url 'game_list' %}">
+                {% trans "games" %}
+            </a></li>
+        </ul>
+        {% endblock %}
+    </div>
+
+    <div id="content">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+{% endspaceless %}
+</html> 
