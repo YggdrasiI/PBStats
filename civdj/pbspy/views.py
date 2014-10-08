@@ -77,48 +77,12 @@ def game_manage(request, game_id, action=""):
     if not game.can_manage(request.user):
         return HttpResponse('unauthorized', status=401)
 
-    if request.method == 'POST':
-        if action == 'pause_enable':
-            game.pb_set_pause(True)
-        elif action == 'pause_disable':
-            game.pb_set_pause(False)
-        elif action == 'end_turn':
-            game.pb_end_turn()
-        elif action == 'set_turn_timer':
-            form = GameManagementTimerForm(request.POST)
-            if not form.is_valid():
-                return HttpResponseBadRequest('invalid form')
-            game.pb_set_turn_timer(form.timer)
-        elif action == 'chat':
-            form = GameManagementChatForm(request.POST)
-            if not form.is_valid():
-                return HttpResponseBadRequest('invalid form')
-            game.pb_chat(form.message)
-        elif action == 'save':
-            form = GameManagementSaveForm(request.POST)
-            if not form.is_valid():
-                return HttpResponseBadRequest('invalid form')
-            game.pb_save(form.filename, request.user)
-        elif action == 'load':
-            form = GameManagementLoadForm(request.POST)
-            if not form.is_valid():
-                return HttpResponseBadRequest('invalid form')
-            (is_autosave_str, filename) = form.filename.split('/', 1)
-            is_autosave = bool(int(is_autosave_str))
-            game.pb_restart(filename, is_autosave, request.user)
-        elif action == 'set_player_password':
-            form = GameManagementSetPlayerPasswordForm(request.POST)
-            if not form.is_valid():
-                return HttpResponseBadRequest('invalid form')
-            game.pb_set_player_password(form.player.id, form.password)
-        else:
-            return HttpResponseBadRequest('bad request')
-
     context = {'game': game}
     context['timer_form'] = GameManagementTimerForm(initial={'timer': game.timer_max_h})
     context['chat_form'] = GameManagementChatForm()
-    saves = sorted(game.pb_list_saves(), key=lambda k: -k['timestamp'])
+    context['save_form'] = GameManagementSaveForm()
 
+    saves = sorted(game.pb_list_saves(), key=lambda k: -k['timestamp'])
     load_choices = []
     for save in saves:
         is_autosave = int(save['autosave'])
@@ -129,6 +93,52 @@ def game_manage(request, game_id, action=""):
 
     context['load_form'] = GameManagementLoadForm(load_choices)
     context['set_player_password_form'] = GameManagementSetPlayerPasswordForm(game.player_set)
+
+    if request.method == 'POST':
+        if action == 'pause_enable':
+            game.pb_set_pause(True)
+            return HttpResponse('pause enabled', status=200)
+        elif action == 'pause_disable':
+            game.pb_set_pause(False)
+            return HttpResponse('pause disabled', status=200)
+        elif action == 'end_turn':
+            game.pb_end_turn()
+            return HttpResponse('turn ended', status=200)
+        elif action == 'set_turn_timer':
+            form = GameManagementTimerForm(request.POST)
+            if form.is_valid():
+                game.pb_set_turn_timer(form.cleaned_data['timer'])
+                return HttpResponse('timer set', status=200)
+            context['timer_form'] = form
+        elif action == 'chat':
+            form = GameManagementChatForm(request.POST)
+            if form.is_valid():
+                game.pb_chat(form.cleaned_data['message'])
+                return HttpResponse('chat message sent.', status=200)
+            context['chat_form'] = form
+        elif action == 'save':
+            form = GameManagementSaveForm(request.POST)
+            if form.is_valid():
+                game.pb_save(form.cleaned_data['filename'], request.user)
+                return HttpResponse('game saved.', status=200)
+            context['save_form'] = form
+        elif action == 'load':
+            form = GameManagementLoadForm(load_choices, request.POST)
+            if form.is_valid():
+                (is_autosave_str, filename) = form.cleaned_data['filename'].split('/', 1)
+                is_autosave = bool(int(is_autosave_str))
+                game.pb_restart(filename, is_autosave, request.user)
+                return HttpResponse('game loaded.', status=200)
+            context['load_form'] = form
+        elif action == 'set_player_password':
+            form = GameManagementSetPlayerPasswordForm(game.player_set, request.POST)
+            if form.is_valid():
+                game.pb_set_player_password(form.cleaned_data['player'].id, form.cleaned_data['password'])
+                return HttpResponse('passwort set.', status=200)
+            context['set_player_password_form'] = form
+        else:
+            return HttpResponseBadRequest('bad request')
+
     context['action'] = action
     return render(request, 'pbspy/game_manage.html', context)
 
