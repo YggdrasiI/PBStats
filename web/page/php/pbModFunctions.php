@@ -412,7 +412,8 @@ function display_game_info($gameData){
 		if( $gameStatus->turnTimer != 0 ){
 			$seconds = intval($gameStatus->turnTimerValue)/4;
 			$seconds -= $timeDiff;
-			$timerString =	gmdate("H:i:s", $seconds);
+			$timerString =  ''.floor($seconds/3600).':'. // Hours
+				gmdate("i:s", $seconds%3600 );//minutes and seconds
 			$timerLimit = $gameStatus->turnTimerMax;
 			$dHtml .= "<p>{L_GAME_TIMER}: <b>" . $timerString . "</b> from $timerLimit hours left.</p>\n";
 		}else{
