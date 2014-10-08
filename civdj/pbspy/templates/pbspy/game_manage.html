@@ -46,13 +46,6 @@
              </form>
         </div>
         <div class="game_management_section">
-             <form method="post" action="{% url 'game_manage' game.id 'save' %}">
-                 {% csrf_token %}
-                 {{ save_form }}
-                 <input type="submit" value="{% trans "save game" %}" />
-             </form>
-        </div>
-        <div class="game_management_section">
              <form method="post" action="{% url 'game_manage' game.id 'set_player_password' %}">
                  {% csrf_token %}
                  {{ set_player_password_form }}

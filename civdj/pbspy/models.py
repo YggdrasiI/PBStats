@@ -1,4 +1,3 @@
-from urllib.error import URLError
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 from django.db import models, transaction
@@ -12,6 +11,7 @@ import re
 import json
 import hashlib
 
+from six.moves.urllib.error import URLError
 from six.moves import urllib
 
 
