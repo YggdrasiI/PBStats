@@ -242,7 +242,11 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 								# Well, the hashing should be done in the DLL, but I forgot this call
 								# and will not change the DLL in this version of the mod.
 								# TODO: Move this line into the DLL for newer versions of the mod.
-								adminPWHash = md5.new(str(pbSettings.get("save",{}).get("adminpw",""))).hexdigest()
+								adminPW= str(pbSettings.get("save",{}).get("adminpw",""))
+								if len(adminPW) > 0:
+									adminPWHash = md5.new(adminPW).hexdigest()
+								else:
+									adminPWHash = ""
 								ret = gc.getGame().setCivPassword( playerId, newCivPW, adminPWHash )
 
 							if ret == 0:	
