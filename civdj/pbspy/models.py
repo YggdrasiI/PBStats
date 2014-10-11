@@ -90,6 +90,8 @@ class Game(models.Model):
 
     update_date        = models.DateTimeField(blank=True, null=True)
     is_paused          = models.BooleanField(default=False)
+    is_headless        = models.BooleanField(default=False)
+    is_autostart       = models.BooleanField(default=True)
     year               = models.IntegerField(blank=True, null=True)
     pb_name            = models.CharField(blank=True, null=True, max_length=200)
     turn               = models.PositiveSmallIntegerField(default=0)
@@ -124,6 +126,8 @@ class Game(models.Model):
         year      = parse_year(info['gameDate'])
         turn      = int(info['gameTurn'])
         is_paused = bool(info['bPaused'])
+        is_headless = bool(info['bHeadless'])
+        is_autostart = bool(info['bAutostart'])
         pb_name   = info['gameName']
 
         logargs = {'game': self, 'date': date,
@@ -157,12 +161,20 @@ class Game(models.Model):
         if is_paused != self.is_paused:
             GameLogPause(paused=is_paused, **logargs).save()
 
+        if is_headless != self.is_headless:
+					pass
+
+        if is_autostart != self.is_autostart:
+					pass
+
         self.timer_max_h        = timer_max_h
         self.timer_remaining_4s = timer_remaining_4s
         self.update_date        = date
         self.pb_name            = pb_name
         self.turn               = turn
         self.is_paused          = is_paused
+        self.is_headless        = is_headless
+        self.is_autostart       = is_autostart
         self.year               = year
         self.save()
 
@@ -212,6 +224,9 @@ class Game(models.Model):
         text = "{}: {}".format(name, message)
         return self.pb_action(action='chat', msg=text)
 
+    def pb_motd(self, message, user=None):
+        return self.pb_action(action='setMotD', msg=str(message))
+
     def pb_set_autostart(self, value, user=None):
         return self.pb_action(action='setAutostart', value=bool(value))
 
@@ -240,8 +255,8 @@ class Game(models.Model):
     def pb_end_turn(self, user=None):
         return self.pb_action(action='endTurn')
 
-    def pb_restart(self, filename, auto_dir, user=None):
-        return self.pb_action(action='restart', filename=filename, autoDir=auto_dir)
+    def pb_restart(self, filename, folderIndex=0, user=None):
+        return self.pb_action(action='restart', filename=filename, folderIndex=folderIndex)
 
     def pb_set_player_password(self, player_id, new_password, user=None):
         if isinstance(player_id, Player):

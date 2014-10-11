@@ -10,6 +10,7 @@ import wx.wizard
 import wx.lib.scrolledpanel
 import time
 import string
+import os.path
 
 import Webserver
 
@@ -43,6 +44,31 @@ if noGui :
 	autostart = True
 
 
+# Check if filename can be found in several folders
+# and try to load this file
+def loadSavegame(filename, folderIndex=0, adminPwd=""):
+	filepath = None
+
+	folderpaths = Webserver.getPossibleSaveFolders()
+	try:
+		folderpaths.insert(0,folderpaths[folderIndex])
+	except IndexError:
+		pass
+
+	for fp in folderpaths:
+		tmpFilePath = os.path.join(fp[0],filename)
+		if os.path.isfile( tmpFilePath ):
+			filepath = tmpFilePath
+			break
+
+	if filepath == None:
+		iResult = -1
+	else:
+		iResult = PB.load(filepath, adminPwd) # should be 0
+
+	return (iResult,filepath)
+
+
 """
 Attention: noGui flag forces the usage
 of totally modified classes
@@ -67,17 +93,15 @@ if noGui or autostart:
 				# without wizard pages
 				global bPublic
 				global bScenario 
-
-				altrootDir = gc.getAltrootDir()
-				folderpath = altrootDir + "\\" + str(pbSettings["save"]["path"])
-				if	pbSettings.get("save",{}).get("autoDir",0): 
-					folderpath += "auto\\"
-				filepath = folderpath + str(pbSettings["save"]["filename"]) 
+				global altrootDir
 
 				adminPwd = str( pbSettings.get("save",{}).get("adminpw","") )
+				folderIndex = int( pbSettings.get("save",{}).get("folderIndex",0) )
+				filename = str(pbSettings["save"]["filename"])
 
-				iResult = PB.load(filepath, adminPwd) # should be 0
-				if iResult == 0 :
+				(iResult,filepath) = loadSavegame(filename, folderIndex, adminPwd)
+
+				if iResult == 0:
 					PB.setLoadFileName(filepath)
 					if ( not PB.host(bPublic, bScenario) ):
 						PB.reset()
@@ -1724,18 +1748,15 @@ else:
 				global bSaved
 				global bPublic
 				global bScenario 
-
-				altrootDir = gc.getAltrootDir()
-				folderpath = altrootDir + "\\" + str(pbSettings["save"]["path"])
-				if	pbSettings.get("save",{}).get("autoDir",0): 
-					folderpath += "auto\\"
-				filepath = folderpath + str(pbSettings["save"]["filename"]) 
+				global altrootDir
 
 				adminPwd = str( pbSettings.get("save",{}).get("adminpw","") )
+				folderIndex = int( pbSettings.get("save",{}).get("folderIndex",0) )
+				filename = str(pbSettings["save"]["filename"])
 
-				#PB.setSMTPValues( "", "", "", "" )			
-				iResult = PB.load(filepath, adminPwd) # should be 0
-				if iResult == 0 or True:
+				(iResult,filepath) = loadSavegame(filename, folderIndex, adminPwd)
+
+				if iResult == 0:
 					PB.setLoadFileName(filepath)
 					if ( not PB.host(bPublic, bScenario) ):
 						PB.reset()
@@ -1746,6 +1767,10 @@ else:
 							PB.getDone()
 							self.updateTimer.Stop()
 							PB.launch()
+				else:
+					# Loading of savegame failed. Thus, autostart was not possible
+					# Missing error message for user here...
+					pass
 			
 			
 			return True

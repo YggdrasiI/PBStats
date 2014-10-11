@@ -16,7 +16,6 @@ from threading import Thread
 PB = CyPitboss()
 gc = CyGlobalContext()
 localText = CyTranslator()
-msgBox = None
 
 pbSettings = Webserver.getPbSettings() 
 
@@ -59,7 +58,7 @@ if noGui:
 			
 			#Webserver
 			self.webserver = Webserver.ThreadedHTTPServer((pbSettings['webserver']['host'],pbSettings['webserver']['port']), Webserver.HTTPRequestHandler)
-			self.webserver.setPbWin(self)
+			#self.webserver.setPbWin(self)
 			self.t = Thread(target=self.webserver.serve_forever)
 			self.t.setDaemon(True)
 			self.t.start()
@@ -110,6 +109,7 @@ if noGui:
 
 		def OnInit(self):
 			self.adminFrame = AdminFrame()
+			self.adminFrame.webserver.setPbApp(self)
 			return True
 			
 		def update(self):
@@ -120,6 +120,9 @@ if noGui:
 			
 		def getMotD(self):
 			return pbSettings.get("MotD","")
+
+		def setMotD(self, msg):
+			pass	
 				
 		def addChatMessage(self, message):
 			pass
@@ -267,14 +270,14 @@ else:
 			
 			# Check box whether to use MotD or not
 			self.motdCheckBox = wx.CheckBox(self, -1, localText.getText("TXT_KEY_PITBOSS_MOTD_TOGGLE", ()))
-			self.motdCheckBox.SetValue(false)
+			self.motdCheckBox.SetValue( len(pbSettings['MotD']) > 0 )
 			motdSizer.Add(self.motdCheckBox, 0, wx.TOP, 5)
 			
 			# Add edit box displaying current MotD
 			self.motdDisplayBox = wx.TextCtrl(self, -1, "", size=(225,50), style=wx.TE_MULTILINE|wx.TE_READONLY)
 			self.motdDisplayBox.SetHelpText(localText.getText("TXT_KEY_PITBOSS_MOTD_HELP", ()))
+			self.motdDisplayBox.SetValue(pbSettings['MotD'])
 			motdSizer.Add(self.motdDisplayBox, 0, wx.ALL, 5)
-			
 			# Add a button to allow motd modification
 			motdChangeButton = wx.Button(self, -1, localText.getText("TXT_KEY_PITBOSS_MOTD_CHANGE", ()))
 			motdChangeButton.SetHelpText(localText.getText("TXT_KEY_PITBOSS_MOTD_CHANGE_HELP", ()))
@@ -320,7 +323,7 @@ else:
 
 			#Webserver
 			self.webserver = Webserver.ThreadedHTTPServer((pbSettings['webserver']['host'],pbSettings['webserver']['port']), Webserver.HTTPRequestHandler)
-			self.webserver.setPbWin(self)
+			#self.webserver.setPbWin(self)
 			self.t = Thread(target=self.webserver.serve_forever)
 			self.t.setDaemon(True)
 			self.t.start()
@@ -536,6 +539,8 @@ else:
 			self.adminFrame = AdminFrame(None, -1, (localText.getText("TXT_KEY_PITBOSS_SAVE_SUCCESS", (PB.getGamename(), ))))
 			self.adminFrame.Show(True)
 			self.SetTopWindow(self.adminFrame)
+
+			self.adminFrame.webserver.setPbApp(self)
 			return True
 			
 		def update(self):
@@ -573,16 +578,16 @@ else:
 				return self.adminFrame.motdDisplayBox.GetValue()
 			else:
 				return pbSettings.get("MotD","")
-				
+
+		def setMotD(self, msg):
+				self.adminFrame.motdDisplayBox.SetValue(msg)
+
 		def addChatMessage(self, message):
 			message = localText.stripHTML(message)
 			self.adminFrame.chatLog.AppendText("\n")
 			self.adminFrame.chatLog.AppendText(message)
 			
 		def displayMessageBox(self, title, desc):
-			#global msgBox
-			#msgBox = wx.MessageDialog( self, desc, title, wx.OK )
-			#msgBox.Show(True)
 			outMsg = title + ":\n" + desc
 			PB.consoleOut(outMsg)
 			

@@ -1,0 +1,101 @@
+@BGColor: #243954;
+@headlineBGColor: #58677C;
+@headlineBGColor2: darken(@headlineBGColor, 10%);
+@tableheadBGColor: @headlineBGColor;
+@tablecellBGColor: #2E3038;
+
+@fontColor1: #FFFFCC;
+@fontColor2: #F4D01E;
+@fontColor3: saturate(@fontColor2, 20%);
+
+@linkColor: @fontColor1;
+@linkColorHover: @fontColor3;
+
+body {
+	color: @fontColor1;
+	background-color:@BGColor;
+}
+
+
+a, a:visited {
+	color: @linkColor;
+}
+
+a:hover {
+	color: @linkColorHover;
+}
+
+// Add this prop to capitalize the first word
+.capitalize {
+	&::first-letter {
+		// :frist-letter only operates on block elements 
+		text-transform: capitalize;
+	}
+}
+
+#sidebar > ul > li {
+	display: inline-block;
+	margin-right :2em;
+	.capitalize
+}
+
+#game_name {
+	color: @fontColor1;
+	background-color: @headlineBGColor;
+	.capitalize
+}
+h2 {
+	color: @fontColor1;
+	background-color: @headlineBGColor2;
+	.capitalize
+}
+
+
+.game_metadata, .game_description {
+		border: 1px solid @fontColor2;
+		padding-left: 0.4em;
+}
+
+table.game_list, table.game_players, table.game_log {
+	border-collapse: collapse;
+	th, td {
+		border: 1px solid @fontColor2;
+		padding: 0.4em;
+	}
+}
+
+table.game_list {
+	.colNumPlayers { text-align: center; }
+	.colTurn { text-align: right; }
+	.colName a{ 
+		text-decoration:none; 
+		font-weight:bold;
+	}
+}
+
+table.game_players {
+	.colName { font-weight:bold; }
+	.colScore { text-align: right; }
+}
+
+table.game_players {
+	.colTurn { text-align: right; }
+}
+
+.game_management_section {
+	h2 {
+		margin-top:1em;
+		~ * {
+			padding-left:2em;
+		}
+	}
+	span.description{
+		display: block;
+	}
+}
+
+
+[todo]:after {
+			content: "ToDo: "attr(todo);
+			color: red;
+		}

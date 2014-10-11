@@ -2,58 +2,69 @@
 {% load i18n %}
 
 {% block content %}
-    <div id="game_summary">
-        <h1 id="game_name">{{ game.name }}</h1>
-    {% if can_manage %}
-        (<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
-    {% endif %}
-        <div class="game_info">{% trans "Turn" %}: {{ game.turn|default_if_none:_("n/a") }}</div>
-        <div class="game_info">{% trans "Year" %}: {{ game.year_str|default:_("n/a") }}</div>
-        {% if game.timer %}
-            <div class="game_info">{% trans "Timer" %}:
-                {% blocktrans with end=game.timer_end|timeuntil hours=game.timer_max_h %}
-                    Turn ends in {{ end }} ({{ hours }} hours per turn)
-                {% endblocktrans %}
-            </div>
-        {% else %}
-            <div class="game_info">{% trans "No timer set." %}:</div>
-        {% endif %}
-        <div class="game_info">
-            {% if game.is_paused %}
-                {% trans "The game is paused." %}
-            {% else %}
-                {% trans "The game is not paused." %}
-            {% endif %}
-        </div>
-        <div class="game_info">
-            Admins for this game: {{ game.admins.all | join:", " }}
-        </div>
-        <div id="game_description">
+		<h1 id="game_name">{{ game.name }}</h1>
+
+		<div id="game_summary">
+			{% if can_manage %}
+			(<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
+			{% endif %}
+			<div id="game_metadata">
+        <h2>{% trans "game status" %}</h2>
+				<div class="game_metadata">
+					<p class="game_info">{% trans "Turn" %}: {{ game.turn|default_if_none:_("n/a") }}</p>
+					<p class="game_info">{% trans "Year" %}: {{ game.year_str|default:_("n/a") }}</p>
+					{% if game.timer %}
+							<p class="game_info">{% trans "Timer" %}:
+									{% blocktrans with end=game.timer_end|timeuntil hours=game.timer_max_h %}
+											Turn ends in {{ end }} ({{ hours }} hours per turn)
+									{% endblocktrans %}
+							</p>
+					{% else %}
+							<p class="game_info">{% trans "No timer set." %}:</p>
+					{% endif %}
+					<p class="game_info">
+							{% if game.is_paused %}
+									{% trans "The game is paused." %}
+							{% else %}
+									{% trans "The game is not paused." %}
+							{% endif %}
+					</p>
+					<p class="game_info">
+							Admins for this game: {{ game.admins.all | join:", " }}
+					</p>
+				</div>
+        <div class="game_url"><a href="{{ game.url }}">{{ game.url }}</a></div>
+			</div>
+
+			<div id="game_description">
+        <h2>{% trans "game description" %}</h2>
+        <div class="game_description">
             <pre>
                 {{ game.description }}
             </pre>
         </div>
-        <div class="game_info"><a href="{{ game.url }}">{{ game.url }}</a></div>
     </div>
+
+		<h2>{% trans "player summary" %}</h2>
     <div id="game_players">
         {% if players %}
             <table class='game_players'>
                 <tr>
-                    <th>⌛</th>
-                    <th>{% trans "Name" %}</th>
-                    <th>{% trans "Leader" %}</th>
-                    <th>{% trans "Nation" %}</th>
-                    <th>{% trans "Score" %}</th>
-                    <th>{% trans "Status" %}</th>
+                    <th class="colFinish">⌛</th>
+                    <th class="colName">{% trans "Name" %}</th>
+                    <th class="colLeader">{% trans "Leader" %}</th>
+                    <th class="colNation">{% trans "Nation" %}</th>
+                    <th class="colScore">{% trans "Score" %}</th>
+                    <th class="colStatus">{% trans "Status" %}</th>
                 </tr>
                 {% for player in players %}
                     <tr>
-                        <td>{% if player.finished_turn %}*{% endif %}</td>
-                        <td>{{ player.name }}</td>
-                        <td>{{ player.leader }}</td>
-                        <td>{{ player.civilization }}</td>
-                        <td>{{ player.score }}</td>
-                        <td>{{ player.status }}</td>
+                        <td class="colFinish">{% if player.finished_turn %}*{% endif %}</td>
+                        <td class="colName">{{ player.name }}</td>
+                        <td class="colLeader">{{ player.leader }}</td>
+                        <td class="colNation">{{ player.civilization }}</td>
+                        <td class="colScore">{{ player.score }}</td>
+                        <td class="colStatus">{{ player.status }}</td>
                     </tr>
                 {% endfor %}
             </table>
@@ -61,21 +72,23 @@
             <p>{% trans "No players available yet." %}</p>
         {% endif %}
     </div>
+
+		<h2>{% trans "game log" %}</h2>
     <div id="game_log">
         {% if log %}
             <table class='game_log'>
                 <tr>
-                    <th>{% trans "Time" %}</th>
-                    <th>{% trans "Turn" %}</th>
-                    <th>{% trans "Player" %}</th>
-                    <th>{% trans "Event" %}</th>
+                    <th class="colDate">{% trans "Time" %}</th>
+                    <th class="colTurn">{% trans "Turn" %}</th>
+                    <th class="colPlayer">{% trans "Player" %}</th>
+                    <th class="colEvent">{% trans "Event" %}</th>
                 </tr>
             {% for logentry in log %}
                 <tr>
-                    <td>{{ logentry.date }}</td>
-                    <td>{{ logentry.turn }}</td>
-                    <td>{{ logentry.player_name|default:"-" }}</td>
-                    <td>{{ logentry.message }}</td>
+                    <td class="colDate">{{ logentry.date }}</td>
+                    <td class="colTurn">{{ logentry.turn }}</td>
+                    <td class="colPlayer">{{ logentry.player_name|default:"-" }}</td>
+                    <td class="colEvent">{{ logentry.message }}</td>
                 </tr>
             {% endfor %}
             </table>

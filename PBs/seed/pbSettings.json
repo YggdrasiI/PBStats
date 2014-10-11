@@ -14,10 +14,8 @@
   "sendInterval": 10
  }, 
  "save": {
-  "path": ".\\saves\\multi\\", 
+  "filename": "Beispiel.CivBeyondSwordSave",
   "adminpw": "", 
-  "autoDir": false, 
-  "autostart": 1, 
-  "filename": "Beispiel.CivBeyondSwordSave"
+  "autostart": 1
  }
 }

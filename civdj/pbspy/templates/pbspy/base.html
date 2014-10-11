@@ -1,9 +1,15 @@
 {% load i18n %}
+{% load staticfiles %}
+{% load compile_static %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
 <head>
 <meta charset="UTF-8">
 <title>{% block title %}{% trans "PBSPY: Civilization 4 PitBoss Statistics" %}{% endblock %}</title>
+
+<link rel="stylesheet" type="text/css" href="{% static 'pbspy/css/defaultstyle/style.css' %}" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL}}{% compile "pbspy/less/defaultstyle/theme.less" %}" />
+
 </head>
 {% spaceless %}
 <body>
@@ -11,12 +17,15 @@
         {% block sidebar %}
         <ul>
             {% if user.is_authenticated %}
-                <li>{% blocktrans %}
-                    Logged in as {{ user }}.
-                {% endblocktrans %}</li>
                 <li><a href="{% url 'auth_logout' %}">
                     {% trans "logout" %}
-                </a></li>
+									</a>
+									(
+									{% blocktrans %}
+									Logged in as {{ user }}.
+									{% endblocktrans %}
+									)
+									</li>
                 <li><a href="{% url 'game_create' %}">
                     {% trans "register new PitBoss" %}
                 </a></li>

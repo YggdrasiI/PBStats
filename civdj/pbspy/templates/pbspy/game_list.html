@@ -5,21 +5,21 @@
 {% if game_list %}
     <table class='game_list'>
         <tr>
-            <th>Name</th>
-            <th>Players</th>
-            <th>Current Year</th>
-            <th>Turn</th>
+            <th class="colName">Name</th>
+            <th class="colNumPlayers">Players</th>
+            <th class="colYear">Current Year</th>
+            <th class="colTurn">Turn</th>
         </tr>
     {% for game in game_list %}
         <tr>
-            <td><a href="{% url 'game_detail' game.id %}">{{ game.name }}</a></td>
-            <td>{{ game.player_count }}</td>
-            <td>{{ game.year_str }}</td>
-            <td>{{ game.turn }}</td>
+            <td class="colName"><a href="{% url 'game_detail' game.id %}">{{ game.name }}</a></td>
+            <td class="colNumPlayers">{{ game.player_count }}</td>
+            <td class="colYear">{{ game.year_str }}</td>
+            <td class="colTurn">{{ game.turn }}</td>
         </tr>
     {% endfor %}
     </table>
 {% else %}
-    <p>No games are available.</p>
+    <p class='game_info'>No games are available.</p>
 {% endif %}
 {% endblock %}

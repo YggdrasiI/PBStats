@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'debug_toolbar',
     'erroneous',
+		'static_precompiler',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -86,7 +87,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/dev/howto/static-files/
 
-STATIC_URL = '/static/'
+if DEBUG == True:
+	STATIC_ROOT='static/'
+	STATIC_URL = '/static/'
+else:
+	# Call 'python manage.py collectstatic' to transfer 
+	# files into STATIC_ROOT
+	STATIC_ROOT='/var/www/pbspy/static/'
+	STATIC_URL = 'http://localhost/pbspy/static/'
 
 DEBUG_TOOLBAR_CONFIG = {
     'SHOW_TEMPLATE_CONTEXT': True,
@@ -94,8 +102,17 @@ DEBUG_TOOLBAR_CONFIG = {
 
 ACCOUNT_ACTIVATION_DAYS = 7
 
+DEFAULT_FROM_EMAIL = 'pbspy@zulan.net'
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = '/tmp/django-messages'
-DEFAULT_FROM_EMAIL = 'pbspy@zulan.net'
 
 LOGIN_REDIRECT_URL = 'game_list'
+
+# For compilation of less files, see
+# https://github.com/andreyfedoseev/django-static-precompiler 
+STATICFILES_FINDERS = (
+		'django.contrib.staticfiles.finders.FileSystemFinder',
+		'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+		# other finders..
+		'static_precompiler.finders.StaticPrecompilerFinder',
+		)

@@ -17,6 +17,9 @@ class GameManagementTimerForm(Form):
 class GameManagementChatForm(Form):
     message = forms.CharField(label=_('Text message'))
 
+class GameManagementMotDForm(Form):
+    message = forms.CharField(label=_('Text message'))
+
 
 class GameManagementSaveForm(Form):
     filename = forms.CharField(label=_('Filename (without extension)'), max_length=20)

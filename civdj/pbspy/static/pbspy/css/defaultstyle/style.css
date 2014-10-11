@@ -1,0 +1,44 @@
+/*
+ * File for backward compatibility and 
+ * style definitions without less compiler.
+ *
+ * It' recommended to use pbspy/less/defaultstyle/theme.less
+ *
+ * */
+
+/* List of available class names and ids:
+ * #sidebar : contains navigation links ( login, register, etc )
+ *
+ * .game_list : Table of all registered games
+ * 	Columns: colName, colNumPlayers, colYear, colTurn
+ *
+ * .game_info: <p>-Element with information about a game or the list of games.
+ *
+ *
+ * #game_name : <h1>-Headlin
+ * #game_summary : Contains metadata and description
+ *
+ * #game_metadata : <div>-Container for <h2>headline, .game_metadata and .game_url
+ * .game_metadata : List of properties
+ * .game_url : <div>-Container with link to external site
+ *
+ * #game_description : <div>-Container for <h2>headline and .game_description
+ * .game_description : Contains user defined text.
+ *
+ * #game_players : <div>-Container with table
+ * .game_players : Table with player names
+ * 	Columns: colFinished, colName, colLeader, colNation, colScore, colStatus
+ *
+ * #game_log : <div>-Container with table
+ * .game_log : Table with log enties
+ * 	Columns: colDate, colTurn, colPlayer, colEvent 
+ *
+ * #game_management : <div>-Containen with headline and several sections
+ * .game_management_section
+ * 	Contains h2, input form and span with .description-class
+ *
+ *
+ *
+ * .todo : Markup elements with ToDo-text.
+ */
+

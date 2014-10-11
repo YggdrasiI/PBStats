@@ -305,13 +305,27 @@ function gameFull($game,$online /* False for preview during creation of new game
 						}
 
 						if( $step == 7 ){
-							// Set timer for next round
+							// Set headless mode
 							$value = $_GET["value"];
 							$pbAction = array('action'=>'setHeadless','password'=>$pw,'value'=>$value);
 							$infos = json_decode(handle_pitboss_action($gameData, $pbAction));
 
 							if( $infos->return === "ok" ){
 								$dHtml .= "<p>{L_GAME_SUCCESS_MSG}".$infos->info ."</p>";
+								operation_update_ids( $opid );
+							}else{
+								$dHtml .= "<p>{L_GAME_ERROR_MSG}".$infos->info ."</p>";
+							}
+						}
+
+						if( $step == 8 ){
+							// Change message of the day (MotD)
+							$msg = $_GET["msg"];
+							$pbAction = array('action'=>'setMotD','password'=>$pw,'msg'=>$msg);
+							$infos = json_decode(handle_pitboss_action($gameData, $pbAction));
+
+							if( $infos->return === "ok" ){
+								$dHtml .= "<p>{L_GAME_MOTD_MESSAGE_SUCCESSFUL|$msg}</p>";
 								operation_update_ids( $opid );
 							}else{
 								$dHtml .= "<p>{L_GAME_ERROR_MSG}".$infos->info ."</p>";
@@ -368,6 +382,16 @@ function gameFull($game,$online /* False for preview during creation of new game
 							<input type='hidden' name='action' value='admin' />\n
 							<input type='hidden' name='game' value='$gameId' />\n
 							<input type='hidden' name='step' value='3' />\n
+							<input type='hidden' name='opid' value='$opid' />\n
+							</p></form>\n";
+
+						$dHtml .= "<h3 class='hr pad'>{L_GAME_MOTD_MESSAGE}</h3>";
+						$dHtml .= "<form action='$this_page' method='get'>\n
+							<p>{L_MESSAGE}: <input type='text' name='msg' value='' />\n
+							<input type='submit' />\n
+							<input type='hidden' name='action' value='admin' />\n
+							<input type='hidden' name='game' value='$gameId' />\n
+							<input type='hidden' name='step' value='8' />\n
 							<input type='hidden' name='opid' value='$opid' />\n
 							</p></form>\n";
 
@@ -437,10 +461,10 @@ function gameFull($game,$online /* False for preview during creation of new game
 							//split 'auto' flag from filename
 							$tmp = explode(",",$fn);
 							$fn = $tmp[0];
-							$autoDir = 0;
-							if( count($tmp)>1 ) $autoDir = intval($tmp[1]);
+							$folderIndex = 0;
+							if( count($tmp)>1 ) $folderIndex = intval($tmp[1]);
 
-							$pbAction = array('action'=>'restart','password'=>$pw,'filename'=>$fn,'autoDir'=>$autoDir);
+							$pbAction = array('action'=>'restart','password'=>$pw,'filename'=>$fn,'folderIndex'=>$folderIndex);
 							$dHtml .= "<p>{L_GAME_INVOKE_RESTART2|$fn}</p>";
 						}
 
@@ -490,11 +514,7 @@ function gameFull($game,$online /* False for preview during creation of new game
 							if($dot !== false){
 								$sname = substr($sname, 0, $dot);
 							}
-							if( $savefile->autosave == 1 ){
-								$dHtml .= "<option style='text-align:right;' value='".$sname.",1'>*".$sname." | ".$savefile->date."</option>";
-							}else{
-								$dHtml .= "<option style='text-align:right;' value='".$sname.",0'>".$sname." | ".$savefile->date."</option>";
-							}
+							$dHtml .= "<option style='text-align:right;' value='".$sname.",".$savefile->folderIndex."'>".$sname." | ".$savefile->date."</option>";
 						}
 						$dHtml .= "</select>";
 						$dHtml .= "<p><input type='submit' />\n

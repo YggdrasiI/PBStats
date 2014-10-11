@@ -2,7 +2,7 @@ from django.http import HttpResponseBadRequest, HttpResponse
 from django.views import generic
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
 from pbspy.models import Game, GameLog, Player
-from pbspy.forms import GameForm, GameManagementChatForm, GameManagementTimerForm, GameManagementLoadForm, \
+from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm, GameManagementTimerForm, GameManagementLoadForm, \
     GameManagementSetPlayerPasswordForm, GameManagementSaveForm
 
 from django.contrib.auth.decorators import login_required
@@ -80,14 +80,15 @@ def game_manage(request, game_id, action=""):
     context = {'game': game}
     context['timer_form'] = GameManagementTimerForm(initial={'timer': game.timer_max_h})
     context['chat_form'] = GameManagementChatForm()
+    context['motd_form'] = GameManagementMotDForm()
     context['save_form'] = GameManagementSaveForm()
 
     saves = sorted(game.pb_list_saves(), key=lambda k: -k['timestamp'])
     load_choices = []
     for save in saves:
-        is_autosave = int(save['autosave'])
-        key = "/".join([str(is_autosave), save['name']])
-        label = "{}{} ({})".format('*' if save['autosave'] else '', save['name'], save['date'])
+        folderIndex = int(save['folderIndex'])
+        key = "/".join([str(folderIndex), save['name']])
+        label = "{} ({})".format(save['name'], save['date'])
         choice = (key, label)
         load_choices.append(choice)
 
@@ -101,6 +102,18 @@ def game_manage(request, game_id, action=""):
         elif action == 'pause_disable':
             game.pb_set_pause(False)
             return HttpResponse('pause disabled', status=200)
+        elif action == 'headless_enable':
+            game.pb_set_headless(True)
+            return HttpResponse('headless mode enabled', status=200)
+        elif action == 'headless_disable':
+            game.pb_set_headless(False)
+            return HttpResponse('headless mode disabled', status=200)
+        elif action == 'autostart_enable':
+            game.pb_set_autostart(True)
+            return HttpResponse('pb autostart enabled', status=200)
+        elif action == 'autostart_disable':
+            game.pb_set_autostart(False)
+            return HttpResponse('pb autostart disabled', status=200)
         elif action == 'end_turn':
             game.pb_end_turn()
             return HttpResponse('turn ended', status=200)
@@ -116,6 +129,12 @@ def game_manage(request, game_id, action=""):
                 game.pb_chat(form.cleaned_data['message'])
                 return HttpResponse('chat message sent.', status=200)
             context['chat_form'] = form
+        elif action == 'motd':
+            form = GameManagementMotDForm(request.POST)
+            if form.is_valid():
+                game.pb_motd(form.cleaned_data['message'])
+                return HttpResponse('MotD sent.', status=200)
+            context['motd_form'] = form
         elif action == 'save':
             form = GameManagementSaveForm(request.POST)
             if form.is_valid():
@@ -125,9 +144,9 @@ def game_manage(request, game_id, action=""):
         elif action == 'load':
             form = GameManagementLoadForm(load_choices, request.POST)
             if form.is_valid():
-                (is_autosave_str, filename) = form.cleaned_data['filename'].split('/', 1)
-                is_autosave = bool(int(is_autosave_str))
-                game.pb_restart(filename, is_autosave, request.user)
+                (folderIndex_str, filename) = form.cleaned_data['filename'].split('/', 1)
+                folderIndex = int(folderIndex_str)
+                game.pb_restart(filename, folderIndex, request.user)
                 return HttpResponse('game loaded.', status=200)
             context['load_form'] = form
         elif action == 'set_player_password':

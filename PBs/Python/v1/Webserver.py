@@ -22,7 +22,6 @@ PB = CyPitboss()
 gc = CyGlobalContext()
 localText = CyTranslator()
 
-
 #Default settings, only works if one PB instance is running
 pbDefaultSettings = {
 	"webserver": {
@@ -37,10 +36,9 @@ pbDefaultSettings = {
 		"sendInterval" : 10, # Seconds during automatic sending of game data
 		},
 	"save" : {
-		"autostart" : 0,
-		"path": ".\\saves\\multi\\",
 		"filename" : "A.CivBeyondSwordSave",
-		"adminpw" : ""
+		"adminpw" : "",
+		"autostart" : 0
 	},
 	"numRecoverySavesPerPlayer" : 5,
 	"MotD" : "Welcome on the modified PitBoss Server",
@@ -99,6 +97,21 @@ def savePbSettings():
 	except Exception, e:
 		pass
 
+# Use two default paths and the given path from the setting file
+# to generate possible paths of saves. The hashmap construction 
+# omit duplicates in the list of paths.
+def getPossibleSaveFolders():
+	global altrootDir
+	paths = {}
+	userPath = str( pbSettings.get("save",{}).get("path","\\saves\\multi") )
+	paths[altrootDir + "\\" + userPath ] = len(paths)
+	paths[altrootDir + "\\" + userPath + "auto\\"] = len(paths)
+	paths[altrootDir + "\\" + "saves\\multi\\"] = len(paths)
+	paths[altrootDir + "\\" + "saves\\multi\\auto\\"] = len(paths)
+	paths[altrootDir + "\\" + "saves\\pitboss\\"] = len(paths)
+	paths[altrootDir + "\\" + "saves\\pitboss\\auto\\"] = len(paths)
+	return paths.items()
+
 # The do_POTH method of this class handle the control commands
 # of the webinterface
 class HTTPRequestHandler(BaseHTTPRequestHandler):
@@ -122,7 +135,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 					parseddata = cgi.parse_qs(rawdata, keep_blank_values=1)
 					inputdata = simplejson.loads( parseddata.keys()[0] )
 					"""
-					parseddata = rawdata.split("&");
+					parseddata = rawdata.split("&")
 					inputdata = simplejson.loads( parseddata[0] )
 					""" 
 
@@ -164,7 +177,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
 					elif( action == "setTurnTimer" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
 							iHours = int( inputdata.get("value",24) )
-							PB.turnTimerChanged(iHours);
+							PB.turnTimerChanged(iHours)
 							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Deactivate pause.' } ) +"\n" )
 
 					elif( action == "setPause" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
@@ -184,7 +197,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 					elif( action == "endTurn" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
 							#Create Backup save in auto-Folder
 							filename = r"Auto_" + PB.getGamename() + r"_R" + str(PB.getGameturn()) + r"end_" + PB.getGamedate(False) + r".CivBeyondSwordSave"
-							self.server.createSave(str(filename), True)
+							self.server.createSave(str(filename), 1)
 
 							#gc.getGame().doControl(ControlTypes.CONTROL_FORCEENDTURN)#wrong
 							messageControl = CyMessageControl()
@@ -197,42 +210,62 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 						bReload = True
 
 						filename = str(inputdata.get("filename",""))
-						autoDir =  inputdata.get("autoDir",0)
+						folderIndex =  int(inputdata.get("folderIndex",0))
 						#remove "\ or /" chars to cut of directory changes
 						filename = filename[max(filename.rfind("/"),filename.rfind("\\"))+1:len(filename)]
 
-						# Disable autoDir flag if no filename was given.
+						# Use first folder if no filename is given
 						if len(filename) == 0 :
-							autoDir = 0
-
-						# Force single autostart
-						self.server.lock.acquire()
-						pbSettings["save"]["oneOffAutostart"] = 1
-						pbSettings["save"]["autoDir"] = autoDir
-						self.server.lock.release()
+							folderIndex = 0
 
 						if len(filename) > 0 :
 							#Save selected filename for reloading in the settings file
 							filename =  filename + ".CivBeyondSwordSave"
-							self.server.lock.acquire()
-							pbSettings["save"]["filename"] = filename
-							pbSettings["save"]["autoDir"] = autoDir
-							self.server.lock.release()
-							self.server.savePbSettings()
+							filename = filename.replace("CivBeyondSwordSave.CivBeyondSwordSave","CivBeyondSwordSave")
+							# Now, checks if file can be found. Otherwise abort because 
+							# loading of missing files let crash the pb server and grab 100% of cpu.
+							folderpaths = getPossibleSaveFolders()
+							try:
+								folderpaths.insert(0,folderpaths[folderIndex])
+							except IndexError:
+								pass
+
+							folderIndexFound = -1
+							for fp in folderpaths:
+								tmpFilePath = os.path.join(fp[0],filename)
+								if os.path.isfile( tmpFilePath ):
+									folderIndexFound = fp[1]
+									break
+
+							if folderIndexFound == -1:
+								# No save game with this filename found. Abort reloading
+								bReload = False
+								self.wfile.write( simplejson.dumps( {'return':'fail','info':'Reloading failed. Can not detect path of save "'+filename+'".' } ) +"\n" )
+							else:
+								self.server.lock.acquire()
+								pbSettings["save"]["filename"] = filename
+								pbSettings["save"]["folderIndex"] = folderIndexFound
+								pbSettings["save"]["oneOffAutostart"] = 1
+								self.server.lock.release()
+								self.server.savePbSettings()
+
 						else:
+							self.server.lock.acquire()
+							pbSettings["save"]["oneOffAutostart"] = 1
+							self.server.lock.release()
 							filename = "Reload.CivBeyondSwordSave"
 							ret = self.server.createSave(filename)
 							if ret["return"] != "ok" :
 								bReload = False
-								self.wfile.write( simplejson.dumps( {'return':'fail','info':'Abort reloading. Was not able to save game.' } ) +"\n" )
+								self.wfile.write( simplejson.dumps( {'return':'fail','info':'Reloading failed. Was not able to save game.' } ) +"\n" )
 
 						if bReload:
 							# Quit server. The loop in the batch file should restart the server....
 							if self.server.adminWindow != None:
-								self.wfile.write( simplejson.dumps( {'return':'ok','info':'Quit pb server window.' } ) +"\n" )
+								self.wfile.write( simplejson.dumps( {'return':'ok','info':'Set loaded file on "'+filename+'" and quit PB server window.' } ) +"\n" )
 								self.server.adminWindow.OnExit(None)
 							else:
-								self.wfile.write( simplejson.dumps( {'return':'fail','info':'Abort reloading. Was not able to quit pb server window.' } ) +"\n" )
+								self.wfile.write( simplejson.dumps( {'return':'fail','info':'Reloading failed. Was not able to quit PB server window.' } ) +"\n" )
 
 					elif( action == "setPlayerPassword" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
 							playerId = int(inputdata.get("playerId",-1))
@@ -254,6 +287,24 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 							else:
 								self.wfile.write( simplejson.dumps( {'return':'fail','info':'Passwort change failed.' } ) +"\n" )
 
+					elif( action == "setMotD" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+						try:
+							msg =  str(inputdata.get("msg","No MotD given. Missing msg argument?!"))
+							msg = msg.replace('&', '&amp;')
+							msg = msg.replace('<', '&lt;')
+							msg = msg.replace('>', '&gt;')
+							self.server.lock.acquire()
+							pbSettings["MotD"] = msg
+							self.server.lock.release()
+							self.server.savePbSettings()
+
+							if self.server.adminApp!= None:
+								self.server.adminApp.setMotD(msg)
+
+							self.wfile.write( simplejson.dumps( {'return':'ok','info':'New MotD: '+msg } ) +"\n" ) 
+						except Exception, e:
+							self.wfile.write( simplejson.dumps( {'return':'fail','info':'Some error occured trying to set the MotD. Probably a character that cannot be encoded. Error msg:'+str(e) } ) +"\n" )
+
 					elif( action == "info" ):
 						gamedata = self.server.createGamedata()
 
@@ -262,24 +313,17 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 					elif( action == "listSaves" ):
 						# Print list of saves of the selected folder. This can be used for a dropdown list 
 						# of available saves.
-						global altrootDir
-
-						folderpaths = [
-								{"path": altrootDir + "\\" + str(pbSettings["save"]["path"]), "autosave":False},
-								{"path": altrootDir + "\\" + str(pbSettings["save"]["path"]) + "auto\\", "autosave":True},
-								{"path": altrootDir + "\\saves\\pitboss", "autosave":False},
-								{"path": altrootDir + "\\saves\\pitboss\\auto\\", "autosave":True},
-								]
+						folderpaths = getPossibleSaveFolders()
 						saveList = []
 
 						for fp in folderpaths:
-							folderpath = fp["path"]
+							folderpath = fp[0]
 							for savefile in os.listdir(folderpath):
 								if savefile.endswith(".CivBeyondSwordSave"):
 									timestamp = os.path.getctime( folderpath+savefile )
 									saveList.append( {
 										'name':str(savefile),
-										'autosave':fp["autosave"],
+										'folderIndex':fp[1],
 										'date':time.ctime(timestamp),
 										'timestamp':timestamp
 											})
@@ -287,12 +331,14 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 						self.wfile.write( simplejson.dumps( {'return':'ok','list':saveList} ) +"\n" ) 
 
 					else:
-						self.wfile.write( simplejson.dumps( {'return':'fail','info':'Wrong password or unknown action. Available actions info, chat, save, restart, listSaves, setAutostart, setHeadless'} ) +"\n" ) 
+						self.wfile.write( simplejson.dumps( {'return':'fail','info':'Wrong password or unknown action. Available actions are info, chat, save, restart, listSaves, setAutostart, setHeadless, setMotD'} ) +"\n" ) 
 
 				except Exception, e:
-					# It was a bad idea to write output in the error case... Just pass now.
-					#self.wfile.write( simplejson.dumps( {'return':'fail','info': "Exception: " + str(e) } ) + "\n" )
-					pass
+					try:
+						errInfo = str(e)
+						self.wfile.write( simplejson.dumps( {'return':'fail','info': "Exception: " + errInfo } ) + "\n" )
+					except:
+						pass
 
 
 			else:
@@ -333,7 +379,6 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 		return
 
 
-
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 	allow_reuse_address = True
 
@@ -344,12 +389,20 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 		#But we set the Deamon flag to true, thus it should shutdown.
 		#HTTPServer.shutdown(self)
 
+	""" #Superseeded by setPbApp
 	def setPbWin(self, adminWindow):
 		self.adminWindow = adminWindow
 		self.lock = thread.allocate_lock()
+	"""
+
+	def setPbApp(self, adminApp):
+		self.adminApp = adminApp
+		self.adminWindow = adminApp.adminFrame
+		self.lock = thread.allocate_lock()
 	
-	def createSave(self, filename, autoDir=False):
-		filepath = self.getSaveFolder(autoDir) + filename
+	def createSave(self, filename, folderIndex=0):
+		#filepath = os.path.join(self.getSaveFolder(folderIndex),filename)
+		filepath = self.getSaveFolder(folderIndex) + filename
 
 		if (filename != ""):
 			self.lock.acquire()
@@ -359,26 +412,27 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 			else:
 				# Update last file name info and save json file 
 				pbSettings["save"]["filename"] = filename
-				pbSettings["save"]["autoDir"] = autoDir
+				pbSettings["save"]["folderIndex"] = folderIndex
 				self.lock.release()
 				self.savePbSettings()
 				ret = {'return':'ok','info':'File was saved in '+filepath+'.' }  
 
 		return ret
 
-	def getSaveFolder(self, autoDir):
+	def getSaveFolder(self, folderIndex=0):
 		global altrootDir
-		folderpath = os.path.join(altrootDir, str(pbSettings["save"]["path"]) )
-		if autoDir:	
-			folderpath += "auto\\"
-
-		return folderpath
+		folderpath = os.path.join(altrootDir, str( pbSettings.get("save",{}).get("path","\\saves\\multi") ) )
+		folderpaths = getPossibleSaveFolders()
+		try:
+			   return folderpaths[folderIndex][0]
+		except IndexError:
+			   return folderpaths[0][0]
 
 
 	def createPlayerRecoverySave(self, playerId, playerName, bOnline):
 		#1. Check which saves already exists for this player
 		#   and remove old recovery saves
-		folder = self.getSaveFolder(True)
+		folder = self.getSaveFolder(1)
 		RecoverPrefix = 'Logoff_'
 		if bOnline:
 			RecoverPrefix = 'Login_'
@@ -395,7 +449,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 		#2. Save new recovery save
 		filename = RecoverPrefix + str(int(time.time())) + '_P' + str(playerId) + '_' + playerName + '.CivBeyondSwordSave'
-		self.createSave( str(filename), True)
+		self.createSave( str(filename), 1)
 
 
 
@@ -433,6 +487,10 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 				players.append(player)
 
 		gamedata['players'] = players	
+
+		gamedata['bHeadless'] = pbSettings.get("noGui",0)
+		gamedata['bAutostart'] = pbSettings["save"].get("autostart",0)
+
 		return gamedata
 
 
@@ -482,7 +540,7 @@ class PerpetualTimer:
 			#Write log file
 			"""
 			try:
-				xxx = "Z:\\dev\\shm\\foo.txt";
+				xxx = "Z:\\dev\\shm\\foo.txt"
 				fp = file(xxx,"w")
 				simplejson.dump({"A":"loop","B":f.read()},fp)
 			except Exception, e:
