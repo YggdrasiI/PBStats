@@ -637,8 +637,10 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 				$type = "ai";
 				break;
 			case 2:
-				$msg = "{L_LOG_LOGGED_OUT}";
-				$type = "login";
+				if( $oldP->statusId == 3 ){
+					$msg = "{L_LOG_LOGGED_OUT}";
+					$type = "login";
+				}
 				break;
 			case 3:
 				$msg = ($oldP->statusId == 2?"{L_LOG_LOGGED_IN}":"{L_LOG_CLAIMED_BY_HUMAN}");
