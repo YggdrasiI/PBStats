@@ -52,7 +52,6 @@ pbSettings = None
 # access to a variable in the ini file 
 # We reuse a widley unused variable of the standard BTS ini file 
 altrootDir = gc.getAltrootDir()
-#altrootDir = "I:\\Olaf\\PBs\\PB1" 
 
 #Cut of badly formated beginning of String [...]@ (If EMail Ini variable used)
 #altrootDir = altrootDir[altrootDir.rfind("@")+1:len(altrootDir)]
@@ -389,12 +388,6 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 		#But we set the Deamon flag to true, thus it should shutdown.
 		#HTTPServer.shutdown(self)
 
-	""" #Superseeded by setPbApp
-	def setPbWin(self, adminWindow):
-		self.adminWindow = adminWindow
-		self.lock = thread.allocate_lock()
-	"""
-
 	def setPbApp(self, adminApp):
 		self.adminApp = adminApp
 		self.adminWindow = adminApp.adminFrame
@@ -536,16 +529,6 @@ class PerpetualTimer:
 		try:
 			#f = urllib.urlopen("%s?%s" % (url,params) ) #GET method
 			f = urllib.urlopen(url, params) #POST method
-
-			#Write log file
-			"""
-			try:
-				xxx = "Z:\\dev\\shm\\foo.txt"
-				fp = file(xxx,"w")
-				simplejson.dump({"A":"loop","B":f.read()},fp)
-			except Exception, e:
-				pass
-			"""
 
 		except:
 			pass

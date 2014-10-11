@@ -102,14 +102,14 @@ DEBUG_TOOLBAR_CONFIG = {
 
 ACCOUNT_ACTIVATION_DAYS = 7
 
-DEFAULT_FROM_EMAIL = 'pbspy@zulan.net'
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = '/tmp/django-messages'
+DEFAULT_FROM_EMAIL = 'pbspy@zulan.net'
 
 LOGIN_REDIRECT_URL = 'game_list'
 
 # For compilation of less files, see
-# https://github.com/andreyfedoseev/django-static-precompiler 
+# https://github.com/andreyfedoseev/django-static-precompiler
 STATICFILES_FINDERS = (
 		'django.contrib.staticfiles.finders.FileSystemFinder',
 		'django.contrib.staticfiles.finders.AppDirectoriesFinder',

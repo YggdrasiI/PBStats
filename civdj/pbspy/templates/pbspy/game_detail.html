@@ -2,41 +2,41 @@
 {% load i18n %}
 
 {% block content %}
-		<h1 id="game_name">{{ game.name }}</h1>
+    <h1 id="game_name">{{ game.name }}</h1>
 
-		<div id="game_summary">
-			{% if can_manage %}
-			(<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
-			{% endif %}
-			<div id="game_metadata">
+    <div id="game_summary">
+      {% if can_manage %}
+      (<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
+      {% endif %}
+      <div id="game_metadata">
         <h2>{% trans "game status" %}</h2>
-				<div class="game_metadata">
-					<p class="game_info">{% trans "Turn" %}: {{ game.turn|default_if_none:_("n/a") }}</p>
-					<p class="game_info">{% trans "Year" %}: {{ game.year_str|default:_("n/a") }}</p>
-					{% if game.timer %}
-							<p class="game_info">{% trans "Timer" %}:
-									{% blocktrans with end=game.timer_end|timeuntil hours=game.timer_max_h %}
-											Turn ends in {{ end }} ({{ hours }} hours per turn)
-									{% endblocktrans %}
-							</p>
-					{% else %}
-							<p class="game_info">{% trans "No timer set." %}:</p>
-					{% endif %}
-					<p class="game_info">
-							{% if game.is_paused %}
-									{% trans "The game is paused." %}
-							{% else %}
-									{% trans "The game is not paused." %}
-							{% endif %}
-					</p>
-					<p class="game_info">
-							Admins for this game: {{ game.admins.all | join:", " }}
-					</p>
-				</div>
+        <div class="game_metadata">
+          <p class="game_info">{% trans "Turn" %}: {{ game.turn|default_if_none:_("n/a") }}</p>
+          <p class="game_info">{% trans "Year" %}: {{ game.year_str|default:_("n/a") }}</p>
+          {% if game.timer %}
+              <p class="game_info">{% trans "Timer" %}:
+                  {% blocktrans with end=game.timer_end|timeuntil hours=game.timer_max_h %}
+                      Turn ends in {{ end }} ({{ hours }} hours per turn)
+                  {% endblocktrans %}
+              </p>
+          {% else %}
+              <p class="game_info">{% trans "No timer set." %}:</p>
+          {% endif %}
+          <p class="game_info">
+              {% if game.is_paused %}
+                  {% trans "The game is paused." %}
+              {% else %}
+                  {% trans "The game is not paused." %}
+              {% endif %}
+          </p>
+          <p class="game_info">
+              Admins for this game: {{ game.admins.all | join:", " }}
+          </p>
+        </div>
         <div class="game_url"><a href="{{ game.url }}">{{ game.url }}</a></div>
-			</div>
+      </div>
 
-			<div id="game_description">
+      <div id="game_description">
         <h2>{% trans "game description" %}</h2>
         <div class="game_description">
             <pre>
@@ -45,7 +45,7 @@
         </div>
     </div>
 
-		<h2>{% trans "player summary" %}</h2>
+    <h2>{% trans "player summary" %}</h2>
     <div id="game_players">
         {% if players %}
             <table class='game_players'>
@@ -73,7 +73,7 @@
         {% endif %}
     </div>
 
-		<h2>{% trans "game log" %}</h2>
+    <h2>{% trans "game log" %}</h2>
     <div id="game_log">
         {% if log %}
             <table class='game_log'>

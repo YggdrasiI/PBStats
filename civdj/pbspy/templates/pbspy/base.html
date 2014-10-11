@@ -19,13 +19,13 @@
             {% if user.is_authenticated %}
                 <li><a href="{% url 'auth_logout' %}">
                     {% trans "logout" %}
-									</a>
-									(
-									{% blocktrans %}
-									Logged in as {{ user }}.
-									{% endblocktrans %}
-									)
-									</li>
+                  </a>
+                  (
+                  {% blocktrans %}
+                  Logged in as {{ user }}.
+                  {% endblocktrans %}
+                  )
+                  </li>
                 <li><a href="{% url 'game_create' %}">
                     {% trans "register new PitBoss" %}
                 </a></li>
@@ -49,4 +49,4 @@
     </div>
 </body>
 {% endspaceless %}
-</html> 
+</html>

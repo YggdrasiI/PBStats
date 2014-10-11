@@ -93,7 +93,6 @@ if noGui or autostart:
 				# without wizard pages
 				global bPublic
 				global bScenario 
-				global altrootDir
 
 				adminPwd = str( pbSettings.get("save",{}).get("adminpw","") )
 				folderIndex = int( pbSettings.get("save",{}).get("folderIndex",0) )
@@ -1748,7 +1747,6 @@ else:
 				global bSaved
 				global bPublic
 				global bScenario 
-				global altrootDir
 
 				adminPwd = str( pbSettings.get("save",{}).get("adminpw","") )
 				folderIndex = int( pbSettings.get("save",{}).get("folderIndex",0) )

@@ -58,7 +58,6 @@ if noGui:
 			
 			#Webserver
 			self.webserver = Webserver.ThreadedHTTPServer((pbSettings['webserver']['host'],pbSettings['webserver']['port']), Webserver.HTTPRequestHandler)
-			#self.webserver.setPbWin(self)
 			self.t = Thread(target=self.webserver.serve_forever)
 			self.t.setDaemon(True)
 			self.t.start()
@@ -122,7 +121,7 @@ if noGui:
 			return pbSettings.get("MotD","")
 
 		def setMotD(self, msg):
-			pass	
+			pass
 				
 		def addChatMessage(self, message):
 			pass
@@ -323,7 +322,6 @@ else:
 
 			#Webserver
 			self.webserver = Webserver.ThreadedHTTPServer((pbSettings['webserver']['host'],pbSettings['webserver']['port']), Webserver.HTTPRequestHandler)
-			#self.webserver.setPbWin(self)
 			self.t = Thread(target=self.webserver.serve_forever)
 			self.t.setDaemon(True)
 			self.t.start()
@@ -580,7 +578,7 @@ else:
 				return pbSettings.get("MotD","")
 
 		def setMotD(self, msg):
-				self.adminFrame.motdDisplayBox.SetValue(msg)
+			self.adminFrame.motdDisplayBox.SetValue(msg)
 
 		def addChatMessage(self, message):
 			message = localText.stripHTML(message)
