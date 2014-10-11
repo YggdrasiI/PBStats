@@ -84,7 +84,7 @@ $lang['game_notes_player_password'] = "Hinweis: Am besten keine Sonderzeichen ve
 
 // Log messages
 $lang['log_player_change_name'] = "Spieler umbenannt zu %s.";
-$lang['log_player_score_increased'] = "Punkte erhört auf %s.";
+$lang['log_player_score_increased'] = "Punkte erhöht auf %s.";
 $lang['log_player_score_decreased'] = "Punkte verringert auf %s.";
 $lang['log_player_finished_turn'] = "Runde beendet.";
 $lang['log_eliminated'] = "Vernichtet.";
