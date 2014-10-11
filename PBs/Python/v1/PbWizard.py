@@ -36,8 +36,14 @@ if( pbSettings.get("save",{}).get("oneOffAutostart") ):
 	#The oneOffAutostart-Key was removed. Save this status
 	Webserver.savePbSettings()
 
-if pbSettings.get("save",{}).get("autostart") :
+if pbSettings.get("autostart") :
 	autostart = True
+
+# Check deprecated path
+if pbSettings.get("save",{}).("autostart") :
+	autostart = True
+	pbSettings["autostart"] = True
+	del pbSettings["save"]["autostart"]
 
 # Without Gui we can not create a game. Thus, we try to load a save.
 if noGui :
@@ -86,10 +92,10 @@ if noGui or autostart:
 
 		def OnInit(self):
 
-			# Currenly, autostart is always true for noGui variant
+			# Currently, autostart is always true for noGui variant
 			if autostart:
 
-				# Use predifined values to start up server
+				# Use predefined values to start up server
 				# without wizard pages
 				global bPublic
 				global bScenario 

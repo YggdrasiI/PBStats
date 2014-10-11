@@ -37,12 +37,12 @@ pbDefaultSettings = {
 		},
 	"save" : {
 		"filename" : "A.CivBeyondSwordSave",
-		"adminpw" : "",
-		"autostart" : 0
+		"adminpw" : ""
 	},
 	"numRecoverySavesPerPlayer" : 5,
 	"MotD" : "Welcome on the modified PitBoss Server",
 	"noGui" : 0,
+	"autostart" : 0,
 	"errorLogFile" : None
 }
 pbSettings = None
@@ -50,7 +50,7 @@ pbSettings = None
 #Try to load pbSettings file.
 # To get a different settings file for each pitboss we need
 # access to a variable in the ini file 
-# We reuse a widley unused variable of the standard BTS ini file 
+# We reuse a widely unused variable of the standard BTS ini file 
 altrootDir = gc.getAltrootDir()
 
 #Cut of badly formated beginning of String [...]@ (If EMail Ini variable used)
@@ -153,10 +153,10 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
 					elif( action == "setAutostart" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
 							self.server.lock.acquire()
-							pbSettings["save"]["autostart"] = int(inputdata.get("value",0))
+							pbSettings["autostart"] = int(inputdata.get("value",0))
 							self.server.lock.release()
 							self.server.savePbSettings()
-							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Autostart flag: ' + str(pbSettings["save"]["autostart"]) } ) +"\n" )
+							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Autostart flag: ' + str(pbSettings["autostart"]) } ) +"\n" )
 
 					elif( action == "setHeadless" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
 							self.server.lock.acquire()
@@ -482,7 +482,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 		gamedata['players'] = players	
 
 		gamedata['bHeadless'] = pbSettings.get("noGui",0)
-		gamedata['bAutostart'] = pbSettings["save"].get("autostart",0)
+		gamedata['bAutostart'] = pbSettings.get("autostart",0)
 
 		return gamedata
 

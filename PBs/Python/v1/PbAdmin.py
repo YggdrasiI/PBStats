@@ -81,7 +81,7 @@ if noGui:
 
 			try:
 				# This try-catch clause does not omit all python error windows
-				# beause there exists a second .sleep call in PbMain.py. This class
+				# because there exists a second .sleep call in PbMain.py. This class
 				# can not be changed by a modification.
 				time.sleep(0.1)
 			except KeyboardInterrupt:

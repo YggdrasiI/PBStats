@@ -1,7 +1,8 @@
 {
  "numRecoverySavesPerPlayer": 5, 
  "MotD": "Welcome on the modified PitBoss Server", 
- "noGui": 1, 
+ "noGui": 0, 
+ "autostart": 0,
  "webserver": {
   "host": "", 
   "password": "pw", 
@@ -10,12 +11,11 @@
  "webfrontend": {
   "url": "http:\/\/civ.zulan.net\/pb\/update.php", 
   "sendPeriodicalData": 1, 
-  "gameId": 1, 
+  "gameId": -1, 
   "sendInterval": 10
  }, 
  "save": {
   "filename": "Beispiel.CivBeyondSwordSave",
-  "adminpw": "", 
-  "autostart": 1
+  "adminpw": "" 
  }
 }
