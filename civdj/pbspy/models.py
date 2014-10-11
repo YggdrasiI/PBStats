@@ -162,10 +162,10 @@ class Game(models.Model):
             GameLogPause(paused=is_paused, **logargs).save()
 
         if is_headless != self.is_headless:
-					pass
+          pass
 
         if is_autostart != self.is_autostart:
-					pass
+          pass
 
         self.timer_max_h        = timer_max_h
         self.timer_remaining_4s = timer_remaining_4s
