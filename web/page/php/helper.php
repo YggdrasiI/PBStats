@@ -608,7 +608,7 @@ function update_game_log($gameId, $timestamp, $newStatus, $oldStatus){
 				"name" => $newP->name,
 				"id" => $newP->id,
 				//"msg" =>	"Score ".($newP>$oldP?"increased":"decreased")." to ".$newP->score,
-				"msg" =>	"{L_LOG_PLAYER_SCORE_".($newP>$oldP?"INCREASED":"DECREASED")."|".$newP->score."}",
+				"msg" =>	"{L_LOG_PLAYER_SCORE_".($newP->score>$oldP->score?"INCREASED":"DECREASED")."|".$newP->score."}",
 			);
 		}
 		if( $newP->statusId != 1 /*a.k.a. player is no AI*/ &&
