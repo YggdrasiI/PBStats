@@ -182,14 +182,17 @@ def game_update(request):
     if pw_hash != game.auth_hash():
         return HttpResponse('unauthorized', status=401)
 
-    try:
-        info = json.loads(request.POST['info'])
-    except (KeyError, ValueError):
-        return HttpResponseBadRequest('bad request (info)')
-
-    if info['return'] != 'ok':
-        return HttpResponseBadRequest('bad request (return)')
-
-    game.set_from_dict(info['info'])
+    if 'info' in request.POST:
+        try:
+            info = json.loads(request.POST['info'])
+        except (KeyError, ValueError):
+            return HttpResponseBadRequest('bad request (info)')
+        if info['return'] != 'ok':
+            return HttpResponseBadRequest('bad request (return)')
+        game.set_from_dict(info['info'])
+    elif 'force_disconnect' in request.POST:
+        game.force_disconnect()
+    else:
+        return HttpResponseBadRequest('bad request (no idea what to do)')
 
     return HttpResponse('ok')

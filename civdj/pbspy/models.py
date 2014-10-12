@@ -268,6 +268,9 @@ class Game(models.Model):
         result = self.pb_action(action='listSaves')
         return result['list']
 
+    def force_diconnect(self):
+        GameLogForceDisconnect(game=self, date=timezone.now(), year=self.year, turn=self.turn).save()
+
     def update(self):
         info = self.pb_info()
         self.set_from_dict(info)
@@ -541,3 +544,8 @@ class GameLogAdminPause(GameLogAdminAction):
 class GameLogAdminEndTurn(GameLogAdminAction):
     def message(self):
         return _("Turn ended by {username}").format(username=self.get_username())
+
+
+class GameLogForceDisconnect(GameLog):
+    def message(self):
+        return _("A player was disconnected due to the upload-bug.")
