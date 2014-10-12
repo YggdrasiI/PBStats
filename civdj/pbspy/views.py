@@ -85,6 +85,10 @@ def game_manage(request, game_id, action=""):
 
     saves = sorted(game.pb_list_saves(), key=lambda k: -k['timestamp'])
     load_choices = []
+
+    # Add entry for restart of running state
+    load_choices.append( ('restart', 'Save and reload current game') )
+
     for save in saves:
         folderIndex = int(save['folderIndex'])
         key = "/".join([str(folderIndex), save['name']])
@@ -144,9 +148,13 @@ def game_manage(request, game_id, action=""):
         elif action == 'load':
             form = GameManagementLoadForm(load_choices, request.POST)
             if form.is_valid():
-                (folderIndex_str, filename) = form.cleaned_data['filename'].split('/', 1)
-                folderIndex = int(folderIndex_str)
-                game.pb_restart(filename, folderIndex, request.user)
+                selectedFile = form.cleaned_data['filename']
+                if selectedFile == "restart" :
+                  game.pb_restart("", 0, request.user)
+                else:
+                  (folderIndex_str, filename) = selectedFile.split('/', 1)
+                  folderIndex = int(folderIndex_str)
+                  game.pb_restart(filename, folderIndex, request.user)
                 return HttpResponse('game loaded.', status=200)
             context['load_form'] = form
         elif action == 'set_player_password':

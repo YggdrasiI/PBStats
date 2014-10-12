@@ -447,9 +447,9 @@ class GameLogPause(GameLog):
 
     def message(self):
         if self.paused:
-            return _("Game paused.")
+            return _("Game paused by player.")
         else:
-            return _("Game resumed")
+            return _("Game resumed by player.")
 
 
 class GameLogServerTimeout(GameLog):

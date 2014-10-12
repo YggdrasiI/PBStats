@@ -102,7 +102,7 @@ def savePbSettings():
 def getPossibleSaveFolders():
 	global altrootDir
 	paths = {}
-	userPath = str( pbSettings.get("save",{}).get("path","\\saves\\multi") )
+	userPath = str( pbSettings.get("save",{}).get("path","saves\\multi\\") )
 	paths[altrootDir + "\\" + userPath ] = len(paths)
 	paths[altrootDir + "\\" + userPath + "auto\\"] = len(paths)
 	paths[altrootDir + "\\" + "saves\\multi\\"] = len(paths)
@@ -414,7 +414,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 	def getSaveFolder(self, folderIndex=0):
 		global altrootDir
-		folderpath = os.path.join(altrootDir, str( pbSettings.get("save",{}).get("path","\\saves\\multi") ) )
+		folderpath = os.path.join(altrootDir, str( pbSettings.get("save",{}).get("path","saves\\multi\\") ) )
 		folderpaths = getPossibleSaveFolders()
 		try:
 			   return folderpaths[folderIndex][0]

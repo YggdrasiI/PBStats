@@ -41,7 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'debug_toolbar',
     'erroneous',
-		'static_precompiler',
+    'static_precompiler',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -88,13 +88,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/dev/howto/static-files/
 
 if DEBUG == True:
-	STATIC_ROOT='static/'
-	STATIC_URL = '/static/'
+  STATIC_ROOT='static/'
+  STATIC_URL = '/static/'
 else:
-	# Call 'python manage.py collectstatic' to transfer 
-	# files into STATIC_ROOT
-	STATIC_ROOT='/var/www/pbspy/static/'
-	STATIC_URL = 'http://localhost/pbspy/static/'
+  # Call 'python manage.py collectstatic' to transfer 
+  # files into STATIC_ROOT
+  STATIC_ROOT='/var/www/pbspy/static/'
+  STATIC_URL = 'http://localhost/pbspy/static/'
 
 DEBUG_TOOLBAR_CONFIG = {
     'SHOW_TEMPLATE_CONTEXT': True,
@@ -111,8 +111,8 @@ LOGIN_REDIRECT_URL = 'game_list'
 # For compilation of less files, see
 # https://github.com/andreyfedoseev/django-static-precompiler
 STATICFILES_FINDERS = (
-		'django.contrib.staticfiles.finders.FileSystemFinder',
-		'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-		# other finders..
-		'static_precompiler.finders.StaticPrecompilerFinder',
-		)
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    # other finders..
+    'static_precompiler.finders.StaticPrecompilerFinder',
+    )

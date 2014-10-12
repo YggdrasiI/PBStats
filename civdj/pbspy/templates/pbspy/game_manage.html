@@ -75,8 +75,8 @@
                  <span><input type="submit" value="{% trans "send message" %}" /></span>
                </form>
         </div>
-        <div class="game_management_section" todo="Create form">
-          <h2>{% trans "Swap autostart of save games" %}</h2>
+        <div class="game_management_section">
+          <h2>{% trans "swap autostart of save games" %}</h2>
             {% if game.is_autostart %}
              <form method="post" action="{% url 'game_manage' game.id 'autostart_disable' %}">
                  {% csrf_token %}
@@ -91,8 +91,8 @@
              </form>
             {% endif %}
         </div>
-        <div class="game_management_section" todo="Create form">
-          <h2>{% trans "Swap headless mode" %}</h2>
+        <div class="game_management_section">
+          <h2>{% trans "swap headless mode" %}</h2>
             {% if game.is_headless %}
              <form method="post" action="{% url 'game_manage' game.id 'headless_disable' %}">
                  {% csrf_token %}
