@@ -97,19 +97,31 @@ def savePbSettings():
 		pass
 
 # Use two default paths and the given path from the setting file
-# to generate possible paths of saves. The hashmap construction 
-# omit duplicates in the list of paths.
+# to generate possible paths of saves.
+# A hashmap construction would destroy the ordering and OrderedDict requires
+# at least Python 2.7. Thus, the duplicates free list will be constructed 
+# by hand.
 def getPossibleSaveFolders():
 	global altrootDir
-	paths = {}
 	userPath = str( pbSettings.get("save",{}).get("path","saves\\multi\\") )
-	paths[altrootDir + "\\" + userPath ] = len(paths)
-	paths[altrootDir + "\\" + userPath + "auto\\"] = len(paths)
-	paths[altrootDir + "\\" + "saves\\multi\\"] = len(paths)
-	paths[altrootDir + "\\" + "saves\\multi\\auto\\"] = len(paths)
-	paths[altrootDir + "\\" + "saves\\pitboss\\"] = len(paths)
-	paths[altrootDir + "\\" + "saves\\pitboss\\auto\\"] = len(paths)
-	return paths.items()
+	folders = [
+			altrootDir + "\\" + userPath,
+			altrootDir + "\\" + userPath + "auto\\",
+			altrootDir + "\\" + "saves\\multi\\",
+			altrootDir + "\\" + "saves\\multi\\auto\\",
+			altrootDir + "\\" + "saves\\pitboss\\",
+			altrootDir + "\\" + "saves\\pitboss\\auto\\"
+			]
+	def remove_duplicates(li):
+			my_set = set()
+			res = []
+			for e in li:
+					if e not in my_set:
+							res.append((e,len(e)))
+							my_set.add(e)
+			return res
+	return remove_duplicates(folders)
+	
 
 # The do_POTH method of this class handle the control commands
 # of the webinterface
@@ -394,8 +406,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 		self.lock = thread.allocate_lock()
 	
 	def createSave(self, filename, folderIndex=0):
-		#filepath = os.path.join(self.getSaveFolder(folderIndex),filename)
-		filepath = self.getSaveFolder(folderIndex) + filename
+		filepath = os.path.join(self.getSaveFolder(folderIndex),filename)
 
 		if (filename != ""):
 			self.lock.acquire()
