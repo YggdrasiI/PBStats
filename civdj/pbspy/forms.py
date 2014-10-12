@@ -7,7 +7,7 @@ class GameForm(ModelForm):
     class Meta:
         model = Game
         fields = ['name', 'description', 'hostname', 'port',
-                  'manage_port', 'pb_remote_password', 'url']
+                  'manage_port', 'pb_remote_password', 'url', 'is_private']
 
 
 class GameManagementTimerForm(Form):

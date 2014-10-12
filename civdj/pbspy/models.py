@@ -101,6 +101,7 @@ class Game(models.Model):
     timer_remaining_4s = models.PositiveIntegerField(blank=True, null=True)
 
     admins             = models.ManyToManyField(User)
+    is_private         = models.BooleanField(default=False)
 
     def auth_hash(self):
         return hashlib.md5(self.pb_remote_password.encode()).hexdigest()
@@ -118,6 +119,9 @@ class Game(models.Model):
 
     def can_manage(self, user):
         return len(self.admins.filter(id=user.id)) == 1
+
+    def can_view(self, user):
+        return (not self.is_private) or (len(self.admins.filter(id=user.id)) == 1)
 
     @transaction.atomic
     def set_from_dict(self, info):
@@ -268,11 +272,17 @@ class Game(models.Model):
         result = self.pb_action(action='listSaves')
         return result['list']
 
+    def force_diconnect(self):
+        GameLogForceDisconnect(game=self, date=timezone.now(), year=self.year, turn=self.turn).save()
+
     def update(self):
         info = self.pb_info()
         self.set_from_dict(info)
 
     def clean(self):
+        self.validate_connection()
+
+    def validate_connection(self):
         # This will raise InvalidPBResponse or something else when we cannot connect
         try:
             info = self.pb_info()
@@ -541,3 +551,8 @@ class GameLogAdminPause(GameLogAdminAction):
 class GameLogAdminEndTurn(GameLogAdminAction):
     def message(self):
         return _("Turn ended by {username}").format(username=self.get_username())
+
+
+class GameLogForceDisconnect(GameLog):
+    def message(self):
+        return _("A player was disconnected due to the upload-bug.")
