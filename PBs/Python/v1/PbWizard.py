@@ -40,7 +40,7 @@ if pbSettings.get("autostart") :
 	autostart = True
 
 # Check deprecated path
-if pbSettings.get("save",{}).("autostart") :
+if pbSettings.get("save",{}).get("autostart") :
 	autostart = True
 	pbSettings["autostart"] = True
 	del pbSettings["save"]["autostart"]
