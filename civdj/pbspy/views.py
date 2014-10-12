@@ -1,17 +1,18 @@
 from django.http import HttpResponseBadRequest, HttpResponse
 from django.views import generic
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
-from pbspy.models import Game, GameLog, Player
-from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm, GameManagementTimerForm, GameManagementLoadForm, \
-    GameManagementSetPlayerPasswordForm, GameManagementSaveForm
+from pbspy.models import Game, GameLog, Player, InvalidPBResponse
+from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm, GameManagementTimerForm,\
+    GameManagementLoadForm, GameManagementSetPlayerPasswordForm, GameManagementSaveForm
 
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
+from django.core.exceptions import PermissionDenied
 
 import json
 
@@ -20,7 +21,8 @@ class GameListView(generic.ListView):
     model = Game
 
     def get_queryset(self):
-        return self.model.objects.annotate(player_count=Count('player'))
+        return self.model.objects.filter(Q(is_private=False) | Q(admins__id=self.request.user.id)).annotate(player_count=Count('player'))
+#        return self.model.objects.annotate(player_count=Count('player'))
 
 game_list = GameListView.as_view()
 
@@ -31,6 +33,9 @@ class GameDetailView(generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super(GameDetailView, self).get_context_data(**kwargs)
         game = self.object
+        if not game.can_view(self.request.user):
+            raise PermissionDenied()
+
         context['can_manage'] = game.can_manage(self.request.user)
         context['players'] = list(game.player_set.all())
         context['log'] = game.gamelog_set.order_by('-id')
