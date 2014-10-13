@@ -22,27 +22,29 @@ PB = CyPitboss()
 gc = CyGlobalContext()
 localText = CyTranslator()
 
-#Default settings, only works if one PB instance is running
+#Default settings. Does not work for multiple PB instances du port collisions.
 pbDefaultSettings = {
 	"webserver": {
 		"host" : "", # Leave string empty
 		"port" : 13373, # Port of the python web interface of this mod. Use different port for each game
-		"password" : "pw" # Password for admin commands on the webinterface
+		"password" : "defaultpassword" # Password for admin commands on the webinterface
 	},
 	"webfrontend" : {
 		"url" : "http://localhost/civ/page/update.php", # Url of the pbStats file on your http webserver 
-		"gameId" : 0,
+		"gameId" : 0, # Id of game at above website
 		"sendPeriodicalData" : 1, # Set 0 to disable periodical sending of game data 
 		"sendInterval" : 10, # Seconds during automatic sending of game data
 		},
 	"save" : {
-		"filename" : "A.CivBeyondSwordSave",
-		"adminpw" : ""
+		"filename" : "A.CivBeyondSwordSave",  # Filename (without path) of loaded game at startup (require autostart )
+		"adminpw" : "", # Admin password of above save
+		"savefolder" : "saves\\multi\\", # First choice to save games. 
+		"readfolders" : [] # List of relative paths which can be used to load games.
 	},
-	"numRecoverySavesPerPlayer" : 5,
+	"numRecoverySavesPerPlayer" : 5, # Each login and logoff produce a save. This option controls the length of history
 	"MotD" : "Welcome on the modified PitBoss Server",
-	"noGui" : 0,
-	"autostart" : 0,
+	"noGui" : 0, # Do not show admin window. (This option force the autostart.)
+	"autostart" : 0, # Load savegame at startup
 	"errorLogFile" : None
 }
 pbSettings = None
@@ -103,7 +105,13 @@ def savePbSettings():
 # by hand.
 def getPossibleSaveFolders():
 	global altrootDir
-	userPath = str( pbSettings.get("save",{}).get("path","saves\\multi\\") )
+	if not "save" in pbSettings:
+		pbSettings["save"] = {}
+
+	# Note: "path" is the deprecated name of "savefolder"
+	userPath = str( pbSettings["save"].get("savefolder",
+		pbSettings["save"].get("path",
+			"saves\\multi\\") ) )
 	folders = [
 			altrootDir + "\\" + userPath,
 			altrootDir + "\\" + userPath + "auto\\",
@@ -112,12 +120,18 @@ def getPossibleSaveFolders():
 			altrootDir + "\\" + "saves\\pitboss\\",
 			altrootDir + "\\" + "saves\\pitboss\\auto\\"
 			]
+
+	#Add extra folders
+	for extraUserPath in pbSettings["save"].get("readfolders",[]):
+		folders.append( altrootDir + "\\" + str(extraUserPath) )
+		folders.append( altrootDir + "\\" + str(extraUserPath) + "auto\\" )
+
 	def remove_duplicates(li):
 			my_set = set()
 			res = []
 			for e in li:
 					if e not in my_set:
-							res.append((e,len(e)))
+							res.append((e,len(res)))
 							my_set.add(e)
 			return res
 	return remove_duplicates(folders)
@@ -425,7 +439,6 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 	def getSaveFolder(self, folderIndex=0):
 		global altrootDir
-		folderpath = os.path.join(altrootDir, str( pbSettings.get("save",{}).get("path","saves\\multi\\") ) )
 		folderpaths = getPossibleSaveFolders()
 		try:
 			   return folderpaths[folderIndex][0]

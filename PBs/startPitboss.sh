@@ -77,7 +77,7 @@ ALTROOT_W2=`echo "Z:${ALTROOT}" | sed -e 's/[\/]/\\\\\\\\/g' `
 #(One time per game required)
 if [ ! -d "$ALTROOT" ] ; then
 	echo "Altroot dir does not exist. Copy default settings"
-	cp -r "$ALTROOT_SEED" "$ALTROOT"
+	cp -L -r "$ALTROOT_SEED" "$ALTROOT"
 
 	echo "Fix path in the ini file"
 	sed -i -e"s/PitbossSMTPLogin=.*/PitbossSMTPLogin=${ALTROOT_W2}/" "$ALTROOT/CivilizationIV.ini"

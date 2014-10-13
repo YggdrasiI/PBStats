@@ -39,11 +39,18 @@ if( pbSettings.get("save",{}).get("oneOffAutostart") ):
 if pbSettings.get("autostart") :
 	autostart = True
 
-# Check deprecated path
+# Check deprecated node position of 'autostart'
 if pbSettings.get("save",{}).get("autostart") :
 	autostart = True
 	pbSettings["autostart"] = True
 	del pbSettings["save"]["autostart"]
+	Webserver.savePbSettings()
+
+# Check deprecated node name
+if pbSettings.get("save",{}).get("path") :
+	pbSettings["save"]["writefolder"] = pbSettings["save"]["path"]
+	del pbSettings["save"]["path"]
+	Webserver.savePbSettings()
 
 # Without Gui we can not create a game. Thus, we try to load a save.
 if noGui :
