@@ -178,7 +178,7 @@ def analyseUdpTraffic(device, server, clients, timeout):
 
 
 # === Main === 
-if len(sys.argv) < 3:
+if len(sys.argv) < 2:
 	print "Usage: ./", sys.argv[0] , "[portlist]", "[network device]", "[logfile]" 
 	print "No arguments given. Assume default interface %s,\n Pitboss server portlist=%s, and \n Logfile %s." % (device, server_portlist, logfileName)
 else:
