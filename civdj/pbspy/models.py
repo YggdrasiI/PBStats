@@ -152,7 +152,7 @@ class Game(models.Model):
                 player_count_old != len(info['players'])):
             GameLogMetaChange(pb_name_old=self.pb_name, pb_name=info['gameName'],
                               player_count_old=player_count_old,
-                              player_count=len(info['players']))
+                              player_count=len(info['players'])).save()
 
         if turn > self.turn:
             GameLogTurn(**logargs).save()
@@ -556,3 +556,4 @@ class GameLogAdminEndTurn(GameLogAdminAction):
 class GameLogForceDisconnect(GameLog):
     def message(self):
         return _("A player was disconnected due to the upload-bug.")
+

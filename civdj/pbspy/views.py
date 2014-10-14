@@ -16,7 +16,6 @@ from django.core.exceptions import PermissionDenied
 
 import json
 
-
 class GameListView(generic.ListView):
     model = Game
 
@@ -30,19 +29,60 @@ game_list = GameListView.as_view()
 class GameDetailView(generic.DetailView):
     model = Game
 
+    # List of possible orderings
+    
+    # Definitions of orderings
+    player_orders = ['id','leader','score','civ','name','status']
+    # Minus sign just swap ordering of first key
+    player_order_defs = {
+        'id' : ['ingame_id'],
+        '-id': ['-ingame_id'],
+        'leader' : ['leader', '-score', 'ingame_id'],
+        '-leader' : ['-leader', '-score', 'ingame_id'],
+        'score' : ['-score', 'leader', 'ingame_id'],
+        '-score' : ['score', 'leader', 'ingame_id'],
+        'civ' : ['civilization', '-score', 'ingame_id'],
+        '-civ' : ['-civilization', '-score', 'ingame_id'],
+        'name' : ['name', '-score', 'ingame_id'],
+        '-name' : ['-name', '-score', 'ingame_id'],
+        'status' : ['ingame_id'],
+        '-status' : ['-ingame_id'],
+        }
+
     def get_context_data(self, **kwargs):
         context = super(GameDetailView, self).get_context_data(**kwargs)
         game = self.object
         if not game.can_view(self.request.user):
             raise PermissionDenied()
 
+        player_order_str = str(self.request.GET.get('player_order', 'score'))
+        #log_filter = str(self.request.GET.get('log_filter', ''))
+
+        # Store order strings for template and swap the current
+        # used ordering keyword.
+        context['orders'] = dict(zip(self.player_orders,self.player_orders))
+        if player_order_str in self.player_orders:
+          context['orders'][player_order_str] = "-"+player_order_str
+				context['orders']['current'] = player_order_str
+
+        player_order = self.player_order_defs.get(player_order_str,
+            self.player_order_defs.get('score') )
+
         context['can_manage'] = game.can_manage(self.request.user)
-        context['players'] = list(game.player_set.all())
+        context['players'] = list(game.player_set.all().order_by(*player_order))
         context['log'] = game.gamelog_set.order_by('-id')
+
+        # Manual sorting over properties without
+        # representation in the database.
+        if player_order_str == "status":
+          context['players'] = sorted(context['players'], key=lambda pl: pl.status() )
+        if player_order_str == "-status":
+          context['players'] = sorted(context['players'], key=lambda pl: pl.status(), reverse=True )
+
+
         return context
 
 game_detail = GameDetailView.as_view()
-
 
 class GameLogView(generic.View,
                   MultipleObjectMixin,

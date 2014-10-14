@@ -50,21 +50,32 @@
         {% if players %}
             <table class='game_players'>
                 <tr>
-                    <th class="colFinish">⌛</th>
-                    <th class="colName">{% trans "Name" %}</th>
-                    <th class="colLeader">{% trans "Leader" %}</th>
-                    <th class="colNation">{% trans "Nation" %}</th>
-                    <th class="colScore">{% trans "Score" %}</th>
-                    <th class="colStatus">{% trans "Status" %}</th>
+                  <th class="colFinish"  >
+                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.id }}">⌛</a>
+                  </th>
+                  <th class="colName"    >
+                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.name}}">{% trans "Name" %}</a></th>
+                  <th class="colLeader"  >
+                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.leader}}">{% trans "Leader" %}</a>
+                  </th>
+                  <th class="colNation"  >
+                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.civ}}">{% trans "Nation" %}</a>
+                  </th>
+                  <th class="colScore"  >
+                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.score}}">{% trans "Score" %}</a>
+                  </th>
+                  <th class="colStatus"  >
+                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.status}}">{% trans "Status" %}</a>
+                  </th>
                 </tr>
                 {% for player in players %}
                     <tr>
-                        <td class="colFinish">{% if player.finished_turn %}*{% endif %}</td>
-                        <td class="colName">{{ player.name }}</td>
-                        <td class="colLeader">{{ player.leader }}</td>
-                        <td class="colNation">{{ player.civilization }}</td>
-                        <td class="colScore">{{ player.score }}</td>
-                        <td class="colStatus">{{ player.status }}</td>
+                      <td class="colFinish"  >{% if player.finished_turn %}*{% endif %}</td>
+                      <td class="colName"    >{{ player.name }}</td>
+                      <td class="colLeader"  >{{ player.leader }}</td>
+                      <td class="colNation"  >{{ player.civilization }}</td>
+                      <td class="colScore"  >{{ player.score }}</td>
+                      <td class="colStatus"  >{{ player.status }}</td>
                     </tr>
                 {% endfor %}
             </table>
