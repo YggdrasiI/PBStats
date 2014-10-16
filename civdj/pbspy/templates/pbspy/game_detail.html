@@ -71,7 +71,10 @@
                 {% for player in players %}
                     <tr>
                       <td class="colFinish"  >{% if player.finished_turn %}*{% endif %}</td>
-                      <td class="colName"    >{{ player.name }}</td>
+                      <td class="colName"    >
+                        <a href="{% url 'game_detail' game.id %}?player_id={{ player.ingame_id}}">
+                          {{ player.name }}</a>
+                      </td>
                       <td class="colLeader"  >{{ player.leader }}</td>
                       <td class="colNation"  >{{ player.civilization }}</td>
                       <td class="colScore"  >{{ player.score }}</td>
@@ -86,6 +89,13 @@
 
     <h2>{% trans "game log" %}</h2>
     <div id="game_log">
+            <div id="game_log_filter" style="float:right">
+              <form method="post" action="{% url 'game_detail' game.id %}?player_order={{ orders.current }}">
+                {% csrf_token %}
+                {{ logFilterForm.as_p }}
+                <input type='submit' value='{% trans "Change filter" %}'>
+              </form>
+            </div>
         {% if log %}
             <table class='game_log'>
                 <tr>
@@ -93,6 +103,7 @@
                     <th class="colTurn">{% trans "Turn" %}</th>
                     <th class="colPlayer">{% trans "Player" %}</th>
                     <th class="colEvent">{% trans "Event" %}</th>
+                    <th class="colType">{% trans "Type" %}</th>
                 </tr>
             {% for logentry in log %}
                 <tr>
@@ -100,6 +111,7 @@
                     <td class="colTurn">{{ logentry.turn }}</td>
                     <td class="colPlayer">{{ logentry.player_name|default:"-" }}</td>
                     <td class="colEvent">{{ logentry.message }}</td>
+                    <td class="colType">{{ logentry.getLogName }}</td>
                 </tr>
             {% endfor %}
             </table>

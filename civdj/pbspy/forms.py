@@ -37,3 +37,16 @@ class GameManagementSetPlayerPasswordForm(Form):
         self.fields['player'] = forms.ModelChoiceField(players, label=_('Player'))
 
     password = forms.CharField(label=_('New password'), min_length=1)
+
+class GameLogTypesForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super(GameLogTypesForm, self).__init__(*args, **kwargs)
+        self.fields['log_filter'] = forms.MultipleChoiceField(
+          label=_('Log entry filter'),
+          required=False,
+          widget=forms.CheckboxSelectMultiple()
+          )
+        self.fields['player_id'] = forms.CharField(
+            required=False,
+            widget=forms.HiddenInput()
+            )

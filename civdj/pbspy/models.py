@@ -418,6 +418,33 @@ class GameLog(PolymorphicModel):
             format(date=self.date, year=format_year(self.year),
                    turn=self.turn, message=self.message())
 
+    """
+    def generateGenericLogTypeName(self):
+      cname = self.__class__.__name__
+      logtype = cname.replace('GameLog','',1)
+      def getLogName():
+        return logtype
+      return getLogName
+
+    def getLogName(self):
+      self.getLogName = self.generateGenericLogTypeName()
+      return self.getLogName()
+    """
+
+    #@staticmethod
+    @classmethod
+    def generateGenericLogTypeName(arg):
+      #cname = __class__.__name__
+      cname = arg.__name__
+      logtype = cname.replace('GameLog','',1)
+      def getLogName():
+        return logtype
+      return getLogName
+
+    def getLogName(self):
+      self.getLogName = self.generateGenericLogTypeName()
+      return self.getLogName()
+
 
 class GameLogTurn(GameLog):
     def message(self):

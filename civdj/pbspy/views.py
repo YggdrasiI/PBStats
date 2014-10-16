@@ -3,8 +3,14 @@ from django.views import generic
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
 from pbspy.models import Game, GameLog, Player, InvalidPBResponse
 from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm, GameManagementTimerForm,\
-    GameManagementLoadForm, GameManagementSetPlayerPasswordForm, GameManagementSaveForm
+    GameManagementLoadForm, GameManagementSetPlayerPasswordForm, GameManagementSaveForm,\
+    GameLogTypesForm
 
+from pbspy.models import GameLogTurn, GameLogReload, GameLogMetaChange, GameLogTimerChanged,\
+    GameLogPause, GameLogServerTimeout, GameLogPlayer, GameLogLogin, GameLogLogout,\
+    GameLogFinish, GameLogScore, GameLogNameChange, GameLogEliminated, GameLogAI,\
+    GameLogClaimed, GameLogAdminAction, GameLogAdminSave, GameLogAdminPause, GameLogAdminEndTurn,\
+    GameLogForceDisconnect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -15,6 +21,7 @@ from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
 
 import json
+import operator
 
 class GameListView(generic.ListView):
     model = Game
@@ -26,14 +33,15 @@ class GameListView(generic.ListView):
 game_list = GameListView.as_view()
 
 
-class GameDetailView(generic.DetailView):
+class GameDetailView( generic.edit.FormMixin,
+                      generic.DetailView ):
     model = Game
 
-    # List of possible orderings
-    
+    ## List of possible orderings
+
     # Definitions of orderings
     player_orders = ['id','leader','score','civ','name','status']
-    # Minus sign just swap ordering of first key
+    # Note that minus sign just swap ordering of first key
     player_order_defs = {
         'id' : ['ingame_id'],
         '-id': ['-ingame_id'],
@@ -49,38 +57,143 @@ class GameDetailView(generic.DetailView):
         '-status' : ['-ingame_id'],
         }
 
-    def get_context_data(self, **kwargs):
-        context = super(GameDetailView, self).get_context_data(**kwargs)
-        game = self.object
-        if not game.can_view(self.request.user):
-            raise PermissionDenied()
+    ## Tuple of GameLog sub classes (subset)
+    log_classes = (
+        GameLogFinish,
+        GameLogLogin,
+        GameLogLogout,
+        GameLogScore,
+        GameLogPause,
+        GameLogTurn,
+        GameLogReload,
+        )
 
-        player_order_str = str(self.request.GET.get('player_order', 'score'))
-        #log_filter = str(self.request.GET.get('log_filter', ''))
+    # Generate key and names for select form
+    log_choices = tuple([ (l.__name__, l.generateGenericLogTypeName()() )  for l in log_classes ])
+    log_keys = dict(log_choices).keys()
 
-        # Store order strings for template and swap the current
-        # used ordering keyword.
-        context['orders'] = dict(zip(self.player_orders,self.player_orders))
-        if player_order_str in self.player_orders:
-          context['orders'][player_order_str] = "-"+player_order_str
-				context['orders']['current'] = player_order_str
+    def player_list_setup(self, game, context):
+        # 1. Get uri argument 'player_order'
+        # Check if new value is allowed and overwrite
+        # old session value.
+        player_order_old = self.request.session.get('player_order','score')
+        player_order_str = str(self.request.GET.get('player_order',player_order_old))
+        if player_order_str != player_order_old:
+          if not player_order_str in self.player_order_defs:
+            player_order_str = player_order_old
+          else:
+            self.request.session['player_order'] = player_order_str
 
+        # 2. Get list of keys which define the selected ordering
         player_order = self.player_order_defs.get(player_order_str,
             self.player_order_defs.get('score') )
 
-        context['can_manage'] = game.can_manage(self.request.user)
-        context['players'] = list(game.player_set.all().order_by(*player_order))
-        context['log'] = game.gamelog_set.order_by('-id')
+        # 3. Create dict of the ordering keywords but add a
+        #    minus sign for the current ordering.
+        #    The dict can be used in templates to create links
+        context['orders'] = dict(zip(self.player_orders,self.player_orders))
+        if player_order_str in self.player_orders:
+          context['orders'][player_order_str] = "-" + player_order_str
+        context['orders']['current'] = player_order_str
 
-        # Manual sorting over properties without
-        # representation in the database.
+        # 4. Attach ordered list of players
+        context['players'] = list(game.player_set.all().order_by(*player_order))
+
+        # 5. Post-processed sorting over properties without
+        # simple sql definitions.
         if player_order_str == "status":
           context['players'] = sorted(context['players'], key=lambda pl: pl.status() )
         if player_order_str == "-status":
           context['players'] = sorted(context['players'], key=lambda pl: pl.status(), reverse=True )
 
 
+    def log_setup(self, game, context):
+
+        # 1. Define player filter
+        player_id = int(self.request.GET.get('player_id',-1))
+        if player_id > -1:
+          p_list = [ Q(**{'GameLogPlayer___player__id':None}),
+              Q(**{'GameLogPlayer___player__id':player_id})
+              ]
+        else:
+          p_list = [Q()]
+
+        # 2. Define new form for log filter selection
+        log_filter = self.request.session.get('log_filter', GameDetailView.log_keys)
+        context['logFilterForm'] = GameLogTypesForm(
+            #choices=GameLogTypesForm.CHOICES,
+            #initial=log_filter
+            )
+        context['logFilterForm'].fields['log_filter'].choices = GameDetailView.log_choices
+        context['logFilterForm'].fields['log_filter'].initial = log_filter
+        context['logFilterForm'].fields['player_id'].initial = player_id
+
+        # Just filter if not all types are selected
+        filterLog = len(log_filter) > 0 and len(log_filter) < len(GameDetailView.log_choices)
+
+        #      Q(GameLogPlayer___player__id=1)
+        if filterLog:
+          # Use A|B|... condition if less log types are selected
+          # Otherwise use notA & notB & notC for the complement set
+          c_list = []
+          if len(log_filter) < 0.66 * len(GameDetailView.log_classes):
+            for c in GameDetailView.log_classes:
+              if c.__name__ in log_filter:
+                c_list.append( Q(**{'instance_of':c}) )
+
+            context['log'] = game.gamelog_set.filter(
+                reduce(operator.or_, c_list)).filter(
+                    reduce(operator.or_, p_list)
+                    ).order_by('-id')
+          else:
+            for c in GameDetailView.log_classes:
+              if not c.__name__ in log_filter:
+                c_list.append( Q(**{'not_instance_of':c}) )
+
+            context['log'] = game.gamelog_set.filter(
+                reduce(operator.and_, c_list)).filter(
+                    reduce(operator.or_, p_list)
+                    ).order_by('-id')
+
+        else:
+          context['log'] = game.gamelog_set.filter(
+              reduce(operator.or_, p_list)
+              ).order_by('-id')
+
+
+    def get_context_data(self, **kwargs):
+        context = super(GameDetailView, self).get_context_data(**kwargs)
+        game = self.object
+        if not game.can_view(self.request.user):
+            raise PermissionDenied()
+
+        context['can_manage'] = game.can_manage(self.request.user)
+
+        ## Player list
+        self.player_list_setup(game, context)
+
+        self.log_setup(game, context)
         return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        game = self.object
+        if not game.can_view(self.request.user):
+            raise PermissionDenied()
+
+        form = GameLogTypesForm( request.POST)
+        form.fields['log_filter'].choices = GameDetailView.log_choices
+        if form.is_valid():
+          log_filter = form.cleaned_data.get('log_filter')
+          self.request.session['log_filter'] = log_filter
+        else:
+          return HttpResponseBadRequest('bad request')
+          #return self.form_invalid(form)
+
+        return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
+
+
+
 
 game_detail = GameDetailView.as_view()
 
@@ -96,10 +209,6 @@ class GameLogView(generic.View,
         return self.render_to_response(context)
 
 game_log = GameLogView.as_view()
-#
-# def game_log(request, game_id):
-#     log_entries = GameLog.objects.filter(game_id__exact=game_id).order_by('-id')[:30]
-#     return HttpResponse("404")
 
 
 @login_required()
