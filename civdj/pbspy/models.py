@@ -148,14 +148,18 @@ class Game(models.Model):
             GameLogTimerChanged(timer_max_h=timer_max_h, **logargs).save()
 
         player_count_old = self.player_set.count()
+        player_count= len(info['players'])
         if (self.pb_name != info['gameName'] or
                 player_count_old != len(info['players'])):
             GameLogMetaChange(
-								pb_name_old=self.pb_name,
-								pb_name=info['gameName'],
-								player_count_old=player_count_old,
-								player_count=len(info['players']),
-								**logargs ).save()
+                pb_name_old=self.pb_name,
+                pb_name=info['gameName'],
+                player_count_old=player_count_old,
+                player_count=player_count,
+                **logargs ).save()
+            #Remove player list of old game
+            if( player_count_old > 0 ):
+              self.player_set.all().delete()
 
         if turn > self.turn:
             GameLogTurn(**logargs).save()
@@ -412,6 +416,7 @@ class GameLog(PolymorphicModel):
     date = models.DateTimeField(db_index=True)
     year = models.IntegerField()
     turn = models.PositiveSmallIntegerField()
+    text = "(GameLog) No text defined."
 
     def message(self):
         return _(self.text)
@@ -462,7 +467,7 @@ class GameLogReload(GameLog):
 
 
 class GameLogMetaChange(GameLog):
-    pb_name_old      = models.CharField(max_length=200)
+    pb_name_old      = models.CharField(max_length=200, null=True)
     pb_name          = models.CharField(max_length=200)
     player_count_old = models.SmallIntegerField()
     player_count     = models.SmallIntegerField()
