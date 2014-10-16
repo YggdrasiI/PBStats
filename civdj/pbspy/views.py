@@ -44,18 +44,18 @@ class GameDetailView( generic.edit.FormMixin,
     player_orders = ['id','leader','score','civ','name','status']
     # Note that minus sign just swap ordering of first key
     player_order_defs = {
-        'id' : ['ingame_id'],
+        'id': ['ingame_id'],
         '-id': ['-ingame_id'],
-        'leader' : ['leader', '-score', 'ingame_id'],
-        '-leader' : ['-leader', '-score', 'ingame_id'],
-        'score' : ['-score', 'leader', 'ingame_id'],
-        '-score' : ['score', 'leader', 'ingame_id'],
-        'civ' : ['civilization', '-score', 'ingame_id'],
-        '-civ' : ['-civilization', '-score', 'ingame_id'],
-        'name' : ['name', '-score', 'ingame_id'],
-        '-name' : ['-name', '-score', 'ingame_id'],
-        'status' : ['ingame_id'],
-        '-status' : ['-ingame_id'],
+        'leader': ['leader', '-score', 'ingame_id'],
+        '-leader': ['-leader', '-score', 'ingame_id'],
+        'score': ['-score', 'leader', 'ingame_id'],
+        '-score': ['score', 'leader', 'ingame_id'],
+        'civ': ['civilization', '-score', 'ingame_id'],
+        '-civ': ['-civilization', '-score', 'ingame_id'],
+        'name': ['name', '-score', 'ingame_id'],
+        '-name': ['-name', '-score', 'ingame_id'],
+        'status': ['ingame_id'],
+        '-status': ['-ingame_id'],
         }
 
     ## Tuple of GameLog sub classes (subset)
@@ -67,18 +67,18 @@ class GameDetailView( generic.edit.FormMixin,
         GameLogPause,
         GameLogTurn,
         GameLogReload,
-        )
+    )
 
     # Generate key and names for select form
-    log_choices = tuple([ (l.__name__, l.generateGenericLogTypeName()() )  for l in log_classes ])
+    log_choices = tuple([(l.__name__, l.generateGenericLogTypeName()()) for l in log_classes])
     log_keys = dict(log_choices).keys()
 
     def player_list_setup(self, game, context):
         # 1. Get uri argument 'player_order'
         # Check if new value is allowed and overwrite
         # old session value.
-        player_order_old = self.request.session.get('player_order','score')
-        player_order_str = str(self.request.GET.get('player_order',player_order_old))
+        player_order_old = self.request.session.get('player_order', 'score')
+        player_order_str = str(self.request.GET.get('player_order', player_order_old))
         if player_order_str != player_order_old:
             if not player_order_str in self.player_order_defs:
                 player_order_str = player_order_old
@@ -103,19 +103,17 @@ class GameDetailView( generic.edit.FormMixin,
         # 5. Post-processed sorting over properties without
         # simple sql definitions.
         if player_order_str == "status":
-            context['players'] = sorted(context['players'], key=lambda pl: pl.status() )
+            context['players'] = sorted(context['players'], key=lambda pl: pl.status())
         if player_order_str == "-status":
             context['players'] = sorted(context['players'], key=lambda pl: pl.status(), reverse=True )
 
-
     def log_setup(self, game, context):
-
         # 1. Define player filter
-        player_id = int(self.request.GET.get('player_id',-1))
+        player_id = int(self.request.GET.get('player_id', -1))
         if player_id > -1:
-            p_list = [ Q(**{'GameLogPlayer___player__id':None}),
-                Q(**{'GameLogPlayer___player__id':player_id})
-                ]
+            p_list = [Q(**{'GameLogPlayer___player__id': None}),
+                Q(**{'GameLogPlayer___player__id': player_id})
+            ]
         else:
             p_list = [Q()]
 
@@ -124,7 +122,7 @@ class GameDetailView( generic.edit.FormMixin,
         context['logFilterForm'] = GameLogTypesForm(
             #choices=GameLogTypesForm.CHOICES,
             #initial=log_filter
-            )
+        )
         context['logFilterForm'].fields['log_filter'].choices = GameDetailView.log_choices
         context['logFilterForm'].fields['log_filter'].initial = log_filter
         context['logFilterForm'].fields['player_id'].initial = player_id
@@ -144,8 +142,8 @@ class GameDetailView( generic.edit.FormMixin,
 
                 context['log'] = game.gamelog_set.filter(
                     functools.reduce(operator.or_, c_list)).filter(
-                    functools.reduce(operator.or_, p_list)
-                ).order_by('-id')
+                        functools.reduce(operator.or_, p_list)
+                    ).order_by('-id')
             else:
                 for c in GameDetailView.log_classes:
                     if not c.__name__ in log_filter:
@@ -153,14 +151,13 @@ class GameDetailView( generic.edit.FormMixin,
 
                 context['log'] = game.gamelog_set.filter(
                     functools.reduce(operator.and_, c_list)).filter(
-                    functools.reduce(operator.or_, p_list)
-                ).order_by('-id')
+                        functools.reduce(operator.or_, p_list)
+                    ).order_by('-id')
 
         else:
             context['log'] = game.gamelog_set.filter(
                 functools.reduce(operator.or_, p_list)
             ).order_by('-id')
-
 
     def get_context_data(self, **kwargs):
         context = super(GameDetailView, self).get_context_data(**kwargs)
@@ -194,9 +191,8 @@ class GameDetailView( generic.edit.FormMixin,
         return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
 
 
-
-
 game_detail = GameDetailView.as_view()
+
 
 class GameLogView(generic.View,
                   MultipleObjectMixin,
