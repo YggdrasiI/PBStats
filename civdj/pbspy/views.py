@@ -120,10 +120,7 @@ class GameDetailView( generic.edit.FormMixin,
 
         # 2. Define new form for log filter selection
         log_filter = self.request.session.get('log_filter', GameDetailView.log_keys)
-        context['logFilterForm'] = GameLogTypesForm(
-            #choices=GameLogTypesForm.CHOICES,
-            #initial=log_filter
-            )
+        context['logFilterForm'] = GameLogTypesForm()
         context['logFilterForm'].fields['log_filter'].choices = GameDetailView.log_choices
         context['logFilterForm'].fields['log_filter'].initial = log_filter
         context['logFilterForm'].fields['player_id'].initial = player_id
@@ -131,7 +128,6 @@ class GameDetailView( generic.edit.FormMixin,
         # Just filter if not all types are selected
         filterLog = len(log_filter) > 0 and len(log_filter) < len(GameDetailView.log_choices)
 
-        #      Q(GameLogPlayer___player__id=1)
         if filterLog:
           # Use A|B|... condition if less log types are selected
           # Otherwise use notA & notB & notC for the complement set
