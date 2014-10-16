@@ -150,9 +150,12 @@ class Game(models.Model):
         player_count_old = self.player_set.count()
         if (self.pb_name != info['gameName'] or
                 player_count_old != len(info['players'])):
-            GameLogMetaChange(pb_name_old=self.pb_name, pb_name=info['gameName'],
-                              player_count_old=player_count_old,
-                              player_count=len(info['players'])).save()
+            GameLogMetaChange(
+								pb_name_old=self.pb_name,
+								pb_name=info['gameName'],
+								player_count_old=player_count_old,
+								player_count=len(info['players']),
+								**logargs ).save()
 
         if turn > self.turn:
             GameLogTurn(**logargs).save()
@@ -466,7 +469,7 @@ class GameLogMetaChange(GameLog):
 
     def message(self):
         return _("A game named {name} was started with {num_players} players.").\
-            format(name=self.game_name_new, num_players=self.num_players_new)
+            format(name=self.pb_name, num_players=self.player_count)
 
 
 class GameLogTimerChanged(GameLog):
