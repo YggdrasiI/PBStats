@@ -89,7 +89,7 @@
 
     <h2>{% trans "game log" %}</h2>
     <div id="game_log">
-            <div id="game_log_filter" style="float:right">
+            <div id="game_log_filter">
               <form method="post" action="{% url 'game_detail' game.id %}?player_order={{ orders.current }}">
                 {% csrf_token %}
                 {{ logFilterForm.as_p }}
@@ -98,7 +98,7 @@
             </div>
         {% if log %}
             <table class='game_log'>
-                <tr>
+							<tr>
                     <th class="colDate">{% trans "Time" %}</th>
                     <th class="colTurn">{% trans "Turn" %}</th>
                     <th class="colPlayer">{% trans "Player" %}</th>
@@ -106,7 +106,7 @@
                     <th class="colType">{% trans "Type" %}</th>
                 </tr>
             {% for logentry in log %}
-                <tr>
+                <tr class="log{{ logentry.getLogName }}">
                     <td class="colDate">{{ logentry.date }}</td>
                     <td class="colTurn">{{ logentry.turn }}</td>
                     <td class="colPlayer">{{ logentry.player_name|default:"-" }}</td>

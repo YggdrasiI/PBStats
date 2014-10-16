@@ -90,6 +90,28 @@ table.game_players {
 	.colTurn { text-align: right; }
 }
 
+#game_log_filter {
+	float: right;
+	margin-right: auto;
+}
+
+//Special Colouring of log entries
+.logTurn, .logFinish {
+	background-color: darken(mix(cyan, @BGColor, 20%),10%);
+}
+
+.logReload, .logTimerChanged, .logEliminated {
+	background-color: mix(red, @BGColor, 30%);
+}
+
+.logClaimed, .logAI, .logMetaChange, .logTimerChanged {
+	background-color: mix(orange, @BGColor, 30%);
+}
+
+.logServerTimeout {
+	background-color: mix(black, @BGColor, 30%);
+}
+
 .game_management_section {
 	h2 {
 		margin-top:1em;

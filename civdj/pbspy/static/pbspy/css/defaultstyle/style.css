@@ -29,9 +29,11 @@
  * .game_players : Table with player names
  * 	Columns: colFinished, colName, colLeader, colNation, colScore, colStatus
  *
- * #game_log : <div>-Container with table
- * .game_log : Table with log enties
+ * #game_log : <div>-Container with log table
+ * #game_log_filter : <div>-Container of filtering options
+ * .game_log : Table with log entries
  * 	Columns: colDate, colTurn, colPlayer, colEvent 
+ * 	Rows: Each row get the classname "log"+ type of logmessage, i.e logTurn
  *
  * #game_management : <div>-Containen with headline and several sections
  * .game_management_section
