@@ -54,7 +54,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         '-name': ['-name', '-score', 'ingame_id'],
         'status': ['ingame_id'],
         '-status': ['-ingame_id'],
-        }
+    }
 
     ## Tuple of GameLog sub classes (subset)
     log_classes = (
@@ -85,12 +85,12 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
         # 2. Get list of keys which define the selected ordering
         player_order = self.player_order_defs.get(player_order_str,
-            self.player_order_defs.get('score') )
+                                                  self.player_order_defs.get('score'))
 
         # 3. Create dict of the ordering keywords but add a
         #    minus sign for the current ordering.
         #    The dict can be used in templates to create links
-        context['orders'] = dict(zip(self.player_orders,self.player_orders))
+        context['orders'] = dict(zip(self.player_orders, self.player_orders))
         if player_order_str in self.player_orders:
             context['orders'][player_order_str] = "-" + player_order_str
         context['orders']['current'] = player_order_str
@@ -103,7 +103,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         if player_order_str == "status":
             context['players'] = sorted(context['players'], key=lambda pl: pl.status())
         if player_order_str == "-status":
-            context['players'] = sorted(context['players'], key=lambda pl: pl.status(), reverse=True )
+            context['players'] = sorted(context['players'], key=lambda pl: pl.status(), reverse=True)
 
     def log_setup(self, game, context):
         # 1. Define player filter
@@ -126,10 +126,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         context['logFilterForm'].fields['player_id'].initial = player_id
 
         # Just filter if not all types are selected
-        filterLog = len(log_filter) > 0 and len(log_filter) < len(GameDetailView.log_choices)
-
-        # Q(GameLogPlayer___player__id=1)
-        if filterLog:
+        if 0 < len(log_filter) < len(GameDetailView.log_choices):
             # Use A|B|... condition if less log types are selected
             # Otherwise use notA & notB & notC for the complement set
             c_list = []
