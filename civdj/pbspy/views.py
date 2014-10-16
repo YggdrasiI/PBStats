@@ -22,6 +22,7 @@ from django.core.exceptions import PermissionDenied
 
 import json
 import operator
+import functools
 
 class GameListView(generic.ListView):
     model = Game
@@ -142,8 +143,8 @@ class GameDetailView( generic.edit.FormMixin,
                 c_list.append( Q(**{'instance_of':c}) )
 
             context['log'] = game.gamelog_set.filter(
-                reduce(operator.or_, c_list)).filter(
-                    reduce(operator.or_, p_list)
+                functools.reduce(operator.or_, c_list)).filter(
+                    functools.reduce(operator.or_, p_list)
                     ).order_by('-id')
           else:
             for c in GameDetailView.log_classes:
@@ -151,13 +152,13 @@ class GameDetailView( generic.edit.FormMixin,
                 c_list.append( Q(**{'not_instance_of':c}) )
 
             context['log'] = game.gamelog_set.filter(
-                reduce(operator.and_, c_list)).filter(
-                    reduce(operator.or_, p_list)
+                functools.reduce(operator.and_, c_list)).filter(
+                    functools.reduce(operator.or_, p_list)
                     ).order_by('-id')
 
         else:
           context['log'] = game.gamelog_set.filter(
-              reduce(operator.or_, p_list)
+              functools.reduce(operator.or_, p_list)
               ).order_by('-id')
 
 
