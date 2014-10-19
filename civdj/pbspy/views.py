@@ -110,8 +110,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         player_id = int(self.request.GET.get('player_id', -1))
         if player_id > -1:
             p_list = [Q(**{'GameLogPlayer___player__id': None}),
-                Q(**{'GameLogPlayer___player__id': player_id})
-            ]
+                      Q(**{'GameLogPlayer___player__id': player_id})]
         else:
             p_list = [Q()]
 
@@ -148,7 +147,6 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
                     functools.reduce(operator.and_, c_list)).filter(
                         functools.reduce(operator.or_, p_list)
                     ).order_by('-id')
-
         else:
             context['log'] = game.gamelog_set.filter(
                 functools.reduce(operator.or_, p_list)

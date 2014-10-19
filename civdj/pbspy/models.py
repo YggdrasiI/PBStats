@@ -148,7 +148,7 @@ class Game(models.Model):
             GameLogTimerChanged(timer_max_h=timer_max_h, **logargs).save()
 
         player_count_old = self.player_set.count()
-        player_count= len(info['players'])
+        player_count = len(info['players'])
         if (self.pb_name != info['gameName'] or
                 player_count_old != len(info['players'])):
             GameLogMetaChange(
