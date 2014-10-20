@@ -2,4 +2,5 @@
 .idea
 __pycache__
 db.sqlite3
-civdj/civdj/settings_local.py
+civdj/settings_local.py
+static
