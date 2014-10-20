@@ -332,6 +332,33 @@ function gameFull($game,$online /* False for preview during creation of new game
 							}
 						}
 
+						if( $step == 9 ){
+							/* Toggle short names of leadernames and (default) nation names.
+							 * This could be ness. to omit connection issues during login
+							 * for games with many players.
+							 * Use 0 to disable.
+							 */
+							$iShortNamesLen = intval($_GET["shortNames"]);
+							$iShortDescLen = intval($_GET["shortDesc"]);
+							if( $iShortNamesLen > 0 ){
+								$pbAction = array('action'=>'setShortNames','password'=>$pw,
+									'enable'=>True, 'maxLenName'=>$iShortNamesLen, 
+									'maxLenDesc'=>$iShortDescLen, 
+								);
+							}else{
+								$pbAction = array('action'=>'setShortNames','password'=>$pw,
+									'enable'=>False);
+							}
+							$infos = json_decode(handle_pitboss_action($gameData, $pbAction));
+
+							if( $infos->return === "ok" ){
+								$dHtml .= "<p>{L_GAME_SHORT_NAMES_SUCCESSFUL|$iShortNamesLen}</p>";
+								operation_update_ids( $opid );
+							}else{
+								$dHtml .= "<p>{L_GAME_ERROR_MSG}".$infos->info ."</p>";
+							}
+						}
+
 					}//end operation already done check
 
 					$dHtml .= "<p><a href='$this_page?game=$gameId&action=admin'>{L_GAME_ADMIN_BACK}</a></p>";
@@ -392,6 +419,17 @@ function gameFull($game,$online /* False for preview during creation of new game
 							<input type='hidden' name='action' value='admin' />\n
 							<input type='hidden' name='game' value='$gameId' />\n
 							<input type='hidden' name='step' value='8' />\n
+							<input type='hidden' name='opid' value='$opid' />\n
+							</p></form>\n";
+
+						$dHtml .= "<h3 class='hr pad'>{L_GAME_SHORT_NAMES}</h3>";
+						$dHtml .= "<form action='$this_page' method='get'>\n
+							<p>{L_MESSAGE}: Leader name <input type='number' name='shortNames' value='3' style='width:3em' />\n
+							Civ description<input type='number' name='shortDesc' value='3' style='width:3em' />
+							<input type='submit' />\n
+							<input type='hidden' name='action' value='admin' />\n
+							<input type='hidden' name='game' value='$gameId' />\n
+							<input type='hidden' name='step' value='9' />\n
 							<input type='hidden' name='opid' value='$opid' />\n
 							</p></form>\n";
 

@@ -83,11 +83,27 @@ table.game_list {
 
 table.game_players {
 	.colName { font-weight:bold; }
-	.colScore { text-align: right; }
+  .colScore, .colTurn, .colId {
+      text-align: right; 
+  }
+  .colColor { 
+      border-right-style:none; 
+      padding:0px;
+      font-weight:blod;
+      font-size:120%;
+  }
+  td.colColor {
+  }
+  .colNation { border-left-style:none; }
 }
 
-table.game_players {
-	.colTurn { text-align: right; }
+table.game_players tr:hover,
+table.game_log tr:hover,
+{
+        background-color: desaturate(@BGColor,40%);
+    td.colColor {
+        background-color: desaturate(@fontColor2,40%);
+    }
 }
 
 #game_log_filter {
@@ -96,7 +112,9 @@ table.game_players {
 
 //Special Colouring of log entries
 .logTurn, .logFinish {
-	background-color: darken(mix(cyan, @BGColor, 20%),10%);
+    background-color: darken(mix(brown, @BGColor, 20%),10%);
+    //color: @fontColor2;
+    font-weight: bold;
 }
 
 .logReload, .logTimerChanged, .logEliminated {

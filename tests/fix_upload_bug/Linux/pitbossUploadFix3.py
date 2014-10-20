@@ -3,25 +3,25 @@
 # This script analyse your network traffic to
 # detect the 'upload bug' which cause a massive paket spamming
 # from a Civ4 Pitboss server. After a detection it fakes a udp paket
-# with the content 'player X quit connection'. 
+# with the content 'player X quit connection'.
 #
-# Requirements: 
-# -	sudo apt-get install libnet1-dev libpcap0.8-dev 
+# Requirements:
+# -	sudo apt-get install libnet1-dev libpcap0.8-dev
 # - Python wrapper http://sourceforge.net/projects/pyip/
-# - Python wrapper https://github.com/Onuonga/pycap 
+# - Python wrapper https://github.com/Onuonga/pycap
 #
 # Notes:
 # - Script requires 'sudo' to get access to the network traffic.
 # - If you get the following error message:
 #     '[...]ImportError: No module named sll'
-#   , then remove 'ssl' from list in pycap/constants/__init__.py. 
+#   , then remove 'ssl' from list in pycap/constants/__init__.py.
 #
 #
 
 import time, socket, sys, os
 
 # Add subfolders to python paths for imports
-# Remove this lines if you has install the packages 
+# Remove this lines if you has install the packages
 sys.path.append(os.path.join(os.path.dirname(__file__), 'pyip-0.7'))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'pycap-2.0'))
 # Add pycap and pyip
@@ -33,7 +33,7 @@ import ip as ip2
 import udp as udp2
 
 
-# === Configuration === 
+# === Configuration ===
 
 device = "eth0" # Interface name
 #server_ip = "148.251.126.92" # Ip of your PB Server
@@ -41,20 +41,21 @@ server_ip = "192.168.0.35" # Ip of your PB Server
 
 ## server_portlist contains list (seperated by ,)
 # of single ports (P) or portranges (P1-P2).
-# 
+#
 # format: (P|P1-P2)[,Q|Q1-Q2[,...]]
 #
 server_portlist = "2056" # Default value if you use no arguments.
 logfileName = "detections.log" # Default logfile name
 
-ttl = 100
+#ttl = 100 is probably to low
+ttl = 300
 timeouts = {}
 timeout = 500
 clients = {}
 
 
 
-# === Send Fake Paket === 
+# === Send Fake Paket ===
 # Inject paket, but fake client ip
 # src,dst : (ip,port) tuple
 def sendUdpReply(src,dst,data):
@@ -82,7 +83,7 @@ def sendUdpReply(src,dst,data):
 	#print ipacket
 
 
-# === Analyse Traffic === 
+# === Analyse Traffic ===
 # device: "eth0" or other devicename (string)
 # server: (ip,port) tuple or (ip,port1,port2) triple for port range
 # clients: List
@@ -147,7 +148,7 @@ def analyseUdpTraffic(device, server, clients, timeout):
 			if t > ttl:
 				#print packet
 				# Send fake packet to stop upload
-				# Structure of content: 
+				# Structure of content:
 				# 254 254 06 B (A+1) (7 bytes)
 				A = payload[3:5] # String!
 				B = payload[5:7]
@@ -158,7 +159,7 @@ def analyseUdpTraffic(device, server, clients, timeout):
 				dst = (packet[1].source,packet[2].sourceport)
 				data = chr(254)+chr(254)+chr(06) + B + A1
 
-				msg = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()) 
+				msg = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
 				msg += " | %s:%s | %s:%s \n" % (src[0], src[1], dst[0], dst[1])
 
 				print msg,
@@ -177,9 +178,9 @@ def analyseUdpTraffic(device, server, clients, timeout):
 #			print "Heartbeat!"
 
 
-# === Main === 
+# === Main ===
 if len(sys.argv) < 2:
-	print "Usage: ./", sys.argv[0] , "[portlist]", "[network device]", "[logfile]" 
+	print "Usage: ./", sys.argv[0] , "[portlist]", "[network device]", "[logfile]"
 	print "No arguments given. Assume default interface %s,\n Pitboss server portlist=%s, and \n Logfile %s." % (device, server_portlist, logfileName)
 else:
 	server_portlist = sys.argv[1]

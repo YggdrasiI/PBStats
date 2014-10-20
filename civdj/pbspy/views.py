@@ -24,11 +24,14 @@ import json
 import operator
 import functools
 
+
 class GameListView(generic.ListView):
     model = Game
 
     def get_queryset(self):
-        return self.model.objects.filter(Q(is_private=False) | Q(admins__id=self.request.user.id)).annotate(player_count=Count('player', distinct=True))
+        return self.model.objects.filter(
+            Q(is_private=False) | Q(admins__id=self.request.user.id)).annotate(
+            player_count=Count('player'))
 
 game_list = GameListView.as_view()
 
@@ -36,10 +39,10 @@ game_list = GameListView.as_view()
 class GameDetailView(generic.edit.FormMixin, generic.DetailView):
     model = Game
 
-    ## List of possible orderings
+    # List of possible orderings
 
     # Definitions of orderings
-    player_orders = ['id','leader','score','civ','name','status']
+    player_orders = ['id', 'leader', 'score', 'civ', 'name', 'status', 'finished']
     # Note that minus sign just swap ordering of first key
     player_order_defs = {
         'id': ['ingame_id'],
@@ -54,9 +57,11 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         '-name': ['-name', '-score', 'ingame_id'],
         'status': ['ingame_id'],
         '-status': ['-ingame_id'],
+        'finished': ['-finished_turn','ingame_id'],
+        '-finished': ['finished_turn','ingame_id'],
     }
 
-    ## Tuple of GameLog sub classes (subset)
+    # Tuple of GameLog sub classes (subset)
     log_classes = (
         GameLogFinish,
         GameLogLogin,
@@ -68,7 +73,8 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
     )
 
     # Generate key and names for select form
-    log_choices = tuple([(l.__name__, l.generateGenericLogTypeName()()) for l in log_classes])
+    log_choices = tuple(
+        [(l.__name__, l.generateGenericLogTypeName()()) for l in log_classes])
     log_keys = dict(log_choices).keys()
 
     def player_list_setup(self, game, context):
@@ -76,7 +82,8 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         # Check if new value is allowed and overwrite
         # old session value.
         player_order_old = self.request.session.get('player_order', 'score')
-        player_order_str = str(self.request.GET.get('player_order', player_order_old))
+        player_order_str = str(
+            self.request.GET.get('player_order', player_order_old))
         if player_order_str != player_order_old:
             if not player_order_str in self.player_order_defs:
                 player_order_str = player_order_old
@@ -84,8 +91,9 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
                 self.request.session['player_order'] = player_order_str
 
         # 2. Get list of keys which define the selected ordering
-        player_order = self.player_order_defs.get(player_order_str,
-                                                  self.player_order_defs.get('score'))
+        player_order = self.player_order_defs.get(
+            player_order_str,
+            self.player_order_defs.get('score'))
 
         # 3. Create dict of the ordering keywords but add a
         #    minus sign for the current ordering.
@@ -96,14 +104,17 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         context['orders']['current'] = player_order_str
 
         # 4. Attach ordered list of players
-        context['players'] = list(game.player_set.all().order_by(*player_order))
+        context['players'] = list(
+            game.player_set.all().order_by(*player_order))
 
         # 5. Post-processed sorting over properties without
         # simple sql definitions.
         if player_order_str == "status":
-            context['players'] = sorted(context['players'], key=lambda pl: pl.status())
+            context['players'] = sorted(
+                context['players'], key=lambda pl: pl.status())
         if player_order_str == "-status":
-            context['players'] = sorted(context['players'], key=lambda pl: pl.status(), reverse=True)
+            context['players'] = sorted(
+                context['players'], key=lambda pl: pl.status(), reverse=True)
 
     def log_setup(self, game, context):
         # 1. Define player filter
@@ -115,12 +126,11 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
             p_list = [Q()]
 
         # 2. Define new form for log filter selection
-        log_filter = self.request.session.get('log_filter', GameDetailView.log_keys)
-        context['logFilterForm'] = GameLogTypesForm(
-            #choices=GameLogTypesForm.CHOICES,
-            #initial=log_filter
-        )
-        context['logFilterForm'].fields['log_filter'].choices = GameDetailView.log_choices
+        log_filter = self.request.session.get(
+            'log_filter', GameDetailView.log_keys)
+        context['logFilterForm'] = GameLogTypesForm()
+        context['logFilterForm'].fields[
+            'log_filter'].choices = GameDetailView.log_choices
         context['logFilterForm'].fields['log_filter'].initial = log_filter
         context['logFilterForm'].fields['player_id'].initial = player_id
 
@@ -129,15 +139,18 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
             # Use A|B|... condition if less log types are selected
             # Otherwise use notA & notB & notC for the complement set
             c_list = []
-            if len(log_filter) < 0.66 * len(GameDetailView.log_classes):
+            # This switch was disable because the result for
+            # the else branch could be non-intuitive.
+            #if len(log_filter) < 0.66 * len(GameDetailView.log_classes):
+            if True:
                 for c in GameDetailView.log_classes:
                     if c.__name__ in log_filter:
                         c_list.append(Q(**{'instance_of': c}))
 
                 context['log'] = game.gamelog_set.filter(
                     functools.reduce(operator.or_, c_list)).filter(
-                        functools.reduce(operator.or_, p_list)
-                    ).order_by('-id')
+                    functools.reduce(operator.or_, p_list)
+                ).order_by('-id')
             else:
                 for c in GameDetailView.log_classes:
                     if not c.__name__ in log_filter:
@@ -145,8 +158,14 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
                 context['log'] = game.gamelog_set.filter(
                     functools.reduce(operator.and_, c_list)).filter(
+<<<<<<< HEAD
                         functools.reduce(operator.or_, p_list)
                     ).order_by('-id')
+=======
+                    functools.reduce(operator.or_, p_list)
+                ).order_by('-id')
+
+>>>>>>> upstream/master
         else:
             context['log'] = game.gamelog_set.filter(
                 functools.reduce(operator.or_, p_list)
@@ -160,7 +179,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
         context['can_manage'] = game.can_manage(self.request.user)
 
-        ## Player list
+        # Player list
         self.player_list_setup(game, context)
 
         self.log_setup(game, context)
@@ -194,7 +213,8 @@ class GameLogView(generic.View,
     template_name = "pbspy/game_log.html"
 
     def get(self, request, game_id):
-        self.object_list = self.model.objects.filter(game_id__exact=game_id).order_by('-id')
+        self.object_list = self.model.objects.filter(
+            game_id__exact=game_id).order_by('-id')
         context = self.get_context_data()
         return self.render_to_response(context)
 
@@ -222,7 +242,8 @@ def game_manage(request, game_id, action=""):
         return HttpResponse('unauthorized', status=401)
 
     context = {'game': game}
-    context['timer_form'] = GameManagementTimerForm(initial={'timer': game.timer_max_h})
+    context['timer_form'] = GameManagementTimerForm(
+        initial={'timer': game.timer_max_h})
     context['chat_form'] = GameManagementChatForm()
     context['motd_form'] = GameManagementMotDForm()
     context['save_form'] = GameManagementSaveForm()
@@ -231,7 +252,7 @@ def game_manage(request, game_id, action=""):
     load_choices = []
 
     # Add entry for restart of running state
-    load_choices.append( ('restart', 'Save and reload current game') )
+    load_choices.append(('restart', 'Save and reload current game'))
 
     for save in saves:
         folder_index = int(save['folderIndex'])
@@ -241,7 +262,8 @@ def game_manage(request, game_id, action=""):
         load_choices.append(choice)
 
     context['load_form'] = GameManagementLoadForm(load_choices)
-    context['set_player_password_form'] = GameManagementSetPlayerPasswordForm(game.player_set)
+    context['set_player_password_form'] = GameManagementSetPlayerPasswordForm(
+        game.player_set)
 
     if request.method == 'POST':
         if action == 'pause_enable':
@@ -302,9 +324,12 @@ def game_manage(request, game_id, action=""):
                 return HttpResponse('game loaded.', status=200)
             context['load_form'] = form
         elif action == 'set_player_password':
-            form = GameManagementSetPlayerPasswordForm(game.player_set, request.POST)
+            form = GameManagementSetPlayerPasswordForm(
+                game.player_set, request.POST)
             if form.is_valid():
-                game.pb_set_player_password(form.cleaned_data['player'].id, form.cleaned_data['password'])
+                game.pb_set_player_password(
+                    form.cleaned_data['player'].id,
+                    form.cleaned_data['password'])
                 return HttpResponse('passwort set.', status=200)
             context['set_player_password_form'] = form
         else:

@@ -4,7 +4,7 @@
 {% block content %}
     <h1 id="game_name">{{ game.name }}</h1>
 
-    <div id="game_summary">
+    <div id="game_summary"><a name="game_summary" ></a>
       {% if can_manage %}
       (<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
       {% endif %}
@@ -45,37 +45,44 @@
         </div>
     </div>
 
-    <h2>{% trans "player summary" %}</h2>
+    <h2>{% trans "player summary" %}</h2><a name="game_players" ></a>
     <div id="game_players">
         {% if players %}
             <table class='game_players'>
                 <tr>
-                  <th class="colFinish"  >
-                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.id }}">⌛</a>
+                  <th class="colFinish">
+                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.finished }}#game_players">⌛</a>
+                  </th>
+                  <th class="colId"  >
+                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.id }}#game_players">Id</a>
                   </th>
                   <th class="colName"    >
-                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.name}}">{% trans "Name" %}</a></th>
+                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.name}}#game_players">{% trans "Name" %}</a></th>
                   <th class="colLeader"  >
-                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.leader}}">{% trans "Leader" %}</a>
+                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.leader}}#game_players">{% trans "Leader" %}</a>
                   </th>
+                  <th class="colColor"> </th>
                   <th class="colNation"  >
-                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.civ}}">{% trans "Nation" %}</a>
+                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.civ}}#game_players">{% trans "Nation" %}</a>
                   </th>
                   <th class="colScore"  >
-                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.score}}">{% trans "Score" %}</a>
+                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.score}}#game_players">{% trans "Score" %}</a>
                   </th>
                   <th class="colStatus"  >
-                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.status}}">{% trans "Status" %}</a>
+                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.status}}#game_players">{% trans "Status" %}</a>
                   </th>
                 </tr>
                 {% for player in players %}
-                    <tr>
+                <tr>
                       <td class="colFinish"  >{% if player.finished_turn %}*{% endif %}</td>
+                      <td class="colId">
+                          {{ player.ingame_id }}</td>
                       <td class="colName"    >
                         <a href="{% url 'game_detail' game.id %}?player_id={{ player.ingame_id}}">
                           {{ player.name }}</a>
                       </td>
                       <td class="colLeader"  >{{ player.leader }}</td>
+                      <td class="colColor" style="color:rgb({{ player.color_rgb }});" >×</td>
                       <td class="colNation"  >{{ player.civilization }}</td>
                       <td class="colScore"  >{{ player.score }}</td>
                       <td class="colStatus"  >{{ player.status }}</td>
@@ -87,10 +94,10 @@
         {% endif %}
     </div>
 
-    <h2>{% trans "game log" %}</h2>
+    <h2>{% trans "game log" %}</h2><a name="game_log"></a>
     <div id="game_log">
             <div id="game_log_filter">
-              <form method="post" action="{% url 'game_detail' game.id %}?player_order={{ orders.current }}">
+              <form method="post" action="{% url 'game_detail' game.id %}?player_order={{ orders.current }}#game_log">
                 {% csrf_token %}
                 {{ logFilterForm.as_p }}
                 <input type='submit' value='{% trans "Change filter" %}'>

@@ -150,7 +150,7 @@ class Game(models.Model):
         player_count_old = self.player_set.count()
         player_count = len(info['players'])
         if (self.pb_name != info['gameName'] or
-                player_count_old != len(info['players'])):
+                player_count_old != player_count ):
             GameLogMetaChange(
                 pb_name_old=self.pb_name,
                 pb_name=info['gameName'],
@@ -261,6 +261,9 @@ class Game(models.Model):
         result = self.pb_action(action='setPause', value=value)
         GameLogAdminPause(game=self, user=user, date=timezone.now(), paused=value,
                           year=self.year, turn=self.turn).save()
+        if result['return'] == 'ok':
+            self.is_paused = True
+            self.save()
         return result
 
     def pb_end_turn(self, user=None):
