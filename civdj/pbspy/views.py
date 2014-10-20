@@ -149,8 +149,8 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
                 context['log'] = game.gamelog_set.filter(
                     functools.reduce(operator.or_, c_list)).filter(
-                    functools.reduce(operator.or_, p_list)
-                ).order_by('-id')
+                        functools.reduce(operator.or_, p_list)
+                    ).order_by('-id')
             else:
                 for c in GameDetailView.log_classes:
                     if not c.__name__ in log_filter:
