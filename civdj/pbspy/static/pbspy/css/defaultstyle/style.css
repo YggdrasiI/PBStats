@@ -10,7 +10,7 @@
  * #sidebar : contains navigation links ( login, register, etc )
  *
  * .game_list : Table of all registered games
- * 	Columns: colName, colNumPlayers, colYear, colTurn
+ * 	Columns: colFinish, colId, colName, colNumPlayers, colYear, colTurn
  *
  * .game_info: <p>-Element with information about a game or the list of games.
  *
