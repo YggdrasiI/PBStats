@@ -13,6 +13,10 @@
         <div class="game_metadata">
           <p class="game_info">{% trans "Turn" %}: {{ game.turn|default_if_none:_("n/a") }}</p>
           <p class="game_info">{% trans "Year" %}: {{ game.year_str|default:_("n/a") }}</p>
+          <p class="game_info">
+              {% blocktrans with players=game.player_count finished=game.player_finished_count %}
+                  {{ finished }} of {{ players }} have finished their turn.
+              {% endblocktrans %}</p>
           {% if game.timer %}
               <p class="game_info">{% trans "Timer" %}:
                   {% blocktrans with end=game.timer_end|timeuntil hours=game.timer_max_h %}
