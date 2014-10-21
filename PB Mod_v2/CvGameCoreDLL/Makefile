@@ -4,13 +4,14 @@
 
 #### Paths ####
 #TOOLKIT=C:\Programme\Microsoft Visual C++ Toolkit 2003
-TOOLKIT=I:\Olaf\Microsoft Visual C++ Toolkit 2003
+TOOLKIT=I:\Civ4\Microsoft Visual C++ Toolkit 2003
 #PSDK=C:\Programme\Microsoft SDKs\Windows\v7.0A
-PSDK=I:\Olaf\WinSdk
+PSDK=I:\Civ4\WinSdk
 ## Uncomment to have newly compiled dlls copied to your mod's Assets directory
 #YOURMOD=C:\Users\Danny\Documents\My Games\beyond the sword\MODS\MyMod
 #YOURMOD=H:\Eigene Dateien\My Games\Col\MODS\TAC 2.03_final
-YOURMOD=I:\Olaf\Civ4\Beyond the Sword\Mods\PB Mod_v1
+#YOURMOD=I:\Olaf\Civ4\Beyond the Sword\Mods\PB Mod_v2
+YOURMOD=H:\Firaxis Games\Sid Meier's Civilization 4\Beyond the Sword\Mods\PB Mod_v2
 
 #### Tools ####
 CC="$(TOOLKIT)\bin\cl.exe"
@@ -54,7 +55,9 @@ Release_OTHER=Release\CvGameCoreDLL.exp
 #### CFLAGS ####
 GLOBAL_CFLAGS=/GR /Gy /W3 /EHsc /Gd /Gm- /DWIN32 /D_WINDOWS /D_USRDLL /DCVGAMECOREDLL_EXPORTS /Yu"CvGameCoreDLL.h"
 Debug_CFLAGS=/MD /Zi /Od /D_DEBUG /RTC1 /Fp"$(Debug_PCH)" $(GLOBAL_CFLAGS)
-Release_CFLAGS=/MD /O2 /Oy /Oi /G7 /DNDEBUG /DFINAL_RELEASE /Fp"$(Release_PCH)" $(GLOBAL_CFLAGS)
+#Release_CFLAGS=/MD /O2 /Oy /Oi /G7 /DNDEBUG /DFINAL_RELEASE /Fp"$(Release_PCH)" $(GLOBAL_CFLAGS)
+Release_CFLAGS=/MD /O2 /Oy- /Oi /G7 /DNDEBUG /DFINAL_RELEASE /Fp"$(Release_PCH)" $(GLOBAL_CFLAGS)
+
 
 #### LDFLAGS ####
 GLOBAL_LDFLAGS=/DLL /NOLOGO /SUBSYSTEM:WINDOWS /LARGEADDRESSAWARE /TLBID:1

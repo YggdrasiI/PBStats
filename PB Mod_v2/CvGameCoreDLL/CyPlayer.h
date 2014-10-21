@@ -42,6 +42,7 @@ public:
 	bool isHuman();
 	bool isBarbarian();
 	std::wstring getName();
+	void setName(std::wstring szNewValue);
 	std::wstring getNameForm(int iForm);
 	std::wstring getNameKey();
 	std::wstring getCivilizationDescription(int iForm);

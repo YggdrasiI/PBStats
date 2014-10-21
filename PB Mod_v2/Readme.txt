@@ -32,6 +32,14 @@ GUI. This option assumes that a savegame will be loaded at startup. Thus, enable
 
 - Player password could be changed over webinterface.
 
+New in version 2 (PB Mod_v2): 
+- Connection Issue during PB login screen. Very long leader names and/or very long civ descriptions and/or many
+players increases one single IPv4 network package and it could be rejected on its way to a client.
+This mod try to reduce the size of this package and cut of leader names and civ names. (This change just affects
+		the PB login screen.) You can select how many chars are allowed. If you use all 52 player slots, do not exceed 5 chars per player.
+		The default setting is: 1 character for the name and 4 for the nation. 
+		Note that both strings will be replaced by the Id of the player if only one character is allowed.
+
 
 
 (Removed from master branch)

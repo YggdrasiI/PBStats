@@ -2261,6 +2261,10 @@ const wchar* CvPlayer::getName(uint uiForm) const
 	}
 }
 
+void CvPlayer::setName(const wchar* szNewValue)
+{
+	GC.getInitCore().setLeaderName(getID(), szNewValue);
+}
 
 const wchar* CvPlayer::getNameKey() const
 {

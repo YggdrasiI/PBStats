@@ -10,6 +10,8 @@
 #include "CvGameAI.h"
 #include "CvGameCoreUtils.h"
 
+
+#define PBMOD_FRAME_POINTER_ENABLED 1
 // Public Functions...
 
 CvInitCore::CvInitCore()
@@ -53,6 +55,11 @@ CvInitCore::CvInitCore()
 
 	m_aeCustomMapOptions = NULL;
 	m_abVictories = NULL;
+
+	m_szTemp2 = "";
+	m_iMaxLenName = 1;
+	m_iMaxLenDesc = 4;
+	m_szTempChar = "x";
 
 	reset(NO_GAMEMODE);
 }
@@ -239,6 +246,18 @@ bool CvInitCore::getPbem() const
 	return ( (getType() == GAME_PBEM_NEW) || (getType() == GAME_PBEM_SCENARIO) || (getType() == GAME_PBEM_LOAD) );
 }
 
+bool CvInitCore::isPitbossShortNames() const
+{
+	return m_bShortNames;
+}
+void CvInitCore::setPitbossShortNames( bool bShort, int maxLenName, int maxLenDesc )
+{
+	if( gDLL->IsPitbossHost() ){
+		m_bShortNames = bShort;
+		m_iMaxLenName = maxLenName>0?maxLenName:0;
+		m_iMaxLenDesc = maxLenDesc>0?maxLenDesc:0;
+	}
+}
 
 bool CvInitCore::checkBounds( int iValue, int iLower, int iUpper ) const
 {
@@ -723,7 +742,7 @@ void CvInitCore::resetPlayer(PlayerTypes eID, CvInitCore * pSource, bool bClear,
 
 
 CvWString CvInitCore::getMapScriptName() const
-{ 
+{
 	if (gDLL->getTransferredMap())
 	{
 		if (!getWBMapScript())
@@ -732,7 +751,7 @@ CvWString CvInitCore::getMapScriptName() const
 			return ( m_szMapScriptName + CvWString(MAP_TRANSFER_EXT) );
 		}
 	}
-	return m_szMapScriptName; 
+	return m_szMapScriptName;
 }	
 
 void CvInitCore::setMapScriptName(const CvWString & szMapScriptName)
@@ -1201,12 +1220,43 @@ void CvInitCore::setMode(GameMode eMode)
 }
 
 
+static const void *CriticalParent_LeaderName = (void*) 0x0046aba8;
+
 const CvWString & CvInitCore::getLeaderName(PlayerTypes eID, uint uiForm) const
 {
 	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getLeaderName");
 	if ( checkBounds(eID, 0, MAX_PLAYERS) )
 	{
 		m_szTemp = gDLL->getObjectText(CvString(m_aszLeaderName[eID]).GetCString(), uiForm, true);
+
+		if( isPitbossShortNames()
+				&& gDLL->IsPitbossHost() ){
+
+#if PBMOD_FRAME_POINTER_ENABLED
+			void ** volatile puEBP = NULL;
+			__asm { mov puEBP, ebp };
+			void * pvReturn1 = puEBP[1]; // this is the caller of my function
+#else
+			void * pvReturn1 = (void*) CriticalParent_LeaderName+1;
+#endif
+
+			if( pvReturn1 == CriticalParent_LeaderName ){
+				if( m_szTemp.length() == 0 ) { return m_szTemp ; }
+				if( m_iMaxLenName == 1 /*|| m_szTemp.length() == 0*/ ){
+					unsigned short lKey = 65;
+					lKey += eID;
+					if( lKey > 90U ) lKey +=6U;
+					m_szTempChar[0] = (wchar)lKey;
+					return m_szTempChar;
+				}else{
+					m_szTemp2 = m_szTemp.substr(0,m_iMaxLenName);
+					return m_szTemp2;
+				}
+			}
+		}else{
+			m_szTemp = gDLL->getObjectText(CvString(m_aszLeaderName[eID]).GetCString(), uiForm, true);
+		}
+
 	}
 	else
 	{
@@ -1242,13 +1292,47 @@ const CvWString & CvInitCore::getLeaderNameKey(PlayerTypes eID) const
 	}
 }
 
-const CvWString & CvInitCore::getCivDescription(PlayerTypes eID, uint uiForm) const
+static const void *CriticalParent_CivDesc = (void*) 0x0046ab8e;
+
+/*__declspec(noinline)*/ const CvWString & CvInitCore::getCivDescription(PlayerTypes eID, uint uiForm) const
 {
 	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getCivDescription");
 
 	if ( checkBounds(eID, 0, MAX_PLAYERS) )
 	{
 		m_szTemp = gDLL->getObjectText(CvString(m_aszCivDescription[eID]).GetCString(), uiForm, true);
+		if( isPitbossShortNames()
+				&& gDLL->IsPitbossHost() ){
+			/* The return of "" forces a lookup into the local Civ decription. Unfortunealy, there
+			 * is a bug(?) and not the civ decription, but the leader name will be readed. */
+
+#if PBMOD_FRAME_POINTER_ENABLED
+			void ** volatile puEBP = NULL;
+			__asm { mov puEBP, ebp }; //current frame pointer
+			//__asm { mov puEBP, esp }; //current stack pointer
+			void * pvReturn1 = puEBP[1]; // this is the caller of my function
+#else
+			void * pvReturn1 = (void*) CriticalParent_CivDesc+1;
+#endif
+
+			if( pvReturn1 == CriticalParent_CivDesc ){
+
+				/* It's not possible to send the empty string because for "" the default civ desc will be send.
+				 * Thus, the first connection for a fresh(!) game could fail. Second will work.
+				 */
+				if( m_szTemp.length() == 0 ) { return m_szTemp ; }
+				if( m_iMaxLenDesc == 1 /*|| m_szTemp.length() == 0*/ ){
+					unsigned short lKey = 65U;
+					lKey += eID;
+					if( lKey > 90U ) lKey +=6U;
+					m_szTempChar[0] = (wchar)lKey;
+					return m_szTempChar;
+				}else{
+					m_szTemp2 = m_szTemp.substr(0,m_iMaxLenDesc);
+					return m_szTemp2;
+				}
+			}
+		}
 	}
 	else
 	{

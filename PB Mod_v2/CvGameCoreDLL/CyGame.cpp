@@ -617,6 +617,16 @@ bool CyGame::isPitboss()
 {
 	return m_pGame ? m_pGame->isPitboss() : false;
 }
+bool CyGame::isPitbossShortNames() const
+{
+	return m_pGame ? GC.getInitCore().isPitbossShortNames() : false;
+}
+
+void CyGame::setPitbossShortNames(bool bShort, int maxLenName, int maxLenDesc){
+	if( m_pGame != NULL ){
+		GC.getInitCore().setPitbossShortNames( bShort, maxLenName, maxLenDesc );
+	}
+}
 
 bool CyGame::isSimultaneousTeamTurns()
 {

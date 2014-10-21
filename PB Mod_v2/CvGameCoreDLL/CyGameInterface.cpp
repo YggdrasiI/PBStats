@@ -144,6 +144,8 @@ void CyGamePythonInterface()
 		.def("isHotSeat", &CyGame::isHotSeat, "bool ()")
 		.def("isPbem", &CyGame::isPbem, "bool ()")
 		.def("isPitboss", &CyGame::isPitboss, "bool ()")
+		.def("isPitbossShortNames", &CyGame::isPitbossShortNames, "bool ()")
+		.def("setPitbossShortNames", &CyGame::setPitbossShortNames, "void (bool bShort, int maxLenName, int maxLenDesc )")
 		.def("isSimultaneousTeamTurns", &CyGame::isSimultaneousTeamTurns, "bool ()")
 
 		.def("isFinalInitialized", &CyGame::isFinalInitialized, "bool () - Returns whether or not the game initialization process has ended (game has started)")

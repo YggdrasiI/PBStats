@@ -15,6 +15,6 @@ import string
 gc = CyGlobalContext()
 
 # Extra path for extra python modules
-pythonDir = os.path.join(gc.getAltrootDir(),'..','Python','v1')
+pythonDir = os.path.join(gc.getAltrootDir(),'..','Python','v2')
 execfile( os.path.join(pythonDir,'PbWizard.py'))
 

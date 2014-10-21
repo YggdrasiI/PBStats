@@ -106,6 +106,12 @@ std::wstring CyPlayer::getName()
 	return m_pPlayer ? m_pPlayer->getName() : std::wstring();
 }
 
+void CyPlayer::setName(std::wstring szNewValue)
+{
+	if (m_pPlayer)
+		m_pPlayer->setName(CvWString(szNewValue));
+}
+
 std::wstring CyPlayer::getNameForm(int iForm)
 {
 	return m_pPlayer ? m_pPlayer->getName((uint)iForm) : std::wstring();

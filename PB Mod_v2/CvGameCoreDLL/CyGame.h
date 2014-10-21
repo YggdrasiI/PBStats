@@ -155,6 +155,8 @@ public:
 	bool isHotSeat();
 	bool isPbem();
 	bool isPitboss();
+	bool isPitbossShortNames() const;
+	void setPitbossShortNames(bool bShort, int maxLenName, int maxLenDesc);
 	bool isSimultaneousTeamTurns();
 
 	bool isFinalInitialized();

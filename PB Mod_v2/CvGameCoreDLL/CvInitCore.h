@@ -58,6 +58,9 @@ public:
 	DllExport bool getHotseat() const;
 	DllExport bool getPbem() const;
 
+	DllExport bool isPitbossShortNames() const;
+	DllExport void setPitbossShortNames( bool bShort, int maxLenName = 2, int maxLenDesc = 3  ); // Limit: 52*2*3 = MAX_PLAYERS*maxLenName*maxLenDesc
+
 	DllExport bool getSlotVacant(PlayerTypes eID) const;
 	DllExport PlayerTypes getAvailableSlot();
 	DllExport void reassignPlayer(PlayerTypes eOldID, PlayerTypes eNewID);
@@ -348,6 +351,8 @@ protected:
 	// Temp var so we don't return locally scoped var
 	mutable CvWString m_szTemp;
 	mutable CvString m_szTempA;
+	mutable CvWString m_szTempChar;
+	mutable CvWString m_szTemp2;
 
 
 	// ***
@@ -388,6 +393,10 @@ protected:
 	CvString* m_aszPythonCheck;
 	CvString* m_aszXMLCheck;
 	mutable CvString m_szTempCheck;
+
+	bool m_bShortNames;
+	size_t m_iMaxLenName;
+	size_t m_iMaxLenDesc;
 };
 
 #endif
