@@ -30,8 +30,9 @@ class GameListView(generic.ListView):
 
     def get_queryset(self):
         return self.model.objects.filter(
-            Q(is_private=False) | Q(admins__id=self.request.user.id)).annotate(
-            player_count=Count('player', distinct=True))
+            Q(is_private=False)
+            | Q(admins__id=self.request.user.id)).annotate(
+                player_count=Count('player', distinct=True))
 
 game_list = GameListView.as_view()
 
