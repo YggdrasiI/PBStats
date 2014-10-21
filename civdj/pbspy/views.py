@@ -177,6 +177,10 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         # Player list
         self.player_list_setup(game, context)
 
+        game.player_finished_count = \
+            sum(1 for p in context['players'] if p.finished_turn)
+        game.player_count = len(context['players'])
+
         self.log_setup(game, context)
         return context
 
