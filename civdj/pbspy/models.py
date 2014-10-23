@@ -238,6 +238,10 @@ class Game(models.Model):
     def pb_motd(self, message, user=None):
         return self.pb_action(action='setMotD', msg=str(message))
 
+    def pb_short_names(self, iShortNameLen, iShortDescLen, user=None):
+        return self.pb_action(action='setShortNames', enable=(iShortNameLen>0),
+                maxLenName=int(iShortNameLen), maxLenDesc=int(iShortDescLen) )
+
     def pb_set_autostart(self, value, user=None):
         return self.pb_action(action='setAutostart', value=bool(value))
 

@@ -2,9 +2,9 @@ from django.http import HttpResponseBadRequest, HttpResponse
 from django.views import generic
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
 from pbspy.models import Game, GameLog, Player, InvalidPBResponse
-from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm, GameManagementTimerForm,\
-    GameManagementLoadForm, GameManagementSetPlayerPasswordForm, GameManagementSaveForm,\
-    GameLogTypesForm
+from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm,\
+        GameManagementTimerForm, GameManagementLoadForm, GameManagementSetPlayerPasswordForm,\
+        GameManagementSaveForm, GameLogTypesForm, GameManagementShortNamesForm
 
 from pbspy.models import GameLogTurn, GameLogReload, GameLogMetaChange, GameLogTimerChanged,\
     GameLogPause, GameLogServerTimeout, GameLogPlayer, GameLogLogin, GameLogLogout,\
@@ -242,6 +242,7 @@ def game_manage(request, game_id, action=""):
         initial={'timer': game.timer_max_h})
     context['chat_form'] = GameManagementChatForm()
     context['motd_form'] = GameManagementMotDForm()
+    context['short_names_form'] = GameManagementShortNamesForm()
     context['save_form'] = GameManagementSaveForm()
 
     saves = sorted(game.pb_list_saves(), key=lambda k: -k['timestamp'])
@@ -301,6 +302,14 @@ def game_manage(request, game_id, action=""):
                 game.pb_motd(form.cleaned_data['message'])
                 return HttpResponse('MotD sent.', status=200)
             context['motd_form'] = form
+        elif action == 'short_names':
+            form = GameManagementShortNamesForm(request.POST)
+            if form.is_valid():
+                game.pb_short_names(
+                        form.cleaned_data['iShortNameLen'],
+                        form.cleaned_data['iShortDescLen'] )
+                return HttpResponse('Set short names.', status=200)
+            context['short_names_form'] = form
         elif action == 'save':
             form = GameManagementSaveForm(request.POST)
             if form.is_valid():

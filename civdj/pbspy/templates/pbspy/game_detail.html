@@ -78,7 +78,7 @@
                       <td class="colId">
                           {{ player.ingame_id }}</td>
                       <td class="colName"    >
-                        <a href="{% url 'game_detail' game.id %}?player_id={{ player.ingame_id}}">
+                        <a href="{% url 'game_detail' game.id %}?player_id={{ player.ingame_id}}#game_log">
                           {{ player.name }}</a>
                       </td>
                       <td class="colLeader"  >{{ player.leader }}</td>

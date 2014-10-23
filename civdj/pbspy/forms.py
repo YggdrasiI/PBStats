@@ -17,8 +17,16 @@ class GameManagementTimerForm(Form):
 class GameManagementChatForm(Form):
     message = forms.CharField(label=_('Text message'))
 
+
 class GameManagementMotDForm(Form):
     message = forms.CharField(label=_('Text message'))
+
+
+class GameManagementShortNamesForm(Form):
+    iShortNameLen = forms.IntegerField(label=_('New max. length of leader name'),
+            min_value=0, max_value=9999, initial=2 )
+    iShortDescLen = forms.IntegerField(label=_('New max. length of civ description'),
+            min_value=0, max_value=9999, initial=3 )
 
 
 class GameManagementSaveForm(Form):
