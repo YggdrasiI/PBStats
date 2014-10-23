@@ -32,6 +32,14 @@ $lang['game_chat_message'] = "Send game chat message";
 $lang['game_chat_message_successful'] = "Message „%s“ was send.";
 $lang['game_motd_message'] = "Change message of the day (MotD)";
 $lang['game_motd_message_successful'] = "New MotD value: „%s“.";
+$lang['game_short_names'] = "Change number of characters in PB login screen";
+$lang['game_short_names_desc'] = "To omit an issue with some strictly/badly configured network connections you can
+	truncate above strings to reduce the size of one special UDP packet. This will shorten the leader names and civilization description in the login screen.<br>
+	The sum of both values should not exceed 5 (for 52 players).<br>
+	To disable this option, set the first value on 0.";
+$lang['leader_name'] = "Leader name";
+$lang['civ_desc'] = "Civ description";
+
 $lang['game_set_timer'] = "Change Turn Timer";
 $lang['game_set_timer_successful'] = "Set turn timer on %s.";
 $lang['game_end_round'] = "Force End of Turn";

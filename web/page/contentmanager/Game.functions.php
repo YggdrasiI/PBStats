@@ -352,7 +352,7 @@ function gameFull($game,$online /* False for preview during creation of new game
 							$infos = json_decode(handle_pitboss_action($gameData, $pbAction));
 
 							if( $infos->return === "ok" ){
-								$dHtml .= "<p>{L_GAME_SHORT_NAMES_SUCCESSFUL|$iShortNamesLen}</p>";
+								$dHtml .= "<p>{L_GAME_SHORT_NAMES_SUCCESSFUL|$iShortNamesLen|$iShortDescLen}</p>";
 								operation_update_ids( $opid );
 							}else{
 								$dHtml .= "<p>{L_GAME_ERROR_MSG}".$infos->info ."</p>";
@@ -424,14 +424,15 @@ function gameFull($game,$online /* False for preview during creation of new game
 
 						$dHtml .= "<h3 class='hr pad'>{L_GAME_SHORT_NAMES}</h3>";
 						$dHtml .= "<form action='$this_page' method='get'>\n
-							<p>{L_MESSAGE}: Leader name <input type='number' name='shortNames' value='3' style='width:3em' />\n
-							Civ description<input type='number' name='shortDesc' value='3' style='width:3em' />
+							<p>{L_LEADER_NAME}: <input type='number' name='shortNames' value='2' style='width:3em' />\n
+						{L_CIV_DESC}: <input type='number' name='shortDesc' value='3' style='width:3em' />
 							<input type='submit' />\n
 							<input type='hidden' name='action' value='admin' />\n
 							<input type='hidden' name='game' value='$gameId' />\n
 							<input type='hidden' name='step' value='9' />\n
 							<input type='hidden' name='opid' value='$opid' />\n
-							</p></form>\n";
+							</p></form>
+							<p>{L_GAME_SHORT_NAMES_DESC}</p>\n";
 
 						$dHtml .= "<h3 class='hr pad'>{L_GAME_SET_AUTOSTART_FLAG}</h3>";
 						$dHtml .= "<p>{L_GAME_NOTES_AUTOSTART}</p>";
