@@ -49,11 +49,15 @@ class GameManagementSetPlayerPasswordForm(Form):
 class GameLogTypesForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(GameLogTypesForm, self).__init__(*args, **kwargs)
-        self.fields['log_filter'] = forms.MultipleChoiceField(
+        self.fields['log_type_filter'] = forms.MultipleChoiceField(
           label=_('Log entry filter'),
           required=False,
           widget=forms.CheckboxSelectMultiple()
           )
+        self.fields['log_turn_max'] = forms.IntegerField(label=_('Maximal Round'),
+                min_value=0, max_value=9999)
+        self.fields['log_turn_min'] = forms.IntegerField(label=_('Minimal Round'),
+                min_value=0, max_value=9999)
         self.fields['player_id'] = forms.CharField(
             required=False,
             widget=forms.HiddenInput()
