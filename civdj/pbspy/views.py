@@ -30,8 +30,9 @@ class GameListView(generic.ListView):
 
     def get_queryset(self):
         return self.model.objects.filter(
-            Q(is_private=False) | Q(admins__id=self.request.user.id)).annotate(
-            player_count=Count('player'))
+            Q(is_private=False)
+            | Q(admins__id=self.request.user.id)).annotate(
+                player_count=Count('player', distinct=True))
 
 game_list = GameListView.as_view()
 
@@ -164,8 +165,8 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
                 context['log'] = roundlog.filter(
                     functools.reduce(operator.or_, c_list)).filter(
-                    functools.reduce(operator.or_, p_list)
-                ).order_by('-id')
+                        functools.reduce(operator.or_, p_list)
+                    ).order_by('-id')
             else:
                 for c in GameDetailView.log_classes:
                     if not c.__name__ in log_type_filter:
@@ -173,9 +174,8 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
                 context['log'] = roundlog.filter(
                     functools.reduce(operator.and_, c_list)).filter(
-                    functools.reduce(operator.or_, p_list)
-                ).order_by('-id')
-
+                        functools.reduce(operator.or_, p_list)
+                    ).order_by('-id')
         else:
             context['log'] = roundlog.filter(
                 functools.reduce(operator.or_, p_list)
@@ -191,6 +191,10 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
         # Player list
         self.player_list_setup(game, context)
+
+        game.player_finished_count = \
+            sum(1 for p in context['players'] if p.finished_turn)
+        game.player_count = len(context['players'])
 
         self.log_setup(game, context)
         return context
