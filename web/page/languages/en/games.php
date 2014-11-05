@@ -36,7 +36,10 @@ $lang['game_short_names'] = "Change number of characters in PB login screen";
 $lang['game_short_names_desc'] = "To omit an issue with some strictly/badly configured network connections you can
 	truncate above strings to reduce the size of one special UDP packet. This will shorten the leader names and civilization description in the login screen.<br>
 	The sum of both values should not exceed 5 (for 52 players).<br>
-	To disable this option, set the first value on 0.";
+	The length of 0 (in the first field) disables this option.<br>
+	The length of 1 enables the enummeration of all slots (A-z)";
+$lang['game_short_names_successful'] = "Change done.<br>Neue Länge des Anführernames: %s.<br>Neue Länge des Nationennames: %s.";
+$lang['game_short_names_successful'] = "Change done.<br>New length of leader name: %s.<br>New length of nation name: %s.";
 $lang['leader_name'] = "Leader name";
 $lang['civ_desc'] = "Civ description";
 

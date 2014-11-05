@@ -36,11 +36,12 @@ $lang['game_motd_message_successful'] = "Neue Nachricht des Tages: „%s“.";
 $lang['game_short_names'] = "Ändere Buchstabenanzahl im Loginscreen";
 $lang['game_short_names_desc'] = "Um die Datenübertragung bei einigen, restriktiv konfigurierten, Internetanschlüssen zu ermöglichen, wird ein bestimmtes Datenpaket verkleinert. Dies wird durch Kürzen von Anführername und Zivilisationsname realisiert, was allerdings zur Folge hat, dass die Namen im Login-Bildschirm abgeschnitten werden.
 	Bei 52 Zivs sollte die Summe der beiden Werte 5 nicht überschreiten. Bei weniger Spielern kann man auch mehr Buchstaben zulassen.<br>
-	Um die Option zu deaktivieren kann man den vorderen Wert auf Null setzen.";
+	Um die Option zu deaktivieren kann man den vorderen Wert auf Null setzen.<br>
+	Beim Wert 1 wird nicht gekürzt, sondern die Spielerliste durchnummeriert (A-z).";
+$lang['game_short_names_successful'] = "Änderung erfolgreich.<br>Neue Länge des Anführernames: %s.<br>Neue Länge des Nationennames: %s.";
 $lang['leader_name'] = "Anführername";
 $lang['civ_desc'] = "Nationenbeschreibung";
 
-$lang['game_short_names_successful'] = "Änderung erfolgreich.<br>Neue Länge des Anführernames: %s.<br>Neue Länge des Nationennames: %s.";
 $lang['game_set_timer'] = "Setze den Runden-Timer";
 $lang['game_set_timer_successful'] = "Runden-Timer auf %s gesetzt.";
 $lang['game_end_round'] = "Forciere Rundenende";
