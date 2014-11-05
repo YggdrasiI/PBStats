@@ -2912,8 +2912,8 @@ class CvMainInterface:
 				
 		nRows = len(lPlayers)
 		iLeaderNameWidth = 60
-		self.iScoreRows = max(0, min(self.iScoreRows, nRows - 1))
-		iHeight = min(yResolution - 300, max(1, (nRows - self.iScoreRows)) * 24 + 2)
+		self.iScoreRows = max(1,min(self.iScoreRows, nRows))
+		iHeight = min(yResolution - 300, self.iScoreRows * 24 + 2)
 		screen.addTableControlGFC("ScoreBackground", 5, xResolution - self.iScoreWidth - 150 - iLeaderNameWidth, yResolution - iHeight - 180, self.iScoreWidth + 150 + iLeaderNameWidth, iHeight, False, False, 23, 23, TableStyles.TABLE_STYLE_EMPTY)
 		screen.enableSelect("ScoreBackground", False)
 		screen.setTableColumnHeader("ScoreBackground", 0, "", self.iScoreWidth)
@@ -3269,10 +3269,10 @@ class CvMainInterface:
 ## Score Board ##
 		if inputClass.getNotifyCode() == NotifyCode.NOTIFY_CLICKED:
 			if inputClass.getFunctionName() == "ScoreRowPlus":
-				self.iScoreRows -= 5
+				self.iScoreRows += 5
 				self.updateScoreStrings()
 			elif inputClass.getFunctionName() == "ScoreRowMinus":
-				self.iScoreRows += 5
+				self.iScoreRows -= 5
 				self.updateScoreStrings()
 			elif inputClass.getFunctionName() == "ScoreWidthPlus":
 				self.iScoreWidth += 10
