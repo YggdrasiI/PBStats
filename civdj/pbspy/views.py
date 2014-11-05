@@ -2,9 +2,9 @@ from django.http import HttpResponseBadRequest, HttpResponse
 from django.views import generic
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
 from pbspy.models import Game, GameLog, Player, InvalidPBResponse
-from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm, GameManagementTimerForm,\
-    GameManagementLoadForm, GameManagementSetPlayerPasswordForm, GameManagementSaveForm,\
-    GameLogTypesForm
+from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm,\
+        GameManagementTimerForm, GameManagementLoadForm, GameManagementSetPlayerPasswordForm,\
+        GameManagementSaveForm, GameLogTypesForm, GameManagementShortNamesForm
 
 from pbspy.models import GameLogTurn, GameLogReload, GameLogMetaChange, GameLogTimerChanged,\
     GameLogPause, GameLogServerTimeout, GameLogPlayer, GameLogLogin, GameLogLogout,\
@@ -30,8 +30,9 @@ class GameListView(generic.ListView):
 
     def get_queryset(self):
         return self.model.objects.filter(
-            Q(is_private=False) | Q(admins__id=self.request.user.id)).annotate(
-            player_count=Count('player'))
+            Q(is_private=False)
+            | Q(admins__id=self.request.user.id)).annotate(
+                player_count=Count('player', distinct=True))
 
 game_list = GameListView.as_view()
 
@@ -77,6 +78,10 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         [(l.__name__, l.generateGenericLogTypeName()()) for l in log_classes])
     log_keys = dict(log_choices).keys()
 
+    # Default offset for turn filtering of log
+    log_turn_filter = {'offset_max':0, 'offset_min':1 }
+
+
     def player_list_setup(self, game, context):
         # 1. Get uri argument 'player_order'
         # Check if new value is allowed and overwrite
@@ -117,53 +122,62 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
                 context['players'], key=lambda pl: pl.status(), reverse=True)
 
     def log_setup(self, game, context):
+        # 0. Define turn filter
+        turn_filter = self.request.session.get('log_turn_filter',
+                GameDetailView.log_turn_filter )
+        # Use absolute turn values to filter
+        turn_max = game.turn - turn_filter['offset_max']
+        turn_min = game.turn - turn_filter['offset_min']
+        roundlog = game.gamelog_set.filter( Q(GameLog___turn__range = [turn_min,turn_max] ) )
+
         # 1. Define player filter
         player_id = int(self.request.GET.get('player_id', -1))
         if player_id > -1:
             p_list = [Q(**{'GameLogPlayer___player__id': None}),
-                      Q(**{'GameLogPlayer___player__id': player_id})
+                      Q(**{'GameLogPlayer___player__ingame_id': player_id})
                       ]
         else:
             p_list = [Q()]
 
         # 2. Define new form for log filter selection
-        log_filter = self.request.session.get(
-            'log_filter', GameDetailView.log_keys)
-        context['logFilterForm'] = GameLogTypesForm()
-        context['logFilterForm'].fields[
-            'log_filter'].choices = GameDetailView.log_choices
-        context['logFilterForm'].fields['log_filter'].initial = log_filter
-        context['logFilterForm'].fields['player_id'].initial = player_id
+        log_type_filter = self.request.session.get(
+            'log_type_filter', GameDetailView.log_keys)
+        logFilterForm = GameLogTypesForm()
+        logFilterForm.fields['log_type_filter'].choices = GameDetailView.log_choices
+        logFilterForm.fields['log_type_filter'].initial = log_type_filter
+        logFilterForm.fields['player_id'].initial = player_id
+        logFilterForm.fields['log_turn_max'].initial = game.turn - turn_filter['offset_max']
+        logFilterForm.fields['log_turn_min'].initial = game.turn - turn_filter['offset_min']
+        context['logFilterForm'] = logFilterForm
 
         # Just filter if not all types are selected
-        if 0 < len(log_filter) < len(GameDetailView.log_choices):
+        if 0 < len(log_type_filter) < len(GameDetailView.log_choices):
             # Use A|B|... condition if less log types are selected
             # Otherwise use notA & notB & notC for the complement set
             c_list = []
             # This switch was disable because the result for
             # the else branch could be non-intuitive.
-            #if len(log_filter) < 0.66 * len(GameDetailView.log_classes):
+            #if len(log_type_filter) < 0.66 * len(GameDetailView.log_classes):
             if True:
                 for c in GameDetailView.log_classes:
-                    if c.__name__ in log_filter:
+                    if c.__name__ in log_type_filter:
                         c_list.append(Q(**{'instance_of': c}))
 
-                context['log'] = game.gamelog_set.filter(
+                context['log'] = roundlog.filter(
                     functools.reduce(operator.or_, c_list)).filter(
-                    functools.reduce(operator.or_, p_list)
-                ).order_by('-id')
+                        functools.reduce(operator.or_, p_list)
+                    ).order_by('-id')
             else:
                 for c in GameDetailView.log_classes:
-                    if not c.__name__ in log_filter:
+                    if not c.__name__ in log_type_filter:
                         c_list.append(Q(**{'not_instance_of': c}))
 
-                context['log'] = game.gamelog_set.filter(
+                context['log'] = roundlog.filter(
                     functools.reduce(operator.and_, c_list)).filter(
-                    functools.reduce(operator.or_, p_list)
-                ).order_by('-id')
-
+                        functools.reduce(operator.or_, p_list)
+                    ).order_by('-id')
         else:
-            context['log'] = game.gamelog_set.filter(
+            context['log'] = roundlog.filter(
                 functools.reduce(operator.or_, p_list)
             ).order_by('-id')
 
@@ -178,6 +192,10 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         # Player list
         self.player_list_setup(game, context)
 
+        game.player_finished_count = \
+            sum(1 for p in context['players'] if p.finished_turn)
+        game.player_count = len(context['players'])
+
         self.log_setup(game, context)
         return context
 
@@ -188,10 +206,19 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
             raise PermissionDenied()
 
         form = GameLogTypesForm(request.POST)
-        form.fields['log_filter'].choices = GameDetailView.log_choices
+        form.fields['log_type_filter'].choices = GameDetailView.log_choices
+
+        turn_filter = self.request.session.get('log_turn_filter',
+                GameDetailView.log_turn_filter )
+
         if form.is_valid():
-            log_filter = form.cleaned_data.get('log_filter')
-            self.request.session['log_filter'] = log_filter
+            log_type_filter = form.cleaned_data.get('log_type_filter')
+            self.request.session['log_type_filter'] = log_type_filter
+            self.request.session['log_turn_filter'] = {
+                    'offset_max': game.turn - form.cleaned_data.get('log_turn_max'),
+                    'offset_min': game.turn - form.cleaned_data.get('log_turn_min')
+                    }
+
         else:
             return HttpResponseBadRequest('bad request')
             # return self.form_invalid(form)
@@ -242,6 +269,7 @@ def game_manage(request, game_id, action=""):
         initial={'timer': game.timer_max_h})
     context['chat_form'] = GameManagementChatForm()
     context['motd_form'] = GameManagementMotDForm()
+    context['short_names_form'] = GameManagementShortNamesForm()
     context['save_form'] = GameManagementSaveForm()
 
     saves = sorted(game.pb_list_saves(), key=lambda k: -k['timestamp'])
@@ -301,6 +329,14 @@ def game_manage(request, game_id, action=""):
                 game.pb_motd(form.cleaned_data['message'])
                 return HttpResponse('MotD sent.', status=200)
             context['motd_form'] = form
+        elif action == 'short_names':
+            form = GameManagementShortNamesForm(request.POST)
+            if form.is_valid():
+                game.pb_short_names(
+                        form.cleaned_data['iShortNameLen'],
+                        form.cleaned_data['iShortDescLen'] )
+                return HttpResponse('Set short names.', status=200)
+            context['short_names_form'] = form
         elif action == 'save':
             form = GameManagementSaveForm(request.POST)
             if form.is_valid():

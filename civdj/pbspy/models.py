@@ -148,7 +148,7 @@ class Game(models.Model):
             GameLogTimerChanged(timer_max_h=timer_max_h, **logargs).save()
 
         player_count_old = self.player_set.count()
-        player_count= len(info['players'])
+        player_count = len(info['players'])
         if (self.pb_name != info['gameName'] or
                 player_count_old != player_count ):
             GameLogMetaChange(
@@ -237,6 +237,10 @@ class Game(models.Model):
 
     def pb_motd(self, message, user=None):
         return self.pb_action(action='setMotD', msg=str(message))
+
+    def pb_short_names(self, iShortNameLen, iShortDescLen, user=None):
+        return self.pb_action(action='setShortNames', enable=(iShortNameLen>0),
+                maxLenName=int(iShortNameLen), maxLenDesc=int(iShortDescLen) )
 
     def pb_set_autostart(self, value, user=None):
         return self.pb_action(action='setAutostart', value=bool(value))

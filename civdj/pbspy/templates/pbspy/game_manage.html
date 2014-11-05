@@ -108,6 +108,15 @@
             {% endif %}
         </div>
         <div class="game_management_section">
+          <h2>{% trans "change short names ranges" %}</h2>
+             <form method="post" action="{% url 'game_manage' game.id 'short_names' %}">
+                 {% csrf_token %}
+                 <span class="description" todo="Fill in description">{% trans "change short names rages. Set values on 0 to disable feature." %}</span>
+                 <table>{{ short_names_form }}</table>
+                 <span><input type="submit" value="{% trans "set" %}" /></span>
+               </form>
+        </div>
+        <div class="game_management_section">
           <h2>{% trans "set message of the day" %}</h2>
              <form method="post" action="{% url 'game_manage' game.id 'motd' %}">
                  {% csrf_token %}
