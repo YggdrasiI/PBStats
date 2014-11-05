@@ -41,6 +41,9 @@ This mod try to reduce the size of this package and cut of leader names and civ 
 		Note that both strings will be replaced by the Id of the player if only one character is allowed.
 
 
+New in version 3 (PB Mod_v3): 
+  • Bugfix on scrollable player list
+
 
 (Removed from master branch)
 - Admin password change in one special Game.

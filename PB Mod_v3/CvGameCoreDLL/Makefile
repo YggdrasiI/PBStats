@@ -8,10 +8,7 @@ TOOLKIT=I:\Civ4\Microsoft Visual C++ Toolkit 2003
 #PSDK=C:\Programme\Microsoft SDKs\Windows\v7.0A
 PSDK=I:\Civ4\WinSdk
 ## Uncomment to have newly compiled dlls copied to your mod's Assets directory
-#YOURMOD=C:\Users\Danny\Documents\My Games\beyond the sword\MODS\MyMod
-#YOURMOD=H:\Eigene Dateien\My Games\Col\MODS\TAC 2.03_final
-#YOURMOD=I:\Olaf\Civ4\Beyond the Sword\Mods\PB Mod_v2
-YOURMOD=H:\Firaxis Games\Sid Meier's Civilization 4\Beyond the Sword\Mods\PB Mod_v2
+YOURMOD=H:\Firaxis Games\Sid Meier's Civilization 4\Beyond the Sword\Mods\PB Mod_v3
 
 #### Tools ####
 CC="$(TOOLKIT)\bin\cl.exe"
