@@ -47,9 +47,9 @@ server_ip = "192.168.0.35" # Ip of your PB Server
 server_portlist = "2056" # Default value if you use no arguments.
 logfileName = "detections.log" # Default logfile name
 
-#ttl = 100 is probably to low
-ttl = 300
-timeouts = {}
+# Note: If the client
+package_limit = 200
+package_counter = {}
 timeout = 500
 clients = {}
 
@@ -108,9 +108,9 @@ def analyseUdpTraffic(device, server, clients, timeout):
 
 	port_str += " )"
 
-	print "Filter string: " + port_str
 	# Note: Filter does not respect PB host ip"
 	filter = port_str
+	#print "Used filter: ", filter
 
 	pcap = pycap.capture.capture(device, timeout = timeout)
 	pcap.filter(filter);
@@ -141,11 +141,22 @@ def analyseUdpTraffic(device, server, clients, timeout):
 		if (ip.source == server[0]):
 			client = ip.destination
 
-			t = timeouts.get(client, 0)
-			t += 1
-			timeouts[client] = t
+			if len(payload) != 25 and len(payload) != 30:
+				continue
 
-			if t > ttl:
+			# This package could be indicate an upload error. Add the payload
+			# for this client (destination ip) to an set. Force analysation
+			# of the packages if an sufficient amount of packages reached.
+			#
+			# The length 37 occours if the connections was aborted during the loading
+			# of a game.
+			#
+
+			pc = package_counter.get(client, 0)
+			pc += 1
+			package_counter[client] = pc
+
+			if pc > package_limit:
 				#print packet
 				# Send fake packet to stop upload
 				# Structure of content:
@@ -167,16 +178,23 @@ def analyseUdpTraffic(device, server, clients, timeout):
 					logfile.write(msg)
 					logfile.flush()
 
+				#comment in do activate kicking....
 				sendUdpReply(src,dst,data)
+
 				# End detection for all clients
 				break
 
-		if (ip.destination == server[0]):
+		elif (ip.destination == server[0]):
 			#Use this package as client heartbeat and flush the history of tracked packages.
 			client = ip.source
-			timeouts[client] = 0
-#			print "Heartbeat!"
-
+			if package_counter.get(client) > 100:
+				print "Heartbeat after ", package_counter.get(client), " server packages!"
+			package_counter[client] = 0
+		else:
+			print "IP confusion. PB server neither match source or destination."
+			print "Serverip:", server[0]
+			print "Source:", ip.destination
+			print "Dest:", ip.destination
 
 # === Main ===
 if len(sys.argv) < 2:
