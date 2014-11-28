@@ -1247,7 +1247,7 @@
 		</ColorVal>
 		<ColorVal>
 			<Type>COLOR_PLAYER_DARK_CYAN2</Type>
-			<fRed>0.10</fRed>
+			<fRed>0.30</fRed>
 			<fGreen>0.59</fGreen>
 			<fBlue>0.60</fBlue>
 			<fAlpha>1.00</fAlpha>

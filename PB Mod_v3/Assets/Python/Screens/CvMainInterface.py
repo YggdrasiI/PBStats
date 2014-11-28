@@ -109,6 +109,7 @@ class CvMainInterface:
 	def __init__ (self) :
 		self.iScoreRows = 20	## Score Board
 		self.iScoreWidth = 100
+		self.iScoreRowsBackup = self.iScoreRows ## restore value after Score Board unfolding
 ## UltraPack Initialisation ##
 	
 	def numPlotListButtons(self):
@@ -2885,7 +2886,12 @@ class CvMainInterface:
 		lPlayers = []
 		if CyInterface().isScoresMinimized():
 			lPlayers.append(CyGame().getActivePlayer())
+			if self.iScoreRows > self.iScoreRowsBackup:
+				self.iScoreRowsBackup = self.iScoreRows
 		else:
+			if self.iScoreRows < self.iScoreRowsBackup:
+				self.iScoreRows= self.iScoreRowsBackup
+				self.iScoreRowsBackup = 0
 			for iPlayerX in xrange(gc.getMAX_CIV_PLAYERS()):
 				pPlayerX = gc.getPlayer(iPlayerX)
 				if pPlayerX.isAlive():
@@ -3234,7 +3240,7 @@ class CvMainInterface:
 		screen.setState( "UnitIcons", False )
 		screen.hide( "UnitIcons" )
 
-		screen.addCheckBoxGFC( "Grid", "", "", 0, 0, 28, 28, WidgetTypes.WIDGET_ACTION, gc.getControlInfo(ControlTypes.CONTROL_GRID).getActionInfoIndex(), -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( "Grid", "", "", 0, 0, 28, 28, WidgetTypes.WIDGET_ACTION, gc.getControlInfo(ControlTypes.CONTROL_GRID).getActionInfoIndex(), 0, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.setStyle( "Grid", "Button_HUDBtnGrid_Style" )
 		screen.setState( "Grid", False )
 		screen.hide( "Grid" )
