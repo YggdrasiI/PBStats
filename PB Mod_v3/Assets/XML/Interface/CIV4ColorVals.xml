@@ -1156,9 +1156,9 @@
 		</ColorVal>
 		<ColorVal>
 			<Type>COLOR_PLAYER_LIGHT_GRAY</Type>
-			<fRed>0.67</fRed>
-			<fGreen>0.55</fGreen>
-			<fBlue>0.45</fBlue>
+			<fRed>0.57</fRed>
+			<fGreen>0.45</fGreen>
+			<fBlue>0.35</fBlue>
 			<fAlpha>1.0</fAlpha>
 		</ColorVal>
 		<ColorVal>
@@ -1243,6 +1243,13 @@
 			<fRed>0.06</fRed>
 			<fGreen>0.06</fGreen>
 			<fBlue>0.18</fBlue>
+			<fAlpha>1.00</fAlpha>
+		</ColorVal>
+		<ColorVal>
+			<Type>COLOR_PLAYER_DARK_CYAN2</Type>
+			<fRed>0.10</fRed>
+			<fGreen>0.59</fGreen>
+			<fBlue>0.60</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
 	</ColorVals>

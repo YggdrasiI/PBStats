@@ -236,7 +236,7 @@
 		</PlayerColorInfo>
 		<PlayerColorInfo>
 			<Type>PLAYERCOLOR_DARK_CYAN_AND_LEMON</Type>
-			<ColorTypePrimary>COLOR_PLAYER_DARK_CYAN</ColorTypePrimary>
+			<ColorTypePrimary>COLOR_PLAYER_DARK_CYAN2</ColorTypePrimary>
 			<ColorTypeSecondary>COLOR_PLAYER_LIGHT_YELLOW</ColorTypeSecondary>
 			<TextColorType>COLOR_PLAYER_DARK_CYAN_TEXT</TextColorType>
 		</PlayerColorInfo>
