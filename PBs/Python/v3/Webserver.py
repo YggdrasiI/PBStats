@@ -485,9 +485,9 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 		if bOnline:
 			RecoverPrefix = 'Login_'
 
-		# Windows file names can not contain * characters. Remove the string "*Mod*", which
+		# Windows file names can not contain * characters. Replace the string "*Mod* ", which
 		# can prepend the player name.
-		playerName = playerName.replace("*MOD*","MOD_").strip()
+		playerName = playerName.replace("*MOD* ","MOD_").strip()
 
 		existingRecoverySaves = glob.glob(folder + RecoverPrefix + str(playerId) + '*.CivBeyondSwordSave')
 		# Add timestamp (as tuple)
