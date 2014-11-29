@@ -317,6 +317,16 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 							else:
 								self.wfile.write( simplejson.dumps( {'return':'fail','info':'Passwort change failed.' } ) +"\n" )
 
+					elif( action == "setPlayerColor" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+							playerId = int(inputdata.get("playerId",-1))
+							colorId = int(inputdata.get("colorId",-1))
+							ret = -1
+							if playerId > -1 and colorId > -1:
+								gc.getPlayer(playerId).setPlayerColor(colorId)
+								self.wfile.write( simplejson.dumps( {'return':'ok','info':'Player color of player ' + str(playerId) + ' changed to "' + colorId + '"' } ) +"\n" )
+							else:
+								self.wfile.write( simplejson.dumps( {'return':'fail','info':'Player color change failed.' } ) +"\n" )
+
 					elif( action == "setMotD" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
 						try:
 							msg =  str(inputdata.get("msg","No MotD given. Missing msg argument?!"))
@@ -377,8 +387,33 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
 						self.wfile.write( simplejson.dumps( {'return':'ok','list':saveList} ) +"\n" ) 
 
+					elif( action == "listPlayerColors" ):
+						colorList = []
+						for c in range(gc.getNumPlayerColorInfos()):
+							playerColors = gc.getPlayerColorInfo(c)
+							col = localText.changeTextColor(u"", playerColors.getColorTypePrimary() )
+							playerColor1 = col[7:col.find(">")]
+							col = localText.changeTextColor(u"", playerColors.getColorTypeSecondary() )
+							playerColor2 = col[7:col.find(">")]
+							col = localText.changeTextColor(u"", playerColors.getTextColorType() )
+							playerColor3 = col[7:col.find(">")]
+							colorList.append( {
+								"primary": playerColor1,
+								"secondary": playerColor2,
+								"text": playerColor3,
+								"usedBy" : []
+								})
+
+						for rowNum in range(gc.getMAX_CIV_PLAYERS()):
+							gcPlayer = gc.getPlayer(rowNum)
+							if (gcPlayer.isEverAlive()):
+									colorList[gcPlayer.getPlayerColor()]["usedBy"].append(
+													{"id":rowNum,"name":gcPlayer.getName()})
+
+						self.wfile.write( simplejson.dumps( {'return':'ok','colors':colorList} ) +"\n" ) 
+
 					else:
-						self.wfile.write( simplejson.dumps( {'return':'fail','info':'Wrong password or unknown action. Available actions are info, chat, save, restart, listSaves, setAutostart, setHeadless, setMotD, setShortNames'} ) +"\n" ) 
+						self.wfile.write( simplejson.dumps( {'return':'fail','info':'Wrong password or unknown action. Available actions are info, chat, save, restart, listSaves, setAutostart, setHeadless, setMotD, setShortNames, listPlayerColors, setPlayerColor'} ) +"\n" ) 
 
 				except Exception, e:
 					try:

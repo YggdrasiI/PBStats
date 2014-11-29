@@ -90,6 +90,11 @@ $lang['game_notes_set_timer'] = "The new turn timer value will be applied next r
 $lang['game_notes_end_round'] = "Attention! Currently, no AI action (i.e. automated workers) will be done.";
 
 $lang['game_notes_player_password'] = "Note: Please use no special chars. They could be interpreted wrong.";
+$lang['game_color'] = "Change colorset of player";
+$lang['game_notes_player_color'] = "To avoid bad color combinations of neigboured players it's possible do change the colorset of a nation.<br>
+	The available colorsets are defined in Assets/XML/Interface/CIV4PlayerColorInfos.xml.";
+$lang['game_player'] = "Player";
+$lang['game_new_color'] = "New color";
 
 // Log messages
 $lang['log_player_change_name'] = "Changed name to %s.";

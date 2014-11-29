@@ -530,7 +530,7 @@
 		</PlayerColorInfo>
 		<PlayerColorInfo>
 			<Type>PLAYERCOLOR_ETRUS</Type>
-			<ColorTypePrimary>COLOR_PLAYER_ASSUR</ColorTypePrimary>
+			<ColorTypePrimary>COLOR_PLAYER_OCKER</ColorTypePrimary>
 			<ColorTypeSecondary>COLOR_PLAYER_DARK_YELLOW</ColorTypeSecondary>
 			<TextColorType>COLOR_PLAYER_ASSUR</TextColorType>
 		</PlayerColorInfo>

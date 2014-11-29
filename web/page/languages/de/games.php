@@ -91,6 +91,11 @@ $lang['game_notes_set_timer'] = "Der neue Wert  gilt ab der nächsten Runde.";
 $lang['game_notes_end_round'] = "Achtung, derzeit werden bei dieser Funktion keinerlei KI-Aktionen durchgeführt.";
 
 $lang['game_notes_player_password'] = "Hinweis: Am besten keine Sonderzeichen verwenden. Die könnten falsch interpretiert werden.";
+$lang['game_color'] = "Ändere Spieler-Farbtupel";
+$lang['game_notes_player_color'] = "Um ungünstige Farbkombination zwischen Nachbarn zu vermeiden, kann man mit dieser Funktion Spielern neue Farbtupel zuordnen.<br>
+	Die verfügbaren Tupel sind definiert in Assets/XML/Interface/CIV4PlayerColorInfos.xml.";
+$lang['game_player'] = "Spieler";
+$lang['game_new_color'] = "Neue Farbe";
 
 // Log messages
 $lang['log_player_change_name'] = "Spieler umbenannt zu %s.";

@@ -191,6 +191,94 @@ function gameFull($game,$online /* False for preview during creation of new game
 				$dHtml .= $mainpageLink;
 			}
 
+			if( $action === "color" ){
+				$step = 0;
+				if( isset($_GET["step"] ) ){
+					$step = $_GET["step"];
+				}
+
+				$dHtml .= "<h3>{L_GAME_COLOR}</h3>";
+				if( $step == 1 ){
+					$opid = isset($_GET["opid"])?intval($_GET["opid"]):-1;
+					if( false && operation_already_done( $opid ) ){
+						$dHtml .= print_operation_error_msg();
+					}else{
+						$playerId = intval($_GET["playerId"]);
+						$colorId = intval($_GET["colorId"]);
+						$pbAction = array('action'=>'setPlayerColor','password'=>$pw,
+							'playerId'=>$playerId,'colorId'=>$colorId);
+						$infos = json_decode(handle_pitboss_action($gameData, $pbAction));
+
+						if( $infos->return === "ok" ){
+							$dHtml .= "<p>{L_GAME_SET_PLAYER_COLOR|$playerId,$colorId}</p>";
+							operation_update_ids( $opid );
+						}else{
+							$dHtml .= "<p>{L_GAME_ERROR_MSG}".$infos->info ."</p>";
+						}
+					}
+				}else{
+					$dHtml .= "<p>{L_GAME_NOTES_PLAYER_COLOR}</p>";
+					//request to get actual round
+					$opid = operation_new_val();
+
+					$action_info = array('action'=>'info');
+					$infos = json_decode(handle_pitboss_action($gameData, $action_info));
+					//Get list of saves
+					$pbAction = array('action'=>'listPlayerColors');
+					$colorData = json_decode(handle_pitboss_action($gameData, $pbAction));
+
+					if( ($infos->return === "ok") && ($colorData->return === "ok") ){
+						$dHtml .= "<h4>Colorset / Id / Used by player</h4>";
+						$colId = 0;
+						foreach( $colorData->colors as $color ){
+							$dHtml .= "<p>";
+							$dHtml .= "<p><span class='playerColor' style='background-color:rgba(".$color->primary.");'>Primary</span>\n";
+							$dHtml .= "<span class='playerColor' style='background-color:rgba(".$color->secondary.");'>Secondary</span>\n";
+							$dHtml .= "<span class='playerColor' style='background-color:rgba(".$color->text.");'>Textcolor</span>\n";
+				
+							$dHtml .= "<span style='padding:0.4em;'> $colId / ";
+							foreach( $color->usedBy as $player ){
+								$dHtml .= $player->name.", ";
+							}
+							$dHtml .= "</span></p>\n";
+
+							$colId += 1;
+						}
+
+						$dHtml .= "<h4>{L_GAME_PLAYER} / {L_GAME_NEW_COLOR}</h4> <form action='$this_page' method='get'>\n";
+						$dHtml .= "<input type='hidden' name='opid' value='$opid' />\n";
+						$dHtml .= "<select name='playerId'>";
+
+						$colId = 0;
+						foreach( $infos->info->players as $player ){
+							$playerId = $player->id;
+							$playerName = $player->name;
+							$dHtml .= "<option class='playerColor' style='text-align:left;' value='$playerId'>$playerId - $playerName</option>";
+						}
+						$dHtml .= "</select>";
+						$dHtml .= "<select name='colorId'>";
+
+						foreach( $colorData->colors as $color ){
+							$dHtml .= "<option class='playerColor' style='text-align:right;padding-right:1em;background-color:rgba(".$color->primary.")' value='$colId'>$colId</option>";
+							$colId += 1;
+						}
+						$dHtml .= "</select>";
+						$dHtml .= "<p><input type='submit' />\n
+							<input type='hidden' name='action' value='color' />\n
+							<input type='hidden' name='game' value='$gameId' />\n
+							<input type='hidden' name='step' value='1' />\n
+							</p></form>\n";
+					}else{
+						$dHtml .= "<h3>{L_ERROR}</h3><p>{L_GAME_CONNECTION_ERROR0}</p>";
+						$dHtml .= "<p>".$infos->return."</p>";
+						$dHtml .= "<p>".$colorData->info."</p>";
+						$dHtml .= "<h3 class=' '><a href='$this_page?game=$gameId&action=color'>{L_GAME_PLAYERCOLOR}</a></h3>";
+					}
+					$dHtml .= "<p><a href='$this_page?game=$gameId&action=admin'>{L_GAME_ADMIN_BACK}</a></p>";
+					$dHtml .= $mainpageLink;
+
+				}
+			}
 
 			if( $action === "admin" ){
 
@@ -463,6 +551,8 @@ function gameFull($game,$online /* False for preview during creation of new game
 							<input type='hidden' name='step' value='6' />\n
 							<input type='hidden' name='opid' value='$opid' />\n
 							</form>\n";
+
+						$dHtml .= "<h3 class=''><a href='$this_page?game=$gameId&action=color&opid=$opid'>{L_GAME_COLOR}</a></h3>";
 					}else{
 						$dHtml .= "<h3>{L_ERROR}</h3><p>{L_GAME_CONNECTION_ERROR0}</p>";
 						$dHtml .= "<h3 class=' '><a href='$this_page?game=$gameId&action=setWebserverpassword'>{L_GAME_WEBSERVERPASSWORD}</a></h3>";

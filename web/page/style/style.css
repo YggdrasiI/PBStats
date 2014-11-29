@@ -420,6 +420,16 @@ span.nav a{
 	font-weight:bold;
 }
 
+.playerColor{
+	padding:0.4em;
+	color:#FFF;
+	text-shadow:
+	0 2px 0 #000,
+	0 -2px 0 #000,
+	2px 0 0 #000,
+	-2px 0 0 #000;
+}
+
 
 /* Formular fields */
 input, textarea {
