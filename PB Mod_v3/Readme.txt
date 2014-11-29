@@ -43,6 +43,12 @@ This mod try to reduce the size of this package and cut of leader names and civ 
 
 New in version 3 (PB Mod_v3): 
   • Bugfix on scrollable player list
+	• Infoscreen (F9) fixes:
+			- It's possible to select a subset of all players to reduce the number of displayed graphs.
+			- The screen doesn't reset the selected graph on several user actions.
+	• Some color collisions was fixed.
+	• Extend webinterface with option to change the colorset of players on running PB session. This
+		is useful if two neigbours has the same culture border color.
 
 
 (Removed from master branch)
