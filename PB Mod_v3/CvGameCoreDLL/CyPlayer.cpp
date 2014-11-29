@@ -1495,6 +1495,13 @@ int CyPlayer::getPlayerTextColorA()
 	return m_pPlayer ? m_pPlayer->getPlayerTextColorA() : -1;
 }
 
+void CyPlayer::setPlayerColor(int /*PlayerColorTypes*/ eColor)
+{
+	if( m_pPlayer){
+		m_pPlayer->setPlayerColor((PlayerColorTypes)eColor);
+	}
+}
+
 int CyPlayer::getSeaPlotYield(YieldTypes eIndex)
 {
 	return m_pPlayer ? (int) m_pPlayer->getSeaPlotYield(eIndex) : NO_YIELD;

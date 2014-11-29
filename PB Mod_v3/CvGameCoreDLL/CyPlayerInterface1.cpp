@@ -338,6 +338,7 @@ void CyPlayerPythonInterface1(python::class_<CyPlayer>& x)
 		.def("getPlayerTextColorG", &CyPlayer::getPlayerTextColorG, "int ()")
 		.def("getPlayerTextColorB", &CyPlayer::getPlayerTextColorB, "int ()")
 		.def("getPlayerTextColorA", &CyPlayer::getPlayerTextColorA, "int ()")
+		.def("setPlayerColor", &CyPlayer::setPlayerColor, "void (PlayerColorTypes eColor) - set the color ID of the player")
 
 		.def("getSeaPlotYield", &CyPlayer::getSeaPlotYield, "int (YieldTypes eIndex)")
 		.def("getYieldRateModifier", &CyPlayer::getYieldRateModifier, "int (YieldTypes eIndex)")

@@ -10233,6 +10233,13 @@ int CvPlayer::getPlayerTextColorA() const
 	return ((int)(GC.getColorInfo((ColorTypes) GC.getPlayerColorInfo(getPlayerColor()).getTextColorType()).getColor().a * 255));
 }
 
+void CvPlayer::setPlayerColor(PlayerColorTypes eColor)
+{
+	FAssertMsg(eColor != NO_PLAYERCOLOR, "getPlayerColor() is not expected to be equal with NO_PLAYERCOLOR");
+	if( eColor < GC.getNumPlayerColorInfos() ){
+		GC.getInitCore().setColor(getID(), eColor);
+	}
+}
 
 int CvPlayer::getSeaPlotYield(YieldTypes eIndex) const
 {

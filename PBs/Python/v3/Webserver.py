@@ -323,7 +323,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 							ret = -1
 							if playerId > -1 and colorId > -1:
 								gc.getPlayer(playerId).setPlayerColor(colorId)
-								self.wfile.write( simplejson.dumps( {'return':'ok','info':'Player color of player ' + str(playerId) + ' changed to "' + colorId + '"' } ) +"\n" )
+								self.wfile.write( simplejson.dumps( {'return':'ok','info':'Player color of player ' + str(playerId) + ' changed to "' + str(colorId) + '"' } ) +"\n" )
 							else:
 								self.wfile.write( simplejson.dumps( {'return':'fail','info':'Player color change failed.' } ) +"\n" )
 

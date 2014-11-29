@@ -352,6 +352,7 @@ public:
 	int getPlayerTextColorG();
 	int getPlayerTextColorB();
 	int getPlayerTextColorA();
+	void setPlayerColor(int /*PlayerColorTypes*/ eColor);
 
 	int getSeaPlotYield(YieldTypes eIndex);
 	int getYieldRateModifier(YieldTypes eIndex);
