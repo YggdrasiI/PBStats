@@ -88,6 +88,8 @@ class CvInfoScreen:
 		self.ESPIONAGE_SCORE	= 6
 		self.NUM_SCORES		= 7
 		self.RANGE_SCORES	= range(self.NUM_SCORES)
+		self.iGraphTabID = self.TOTAL_SCORE
+		self.graphZoomLevel = 0
 
 		self.scoreCache	= []
 		for t in self.RANGE_SCORES:
@@ -452,8 +454,8 @@ class CvInfoScreen:
 					0	]
 
 #		self.bShowAllPlayers = false
-		self.graphEnd	    = CyGame().getGameTurn() - 1
-		self.graphZoom	    = self.graphEnd - CyGame().getStartTurn()
+#		self.graphEnd	    = CyGame().getGameTurn() - 1
+#		self.graphZoom	    = self.graphEnd - CyGame().getStartTurn()
 		self.iShowingPlayer = -1
 
 		for t in self.RANGE_SCORES:
@@ -567,6 +569,9 @@ class CvInfoScreen:
 		# Reset variables
 		self.graphEnd	= CyGame().getGameTurn() - 1
 		self.graphZoom	= self.graphEnd - CyGame().getStartTurn()
+		if self.graphZoomLevel>0:
+			self.graphZoom = 50*self.graphZoomLevel
+			self.zoomGraph(self.graphZoom)
 
 		self.iActiveTab = iTabID
 		if (self.iNumPlayersMet > 1):
@@ -624,7 +629,7 @@ class CvInfoScreen:
 
 	def drawGraphTab(self):
 
-	    self.iGraphTabID = self.TOTAL_SCORE
+	    #self.iGraphTabID = self.TOTAL_SCORE
 	    self.drawPermanentGraphWidgets()
 	    self.drawGraph()
 
@@ -649,19 +654,20 @@ class CvInfoScreen:
 	    screen.setButtonGFC( self.graphLeftButtonID, u"", "", self.X_LEFT_BUTTON, self.Y_LEFT_BUTTON, self.W_LEFT_BUTTON, self.H_LEFT_BUTTON, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_ARROW_LEFT )
 	    self.graphRightButtonID = self.getNextWidgetName()
 	    screen.setButtonGFC( self.graphRightButtonID, u"", "", self.X_RIGHT_BUTTON, self.Y_RIGHT_BUTTON, self.W_RIGHT_BUTTON, self.H_RIGHT_BUTTON, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_ARROW_RIGHT )
-	    screen.enable(self.graphLeftButtonID, False)
-	    screen.enable(self.graphRightButtonID, False)
+	    #screen.enable(self.graphLeftButtonID, False)
+	    #screen.enable(self.graphRightButtonID, False)
+	    self.updateGraphButtons()
 
 	    # Dropdown Box
 	    self.szGraphDropdownWidget = self.getNextWidgetName()
 	    screen.addDropDownBoxGFC(self.szGraphDropdownWidget, self.X_DEMO_DROPDOWN, self.Y_DEMO_DROPDOWN, self.W_DEMO_DROPDOWN, WidgetTypes.WIDGET_GENERAL, -1, -1, FontTypes.GAME_FONT)
-	    screen.addPullDownString(self.szGraphDropdownWidget, self.TEXT_SCORE, 0, 0, False )
-	    screen.addPullDownString(self.szGraphDropdownWidget, self.TEXT_ECONOMY, 1, 1, False )
-	    screen.addPullDownString(self.szGraphDropdownWidget, self.TEXT_INDUSTRY, 2, 2, False )
-	    screen.addPullDownString(self.szGraphDropdownWidget, self.TEXT_AGRICULTURE, 3, 3, False )
-	    screen.addPullDownString(self.szGraphDropdownWidget, self.TEXT_POWER, 4, 4, False )
-	    screen.addPullDownString(self.szGraphDropdownWidget, self.TEXT_CULTURE, 5, 5, False )
-	    screen.addPullDownString(self.szGraphDropdownWidget, self.TEXT_ESPIONAGE, 6, 6, False )
+	    screen.addPullDownString(self.szGraphDropdownWidget, self.TEXT_SCORE, 0, 0, self.iGraphTabID==self.TOTAL_SCORE )
+	    screen.addPullDownString(self.szGraphDropdownWidget, self.TEXT_ECONOMY, 1, 1, self.iGraphTabID==self.ECONOMY_SCORE )
+	    screen.addPullDownString(self.szGraphDropdownWidget, self.TEXT_INDUSTRY, 2, 2, self.iGraphTabID==self.INDUSTRY_SCORE )
+	    screen.addPullDownString(self.szGraphDropdownWidget, self.TEXT_AGRICULTURE, 3, 3, self.iGraphTabID==self.AGRICULTURE_SCORE )
+	    screen.addPullDownString(self.szGraphDropdownWidget, self.TEXT_POWER, 4, 4, self.iGraphTabID==self.POWER_SCORE )
+	    screen.addPullDownString(self.szGraphDropdownWidget, self.TEXT_CULTURE, 5, 5, self.iGraphTabID==self.CULTURE_SCORE )
+	    screen.addPullDownString(self.szGraphDropdownWidget, self.TEXT_ESPIONAGE, 6, 6,  self.iGraphTabID==self.ESPIONAGE_SCORE )
 
 	    self.dropDownTurns = []
 	    self.szTurnsDropdownWidget = self.getNextWidgetName()
@@ -669,12 +675,12 @@ class CvInfoScreen:
 	    start = CyGame().getStartTurn()
 	    now   = CyGame().getGameTurn()
 	    nTurns = now - start - 1
-	    screen.addPullDownString(self.szTurnsDropdownWidget, self.TEXT_ENTIRE_HISTORY, 0, 0, False)
+	    screen.addPullDownString(self.szTurnsDropdownWidget, self.TEXT_ENTIRE_HISTORY, 0, 0, self.graphZoomLevel==0)
 	    self.dropDownTurns.append(nTurns)
 	    iCounter = 1
 	    last = 50
 	    while (last < nTurns):
-		screen.addPullDownString(self.szTurnsDropdownWidget, localText.getText("TXT_KEY_INFO_NUM_TURNS", (last,)), iCounter, iCounter, False)
+		screen.addPullDownString(self.szTurnsDropdownWidget, localText.getText("TXT_KEY_INFO_NUM_TURNS", (last,)), iCounter, iCounter, self.graphZoomLevel==iCounter)
 		self.dropDownTurns.append(last)
 		iCounter += 1
 		last += 50
@@ -2237,6 +2243,7 @@ class CvInfoScreen:
 
 				elif (szWidgetName == self.szTurnsDropdownWidget):
 
+					self.graphZoomLevel = iSelected
 					self.zoomGraph(self.dropDownTurns[iSelected])
 					self.drawGraph()
 
