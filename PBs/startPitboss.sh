@@ -98,9 +98,9 @@ for(( ; ; )) do
 	echo "Dir: ${ALTROOT_W}"
 	if [ -z "$DISPLAY" ]; then
 		echo "No display detected, running with xvfb-run"
-		xvfb-run -s "-screen 0 640x480x24" wine "$CIV4BTS_EXE"  mod= "PB Mod_v2"\" /ALTROOT="${ALTROOT_W}"
+		xvfb-run -s "-screen 0 640x480x24" wine "$CIV4BTS_EXE"  mod= "PB Mod_v3"\" /ALTROOT="${ALTROOT_W}"
 	else
-		wine "$CIV4BTS_EXE"  mod= "PB Mod_v2"\" /ALTROOT="${ALTROOT_W}"
+		wine "$CIV4BTS_EXE"  mod= "PB Mod_v3"\" /ALTROOT="${ALTROOT_W}"
 	fi
 
 	sleep 1

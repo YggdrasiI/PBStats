@@ -4,7 +4,8 @@ from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplat
 from pbspy.models import Game, GameLog, Player, InvalidPBResponse
 from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm,\
         GameManagementTimerForm, GameManagementLoadForm, GameManagementSetPlayerPasswordForm,\
-        GameManagementSaveForm, GameLogTypesForm, GameManagementShortNamesForm
+        GameManagementSaveForm, GameLogTypesForm, GameManagementShortNamesForm,\
+        GameManagementSetPlayerColorForm
 
 from pbspy.models import GameLogTurn, GameLogReload, GameLogMetaChange, GameLogTimerChanged,\
     GameLogPause, GameLogServerTimeout, GameLogPlayer, GameLogLogin, GameLogLogout,\
@@ -364,11 +365,33 @@ def game_manage(request, game_id, action=""):
                     form.cleaned_data['password'])
                 return HttpResponse('passwort set.', status=200)
             context['set_player_password_form'] = form
+        elif action == 'set_player_color':
+            form = GameManagementSetPlayerColorForm(
+                game.player_set, int(request.POST['num_colors']), request.POST)
+            if form.is_valid():
+                game.pb_set_player_color(
+                    form.cleaned_data['player'].ingame_id,
+                    form.cleaned_data['color'])
+                #return HttpResponse('color set.', status=200)
+                context['set_color_message'] = form.cleaned_data['player'].name
+                return render_game_manage_color(request, game, context)
+            context['set_player_color_form'] = form
         else:
             return HttpResponseBadRequest('bad request')
 
     context['action'] = action
+
+    if action == 'color':
+        return render_game_manage_color(request, game, context)
+
     return render(request, 'pbspy/game_manage.html', context)
+
+
+def render_game_manage_color(request, game, context):
+    context['colors'] = game.pb_list_colors()
+    context['set_player_color_form'] = GameManagementSetPlayerColorForm(
+            game.player_set, len(context['colors']) )
+    return render(request, 'pbspy/game_manage_color.html', context)
 
 
 @login_required()
