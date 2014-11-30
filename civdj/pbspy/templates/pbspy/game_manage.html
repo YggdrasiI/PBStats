@@ -67,6 +67,10 @@
              </form>
         </div>
         <div class="game_management_section">
+					<h2>{% trans "change colorset of player" %}</h2>
+					<p><a href="{% url 'game_manage' game.id 'color' %}">Enter color change menu.</a></p>
+        </div>
+        <div class="game_management_section">
           <h2>{% trans "send chat message" %}</h2>
              <form method="post" action="{% url 'game_manage' game.id 'chat' %}">
                  {% csrf_token %}

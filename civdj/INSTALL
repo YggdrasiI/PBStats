@@ -12,6 +12,8 @@ mysql-connector-python pytz setuptools six South sqlparse
 #New, Less->CSS-Compiler
 sudo apt-get install node-less
 sudo pip install django-static-precompiler
+The following command updates less/css files:
+python manage.py collectstatic
 
 
 == Setup (Debug mode, Release mode require more steps) ==
@@ -21,6 +23,5 @@ python manage.py createsuperuser
 
 == Start ==
 python manage.py runserver
-
 
 

@@ -62,3 +62,21 @@ class GameLogTypesForm(forms.Form):
             required=False,
             widget=forms.HiddenInput()
             )
+
+class GameManagementSetPlayerColorForm(Form):
+    def __init__(self, players, num_colors, *args, **kwargs):
+        super(GameManagementSetPlayerColorForm, self).__init__(*args, **kwargs)
+        self.fields['player'] = forms.ModelChoiceField(players, label=_('Player'))
+        self.fields['num_colors'] = forms.CharField(
+            required=False,
+            widget=forms.HiddenInput()
+            )
+        self.fields['num_colors'].initial = num_colors
+        col_choices = []
+        for col_id in range(num_colors):
+            col_choices.append( (col_id,"Colorset "+str(col_id)) )
+        self.fields['color'] = forms.ChoiceField(
+                choices=col_choices,
+                label=_('New color'),
+                required=False
+                )

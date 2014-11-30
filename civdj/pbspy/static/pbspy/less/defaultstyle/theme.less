@@ -28,7 +28,7 @@ a:hover {
 // Add this prop to capitalize the first word
 .capitalize {
 	&::first-letter {
-		// :frist-letter only operates on block elements 
+		// :frist-letter only operates on block elements
 		text-transform: capitalize;
 	}
 }
@@ -37,7 +37,7 @@ a:hover {
 input[type="submit"], input[type="button"]{
 	padding-left:0.4em;
 	padding-right:0.4em;
-	.capitalize 
+	.capitalize
 }
 
 
@@ -75,8 +75,8 @@ table.game_list, table.game_players, table.game_log {
 table.game_list {
 	.colNumPlayers { text-align: center; }
 	.colTurn { text-align: right; }
-	.colName a{ 
-		text-decoration:none; 
+	.colName a{
+		text-decoration:none;
 		font-weight:bold;
 	}
 }
@@ -84,10 +84,10 @@ table.game_list {
 table.game_players {
 	.colName { font-weight:bold; }
   .colScore, .colTurn, .colId {
-      text-align: right; 
+      text-align: right;
   }
-  .colColor { 
-      border-right-style:none; 
+  .colColor {
+      border-right-style:none;
       padding:0px;
       font-weight:blod;
       font-size:120%;
@@ -141,6 +141,25 @@ table.game_log tr:hover,
 	}
 }
 
+table.game_colors {
+	tr { height:2em; }
+	.colSet {
+		span {
+			padding-top:0.4em;
+			padding-bottom:0.4em;
+			padding-right:0.6em;
+			padding-left:0.6em;
+			color: #FFF;
+			text-shadow: 0 2px 0 #000, 0 -2px 0 #000, 2px 0 0 #000, -2px 0 0 #000;
+		}
+	}
+  .colId {
+      text-align: right;
+  }
+  .colUsedBy {
+		padding-left:1m;
+  }
+}
 
 [todo]:after {
 			content: "ToDo: "attr(todo);

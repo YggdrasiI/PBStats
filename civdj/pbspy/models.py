@@ -282,9 +282,23 @@ class Game(models.Model):
         return self.pb_action(action='setPlayerPassword',
                               playerId=player_id, newCivPW=new_password)
 
+    def pb_set_player_color(self, ingame_player_id, new_color, user=None):
+        return self.pb_action(action='setPlayerColor', playerId=ingame_player_id, colorId=new_color)
+
     def pb_list_saves(self, user=None):
         result = self.pb_action(action='listSaves')
         return result['list']
+
+    def pb_list_colors(self, user=None):
+        result = self.pb_action(action='listPlayerColors')
+        if not result['return'] == 'ok':
+            return []
+        # Add id for template usage
+        id = 0
+        for c in result['colors']:
+          c['id'] = id
+          id += 1
+        return result['colors']
 
     def force_diconnect(self):
         GameLogForceDisconnect(game=self, date=timezone.now(), year=self.year, turn=self.turn).save()
