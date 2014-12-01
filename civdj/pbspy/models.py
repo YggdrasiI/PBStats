@@ -102,6 +102,11 @@ class Game(models.Model):
 
     admins             = models.ManyToManyField(User)
     is_private         = models.BooleanField(default=False)
+    is_online          = models.BooleanField(default=True)
+    #This values has to set manually by Admins
+    is_finished        = models.BooleanField(default=False)
+    victory_player_id  = models.SmallIntegerField(default=-1)
+    victory_type       = models.SmallIntegerField(default=-1)
 
     def auth_hash(self):
         return hashlib.md5(self.pb_remote_password.encode()).hexdigest()
@@ -111,7 +116,6 @@ class Game(models.Model):
 
     def timer_end(self):
         delta = datetime.timedelta(seconds=round(self.timer_remaining_4s / 4))
-        print(self.update_date + delta)
         return self.update_date + delta
 
     def year_str(self):
@@ -123,10 +127,49 @@ class Game(models.Model):
     def can_view(self, user):
         return (not self.is_private) or (len(self.admins.filter(id=user.id)) == 1)
 
+    def get_status(self):
+        if self.is_finished:
+            return "finished"
+        else:
+            if self.is_online:
+                return "online"
+            else:
+                return "offline"
+
+    def get_last_activity(self):
+        return self.update_date
+
+    def refresh(self, minimalTimeDiff=60, ignoreGameState=False):
+        """
+        Check timestamp and request new data from pb server
+        if we assume newer data.
+        """
+        if not ignoreGameState and not self.is_online:
+            return
+        if not ignoreGameState and self.is_finished:
+            return
+        cur_date = timezone.now()
+        delta = datetime.timedelta(seconds=minimalTimeDiff)
+        if( cur_date < self.update_date + delta ):
+            return
+        try:
+            info = self.pb_info()
+        except (InvalidPBResponse,URLError) as e:
+            if( self.is_online ):
+                self.is_online = False
+                if ignoreGameState:
+                  self.update_date = cur_date
+                self.save()
+                return
+
+        self.set_from_dict(info)
+
+
     @transaction.atomic
     def set_from_dict(self, info):
         date = timezone.now()
 
+        is_online = True
         year      = parse_year(info['gameDate'])
         turn      = int(info['gameTurn'])
         is_paused = bool(info['bPaused'])
@@ -178,6 +221,9 @@ class Game(models.Model):
         if is_autostart != self.is_autostart:
           pass
 
+        if is_online != self.is_online:
+          pass
+
         self.timer_max_h        = timer_max_h
         self.timer_remaining_4s = timer_remaining_4s
         self.update_date        = date
@@ -187,6 +233,7 @@ class Game(models.Model):
         self.is_headless        = is_headless
         self.is_autostart       = is_autostart
         self.year               = year
+        self.is_online          = is_online
         self.save()
 
         for player_info in info['players']:
@@ -308,7 +355,13 @@ class Game(models.Model):
         self.set_from_dict(info)
 
     def clean(self):
-        self.validate_connection()
+        # Disable validation to allow changes of offline 
+        # games.
+        # The validation is still required for game creation 
+        # (see game_create(request) in views.py)
+        # to prevent UDP flood attacks on other servers.
+        #self.validate_connection()
+        pass
 
     def validate_connection(self):
         # This will raise InvalidPBResponse or something else when we cannot connect
@@ -318,6 +371,7 @@ class Game(models.Model):
             raise ValidationError("Invalid response from the pitboss management interface. Possibly invalid password.")
         except URLError as e:
             raise ValidationError("Could not connect to the pitboss management interface.")
+        return True
 
     def __str__(self):
         return self.name

@@ -38,9 +38,11 @@
 							</td>
 							<td class="colId">{{ color.id }}</td>
 							<td class="colUsedBy">
+								<!--{{ color.usedBy | join:", " }}
+								<br>	-->
 								{% for pl in color.usedBy %}
 									{{ pl.name }},
-								{% endfor %}
+									{% endfor %}
 							</td>
 						</tr>
 						{% endfor %}

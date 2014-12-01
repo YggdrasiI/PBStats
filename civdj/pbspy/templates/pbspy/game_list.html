@@ -9,6 +9,7 @@
             <th class="colNumPlayers">Players</th>
             <th class="colYear">Current Year</th>
             <th class="colTurn">Turn</th>
+            <th class="colStatus">Status</th>
         </tr>
     {% for game in game_list %}
         <tr>
@@ -16,6 +17,7 @@
             <td class="colNumPlayers">{{ game.player_count }}</td>
             <td class="colYear">{{ game.year_str }}</td>
             <td class="colTurn">{{ game.turn }}</td>
+            <td class="colTurn">{{ game.get_status }}</td>
         </tr>
     {% endfor %}
     </table>

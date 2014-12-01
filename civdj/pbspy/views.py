@@ -30,10 +30,17 @@ class GameListView(generic.ListView):
     model = Game
 
     def get_queryset(self):
-        return self.model.objects.filter(
+        games_queryset = self.model.objects.filter(
             Q(is_private=False)
             | Q(admins__id=self.request.user.id)).annotate(
-                player_count=Count('player', distinct=True))
+                player_count=Count('player', distinct=True)).order_by("-id")
+
+        self.refresh_games(games_queryset)
+        return games_queryset
+
+    def refresh_games(self,games_queryset):
+        for game in games_queryset:
+            game.refresh(300)
 
 game_list = GameListView.as_view()
 
@@ -188,6 +195,11 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         if not game.can_view(self.request.user):
             raise PermissionDenied()
 
+        if self.request.GET.get("refresh"):
+            game.refresh(30, True)
+        else:
+            game.refresh(30)
+
         context['can_manage'] = game.can_manage(self.request.user)
 
         # Player list
@@ -226,7 +238,6 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
         return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
 
-
 game_detail = GameDetailView.as_view()
 
 
@@ -252,9 +263,16 @@ def game_create(request):
         if form.is_valid():
             game = form.save()
             game.admins.add(request.user)
-            game.save()
-            game.update()
-            return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
+            if game.validate_connection():
+                game.save()
+                game.update()
+                return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
+            else:
+                """
+                TODO: Add some locking mechanism to prevent multiple calls of validate_connection?!
+                      I do not know if the django form already consides this attack.
+                """
+                return HttpResponseBadRequest('creation failed. PB server does not response.')
     else:
         form = GameForm()
     return render(request, 'pbspy/game_create.html', {'form': form})

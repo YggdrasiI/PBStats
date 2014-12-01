@@ -36,6 +36,17 @@
           <p class="game_info">
               Admins for this game: {{ game.admins.all | join:", " }}
           </p>
+          <p class="game_info">
+              Last connection attempt to PB Server: {{ game.get_last_activity }}
+          </p>
+          <p class="game_info">
+              {% if game.is_online %}
+                  {% trans "The game server is available." %}
+              {% else %}
+                  {% trans "The game server is offline." %}
+									<a href="{% url 'game_detail' game.id %}?refresh">Retry to connect</a>
+              {% endif %}
+          </p>
         </div>
         <div class="game_url"><a href="{{ game.url }}">{{ game.url }}</a></div>
       </div>
