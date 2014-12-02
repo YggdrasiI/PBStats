@@ -53,6 +53,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'pbspy.middleware.timezone.TimezoneMiddleware',
 )
 
 ROOT_URLCONF = 'civdj.urls'
@@ -91,7 +92,7 @@ if DEBUG == True:
   STATIC_ROOT='static/'
   STATIC_URL = '/static/'
 else:
-  # Call 'python manage.py collectstatic' to transfer 
+  # Call 'python manage.py collectstatic' to transfer
   # files into STATIC_ROOT
   STATIC_ROOT='/var/www/pbspy/static/'
   STATIC_URL = 'http://localhost/pbspy/static/'

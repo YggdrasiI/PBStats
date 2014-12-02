@@ -210,6 +210,8 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         game.player_count = len(context['players'])
 
         self.log_setup(game, context)
+
+        context['timezone'] = self.request.session["django_timezone"]
         return context
 
     def post(self, request, *args, **kwargs):
@@ -411,6 +413,13 @@ def render_game_manage_color(request, game, context):
             game.player_set, len(context['colors']) )
     return render(request, 'pbspy/game_manage_color.html', context)
 
+def set_timezone(request):
+    #from django.conf import settings
+    #tz =  str(request.COOKIES.get("timezone",settings.TIME_ZONE))
+    tz =  str(request.GET.get("timezone",
+        request.COOKIES.get("timezone",None) ))
+    request.session["django_timezone"] = tz
+    return HttpResponse('Set timezone on '+tz, status=200)
 
 @login_required()
 def game_update_manual(request, game_id):

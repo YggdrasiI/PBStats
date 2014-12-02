@@ -355,9 +355,9 @@ class Game(models.Model):
         self.set_from_dict(info)
 
     def clean(self):
-        # Disable validation to allow changes of offline 
+        # Disable validation to allow changes of offline
         # games.
-        # The validation is still required for game creation 
+        # The validation is still required for game creation
         # (see game_create(request) in views.py)
         # to prevent UDP flood attacks on other servers.
         #self.validate_connection()

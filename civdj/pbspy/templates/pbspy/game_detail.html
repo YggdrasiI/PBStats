@@ -117,6 +117,14 @@
                 {{ logFilterForm.as_p }}
                 <input type='submit' value='{% trans "Change filter" %}'>
               </form>
+						<div id="timezone_selector">
+							{% trans "Timezone" %}:
+							<p>
+							<select onClick="getTimezoneList(this,'{{ timezone }}');">
+								<option value="{{ timezone }}">{{ timezone }}</option>
+							</select>
+							</p>
+						</div>
             </div>
         {% if log %}
             <table class='game_log'>
