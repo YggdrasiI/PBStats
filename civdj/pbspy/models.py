@@ -118,6 +118,11 @@ class Game(models.Model):
         delta = datetime.timedelta(seconds=round(self.timer_remaining_4s / 4))
         return self.update_date + delta
 
+    # Estimate end in realtime (PB clock runs slower).
+    def timer_end_realtime(self):
+        delta = datetime.timedelta(seconds=round(self.timer_remaining_4s / 4))
+        return self.update_date + delta*5/4
+
     def year_str(self):
         return format_year(self.year)
 

@@ -11,33 +11,39 @@
       <div id="game_metadata">
         <h2>{% trans "game status" %}</h2>
         <div class="game_metadata">
-          <p class="game_info">{% trans "Turn" %}: {{ game.turn|default_if_none:_("n/a") }}</p>
-          <p class="game_info">{% trans "Year" %}: {{ game.year_str|default:_("n/a") }}</p>
+          <p class="game_info">{% trans "Turn" %}: {{ game.turn|default_if_none:_("n/a") }}<br/>{% trans "Year" %}: {{ game.year_str|default:_("n/a") }}</p>
           <p class="game_info">
               {% blocktrans with players=game.player_count finished=game.player_finished_count %}
                   {{ finished }} of {{ players }} have finished their turn.
-              {% endblocktrans %}</p>
+							{% endblocktrans %}<br/>
+              {% if game.is_paused %}
+                  {% trans "The game is paused." %}
+              {% else %}
+                  {% trans "The game is not paused." %}
+							{% endif %}
+							</p>
           {% if game.timer %}
-              <p class="game_info">{% trans "Timer" %}:
-                  {% blocktrans with end=game.timer_end|timeuntil hours=game.timer_max_h %}
-                      Turn ends in {{ end }} ({{ hours }} hours per turn)
-                  {% endblocktrans %}
+              <p class="game_info">
+							<span style="text-align:right;display:inline-block;">{% trans "Timer" %}:
+                  {% blocktrans with end=game.timer_end|timeuntil %}
+                      Turn ends in {{ end }} (ingame clock) 
+                  {% endblocktrans %}<br/>
+                  {% blocktrans with end_rt=game.timer_end_realtime|timeuntil %}
+                      {{ end_rt }} (realtime clock) 
+											{% endblocktrans %}<br/>
+										</span><br/>
+									{% trans "Turn timer" %}:
+                  {% blocktrans with hours=game.timer_max_h %}
+                      {{ hours }} hours per turn
+									{% endblocktrans %}
               </p>
           {% else %}
               <p class="game_info">{% trans "No timer set." %}:</p>
           {% endif %}
           <p class="game_info">
-              {% if game.is_paused %}
-                  {% trans "The game is paused." %}
-              {% else %}
-                  {% trans "The game is not paused." %}
-              {% endif %}
           </p>
           <p class="game_info">
               Admins for this game: {{ game.admins.all | join:", " }}
-          </p>
-          <p class="game_info">
-              Last connection attempt to PB Server: {{ game.get_last_activity }}
           </p>
           <p class="game_info">
               {% if game.is_online %}
@@ -46,6 +52,9 @@
                   {% trans "The game server is offline." %}
 									<a href="{% url 'game_detail' game.id %}?refresh">Retry to connect</a>
               {% endif %}
+							{% blocktrans with last_activity=game.get_last_activity %}
+							(Last connection attempt to PB Server: {{ last_activity }})
+							{% endblocktrans %}
           </p>
         </div>
         <div class="game_url"><a href="{{ game.url }}">{{ game.url }}</a></div>
