@@ -149,6 +149,9 @@ table.game_log tr:hover,
     background-color: darken(mix(brown, @BGColor, 20%),10%);
     //color: @fontColor2;
     font-weight: bold;
+    :first-child {
+        font-weight: normal;
+    }
 }
 
 .logReload, .logTimerChanged, .logEliminated {
