@@ -106,12 +106,42 @@ table.game_log tr:hover,
     }
 }
 
-#game_log_filter {
+.mixin_filter_form {
 	float: right;
+  text-align:right;
+  p label { // Titles of formular fields
+    font-weight:bold;
+    float:left;
+    padding-left:2em;
+    padding-right:1em;
+  }
+}
+
+#game_log_filter {
+  .mixin_filter_form;
+  ul {
+    text-align:left;
+    max-width:20em;
+    clear:both;
+  }
+  li {
+      list-style-type: none;
+      display:inline-block;
+      min-width:10em;
+  }
+  select {
+    min-height:20em;
+    max-width:12em;
+  }
 }
 
 #timezone_selector {
+  .mixin_filter_form;
+  clear: both;
 	margin-top:2em;
+  select {
+    width:12em;
+  }
 }
 
 //Special Colouring of log entries

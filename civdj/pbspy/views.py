@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.http import HttpResponseBadRequest, HttpResponse
 from django.views import generic
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
@@ -11,7 +13,7 @@ from pbspy.models import GameLogTurn, GameLogReload, GameLogMetaChange, GameLogT
     GameLogPause, GameLogServerTimeout, GameLogPlayer, GameLogLogin, GameLogLogout,\
     GameLogFinish, GameLogScore, GameLogNameChange, GameLogEliminated, GameLogAI,\
     GameLogClaimed, GameLogAdminAction, GameLogAdminSave, GameLogAdminPause, GameLogAdminEndTurn,\
-    GameLogForceDisconnect
+    GameLogForceDisconnect, GameLogMissedTurn
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -86,6 +88,8 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         [(l.__name__, l.generateGenericLogTypeName()()) for l in log_classes])
     log_keys = dict(log_choices).keys()
 
+    player_choices = tuple(zip(range(52),range(52)))
+
     # Default offset for turn filtering of log
     log_turn_filter = {'offset_max':0, 'offset_min':1 }
 
@@ -139,13 +143,19 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         roundlog = game.gamelog_set.filter( Q(GameLog___turn__range = [turn_min,turn_max] ) )
 
         # 1. Define player filter
-        player_id = int(self.request.GET.get('player_id', -1))
+        player_id = int(self.request.GET.get('player_id',-1))
         if player_id > -1:
+            self.request.session.setdefault('player_ids',{})[str(game.id)] = [player_id]
+            self.request.session.modified = True 
+
+        player_ids = self.request.session.get('player_ids',{}).get(str(game.id),None)
+        if player_ids != None:
             p_list = [Q(**{'GameLogPlayer___player__id': None}),
-                      Q(**{'GameLogPlayer___player__ingame_id': player_id})
+                      Q(**{'GameLogPlayer___player__ingame_id__in': player_ids})
                       ]
         else:
             p_list = [Q()]
+            player_ids = [-1]
 
         # 2. Define new form for log filter selection
         log_type_filter = self.request.session.get(
@@ -153,9 +163,10 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         logFilterForm = GameLogTypesForm()
         logFilterForm.fields['log_type_filter'].choices = GameDetailView.log_choices
         logFilterForm.fields['log_type_filter'].initial = log_type_filter
-        logFilterForm.fields['player_id'].initial = player_id
         logFilterForm.fields['log_turn_max'].initial = game.turn - turn_filter['offset_max']
         logFilterForm.fields['log_turn_min'].initial = game.turn - turn_filter['offset_min']
+        logFilterForm.fields['log_player_ids'].choices = self.genPlayerChoices(game)
+        logFilterForm.fields['log_player_ids'].initial = player_ids
         context['logFilterForm'] = logFilterForm
 
         # Just filter if not all types are selected
@@ -214,6 +225,14 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         context['timezone'] = self.request.session["django_timezone"]
         return context
 
+    def genPlayerChoices(self, game):
+        # Generate list of (id,Name)-Tuples for formulars
+        #players_from_db = list( game.player_set.all().order_by('ingame_id'))
+        players_from_db =  game.player_set.all().order_by('ingame_id')
+        choices = [(p.ingame_id, "{:2}".format(p.ingame_id) + u"—" + p.name) for p in players_from_db]
+        choices.insert(0, (-1,"All") )
+        return tuple(choices)
+
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         game = self.object
@@ -222,6 +241,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
         form = GameLogTypesForm(request.POST)
         form.fields['log_type_filter'].choices = GameDetailView.log_choices
+        form.fields['log_player_ids'].choices = self.genPlayerChoices(game)
 
         turn_filter = self.request.session.get('log_turn_filter',
                 GameDetailView.log_turn_filter )
@@ -233,7 +253,15 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
                     'offset_max': game.turn - form.cleaned_data.get('log_turn_max'),
                     'offset_min': game.turn - form.cleaned_data.get('log_turn_min')
                     }
+            new_player_ids_str = form.cleaned_data.get('log_player_ids')
+            new_player_ids = [ int(pid) for pid in new_player_ids_str ]
+            if -1 in new_player_ids:
+                new_player_ids = None
 
+            # Note that subkeys of sessionvariables session will be converted
+            # into str type. Thus, int(game.id) would be a bad choice as key.
+            request.session.setdefault('player_ids',{})[str(game.id)] = new_player_ids
+            request.session.modified = True
         else:
             return HttpResponseBadRequest('bad request')
             # return self.form_invalid(form)

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 from django.db import models, transaction
@@ -210,6 +212,7 @@ class Game(models.Model):
               self.player_set.all().delete()
 
         if turn > self.turn:
+            #GameLogMissedTurn(players=self.player_set.all(),**logargs),save()
             GameLogTurn(**logargs).save()
         elif (turn < self.turn or
                 (timer_remaining_4s is not None and
@@ -506,20 +509,6 @@ class GameLog(PolymorphicModel):
             format(date=self.date, year=format_year(self.year),
                    turn=self.turn, message=self.message())
 
-    """
-    def generateGenericLogTypeName(self):
-      cname = self.__class__.__name__
-      logtype = cname.replace('GameLog','',1)
-      def getLogName():
-        return logtype
-      return getLogName
-
-    def getLogName(self):
-      self.getLogName = self.generateGenericLogTypeName()
-      return self.getLogName()
-    """
-
-    #@staticmethod
     @classmethod
     def generateGenericLogTypeName(arg):
       #cname = __class__.__name__
@@ -539,6 +528,14 @@ class GameLogTurn(GameLog):
         return _("A new turn has begun. It is now {year}").\
             format(year=format_year(self.year))
 
+    # Example how to set the displayed name manually.
+    """
+    @classmethod
+    def generateGenericLogTypeName(arg):
+      def getLogName():
+        return "The name of this type of log message.";
+      return getLogName
+    """
 
 class GameLogReload(GameLog):
     def message(self):
@@ -672,3 +669,20 @@ class GameLogForceDisconnect(GameLog):
     def message(self):
         return _("A player was disconnected due to the upload-bug.")
 
+
+class GameLogMissedTurn(GameLog):
+    missed_turn_names = models.CharField(max_length=2000)
+    missed_turn_ids = models.CommaSeparatedIntegerField(max_length=200)
+    def __init__(players, *args, **kwargs):
+        super(GameLogMissedTurn, self).__init__(*args, **kwargs)
+
+    def roundWasIncomplete(self):
+        return (len(str(self.missed_turn_ids)) > 0)
+
+
+    def message(self):
+        formatNames = []
+        for (player_name, player_id) in zip(self.missed_turn_names, self.missed_turn_ids):
+            formatNames.append( _("{} (Id={})").format(player_name, player_id))
+        return _("Following players does not finished their turn:{players}").\
+            format(players=", ".join(formatNames))

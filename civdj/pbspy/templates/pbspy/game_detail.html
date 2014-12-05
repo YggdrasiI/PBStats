@@ -121,20 +121,19 @@
     <h2>{% trans "game log" %}</h2><a name="game_log"></a>
     <div id="game_log">
             <div id="game_log_filter">
-              <form method="post" action="{% url 'game_detail' game.id %}?player_order={{ orders.current }}#game_log">
+							<form method="post" action="{% url 'game_detail' game.id %}?player_order={{ orders.current }}#game_log">
                 {% csrf_token %}
                 {{ logFilterForm.as_p }}
-                <input type='submit' value='{% trans "Change filter" %}'>
+								<input type='submit' value='{% trans "Change filter" %}'>
               </form>
+            </div>
 						<div id="timezone_selector">
-							{% trans "Timezone" %}:
-							<p>
+							<p><label>{% trans "Timezone" %}:</label>
 							<select onClick="getTimezoneList(this,'{{ timezone }}');">
 								<option value="{{ timezone }}">{{ timezone }}</option>
 							</select>
 							</p>
 						</div>
-            </div>
         {% if log %}
             <table class='game_log'>
 							<tr>

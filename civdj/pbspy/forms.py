@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.forms import ModelForm, Form
 from django import forms
 from pbspy.models import Game
@@ -58,10 +60,10 @@ class GameLogTypesForm(forms.Form):
                 min_value=0, max_value=9999)
         self.fields['log_turn_min'] = forms.IntegerField(label=_('Minimal Round'),
                 min_value=0, max_value=9999)
-        self.fields['player_id'] = forms.CharField(
-            required=False,
-            widget=forms.HiddenInput()
-            )
+        self.fields['log_player_ids'] = forms.MultipleChoiceField(
+          label=_('Players'),
+          required=False,
+          )
 
 class GameManagementSetPlayerColorForm(Form):
     def __init__(self, players, num_colors, *args, **kwargs):
