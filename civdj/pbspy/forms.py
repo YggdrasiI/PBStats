@@ -63,6 +63,7 @@ class GameLogTypesForm(forms.Form):
         self.fields['log_player_ids'] = forms.MultipleChoiceField(
           label=_('Players'),
           required=False,
+          #widget=forms.CheckboxSelectMultiple()
           )
 
 class GameManagementSetPlayerColorForm(Form):

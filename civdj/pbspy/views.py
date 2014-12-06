@@ -81,6 +81,10 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         GameLogPause,
         GameLogTurn,
         GameLogReload,
+        GameLogAI,
+        GameLogClaimed,
+        GameLogEliminated,
+        GameLogNameChange,
     )
 
     # Generate key and names for select form
@@ -146,7 +150,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         player_id = int(self.request.GET.get('player_id',-1))
         if player_id > -1:
             self.request.session.setdefault('player_ids',{})[str(game.id)] = [player_id]
-            self.request.session.modified = True 
+            self.request.session.modified = True
 
         player_ids = self.request.session.get('player_ids',{}).get(str(game.id),None)
         if player_ids != None:
@@ -199,6 +203,8 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
             context['log'] = roundlog.filter(
                 functools.reduce(operator.or_, p_list)
             ).order_by('-id')
+
+        # Remove log messages which should only readable for admins
 
     def get_context_data(self, **kwargs):
         context = super(GameDetailView, self).get_context_data(**kwargs)
@@ -312,6 +318,9 @@ def game_manage(request, game_id, action=""):
     game = Game.objects.get(id=game_id)
     if not game.can_manage(request.user):
         return HttpResponse('unauthorized', status=401)
+
+    if not game.is_online:
+        return HttpResponse('Can not manage. PB Server not available.', status=200)
 
     context = {'game': game}
     context['timer_form'] = GameManagementTimerForm(

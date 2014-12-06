@@ -212,7 +212,10 @@ class Game(models.Model):
               self.player_set.all().delete()
 
         if turn > self.turn:
-            #GameLogMissedTurn(players=self.player_set.all(),**logargs),save()
+            mt = GameLogMissedTurn(**logargs)
+            mt.set_missed_players(info['players'])
+            if mt.roundWasIncomplete():
+                mt.save()
             GameLogTurn(**logargs).save()
         elif (turn < self.turn or
                 (timer_remaining_4s is not None and
@@ -500,14 +503,15 @@ class GameLog(PolymorphicModel):
     year = models.IntegerField()
     turn = models.PositiveSmallIntegerField()
     text = "(GameLog) No text defined."
+    bPublic = True # non-public log entries are for admins, only.
 
     def message(self):
         return _(self.text)
 
     def __str__(self):
-        return _("{date}/{year}/turn {turn}: {message}").\
+        return _("{date}/{year}/turn {turn}: ").\
             format(date=self.date, year=format_year(self.year),
-                   turn=self.turn, message=self.message())
+                   turn=self.turn) + self.message()
 
     @classmethod
     def generateGenericLogTypeName(arg):
@@ -521,6 +525,9 @@ class GameLog(PolymorphicModel):
     def getLogName(self):
       self.getLogName = self.generateGenericLogTypeName()
       return self.getLogName()
+
+    def isPublic(self):
+        return self.bPublic
 
 
 class GameLogTurn(GameLog):
@@ -584,9 +591,10 @@ class GameLogPlayer(GameLog):
     player      = models.ForeignKey(Player)
 
     def __str__(self):
-        return _("{date}/{year}/turn {turn}, {player}: {message}").\
+        return _("{date}/{year}/turn {turn}, {player}: ").\
             format(date=self.date, year=format_year(self.year),
-                   turn=self.turn, player=self.player_name, message=self.message())
+                   turn=self.turn,
+                   player=self.player_name)+ self.message()
 
 
 class GameLogLogin(GameLogPlayer):
@@ -643,6 +651,7 @@ class GameLogAdminAction(GameLog):
 
 class GameLogAdminSave(GameLogAdminAction):
     filename = models.CharField(max_length=200)
+    bPublic = False
 
     def message(self):
         return _("Game saved by {username}").format(username=self.get_username())
@@ -673,16 +682,36 @@ class GameLogForceDisconnect(GameLog):
 class GameLogMissedTurn(GameLog):
     missed_turn_names = models.CharField(max_length=2000)
     missed_turn_ids = models.CommaSeparatedIntegerField(max_length=200)
-    def __init__(players, *args, **kwargs):
-        super(GameLogMissedTurn, self).__init__(*args, **kwargs)
+    bPublic = False
+
+    # The integration of set_missed_players into the constructor
+    # creates conflicts with the polymorphic stuff. Thus, I separeted both (Ramk)
+    #def __init__(self, *args, **kwargs):
+    #    super(GameLogMissedTurn, self).__init__(bPublic=False,*args, **kwargs)
+
+    def set_missed_players(self, players):
+        missed = []
+        for player in players:
+            # Player is online if ping string contains '['
+            if( not player['finishedTurn'] and
+                not player['ping'][1] == '['):
+                missed.append( ( str(player["id"]), str(player["name"]) ) )
+        if len(missed) > 0:
+            self.missed_turn_names = ",".join(zip(*missed)[1])
+            self.missed_turn_ids = ",".join(zip(*missed)[0])
+        else:
+            self.missed_turn_names = ""
+            self.missed_turn_ids = ""
+        print str(missed)
 
     def roundWasIncomplete(self):
-        return (len(str(self.missed_turn_ids)) > 0)
-
+        return (len(str(self.missed_turn_names)) > 0)
 
     def message(self):
         formatNames = []
-        for (player_name, player_id) in zip(self.missed_turn_names, self.missed_turn_ids):
-            formatNames.append( _("{} (Id={})").format(player_name, player_id))
-        return _("Following players does not finished their turn:{players}").\
-            format(players=", ".join(formatNames))
+        names = self.missed_turn_names.split(",")
+        ids = self.missed_turn_ids.split(",")
+        for (player_name, player_id) in zip(names, ids):
+            formatNames.append( _("<li>{} (Id={})</li>").format(player_name, player_id))
+        return _("Following players does not finished their turn")+":<ul>{players}</ul>".\
+            format(players="\r\n".join(formatNames))

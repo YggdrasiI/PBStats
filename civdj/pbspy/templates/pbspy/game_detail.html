@@ -50,7 +50,7 @@
                   {% trans "The game server is available." %}
               {% else %}
                   {% trans "The game server is offline." %}
-									<a href="{% url 'game_detail' game.id %}?refresh">Retry to connect</a>
+									<a href="{% url 'game_detail' game.id %}?refresh=1">Retry to connect</a>
               {% endif %}
 							{% blocktrans with last_activity=game.get_last_activity %}
 							(Last connection attempt to PB Server: {{ last_activity }})
@@ -144,13 +144,17 @@
                     <th class="colType">{% trans "Type" %}</th>
                 </tr>
             {% for logentry in log %}
+              {% if can_manage or logentry.isPublic %}
                 <tr class="log{{ logentry.getLogName }}">
                     <td class="colDate">{{ logentry.date }}</td>
                     <td class="colTurn">{{ logentry.turn }}</td>
                     <td class="colPlayer">{{ logentry.player_name|default:"-" }}</td>
+                    {% autoescape off %}
                     <td class="colEvent">{{ logentry.message }}</td>
+                    {% endautoescape %}
                     <td class="colType">{{ logentry.getLogName }}</td>
                 </tr>
+              {% endif %}
             {% endfor %}
             </table>
         {% else %}
