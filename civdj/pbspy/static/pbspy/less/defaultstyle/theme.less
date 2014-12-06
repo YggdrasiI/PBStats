@@ -117,6 +117,14 @@ table.game_log tr:hover,
   }
 }
 
+.mixin_conflate_form_elements {
+		background-color:desaturate(@BGColor,20%);
+		color: @fontColor1;
+		border:1px solid @BGColor;
+		border-left:1px solid @fontColor1;
+		border-bottom:1px solid @fontColor1;
+}
+
 #game_log_filter {
   .mixin_filter_form;
   ul {
@@ -132,7 +140,11 @@ table.game_log tr:hover,
   select {
     min-height:20em;
     max-width:12em;
+		.mixin_conflate_form_elements
   }
+	input[type="text"], input[type="number"] {
+		.mixin_conflate_form_elements
+	}
 }
 
 #timezone_selector {
