@@ -280,6 +280,152 @@ function gameFull($game,$online /* False for preview during creation of new game
 				}
 			}
 
+			if( $action === "motd" ){
+				$step = 0;
+				if( isset($_GET["step"] ) ){
+					$step = $_GET["step"];
+				}
+
+				$dHtml .= "<h3>{L_GAME_MOTD_MESSAGE}</h3>";
+				if( $step == 1 ){
+					$opid = isset($_GET["opid"])?intval($_GET["opid"]):-1;
+					if( false && operation_already_done( $opid ) ){
+						$dHtml .= print_operation_error_msg();
+					}else{
+						// Change message of the day (MotD)
+						$msg = $_GET["msg"];
+						$pbAction = array('action'=>'setMotD','password'=>$pw,'msg'=>$msg);
+						$infos = json_decode(handle_pitboss_action($gameData, $pbAction));
+
+						if( $infos->return === "ok" ){
+							$dHtml .= "<p>{L_GAME_MOTD_MESSAGE_SUCCESSFUL|$msg}</p>";
+							operation_update_ids( $opid );
+						}else{
+							$dHtml .= "<p>{L_GAME_ERROR_MSG}".$infos->info ."</p>";
+						}
+					}
+				}else{
+					$opid = operation_new_val();
+
+					//Get current MotD
+					$pbAction = array('action'=>'getMotD','password'=>$pw);
+					$motdData = json_decode(handle_pitboss_action($gameData, $pbAction));
+
+					//$dHtml .= "<h3 class='hr pad'>{L_GAME_MOTD_MESSAGE}</h3>";
+					$dHtml .= "<form action='$this_page' method='get'>\n<p>";
+
+					//older version of the mod doesn't support getMotD
+					if( ($motdData->return === "ok") ){
+							$dHtml .= "{L_MESSAGE}: <input type='text' name='msg' value='".$motdData->msg."' />\n";
+					}else{
+						//$dHtml .= "<p>{L_GAME_ERROR_MSG}".$motdData->info ."</p>";
+						$dHtml .= "{L_MESSAGE}: <input type='text' name='msg' value='' />\n";
+					}
+					$dHtml .= "<input type='submit' />\n
+						<input type='hidden' name='action' value='motd' />\n
+						<input type='hidden' name='game' value='$gameId' />\n
+						<input type='hidden' name='step' value='1' />\n
+						<input type='hidden' name='opid' value='$opid' />\n
+						</p></form>\n";
+
+
+					//Testing parsing of replay messages. Require debug=True in pbSettings.json
+					/*
+					$pbAction = array('action'=>'getReplay','password'=>$pw);
+					$replayData = json_decode(handle_pitboss_action($gameData, $pbAction));
+					if( ($replayData->return === "ok") ){
+						$dHtml .= "<h4>Replay Messages</h4><p>\n";
+						foreach( $replayData->replay as $message ){
+							$dHtml .= 'Round ' . $message->turn . ", Player ". $message->player .": ". $message->text . "<br>";
+						}
+						$dHtml .= "</p>\n";
+						$dHtml .= "<h4>Graphs</h4>\n";
+						if( isset( $replayData->graphs ) ){
+							foreach( $replayData->graphs as $id=>$player ){
+								$dHtml .= "<h5>Player $id</h5>\n";
+								$dHtml .= "</>Score: \n";
+								foreach( $player->score as $val ){
+									$dHtml .= "$val ";
+								}
+								$dHtml .= "</p>\n";
+								$dHtml .= "</>Economy: \n";
+								foreach( $player->economy as $val ){
+									$dHtml .= "$val ";
+								}
+								$dHtml .= "</p>\n";
+								$dHtml .= "</>Industry: \n";
+								foreach( $player->industry as $val ){
+									$dHtml .= "$val ";
+								}
+								$dHtml .= "</p>\n";
+								$dHtml .= "</>Agriculture: \n";
+								foreach( $player->agriculture as $val ){
+									$dHtml .= "$val ";
+								}
+								$dHtml .= "</p>\n";
+							}
+						}
+					}else{
+						$dHtml .= "<p>{L_GAME_ERROR_MSG}".$replayData->info ."</p>";
+					}
+					*/
+
+				}
+				$dHtml .= "<p><a href='$this_page?game=$gameId&action=admin'>{L_GAME_ADMIN_BACK}</a></p>";
+				$dHtml .= $mainpageLink;
+
+			}
+
+			if( $action === "replay" ){
+				$step = 0;
+				if( isset($_GET["step"] ) ){
+					$step = $_GET["step"];
+				}
+
+				$dHtml .= "<h3>{L_GAME_REPLAY}</h3>";
+				//Testing parsing of replay messages. Require debug=True in pbSettings.json
+				$pbAction = array('action'=>'getReplay','password'=>$pw);
+				$replayData = json_decode(handle_pitboss_action($gameData, $pbAction));
+				if( ($replayData->return === "ok") ){
+					$dHtml .= "<h4>Replay Messages</h4><p>\n";
+					foreach( $replayData->replay as $message ){
+						$dHtml .= 'Round ' . $message->turn . ", Player ". $message->player .": ". $message->text . "<br>";
+					}
+					$dHtml .= "</p>\n";
+					$dHtml .= "<h4>Graphs</h4>\n";
+					if( isset( $replayData->graphs ) ){
+						foreach( $replayData->graphs as $id=>$player ){
+							$dHtml .= "<h5>Player $id</h5>\n";
+							$dHtml .= "</>Score: \n";
+							foreach( $player->score as $val ){
+								$dHtml .= "$val ";
+							}
+							$dHtml .= "</p>\n";
+							$dHtml .= "</>Economy: \n";
+							foreach( $player->economy as $val ){
+								$dHtml .= "$val ";
+							}
+							$dHtml .= "</p>\n";
+							$dHtml .= "</>Industry: \n";
+							foreach( $player->industry as $val ){
+								$dHtml .= "$val ";
+							}
+							$dHtml .= "</p>\n";
+							$dHtml .= "</>Agriculture: \n";
+							foreach( $player->agriculture as $val ){
+								$dHtml .= "$val ";
+							}
+							$dHtml .= "</p>\n";
+						}
+					}
+				}else{
+					$dHtml .= "<p>{L_GAME_ERROR_MSG}".$replayData->info ."</p>";
+				}
+
+				$dHtml .= "<p><a href='$this_page?game=$gameId&action=admin'>{L_GAME_ADMIN_BACK}</a></p>";
+				$dHtml .= $mainpageLink;
+			}
+
 			if( $action === "admin" ){
 
 				//check if game webpassword matching with cookie value
@@ -500,16 +646,7 @@ function gameFull($game,$online /* False for preview during creation of new game
 							<input type='hidden' name='opid' value='$opid' />\n
 							</p></form>\n";
 
-						$dHtml .= "<h3 class='hr pad'>{L_GAME_MOTD_MESSAGE}</h3>";
-						$dHtml .= "<form action='$this_page' method='get'>\n
-							<p>{L_MESSAGE}: <input type='text' name='msg' value='' />\n
-							<input type='submit' />\n
-							<input type='hidden' name='action' value='admin' />\n
-							<input type='hidden' name='game' value='$gameId' />\n
-							<input type='hidden' name='step' value='8' />\n
-							<input type='hidden' name='opid' value='$opid' />\n
-							</p></form>\n";
-
+						$dHtml .= "<h3 class='hr pad'><a href='$this_page?game=$gameId&action=motd&opid=$opid'>{L_GAME_MOTD_MESSAGE}</a></h3>";
 						$dHtml .= "<h3 class='hr pad'>{L_GAME_SHORT_NAMES}</h3>";
 						$dHtml .= "<form action='$this_page' method='get'>\n
 							<p>{L_LEADER_NAME}: <input type='number' name='shortNames' value='2' style='width:3em' />\n
