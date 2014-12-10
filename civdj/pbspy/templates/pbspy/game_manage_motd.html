@@ -1,0 +1,20 @@
+{% extends "pbspy/base.html" %}
+{% load i18n %}
+
+{% block content %}
+    <div id="game_management">
+        <h1 id="game_name">Management for {{ game.name }}</h1>
+				(<a href="{% url 'game_detail' game.id %}">game overview</a>,
+				<a href="{% url 'game_manage' game.id "" %}">manage game</a>
+				)
+				<div class="game_management_section">
+          <h2>{% trans "set message of the day" %}</h2>
+             <form method="post" action="{% url 'game_manage' game.id 'motd' %}">
+							 {% csrf_token %}
+							 <span class="description" todo="Fill in description">{% trans "send message of the day" %}</span>
+							 <table>{{ motd_form }}</table>
+							 <span><input type="submit" value="{% trans "set motd" %}" /></span>
+						</form>
+        </div>
+    </div>
+{% endblock %}

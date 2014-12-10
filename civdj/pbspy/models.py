@@ -146,6 +146,11 @@ class Game(models.Model):
     def get_last_activity(self):
         return self.update_date
 
+    def get_online_players(self):
+        if not self.is_online:
+            return []
+        return self.player_set.all().filter(is_online=True)
+
     def refresh(self, minimalTimeDiff=60, ignoreGameState=False):
         """
         Check timestamp and request new data from pb server
@@ -293,7 +298,7 @@ class Game(models.Model):
         text = "{}: {}".format(name, message)
         return self.pb_action(action='chat', msg=text)
 
-    def pb_motd(self, message, user=None):
+    def pb_set_motd(self, message, user=None):
         return self.pb_action(action='setMotD', msg=str(message))
 
     def pb_short_names(self, iShortNameLen, iShortDescLen, user=None):
@@ -347,7 +352,11 @@ class Game(models.Model):
         result = self.pb_action(action='listSaves')
         return result['list']
 
-    def pb_list_colors(self, user=None):
+    def pb_get_motd(self):
+        result = self.pb_action(action='getMotD')
+        return str(result['msg'])
+
+    def pb_list_colors(self):
         result = self.pb_action(action='listPlayerColors')
         if not result['return'] == 'ok':
             return []

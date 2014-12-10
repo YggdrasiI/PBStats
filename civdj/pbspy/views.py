@@ -384,7 +384,7 @@ def game_manage(request, game_id, action=""):
         elif action == 'motd':
             form = GameManagementMotDForm(request.POST)
             if form.is_valid():
-                game.pb_motd(form.cleaned_data['message'])
+                game.pb_set_motd(form.cleaned_data['message'])
                 return HttpResponse('MotD sent.', status=200)
             context['motd_form'] = form
         elif action == 'short_names':
@@ -440,15 +440,43 @@ def game_manage(request, game_id, action=""):
 
     if action == 'color':
         return render_game_manage_color(request, game, context)
+    elif action == 'load':
+        return render_game_manage_load(request, game, context)
+    elif action == 'motd':
+        return render_game_manage_motd(request, game, context)
 
     return render(request, 'pbspy/game_manage.html', context)
-
 
 def render_game_manage_color(request, game, context):
     context['colors'] = game.pb_list_colors()
     context['set_player_color_form'] = GameManagementSetPlayerColorForm(
             game.player_set, len(context['colors']) )
     return render(request, 'pbspy/game_manage_color.html', context)
+
+def render_game_manage_load(request, game, context):
+    saves = sorted(game.pb_list_saves(), key=lambda k: -k['timestamp'])
+    load_choices = []
+
+    # Add entry for restart of running state
+    load_choices.append(('restart', 'Save and reload current game'))
+
+    for save in saves:
+        folder_index = int(save['folderIndex'])
+        key = "/".join([str(folder_index), save['name']])
+        label = "{} ({})".format(save['name'], save['date'])
+        choice = (key, label)
+        load_choices.append(choice)
+
+    context['load_form'] = GameManagementLoadForm(load_choices)
+
+    # Add info about online players
+    context['players_online'] = game.get_online_players()
+    return render(request, 'pbspy/game_manage_load.html', context)
+
+def render_game_manage_motd(request, game, context):
+    context['motd_form'] = GameManagementMotDForm()
+    context['motd_form'].fields['message'].initial = game.pb_get_motd()
+    return render(request, 'pbspy/game_manage_motd.html', context)
 
 def set_timezone(request):
     #from django.conf import settings

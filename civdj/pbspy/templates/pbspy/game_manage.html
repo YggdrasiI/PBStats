@@ -6,7 +6,7 @@
         <h1 id="game_name">Management for {{ game.name }}</h1>
         (<a href="{% url 'game_detail' game.id %}">game overview</a>)
         <p>Performed action: {{ action }}</p>
-        <div class="game_management_section">
+        <div class="game_management_section_imploded">
           <h2>{% trans "pause game" %}</h2>
             {% if game.is_paused %}
              <form method="post" action="{% url 'game_manage' game.id 'pause_disable' %}">
@@ -22,15 +22,15 @@
              </form>
             {% endif %}
         </div>
-        <div class="game_management_section">
-          <h2>{% trans "force turn end" %}</h2>
+        <div class="game_management_section_imploded">
+					<h2><a name="">{% trans "force turn end" %}</a></h2>
              <form method="post" action="{% url 'game_manage' game.id 'end_turn' %}">
                  {% csrf_token %}
                  <span class="description" todo="Fill in description">{% trans "description end turn" %}</span>
                  <span><input type="submit" value="{% trans "end turn" %}" /></span>
              </form>
         </div>
-        <div class="game_management_section">
+        <div class="game_management_section_imploded">
           <h2>{% trans "set turn timer" %}</h2>
              <form method="post" action="{% url 'game_manage' game.id 'set_turn_timer' %}">
                  {% csrf_token %}
@@ -39,7 +39,7 @@
                  <span><input type="submit" value="{% trans "set timer" %}" /></span>
              </form>
         </div>
-        <div class="game_management_section">
+        <div class="game_management_section_imploded">
           <h2>{% trans "save game" %}</h2>
              <form method="post" action="{% url 'game_manage' game.id 'save' %}">
                  {% csrf_token %}
@@ -48,17 +48,11 @@
                  <span><input type="submit" value="{% trans "save game" %}" /></span>
              </form>
         </div>
-        <div class="game_management_section">
-          <h2>{% trans "load game" %}</h2>
-             <form method="post" action="{% url 'game_manage' game.id 'load' %}">
-                 {% csrf_token %}
-                 <span class="description" todo="Fill in description">{% trans "description load game" %}</span>
-                 <table>{{ load_form }}</table>
-                 <span><input type="submit" value="{% trans "load game" %}" /></span>
-             </form>
+        <div class="game_management_section_imploded">
+          <h2><a href="{% url 'game_manage' game.id 'load' %}">{% trans "load game" %}</a></h2>
         </div>
-        <div class="game_management_section">
-          <h2>{% trans "change passwort of player" %}</h2>
+        <div class="game_management_section_imploded">
+          <h2>{% trans "change password of player" %}</h2>
              <form method="post" action="{% url 'game_manage' game.id 'set_player_password' %}">
                  {% csrf_token %}
                  <span class="description" todo="Fill in description">{% trans "description change player password" %}</span>
@@ -66,11 +60,10 @@
                  <span><input type="submit" value="{% trans "change player password" %}" /></span>
              </form>
         </div>
-        <div class="game_management_section">
-					<h2>{% trans "change colorset of player" %}</h2>
-					<p><a href="{% url 'game_manage' game.id 'color' %}">Enter color change menu.</a></p>
+        <div class="game_management_section_imploded">
+					<h2><a href="{% url 'game_manage' game.id 'color' %}">{% trans "change colorset of player" %}</a></h2>
         </div>
-        <div class="game_management_section">
+        <div class="game_management_section_imploded">
           <h2>{% trans "send chat message" %}</h2>
              <form method="post" action="{% url 'game_manage' game.id 'chat' %}">
                  {% csrf_token %}
@@ -79,7 +72,7 @@
                  <span><input type="submit" value="{% trans "send message" %}" /></span>
                </form>
         </div>
-        <div class="game_management_section">
+        <div class="game_management_section_imploded">
           <h2>{% trans "swap autostart of save games" %}</h2>
             {% if game.is_autostart %}
              <form method="post" action="{% url 'game_manage' game.id 'autostart_disable' %}">
@@ -95,7 +88,7 @@
              </form>
             {% endif %}
         </div>
-        <div class="game_management_section">
+        <div class="game_management_section_imploded">
           <h2>{% trans "swap headless mode" %}</h2>
             {% if game.is_headless %}
              <form method="post" action="{% url 'game_manage' game.id 'headless_disable' %}">
@@ -111,7 +104,7 @@
              </form>
             {% endif %}
         </div>
-        <div class="game_management_section">
+        <div class="game_management_section_imploded">
           <h2>{% trans "change short names ranges" %}</h2>
              <form method="post" action="{% url 'game_manage' game.id 'short_names' %}">
                  {% csrf_token %}
@@ -120,14 +113,8 @@
                  <span><input type="submit" value="{% trans "set" %}" /></span>
                </form>
         </div>
-        <div class="game_management_section">
-          <h2>{% trans "set message of the day" %}</h2>
-             <form method="post" action="{% url 'game_manage' game.id 'motd' %}">
-                 {% csrf_token %}
-                 <span class="description" todo="Fill in description">{% trans "send message of the day" %}</span>
-                 <table>{{ motd_form }}</table>
-                 <span><input type="submit" value="{% trans "set motd" %}" /></span>
-               </form>
+        <div class="game_management_section_imploded">
+          <h2><a href="{% url 'game_manage' game.id 'motd' %}">{% trans "set message of the day" %}</a></h2>
         </div>
     </div>
 {% endblock %}

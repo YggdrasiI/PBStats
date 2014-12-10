@@ -188,6 +188,37 @@ table.game_log tr:hover,
 	span.description{
 		display: block;
 	}
+	form {
+		input[type="text"], input[type="number"] {
+			.mixin_conflate_form_elements
+		}
+	}
+}
+
+.game_management_section_imploded {
+  .game_management_section;
+  // More compact version, but navigation require mouse.
+  /*
+  display:inline-block;
+  width:33%;
+  height:5em;
+  overflow:visible;
+  float:left;
+  position:relative;
+  top:0px;
+  left:0px;
+  z-index:100;
+  > form {
+      background-color: @BGColor;
+      padding-bottom:2em;
+  }
+  &:not(:hover) { 
+      z-index:-100;
+      > form {
+        display:none;
+      }
+  }
+  */
 }
 
 table.game_colors {
