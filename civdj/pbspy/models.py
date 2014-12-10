@@ -383,14 +383,18 @@ class Game(models.Model):
         #self.validate_connection()
         pass
 
-    def validate_connection(self):
+    def validate_connection(self, raiseException=True):
         # This will raise InvalidPBResponse or something else when we cannot connect
         try:
             info = self.pb_info()
         except InvalidPBResponse as e:
-            raise ValidationError("Invalid response from the pitboss management interface. Possibly invalid password.")
+            if raiseException:
+                raise ValidationError("Invalid response from the pitboss management interface. Possibly invalid password.")
+            return False
         except URLError as e:
-            raise ValidationError("Could not connect to the pitboss management interface.")
+            if raiseException:
+                raise ValidationError("Could not connect to the pitboss management interface.")
+            return False
         return True
 
     def __str__(self):

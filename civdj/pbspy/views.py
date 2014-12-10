@@ -299,7 +299,7 @@ def game_create(request):
         if form.is_valid():
             game = form.save()
             game.admins.add(request.user)
-            if game.validate_connection():
+            if game.validate_connection(False):
                 game.save()
                 game.update()
                 return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
@@ -492,6 +492,35 @@ def game_update_manual(request, game_id):
     game.update()
     return HttpResponse('ok', status=200)
 
+@login_required()
+def game_change(request, game_id):
+    game = Game.objects.get(id=game_id)
+    PASSWORD_DUMMY = "*****"
+    context = {'game':game}
+    form = None
+
+    if request.method == 'POST':
+        pw_backup = game.pb_remote_password
+        form = GameForm(request.POST, instance=game )
+        if form.fields["pb_remote_password"]  == PASSWORD_DUMMY:
+            form.fields["pb_remote_password"] = game.pb_backup
+        if form.is_valid():
+            if game.validate_connection(False):
+                game.save()
+                game.update()
+                return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
+            else:
+                #Save, but write warning and display form again
+                game.save()
+                context['game_no_connection'] = True
+        else:
+            context['game_data_not_valid'] = True
+
+    if form == None:
+        form = GameForm(instance=game)
+        form.fields['pb_remote_password'].initial = PASSWORD_DUMMY
+    context['form'] = form
+    return render(request, 'pbspy/game_change.html', context)
 
 @csrf_exempt
 @require_http_methods(["POST"])

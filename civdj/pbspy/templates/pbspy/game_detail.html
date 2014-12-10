@@ -7,6 +7,7 @@
     <div id="game_summary"><a name="game_summary" ></a>
       {% if can_manage %}
       (<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
+			(<a href="{% url 'game_change' game.id %}">edit game</a>)
       {% endif %}
       <div id="game_metadata">
         <h2>{% trans "game status" %}</h2>
