@@ -46,9 +46,13 @@ New in version 3 (PB Mod_v3):
 	• Infoscreen (F9) fixes:
 			- It's possible to select a subset of all players to reduce the number of displayed graphs.
 			- The screen doesn't reset the selected graph on several user actions.
+	• Foreignscreen (F4) fixes:
+			- The screen was nearly unuseable for the player has more as 30 contacts. Now, its possible
+			  to select a subset of all contacts and masking the rest.
 	• Some color collisions was fixed.
 	• Extend webinterface with option to change the colorset of players on running PB session. This
 		is useful if two neigbours has the same culture border color.
+	• Add option to change timer of current round
 
 
 (Removed from master branch)

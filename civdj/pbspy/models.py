@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 from django.db import models, transaction
@@ -518,6 +519,10 @@ class Player(models.Model):
     def __str__(self):
         return _("{} ({} of {})").format(self.name, self.leader, self.civilization)
 
+    # Required for python2.x and umlautes
+    def __unicode__(self):
+        return _(u"{} ({} of {})").format(self.name, self.leader, self.civilization)
+
 class GameLog(PolymorphicModel):
     game = models.ForeignKey(Game)
     date = models.DateTimeField(db_index=True)
@@ -723,7 +728,6 @@ class GameLogMissedTurn(GameLog):
         else:
             self.missed_turn_names = ""
             self.missed_turn_ids = ""
-        print str(missed)
 
     def roundWasIncomplete(self):
         return (len(str(self.missed_turn_names)) > 0)
