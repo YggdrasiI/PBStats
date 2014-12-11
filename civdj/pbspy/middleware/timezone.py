@@ -9,7 +9,7 @@ class TimezoneMiddleware(object):
             try:
               timezone.activate(pytz.timezone(tzname))
             except pytz.exceptions.UnknownTimeZoneError as e:
-                print "Timezone error for tzname=", tzname
+                print("Timezone error for tzname=", tzname)
                 request.session['django_timezone'] = None
         else:
             timezone.deactivate()
