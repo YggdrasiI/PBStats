@@ -449,6 +449,8 @@ def game_manage(request, game_id, action=""):
 
 def render_game_manage_color(request, game, context):
     context['colors'] = game.pb_list_colors()
+    if len(context['colors']) == 0:
+        return HttpResponseBadRequest('Command not supported by PB Server.')
     context['set_player_color_form'] = GameManagementSetPlayerColorForm(
             game.player_set, len(context['colors']) )
     return render(request, 'pbspy/game_manage_color.html', context)

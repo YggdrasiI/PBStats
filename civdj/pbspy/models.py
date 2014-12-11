@@ -225,7 +225,9 @@ class Game(models.Model):
         elif (turn < self.turn or
                 (timer_remaining_4s is not None and
                  self.timer_remaining_4s is not None and
-                 timer_remaining_4s > self.timer_remaining_4s)):
+                 timer_remaining_4s > self.timer_remaining_4s + 1200 )):
+            #Note: Ignore small time difference because every combat increase
+            # the timer by the combat animation time
             GameLogReload(**logargs).save()
 
         if is_paused != self.is_paused:
@@ -353,19 +355,25 @@ class Game(models.Model):
         return result['list']
 
     def pb_get_motd(self):
-        result = self.pb_action(action='getMotD')
-        return str(result['msg'])
+        #Wrap in try to respect older mod versions
+        try:
+            result = self.pb_action(action='getMotD')
+            return str(result.get('msg',''))
+        except InvalidPBResponse:
+            return ''
 
     def pb_list_colors(self):
-        result = self.pb_action(action='listPlayerColors')
-        if not result['return'] == 'ok':
+        #Wrap in try to respect older mod versions
+        try:
+            result = self.pb_action(action='listPlayerColors')
+            # Add id for template usage
+            id = 0
+            for c in result['colors']:
+                c['id'] = id
+                id += 1
+            return result['colors']
+        except InvalidPBResponse:
             return []
-        # Add id for template usage
-        id = 0
-        for c in result['colors']:
-          c['id'] = id
-          id += 1
-        return result['colors']
 
     def force_diconnect(self):
         GameLogForceDisconnect(game=self, date=timezone.now(), year=self.year, turn=self.turn).save()
