@@ -496,7 +496,7 @@ function gameFull($game,$online /* False for preview during creation of new game
 
 						if( $step == 4 ){
 							// Set timer for next round
-							$hours = $_GET["hours"];
+							$hours = intval($_GET["hours"]);
 							$pbAction = array('action'=>'setTurnTimer','password'=>$pw,'value'=>$hours);
 							$infos = json_decode(handle_pitboss_action($gameData, $pbAction));
 
@@ -593,6 +593,21 @@ function gameFull($game,$online /* False for preview during creation of new game
 							}
 						}
 
+						if( $step == 10 ){
+							// Set timer for current round
+							$hours = intval($_GET["hours"]);
+							$minutes = intval($_GET["minutes"]);
+							$pbAction = array('action'=>'setCurrentTurnTimer','password'=>$pw,'hours'=>$hours,'minutes'=>$minutes,'seconds'=>10);
+							$infos = json_decode(handle_pitboss_action($gameData, $pbAction));
+
+							if( $infos->return === "ok" ){
+								$dHtml .= "<p>{L_GAME_SET_TIMER_THIS_ROUND_SUCCESSFUL|$hours|$minutes}</p>";
+								operation_update_ids( $opid );
+							}else{
+								$dHtml .= "<p>{L_GAME_ERROR_MSG}".$infos->info ."</p>";
+							}
+						}
+
 					}//end operation already done check
 
 					$dHtml .= "<p><a href='$this_page?game=$gameId&action=admin'>{L_GAME_ADMIN_BACK}</a></p>";
@@ -632,6 +647,22 @@ function gameFull($game,$online /* False for preview during creation of new game
 								<input type='hidden' name='action' value='admin' />\n
 								<input type='hidden' name='game' value='$gameId' />\n
 								<input type='hidden' name='step' value='4' />\n
+								<input type='hidden' name='opid' value='$opid' />\n
+								</p></form>\n";
+						}
+
+						if( isset( $infos->info->turnTimerMax ) ){
+							$seconds = intval($infos->info->turnTimerValue)/4;
+							$open_hours =  floor($seconds/3600);
+							$open_minutes = 	floor(($seconds%3600)/60)+1;
+							$dHtml .= "<h3 class='hr pad'>{L_GAME_SET_TIMER_THIS_ROUND}</h3>";
+							$dHtml .= "<form action='$this_page' method='get'>\n
+								<p>{L_HOURS}: <input type='number' name='hours' value='".$open_hours."' />\n
+								<p>{L_MINUTES}: <input type='number' name='minutes' value='".$open_minutes."' />\n
+								<input type='submit' />\n
+								<input type='hidden' name='action' value='admin' />\n
+								<input type='hidden' name='game' value='$gameId' />\n
+								<input type='hidden' name='step' value='10' />\n
 								<input type='hidden' name='opid' value='$opid' />\n
 								</p></form>\n";
 						}

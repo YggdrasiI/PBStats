@@ -1,5 +1,6 @@
  <?php
 $lang['hours'] = "Hours";
+$lang['minutes'] = "Minutes";
 $lang['message'] = "Message";
 
 $lang['game_status'] = "Game Summary";
@@ -16,6 +17,7 @@ $lang['game_name'] = "Name";
 $lang['game_turn'] = "Turn";
 $lang['game_date'] = "Date";
 $lang['game_timer'] = "Timer";
+$lang['game_timer_next_round'] = "Length of next turn";
 $lang['game_pause'] = "Break";
 $lang['game_paused'] = "Game paused";
 $lang['game_pause_enable'] = "Enable Pause";
@@ -43,8 +45,10 @@ $lang['game_short_names_successful'] = "Change done.<br>New length of leader nam
 $lang['leader_name'] = "Leader name";
 $lang['civ_desc'] = "Civ description";
 
-$lang['game_set_timer'] = "Change Turn Timer";
+$lang['game_set_timer'] = "Change turn timer";
 $lang['game_set_timer_successful'] = "Set turn timer on %s.";
+$lang['game_set_timer_this_round'] = "Set timer of current round";
+$lang['game_set_timer_this_round_successful'] = "Set current timer on %sh %sm.";
 $lang['game_end_round'] = "Force End of Turn";
 $lang['game_end_turn_successful'] = "A new turn was started.";
 $lang['game_end_turn_error'] = "Error. The server replys: ";

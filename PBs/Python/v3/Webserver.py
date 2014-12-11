@@ -208,7 +208,17 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 					elif( action == "setTurnTimer" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
 							iHours = int( inputdata.get("value",24) )
 							PB.turnTimerChanged(iHours)
-							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Deactivate pause.' } ) +"\n" )
+							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Set turn timer on '+str(iHours)+' hours.' } ) +"\n" )
+
+					elif( action == "setCurrentTurnTimer" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+							iSeconds = int( inputdata.get("seconds",0) )
+							iMinutes = int( inputdata.get("minutes",0) )
+							iHours = int( inputdata.get("hours",0) )
+							iSeconds = iSeconds + 60*iMinutes + 3600*iHours
+							if iSeconds < 60:
+								iSeconds = 60
+							gc.getGame().incrementTurnTimer( -PB.getTurnTimeLeft()+4*iSeconds )
+							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Set timer for current round.' } ) +"\n" )
 
 					elif( action == "setPause" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
 							bPause = int(inputdata.get("value",0))
@@ -229,11 +239,17 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 							filename = r"Auto_" + PB.getGamename() + r"_R" + str(PB.getGameturn()) + r"end_" + PB.getGamedate(False) + r".CivBeyondSwordSave"
 							self.server.createSave(str(filename), 1)
 
-							#gc.getGame().doControl(ControlTypes.CONTROL_FORCEENDTURN)#wrong
-							messageControl = CyMessageControl()
-							messageControl.sendTurnCompleteAll()
+							if( PB.getTurnTimer() ):
+								gc.getGame().incrementTurnTimer( -PB.getTurnTimeLeft()+4*20 )
+								msg = 'Set timer on a few seconds.'
+							else:
+								# This variant made trouble with automated units and KI?!
+								messageControl = CyMessageControl()
+								messageControl.sendTurnCompleteAll()
+								msg = 'End turn'
 
-							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Start new round.' } ) +"\n" )
+							self.wfile.write( simplejson.dumps( {'return':'ok','info':msg } ) +"\n" )
+
 
 					elif( action == "restart" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
 						# Save current game and reload this save if no expicit filename is given

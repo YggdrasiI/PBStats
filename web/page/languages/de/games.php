@@ -1,5 +1,6 @@
  <?php
 $lang['hours'] = "Stunden";
+$lang['minutes'] = "Minuten";
 $lang['message'] = "Nachricht";
 
 $lang['game_status'] = "Status"; //"Status & Spielerliste";
@@ -16,6 +17,7 @@ $lang['game_name'] = "Name";
 $lang['game_turn'] = "Runde";
 $lang['game_date'] = "Datum";
 $lang['game_timer'] = "Timer";
+$lang['game_timer_next_round'] = "Zeit für nächste Runde";
 $lang['game_pause'] = "Pause";
 $lang['game_paused'] = "Spiel pausiert";
 $lang['game_pause_enable'] = "Aktiviere Pause";
@@ -44,6 +46,8 @@ $lang['civ_desc'] = "Nationenbeschreibung";
 
 $lang['game_set_timer'] = "Setze den Runden-Timer";
 $lang['game_set_timer_successful'] = "Runden-Timer auf %s gesetzt.";
+$lang['game_set_timer_this_round'] = "Setze Timer der aktuellen Runde";
+$lang['game_set_timer_this_round_successful'] = "Timer auf %sh %sm gesetzt.";
 $lang['game_end_round'] = "Forciere Rundenende";
 $lang['game_end_turn_successful'] = "Die neue Runde wurde eingeleitet.";
 $lang['game_end_turn_error'] = "Fehler. Der Server antwortete: ";

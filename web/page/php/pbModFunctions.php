@@ -389,6 +389,7 @@ function display_game_info($gameData){
 		}else{
 			$gameStatus = $infos->info;	
 			$players = append_status($gameStatus->players);
+			$timeDiff = 0;
 
 			//Compare current status with last status to track changes in the log
 			if( $cachedStatus != null ){
@@ -414,8 +415,12 @@ function display_game_info($gameData){
 			$seconds -= $timeDiff;
 			$timerString =  ''.floor($seconds/3600).':'. // Hours
 				gmdate("i:s", $seconds%3600 );//minutes and seconds
+			$seconds_rt = $seconds*5/4;
+			$timerString_rt =  ''.floor($seconds_rt/3600).':'. // Hours
+				gmdate("i:s", $seconds_rt%3600 );//minutes and seconds
 			$timerLimit = $gameStatus->turnTimerMax;
-			$dHtml .= "<p>{L_GAME_TIMER}: <b>" . $timerString . "</b> from $timerLimit hours left.</p>\n";
+			$dHtml .= "<p>{L_GAME_TIMER}: <b>" . $timerString . "</b> (ingame clock) / <b>" . $timerString_rt . "</b> (realtime clock)<br/>\n";
+			$dHtml .= "{L_GAME_TIMER_NEXT_ROUND}: $timerLimit {L_HOURS}.</p>\n";
 		}else{
 			//$dHtml .= "<p>Timer: Not set</p>";
 		}
