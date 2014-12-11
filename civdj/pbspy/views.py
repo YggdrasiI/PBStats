@@ -229,7 +229,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
         self.log_setup(game, context)
 
-        context['timezone'] = self.request.session["django_timezone"]
+        context['timezone'] = self.request.session.get("django_timezone")
         return context
 
     def genPlayerChoices(self, game):
