@@ -390,6 +390,16 @@ int CyGame::getTurnSlice() const
 	return (NULL != m_pGame ? m_pGame->getTurnSlice() : -1);
 }
 
+//PB Mod, for increment and decrement
+void CyGame::incrementTurnTimer(int iNumTurnSlices){
+	if( m_pGame != NULL){
+		if (isMPOption(MPOPTION_TURN_TIMER)){
+			m_pGame->incrementTurnTimer(iNumTurnSlices);
+		}
+	}
+}
+//END PB Mod
+
 int CyGame::getMinutesPlayed() const
 {
 	return (NULL != m_pGame ? m_pGame->getMinutesPlayed() : 0);
