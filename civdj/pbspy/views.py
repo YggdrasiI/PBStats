@@ -236,7 +236,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         # Generate list of (id,Name)-Tuples for formulars
         #players_from_db = list( game.player_set.all().order_by('ingame_id'))
         players_from_db =  game.player_set.all().order_by('ingame_id')
-        choices = [(p.ingame_id, "{:2}".format(p.ingame_id) + u"—" + p.name) for p in players_from_db]
+        choices = [(p.ingame_id, "{:2}".format(p.ingame_id) + r"—" + p.name) for p in players_from_db]
         choices.insert(0, (-1,"All") )
         return tuple(choices)
 

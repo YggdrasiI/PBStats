@@ -521,7 +521,7 @@ class Player(models.Model):
 
     # Required for python2.x and umlautes
     def __unicode__(self):
-        return _(u"{} ({} of {})").format(self.name, self.leader, self.civilization)
+        return _("{} ({} of {})").format(self.name, self.leader, self.civilization)
 
 class GameLog(PolymorphicModel):
     game = models.ForeignKey(Game)
