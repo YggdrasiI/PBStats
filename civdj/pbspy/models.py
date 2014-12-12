@@ -723,8 +723,8 @@ class GameLogMissedTurn(GameLog):
                 not player['ping'][1] == '['):
                 missed.append( ( str(player["id"]), str(player["name"]) ) )
         if len(missed) > 0:
-            self.missed_turn_names = ",".join(zip(*missed)[1])
-            self.missed_turn_ids = ",".join(zip(*missed)[0])
+            self.missed_turn_names = ",".join(list(zip(*missed))[1])
+            self.missed_turn_ids = ",".join(list(zip(*missed))[0])
         else:
             self.missed_turn_names = ""
             self.missed_turn_ids = ""
