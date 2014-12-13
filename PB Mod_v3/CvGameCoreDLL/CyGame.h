@@ -106,6 +106,9 @@ public:
 	int getEstimateEndTurn() const;
 	void setEstimateEndTurn(int iNewValue);
 	int getTurnSlice() const;
+	//PB Mod, for increment and decrement
+	void incrementTurnTimer(int iNumTurnSlices);
+	//END PB Mod
 	int getMinutesPlayed() const;
 	int getTargetScore() const;
 	void setTargetScore(int iNewValue);

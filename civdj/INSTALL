@@ -2,16 +2,13 @@
 
 == Dependencies ==
 
-sudo apt-get install python-pip
+sudo apt-get install python-pip node-less
 sudo pip install Django==1.7
 sudo pip install django-polymorphic django-debug-toolbar django-erroneous \
-django-registration-redux django-crispy-forms django-debug-toolbar \
-django-floppyforms django-sendmail-backend \
+django-registration-redux django-crispy-forms \
+django-floppyforms django-sendmail-backend django-static-precompiler \
 mysql-connector-python pytz setuptools six South sqlparse
 
-#New, Less->CSS-Compiler
-sudo apt-get install node-less
-sudo pip install django-static-precompiler
 The following command updates less/css files:
 python manage.py collectstatic
 
@@ -20,6 +17,8 @@ python manage.py collectstatic
 python manage.py migrate
 python manage.py createsuperuser
 
+Now, adapt civdj/settings.py to your environment.
+Set Debug on True during the setup.
 
 == Start ==
 python manage.py runserver

@@ -219,7 +219,7 @@ class Game(models.Model):
 
         if turn > self.turn:
             mt = GameLogMissedTurn(**logargs)
-            mt.set_missed_players(info['players'])
+            mt.set_missed_players(self.player_set.all())
             if mt.roundWasIncomplete():
                 mt.save()
             GameLogTurn(**logargs).save()
@@ -521,7 +521,7 @@ class Player(models.Model):
 
     # Required for python2.x and umlautes
     def __unicode__(self):
-        return _(u"{} ({} of {})").format(self.name, self.leader, self.civilization)
+        return _("{} ({} of {})").format(self.name, self.leader, self.civilization)
 
 class GameLog(PolymorphicModel):
     game = models.ForeignKey(Game)
@@ -719,12 +719,12 @@ class GameLogMissedTurn(GameLog):
         missed = []
         for player in players:
             # Player is online if ping string contains '['
-            if( not player['finishedTurn'] and
-                not player['ping'][1] == '['):
-                missed.append( ( str(player["id"]), str(player["name"]) ) )
+            if( not player.finished_turn and
+                not player.ping[1] == '['):
+                missed.append( ( str(player.ingame_id), str(player.name) ) )
         if len(missed) > 0:
-            self.missed_turn_names = ",".join(zip(*missed)[1])
-            self.missed_turn_ids = ",".join(zip(*missed)[0])
+            self.missed_turn_names = ",".join(list(zip(*missed))[1])
+            self.missed_turn_ids = ",".join(list(zip(*missed))[0])
         else:
             self.missed_turn_names = ""
             self.missed_turn_ids = ""
