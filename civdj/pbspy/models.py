@@ -220,7 +220,7 @@ class Game(models.Model):
         if turn > self.turn:
             mt = GameLogMissedTurn(**logargs)
             mt.set_missed_players(self.player_set.all())
-            if mt.roundWasIncomplete():
+            if mt.is_turn_incomplete():
                 mt.save()
             GameLogTurn(**logargs).save()
         elif (turn < self.turn or
@@ -529,7 +529,7 @@ class GameLog(PolymorphicModel):
     year = models.IntegerField()
     turn = models.PositiveSmallIntegerField()
     text = "(GameLog) No text defined."
-    bPublic = True # non-public log entries are for admins, only.
+    is_public = True # non-public log entries are for admins, only.
 
     def message(self):
         return _(self.text)
@@ -553,7 +553,7 @@ class GameLog(PolymorphicModel):
       return self.getLogName()
 
     def isPublic(self):
-        return self.bPublic
+        return self.is_public
 
 
 class GameLogTurn(GameLog):
@@ -708,7 +708,7 @@ class GameLogForceDisconnect(GameLog):
 class GameLogMissedTurn(GameLog):
     missed_turn_names = models.CharField(max_length=2000)
     missed_turn_ids = models.CommaSeparatedIntegerField(max_length=200)
-    bPublic = False
+    is_public = False
 
     # The integration of set_missed_players into the constructor
     # creates conflicts with the polymorphic stuff. Thus, I separeted both (Ramk)
@@ -719,9 +719,8 @@ class GameLogMissedTurn(GameLog):
         missed = []
         for player in players:
             # Player is online if ping string contains '['
-            if( not player.finished_turn and
-                not player.ping[1] == '['):
-                missed.append( ( str(player.ingame_id), str(player.name) ) )
+            if not player.finished_turn and not player.ping[1] == '[':
+                missed.append((str(player.ingame_id), str(player.name)))
         if len(missed) > 0:
             self.missed_turn_names = ",".join(list(zip(*missed))[1])
             self.missed_turn_ids = ",".join(list(zip(*missed))[0])
@@ -729,14 +728,14 @@ class GameLogMissedTurn(GameLog):
             self.missed_turn_names = ""
             self.missed_turn_ids = ""
 
-    def roundWasIncomplete(self):
-        return (len(str(self.missed_turn_names)) > 0)
+    def is_turn_incomplete(self):
+        return not self.missed_turn_names
 
     def message(self):
-        formatNames = []
+        format_names = []
         names = self.missed_turn_names.split(",")
         ids = self.missed_turn_ids.split(",")
         for (player_name, player_id) in zip(names, ids):
-            formatNames.append( _("<li>{} (Id={})</li>").format(player_name, player_id))
-        return _("Following players does not finished their turn")+":<ul>{players}</ul>".\
-            format(players="\r\n".join(formatNames))
+            format_names.append(_("<li>{} (Id={})</li>").format(player_name, player_id))
+        return _("The following players did not finished their turn:") + "<ul>{players}</ul>".\
+            format(players="\r\n".join(format_names))
