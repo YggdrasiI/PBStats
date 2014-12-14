@@ -8,6 +8,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator, URLVali
 from polymorphic import PolymorphicModel
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.template.loader import render_to_string
+from django.core.urlresolvers import reverse
 
 import datetime
 import re
@@ -24,6 +26,15 @@ class InvalidCharacterError(Exception):
 
 class InvalidPBResponse(Exception):
     pass
+
+
+def email_helper(user, tag, **context):
+    context['username'] = user.username
+    subject = render_to_string('pbspy/email_{tag}_subject.txt'.format(tag=tag), context)
+    # Email subject *must not* contain newlines
+    subject = ''.join(subject.splitlines())
+    message  = render_to_string('pbspy/email_{tag}.txt'.format(tag=tag), context)
+    user.email_user(subject, message)
 
 
 # NOTE: Year is stored as number (should be integer but actually float) with month prefix
@@ -103,13 +114,15 @@ class Game(models.Model):
     # In seconds!
     timer_remaining_4s = models.PositiveIntegerField(blank=True, null=True)
 
-    admins             = models.ManyToManyField(User)
+    admins             = models.ManyToManyField(User, related_name='admin_games')
     is_private         = models.BooleanField(default=False)
     is_online          = models.BooleanField(default=True)
     #This values has to set manually by Admins
     is_finished        = models.BooleanField(default=False)
     victory_player_id  = models.SmallIntegerField(default=-1)
     victory_type       = models.SmallIntegerField(default=-1)
+
+    subscribed_users   = models.ManyToManyField(User, related_name='subscribed_games')
 
     def auth_hash(self):
         return hashlib.md5(self.pb_remote_password.encode()).hexdigest()
@@ -122,9 +135,10 @@ class Game(models.Model):
         return self.update_date + delta
 
     # Estimate end in realtime (PB clock runs slower).
+    # TODO find better way to estimate e.g. interpolate from log
     def timer_end_realtime(self):
         delta = datetime.timedelta(seconds=round(self.timer_remaining_4s / 4))
-        return self.update_date + delta*5/4
+        return self.update_date + delta * 5 / 4
 
     def year_str(self):
         return format_year(self.year)
@@ -152,26 +166,26 @@ class Game(models.Model):
             return []
         return self.player_set.all().filter(is_online=True)
 
-    def refresh(self, minimalTimeDiff=60, ignoreGameState=False):
+    def refresh(self, min_time_diff=60, ignore_game_state=False):
         """
         Check timestamp and request new data from pb server
         if we assume newer data.
         """
-        if not ignoreGameState and not self.is_online:
+        if not ignore_game_state and not self.is_online:
             return
-        if not ignoreGameState and self.is_finished:
+        if not ignore_game_state and self.is_finished:
             return
         cur_date = timezone.now()
-        delta = datetime.timedelta(seconds=minimalTimeDiff)
-        if( cur_date < self.update_date + delta ):
+        delta = datetime.timedelta(seconds=min_time_diff)
+        if cur_date < self.update_date + delta:
             return
         try:
             info = self.pb_info()
-        except (InvalidPBResponse,URLError) as e:
-            if( self.is_online ):
+        except (InvalidPBResponse, URLError):
+            if self.is_online:
                 self.is_online = False
-                if ignoreGameState:
-                  self.update_date = cur_date
+                if ignore_game_state:
+                    self.update_date = cur_date
                 self.save()
                 return
 
@@ -206,16 +220,16 @@ class Game(models.Model):
         player_count_old = self.player_set.count()
         player_count = len(info['players'])
         if (self.pb_name != info['gameName'] or
-                player_count_old != player_count ):
+                player_count_old != player_count):
             GameLogMetaChange(
                 pb_name_old=self.pb_name,
                 pb_name=info['gameName'],
                 player_count_old=player_count_old,
                 player_count=player_count,
-                **logargs ).save()
+                **logargs).save()
             #Remove player list of old game
-            if( player_count_old > 0 ):
-              self.player_set.all().delete()
+            if player_count_old > 0:
+                self.player_set.all().delete()
 
         if turn > self.turn:
             mt = GameLogMissedTurn(**logargs)
@@ -223,10 +237,12 @@ class Game(models.Model):
             if mt.is_turn_incomplete():
                 mt.save()
             GameLogTurn(**logargs).save()
+            self.send_new_turn_info()
         elif (turn < self.turn or
                 (timer_remaining_4s is not None and
                  self.timer_remaining_4s is not None and
-                 timer_remaining_4s > self.timer_remaining_4s + 1200 )):
+                 timer_remaining_4s > self.timer_remaining_4s + 1200 / 4)):
+            # TODO find a better way than to hardcode the value
             #Note: Ignore small time difference because every combat increase
             # the timer by the combat animation time
             GameLogReload(**logargs).save()
@@ -235,13 +251,13 @@ class Game(models.Model):
             GameLogPause(paused=is_paused, **logargs).save()
 
         if is_headless != self.is_headless:
-          pass
+            pass
 
         if is_autostart != self.is_autostart:
-          pass
+            pass
 
         if is_online != self.is_online:
-          pass
+            pass
 
         self.timer_max_h        = timer_max_h
         self.timer_remaining_4s = timer_remaining_4s
@@ -269,7 +285,7 @@ class Game(models.Model):
             values['password'] = self.pb_remote_password
         json_data = json.dumps(values)
         # should we maybe use 'ascii' or the default 'utf-8'
-        data = urllib.parse.urlencode({json_data : None}).encode()
+        data = urllib.parse.urlencode({json_data: None}).encode()
 
         headers = {'Content-Type': 'application/json'}
         # Note: urllib will add Content-Length and a nice user-agent for us
@@ -304,9 +320,9 @@ class Game(models.Model):
     def pb_set_motd(self, message, user=None):
         return self.pb_action(action='setMotD', msg=str(message))
 
-    def pb_short_names(self, iShortNameLen, iShortDescLen, user=None):
-        return self.pb_action(action='setShortNames', enable=(iShortNameLen>0),
-                maxLenName=int(iShortNameLen), maxLenDesc=int(iShortDescLen) )
+    def pb_short_names(self, short_name_len, short_name_sdec, user=None):
+        return self.pb_action(action='setShortNames', enable=(short_name_len > 0),
+                              maxLenName=int(short_name_len), maxLenDesc=int(short_name_sdec))
 
     def pb_set_autostart(self, value, user=None):
         return self.pb_action(action='setAutostart', value=bool(value))
@@ -339,8 +355,8 @@ class Game(models.Model):
     def pb_end_turn(self, user=None):
         return self.pb_action(action='endTurn')
 
-    def pb_restart(self, filename, folderIndex=0, user=None):
-        return self.pb_action(action='restart', filename=filename, folderIndex=folderIndex)
+    def pb_restart(self, filename, folder_index=0, user=None):
+        return self.pb_action(action='restart', filename=filename, folder_index=folder_index)
 
     def pb_set_player_password(self, player_id, new_password, user=None):
         if isinstance(player_id, Player):
@@ -392,19 +408,36 @@ class Game(models.Model):
         #self.validate_connection()
         pass
 
-    def validate_connection(self, raiseException=True):
+    def validate_connection(self, raise_exception=True):
         # This will raise InvalidPBResponse or something else when we cannot connect
         try:
             info = self.pb_info()
         except InvalidPBResponse as e:
-            if raiseException:
+            if raise_exception:
                 raise ValidationError("Invalid response from the pitboss management interface. Possibly invalid password.")
             return False
         except URLError as e:
-            if raiseException:
+            if raise_exception:
                 raise ValidationError("Could not connect to the pitboss management interface.")
             return False
         return True
+
+    def subscribe_user(self, user, request):
+        self.subscribed_users.add(user)
+        email_helper(user, 'subscribed',
+                     game_name=self.name, game_pb_name=self.pb_name,
+                     manage_url=reverse('game_detail', args=[self.id]))
+        return _("You will now receive turn emails for this game on at {email}.").format(email=user.email)
+
+    def unsubscribe_user(self, user):
+        self.subscribed_users.remove(user)
+        return _("You will no longer receive new turn emails for this game at {email}").format(email=user.email)
+
+    def send_new_turn_info(self):
+        for user in self.subscribed_users.all():
+            email_helper(user, 'new_turn',
+                         game_name=self.name, game_pb_name=self.pb_name, turn=self.turn,
+                         manage_url=reverse('game_detail', args=[self.id]))
 
     def __str__(self):
         return self.name
@@ -523,6 +556,7 @@ class Player(models.Model):
     def __unicode__(self):
         return _("{} ({} of {})").format(self.name, self.leader, self.civilization)
 
+
 class GameLog(PolymorphicModel):
     game = models.ForeignKey(Game)
     date = models.DateTimeField(db_index=True)
@@ -540,20 +574,18 @@ class GameLog(PolymorphicModel):
                    turn=self.turn) + self.message()
 
     @classmethod
-    def generateGenericLogTypeName(arg):
-      #cname = __class__.__name__
-      cname = arg.__name__
-      logtype = cname.replace('GameLog','',1)
-      def getLogName():
-        return logtype
-      return getLogName
+    def generate_generic_log_type_name(cls):
+        cname = cls.__name__
+        logtype = cname.replace('GameLog', '', 1)
 
-    def getLogName(self):
-      self.getLogName = self.generateGenericLogTypeName()
-      return self.getLogName()
+        def get_log_name():
+            return logtype
 
-    def isPublic(self):
-        return self.is_public
+        return get_log_name
+
+    def get_log_name(self):
+        self.get_log_name = self.generate_generic_log_type_name()
+        return self.get_log_name()
 
 
 class GameLogTurn(GameLog):
@@ -569,6 +601,7 @@ class GameLogTurn(GameLog):
         return "The name of this type of log message.";
       return getLogName
     """
+
 
 class GameLogReload(GameLog):
     def message(self):
@@ -620,7 +653,7 @@ class GameLogPlayer(GameLog):
         return _("{date}/{year}/turn {turn}, {player}: ").\
             format(date=self.date, year=format_year(self.year),
                    turn=self.turn,
-                   player=self.player_name)+ self.message()
+                   player=self.player_name) + self.message()
 
 
 class GameLogLogin(GameLogPlayer):

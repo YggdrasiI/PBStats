@@ -7,7 +7,7 @@
     <div id="game_summary"><a name="game_summary" ></a>
       {% if can_manage %}
       (<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
-			(<a href="{% url 'game_change' game.id %}">edit game</a>)
+	  (<a href="{% url 'game_change' game.id %}">edit game</a>)
       {% endif %}
       <div id="game_metadata">
         <h2>{% trans "game status" %}</h2>
@@ -57,6 +57,22 @@
 							(Last connection attempt to PB Server: {{ last_activity }})
 							{% endblocktrans %}
           </p>
+{% if user.is_authenticated %}
+          <p class="game_info">
+      {% if not user in game.subscribed_users.all %}
+             <form method="post" action="{% url 'game_subscribe' game.id %}">
+                 {% csrf_token %}
+                 <span><input type="submit" value="{% trans "subscribe to new turn emails for this game" %}" /></span>
+             </form>
+      {% else %}
+             <form method="post" action="{% url 'game_unsubscribe' game.id %}">
+                 {% csrf_token %}
+                 {% trans "You are currently receiving new turn emails for this." %}
+                 <span><input type="submit" value="{% trans "unsubscribe" %}" /></span>
+             </form>
+      {% endif %}
+          </p>
+{% endif %}
         </div>
         <div class="game_url"><a href="{{ game.url }}">{{ game.url }}</a></div>
       </div>
@@ -124,7 +140,7 @@
             <div id="game_log_filter">
 							<form method="post" action="{% url 'game_detail' game.id %}?player_order={{ orders.current }}#game_log">
                 {% csrf_token %}
-                {{ logFilterForm.as_p }}
+                {{ log_filter_form.as_p }}
 								<input type='submit' value='{% trans "Change filter" %}'>
               </form>
             </div>
@@ -145,15 +161,15 @@
                     <th class="colType">{% trans "Type" %}</th>
                 </tr>
             {% for logentry in log %}
-              {% if can_manage or logentry.isPublic %}
-                <tr class="log{{ logentry.getLogName }}">
+              {% if can_manage or logentry.is_public %}
+                <tr class="log{{ logentry.get_log_name }}">
                     <td class="colDate">{{ logentry.date }}</td>
                     <td class="colTurn">{{ logentry.turn }}</td>
                     <td class="colPlayer">{{ logentry.player_name|default:"-" }}</td>
                     {% autoescape off %}
                     <td class="colEvent">{{ logentry.message }}</td>
                     {% endautoescape %}
-                    <td class="colType">{{ logentry.getLogName }}</td>
+                    <td class="colType">{{ logentry.get_log_name }}</td>
                 </tr>
               {% endif %}
             {% endfor %}
