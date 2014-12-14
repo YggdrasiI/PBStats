@@ -422,7 +422,7 @@ class Game(models.Model):
             return False
         return True
 
-    def subscribe_user(self, user, request):
+    def subscribe_user(self, user):
         self.subscribed_users.add(user)
         email_helper(user, 'subscribed',
                      game_name=self.name, game_pb_name=self.pb_name,
