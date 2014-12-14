@@ -1,4 +1,4 @@
 {% load i18n %}
 {% blocktrans %}
-[{{game_name}}] registered as {{leader}} of {{civilization}}
+[{{game_name}}] subscribed to new turn notification
 {% endblocktrans %}
