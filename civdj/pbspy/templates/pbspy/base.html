@@ -46,7 +46,15 @@
         </ul>
         {% endblock %}
     </div>
-
+{% if messages %}
+    <div id="messages">
+    {% for message in messages %}
+        <ul>
+            {{ message }}
+        </ul>
+    {% endfor %}
+    </div>
+{% endif %}
     <div id="content">
         {% block content %}{% endblock %}
     </div>
