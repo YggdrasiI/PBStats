@@ -44,7 +44,7 @@ function getTimezoneList(url, e,current){
 	e.onchange = function() {
         setTimezone(url, this)
     }
-	e.onclick = null;
+    e.onclick = null;
 }
 
 /* Set timezone cookie over value of selection box and replace the dropdown
