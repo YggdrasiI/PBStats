@@ -15,7 +15,7 @@
 
 </head>
 {% spaceless %}
-<body>
+<body onload="checkTimezone('{% url "set_timezone" %}')">
     <div id="sidebar">
         {% block sidebar %}
         <ul>

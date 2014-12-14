@@ -146,7 +146,7 @@
             </div>
 						<div id="timezone_selector">
 							<p><label>{% trans "Timezone" %}:</label>
-							<select onClick="getTimezoneList(this,'{{ timezone }}');">
+							<select onClick="getTimezoneList('{% url "set_timezone" %}', this,'{{ timezone }}');">
 								<option value="{{ timezone }}">{{ timezone }}</option>
 							</select>
 							</p>

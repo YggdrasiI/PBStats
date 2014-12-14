@@ -26,7 +26,7 @@ function getCookie(cname) {
 /* Replace e with a dropdown menu to
 * select a new timezone.
 */
-function getTimezoneList(e,current){
+function getTimezoneList(url, e,current){
 	var h = ''
 	for ( var tz in jstz.olson.timezones ){
 		tzName = jstz.olson.timezones[tz];
@@ -41,17 +41,19 @@ function getTimezoneList(e,current){
 		h += "<option value='"+tzName+"' "+(tzName==current?"selected":"")+">"+title+"</option>\n";
 	}
 	e.innerHTML = h;
-	e.onchange = function(){setTimezone(this)}
+	e.onchange = function() {
+        setTimezone(this)
+    }
 	e.onclick = null;
 }
 
 /* Set timezone cookie over value of selection box and replace the dropdown
  *	menu with the selected value.
 */
-function setTimezone(e){
+function setTimezone(url, e){
 	tzName = e.options[e.selectedIndex].value;
 	document.cookie = "timezone = " + tzName;
-	$.get("/set_timezone", "timezone="+encodeURIComponent(tzName), function(data){
+	$.get(url, "timezone="+encodeURIComponent(tzName), function(data){
 		//alert("Get reply:\n"+data);
 	});
 }
@@ -82,11 +84,13 @@ function setTimezoneOld(e){
 }
 */
 
-if( getCookie("timezone") == "" ){
-	var tz = jstz.determine();
-	document.cookie = "timezone = " + tz.name();
-	$.get("/set_timezone", "timezone="+encodeURIComponent(tz.name()), null);
-}else{
-	//alert(getCookie("timezone"));
-	//genTZList(getCookie("timezone"));
+function checkTimezone(url) {
+    if (getCookie("timezone") == "") {
+        var tz = jstz.determine();
+        document.cookie = "timezone = " + tz.name();
+        $.get(url, "timezone="+encodeURIComponent(tz.name()), null);
+    } else {
+        //alert(getCookie("timezone"));
+        //genTZList(getCookie("timezone"));
+    }
 }
