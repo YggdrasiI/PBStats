@@ -1,0 +1,8 @@
+{% load i18n %}
+{% blocktrans %}
+Hello {{user_name}},
+
+There is a new turn {{turn}} in the Civilization 4 Pitboss game "{{game_name}}".
+You receive this email because you have registered as {{leader}} of {{civilization}}".
+You can control your email settings at http://civ.zulan.net{{manage_url}}.
+{% endblocktrans %}

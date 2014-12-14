@@ -19,7 +19,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count, Q
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
@@ -41,7 +41,8 @@ class GameListView(generic.ListView):
         self.refresh_games(games_queryset)
         return games_queryset
 
-    def refresh_games(self,games_queryset):
+    @staticmethod
+    def refresh_games(games_queryset):
         for game in games_queryset:
             game.refresh(300)
 
@@ -69,8 +70,8 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         '-name': ['-name', '-score', 'ingame_id'],
         'status': ['ingame_id'],
         '-status': ['-ingame_id'],
-        'finished': ['-finished_turn','ingame_id'],
-        '-finished': ['finished_turn','ingame_id'],
+        'finished': ['-finished_turn', 'ingame_id'],
+        '-finished': ['finished_turn', 'ingame_id'],
     }
 
     # Tuple of GameLog sub classes (subset)
@@ -90,14 +91,13 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
     # Generate key and names for select form
     log_choices = tuple(
-        [(l.__name__, l.generateGenericLogTypeName()()) for l in log_classes])
+        [(l.__name__, l.generate_generic_log_type_name()()) for l in log_classes])
     log_keys = dict(log_choices).keys()
 
-    player_choices = tuple(zip(range(52),range(52)))
+    player_choices = tuple(zip(range(52), range(52)))
 
     # Default offset for turn filtering of log
-    log_turn_filter = {'offset_max':0, 'offset_min':1 }
-
+    log_turn_filter = {'offset_max': 0, 'offset_min': 1}
 
     def player_list_setup(self, game, context):
         # 1. Get uri argument 'player_order'
@@ -140,21 +140,20 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
     def log_setup(self, game, context):
         # 0. Define turn filter
-        turn_filter = self.request.session.get('log_turn_filter',
-                GameDetailView.log_turn_filter )
+        turn_filter = self.request.session.get('log_turn_filter', GameDetailView.log_turn_filter)
         # Use absolute turn values to filter
         turn_max = game.turn - turn_filter['offset_max']
         turn_min = game.turn - turn_filter['offset_min']
-        roundlog = game.gamelog_set.filter( Q(GameLog___turn__range = [turn_min,turn_max] ) )
+        roundlog = game.gamelog_set.filter(Q(GameLog___turn__range=[turn_min, turn_max]))
 
         # 1. Define player filter
-        player_id = int(self.request.GET.get('player_id',-1))
+        player_id = int(self.request.GET.get('player_id', -1))
         if player_id > -1:
-            self.request.session.setdefault('player_ids',{})[str(game.id)] = [player_id]
+            self.request.session.setdefault('player_ids', {})[str(game.id)] = [player_id]
             self.request.session.modified = True
 
-        player_ids = self.request.session.get('player_ids',{}).get(str(game.id),None)
-        if player_ids != None:
+        player_ids = self.request.session.get('player_ids', {}).get(str(game.id), None)
+        if player_ids is not None:
             p_list = [Q(**{'GameLogPlayer___player__id': None}),
                       Q(**{'GameLogPlayer___player__ingame_id__in': player_ids})
                       ]
@@ -165,14 +164,14 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         # 2. Define new form for log filter selection
         log_type_filter = self.request.session.get(
             'log_type_filter', GameDetailView.log_keys)
-        logFilterForm = GameLogTypesForm()
-        logFilterForm.fields['log_type_filter'].choices = GameDetailView.log_choices
-        logFilterForm.fields['log_type_filter'].initial = log_type_filter
-        logFilterForm.fields['log_turn_max'].initial = game.turn - turn_filter['offset_max']
-        logFilterForm.fields['log_turn_min'].initial = game.turn - turn_filter['offset_min']
-        logFilterForm.fields['log_player_ids'].choices = self.genPlayerChoices(game)
-        logFilterForm.fields['log_player_ids'].initial = player_ids
-        context['logFilterForm'] = logFilterForm
+        log_filter_form = GameLogTypesForm()
+        log_filter_form.fields['log_type_filter'].choices = GameDetailView.log_choices
+        log_filter_form.fields['log_type_filter'].initial = log_type_filter
+        log_filter_form.fields['log_turn_max'].initial = game.turn - turn_filter['offset_max']
+        log_filter_form.fields['log_turn_min'].initial = game.turn - turn_filter['offset_min']
+        log_filter_form.fields['log_player_ids'].choices = self.get_player_choices(game)
+        log_filter_form.fields['log_player_ids'].initial = player_ids
+        context['log_filter_form'] = log_filter_form
 
         # Just filter if not all types are selected
         if 0 < len(log_type_filter) < len(GameDetailView.log_choices):
@@ -232,12 +231,13 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         context['timezone'] = self.request.session.get("django_timezone")
         return context
 
-    def genPlayerChoices(self, game):
+    @staticmethod
+    def get_player_choices(game):
         # Generate list of (id,Name)-Tuples for formulars
         #players_from_db = list( game.player_set.all().order_by('ingame_id'))
-        players_from_db =  game.player_set.all().order_by('ingame_id')
+        players_from_db = game.player_set.all().order_by('ingame_id')
         choices = [(p.ingame_id, "{:2}".format(p.ingame_id) + r"—" + p.name) for p in players_from_db]
-        choices.insert(0, (-1,"All") )
+        choices.insert(0, (-1, "All"))
         return tuple(choices)
 
     def post(self, request, *args, **kwargs):
@@ -248,26 +248,26 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
         form = GameLogTypesForm(request.POST)
         form.fields['log_type_filter'].choices = GameDetailView.log_choices
-        form.fields['log_player_ids'].choices = self.genPlayerChoices(game)
+        form.fields['log_player_ids'].choices = self.get_player_choices(game)
 
-        turn_filter = self.request.session.get('log_turn_filter',
-                GameDetailView.log_turn_filter )
+        # FIXME what is up with this variable?
+        # turn_filter = self.request.session.get('log_turn_filter', GameDetailView.log_turn_filter)
 
         if form.is_valid():
             log_type_filter = form.cleaned_data.get('log_type_filter')
             self.request.session['log_type_filter'] = log_type_filter
             self.request.session['log_turn_filter'] = {
-                    'offset_max': game.turn - form.cleaned_data.get('log_turn_max'),
-                    'offset_min': game.turn - form.cleaned_data.get('log_turn_min')
-                    }
+                'offset_max': game.turn - form.cleaned_data.get('log_turn_max'),
+                'offset_min': game.turn - form.cleaned_data.get('log_turn_min')
+            }
             new_player_ids_str = form.cleaned_data.get('log_player_ids')
-            new_player_ids = [ int(pid) for pid in new_player_ids_str ]
+            new_player_ids = [int(pid) for pid in new_player_ids_str]
             if -1 in new_player_ids:
                 new_player_ids = None
 
             # Note that subkeys of sessionvariables session will be converted
             # into str type. Thus, int(game.id) would be a bad choice as key.
-            request.session.setdefault('player_ids',{})[str(game.id)] = new_player_ids
+            request.session.setdefault('player_ids', {})[str(game.id)] = new_player_ids
             request.session.modified = True
         else:
             return HttpResponseBadRequest('bad request')
@@ -323,22 +323,18 @@ def game_manage(request, game_id, action=""):
     if not game.is_online:
         return HttpResponse('Can not manage. PB Server not available.', status=200)
 
-    context = {'game': game}
-    context['timer_form'] = GameManagementTimerForm(
-        initial={'timer': game.timer_max_h})
-    context['chat_form'] = GameManagementChatForm()
-    context['motd_form'] = GameManagementMotDForm()
-    context['short_names_form'] = GameManagementShortNamesForm()
-    context['save_form'] = GameManagementSaveForm()
+    context = {'game': game,
+               'timer_form': GameManagementTimerForm(initial={'timer': game.timer_max_h}),
+               'chat_form': GameManagementChatForm(),
+               'motd_form': GameManagementMotDForm(),
+               'short_names_form': GameManagementShortNamesForm(),
+               'save_form': GameManagementSaveForm()}
 
     saves = sorted(game.pb_list_saves(), key=lambda k: -k['timestamp'])
-    load_choices = []
-
-    # Add entry for restart of running state
-    load_choices.append(('restart', 'Save and reload current game'))
+    load_choices = [('restart', 'Save and reload current game')]
 
     for save in saves:
-        folder_index = int(save['folderIndex'])
+        folder_index = int(save['folder_index'])
         key = "/".join([str(folder_index), save['name']])
         label = "{} ({})".format(save['name'], save['date'])
         choice = (key, label)
@@ -391,9 +387,8 @@ def game_manage(request, game_id, action=""):
         elif action == 'short_names':
             form = GameManagementShortNamesForm(request.POST)
             if form.is_valid():
-                game.pb_short_names(
-                        form.cleaned_data['iShortNameLen'],
-                        form.cleaned_data['iShortDescLen'] )
+                game.pb_short_names(form.cleaned_data['iShortNameLen'],
+                                    form.cleaned_data['iShortDescLen'])
                 return HttpResponse('Set short names.', status=200)
             context['short_names_form'] = form
         elif action == 'save':
@@ -448,6 +443,7 @@ def game_manage(request, game_id, action=""):
 
     return render(request, 'pbspy/game_manage.html', context)
 
+
 def render_game_manage_color(request, game, context):
     context['colors'] = game.pb_list_colors()
     if len(context['colors']) == 0:
@@ -456,38 +452,36 @@ def render_game_manage_color(request, game, context):
             game.player_set, len(context['colors']) )
     return render(request, 'pbspy/game_manage_color.html', context)
 
+
 def render_game_manage_load(request, game, context):
     saves = sorted(game.pb_list_saves(), key=lambda k: -k['timestamp'])
-    load_choices = []
-
-    # Add entry for restart of running state
-    load_choices.append(('restart', 'Save and reload current game'))
+    load_choices = [('restart', 'Save and reload current game')]
 
     for save in saves:
-        folder_index = int(save['folderIndex'])
+        folder_index = int(save['folder_index'])
         key = "/".join([str(folder_index), save['name']])
         label = "{} ({})".format(save['name'], save['date'])
         choice = (key, label)
         load_choices.append(choice)
 
     context['load_form'] = GameManagementLoadForm(load_choices)
-
-    # Add info about online players
     context['players_online'] = game.get_online_players()
     return render(request, 'pbspy/game_manage_load.html', context)
+
 
 def render_game_manage_motd(request, game, context):
     context['motd_form'] = GameManagementMotDForm()
     context['motd_form'].fields['message'].initial = game.pb_get_motd()
     return render(request, 'pbspy/game_manage_motd.html', context)
 
+
 def set_timezone(request):
     #from django.conf import settings
     #tz =  str(request.COOKIES.get("timezone",settings.TIME_ZONE))
-    tz =  str(request.GET.get("timezone",
-        request.COOKIES.get("timezone",None) ))
+    tz = str(request.GET.get("timezone", request.COOKIES.get("timezone", None)))
     request.session["django_timezone"] = tz
-    return HttpResponse('Set timezone on '+tz, status=200)
+    return HttpResponse('Set timezone on ' + tz, status=200)
+
 
 @login_required()
 def game_update_manual(request, game_id):
@@ -495,17 +489,18 @@ def game_update_manual(request, game_id):
     game.update()
     return HttpResponse('ok', status=200)
 
+
 @login_required()
 def game_change(request, game_id):
     game = Game.objects.get(id=game_id)
-    PASSWORD_DUMMY = "*****"
-    context = {'game':game}
+    password_dummy = "*****"
+    context = {'game': game}
     form = None
 
     if request.method == 'POST':
         pw_backup = game.pb_remote_password
         form = GameForm(request.POST, instance=game )
-        if form.fields["pb_remote_password"]  == PASSWORD_DUMMY:
+        if form.fields["pb_remote_password"]  == password_dummy:
             form.fields["pb_remote_password"] = game.pb_backup
         if form.is_valid():
             if game.validate_connection(False):
@@ -519,11 +514,24 @@ def game_change(request, game_id):
         else:
             context['game_data_not_valid'] = True
 
-    if form == None:
+    if form is None:
         form = GameForm(instance=game)
-        form.fields['pb_remote_password'].initial = PASSWORD_DUMMY
+        form.fields['pb_remote_password'].initial = password_dummy
     context['form'] = form
     return render(request, 'pbspy/game_change.html', context)
+
+
+@login_required()
+@require_http_methods(["POST"])
+def game_subscribe(request, game_id, subscribe=True):
+    game = Game.objects.get(id=game_id)
+    if subscribe:
+        message = game.subscribe_user(request.user)
+    else:
+        message = game.unsubscribe_user(request.user)
+    # TODO, also pass message... not sure how to do that easily ina redirect, probably ending up in a GET on a regex url
+    return redirect('game_detail', pk=game_id)
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
