@@ -42,7 +42,7 @@ function getTimezoneList(url, e,current){
 	}
 	e.innerHTML = h;
 	e.onchange = function() {
-        setTimezone(this)
+        setTimezone(url, this)
     }
 	e.onclick = null;
 }
