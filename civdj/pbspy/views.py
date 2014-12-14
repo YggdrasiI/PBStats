@@ -338,7 +338,7 @@ def game_manage(request, game_id, action=""):
     load_choices = [('restart', 'Save and reload current game')]
 
     for save in saves:
-        folder_index = int(save['folder_index'])
+        folder_index = int(save['folderIndex'])
         key = "/".join([str(folder_index), save['name']])
         label = "{} ({})".format(save['name'], save['date'])
         choice = (key, label)
@@ -462,7 +462,7 @@ def render_game_manage_load(request, game, context):
     load_choices = [('restart', 'Save and reload current game')]
 
     for save in saves:
-        folder_index = int(save['folder_index'])
+        folder_index = int(save['folderIndex'])
         key = "/".join([str(folder_index), save['name']])
         label = "{} ({})".format(save['name'], save['date'])
         choice = (key, label)
