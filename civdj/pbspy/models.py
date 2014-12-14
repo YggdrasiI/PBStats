@@ -375,7 +375,7 @@ class Game(models.Model):
         #Wrap in try to respect older mod versions
         try:
             result = self.pb_action(action='getMotD')
-            return str(result.get('msg',''))
+            return str(result.get('msg', ''))
         except InvalidPBResponse:
             return ''
 
@@ -408,19 +408,14 @@ class Game(models.Model):
         #self.validate_connection()
         pass
 
-    def validate_connection(self, raise_exception=True):
+    def validate_connection(self):
         # This will raise InvalidPBResponse or something else when we cannot connect
         try:
             info = self.pb_info()
-        except InvalidPBResponse as e:
-            if raise_exception:
-                raise ValidationError("Invalid response from the pitboss management interface. Possibly invalid password.")
-            return False
-        except URLError as e:
-            if raise_exception:
-                raise ValidationError("Could not connect to the pitboss management interface.")
-            return False
-        return True
+        except InvalidPBResponse:
+            raise ValidationError("Invalid response from the pitboss management interface. Possibly invalid password.")
+        except URLError:
+            raise ValidationError("Could not connect to the pitboss management interface.")
 
     def subscribe_user(self, user):
         self.subscribed_users.add(user)

@@ -23,7 +23,10 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ValidationError
+from django.utils.html import escape
 
+import pytz
 import json
 import operator
 import functools
@@ -300,16 +303,17 @@ def game_create(request):
         if form.is_valid():
             game = form.save()
             game.admins.add(request.user)
-            if game.validate_connection(False):
+            try:
+                game.validate_connection()
                 game.save()
                 game.update()
                 return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
-            else:
+            except ValidationError:
                 """
                 TODO: Add some locking mechanism to prevent multiple calls of validate_connection?!
                       I do not know if the django form already consides this attack.
                 """
-                return HttpResponseBadRequest('creation failed. PB server does not response.')
+                return HttpResponseBadRequest('Creation failed. PB server does not respond.')
     else:
         form = GameForm()
     return render(request, 'pbspy/game_create.html', {'form': form})
@@ -479,8 +483,13 @@ def set_timezone(request):
     #from django.conf import settings
     #tz =  str(request.COOKIES.get("timezone",settings.TIME_ZONE))
     tz = str(request.GET.get("timezone", request.COOKIES.get("timezone", None)))
+    try:
+        tzobj = pytz.timezone(tz)
+    except pytz.exceptions.UnknownTimeZoneError:
+        return HttpResponse('Invalid timezone: ' + escape(tz))
+
     request.session["django_timezone"] = tz
-    return HttpResponse('Set timezone on ' + tz, status=200)
+    return HttpResponse('Set timezone to ' + escape(tz), status=200)
 
 
 @login_required()
@@ -499,15 +508,16 @@ def game_change(request, game_id):
 
     if request.method == 'POST':
         pw_backup = game.pb_remote_password
-        form = GameForm(request.POST, instance=game )
+        form = GameForm(request.POST, instance=game)
         if form.fields["pb_remote_password"]  == password_dummy:
             form.fields["pb_remote_password"] = game.pb_backup
         if form.is_valid():
-            if game.validate_connection(False):
+            try:
+                game.validate_connection()
                 game.save()
                 game.update()
                 return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
-            else:
+            except ValidationError:
                 #Save, but write warning and display form again
                 game.save()
                 context['game_no_connection'] = True
