@@ -67,6 +67,7 @@ class CvForeignAdvisor:
 		self.iActiveLeader = -1
 		self.listSelectedLeaders = []
 		self.iShiftKeyDown = 0
+		self.bFirstDraw = True
 
 		self.bShowRelationLines	= True
 		self.bReduceOnSelectedLeaders	= False
@@ -511,6 +512,14 @@ class CvForeignAdvisor:
 						self.listSelectedLeaders.append(iPlayer)
 
 	def drawRelations(self, bInitial):
+		if self.bFirstDraw:
+			self.bFirstDraw = False
+			allRelations = self.getPlayerReleations(self.iActiveLeader)
+			if( len(allRelations) < 13 ): 
+				self.listSelectedLeaders = allRelations 
+				self.extendSelection(self.iActiveLeader, [0,1,2,3,4,5], True)
+				self.iSelectedLeader2 = self.iActiveLeader
+				self.newSelection = False
 
 		if self.newSelection:
 			if self.iShiftKeyDown == 0:
@@ -700,7 +709,7 @@ class CvForeignAdvisor:
 
 				for iPlayer in leaderMap.keys():
 					# PB Mod, Omit double drawing of lines
-					if iPlayer < iSelectedLeader and iPlayer in leaderMap.keys(): #self.listSelectedLeaders:
+					if iPlayer < iSelectedLeader and iPlayer in self.listSelectedLeaders:
 						continue
 					if self.bReduceOnSelectedLeaders and not iPlayer in self.listSelectedLeaders:
 						continue
