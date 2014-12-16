@@ -181,6 +181,7 @@ class Game(models.Model):
             return
         try:
             info = self.pb_info()
+            self.set_from_dict(info)
         except (InvalidPBResponse, URLError):
             if self.is_online:
                 self.is_online = False
@@ -188,8 +189,6 @@ class Game(models.Model):
                     self.update_date = cur_date
                 self.save()
                 return
-
-        self.set_from_dict(info)
 
 
     @transaction.atomic
