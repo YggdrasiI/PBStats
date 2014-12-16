@@ -2868,6 +2868,7 @@ class CvMainInterface:
 	def updateScoreStrings( self ):
 		screen = CyGInterfaceScreen("MainInterface", CvScreenEnums.MAIN_INTERFACE)
 		screen.hide("ScoreBackground")
+		screen.hide("ScoreForeground")
 		screen.hide("ScoreRowPlus")
 		screen.hide("ScoreRowMinus")
 		screen.hide("ScoreWidthPlus")
@@ -2920,19 +2921,19 @@ class CvMainInterface:
 		iLeaderNameWidth = 60
 		self.iScoreRows = max(1,min(self.iScoreRows, nRows))
 		iHeight = min(yResolution - 300, self.iScoreRows * 24 + 2)
-		screen.addTableControlGFC("ScoreBackground", 5, xResolution - self.iScoreWidth - 150 - iLeaderNameWidth, yResolution - iHeight - 180, self.iScoreWidth + 150 + iLeaderNameWidth, iHeight, False, False, 23, 23, TableStyles.TABLE_STYLE_EMPTY)
-		screen.enableSelect("ScoreBackground", False)
-		screen.setTableColumnHeader("ScoreBackground", 0, "", self.iScoreWidth)
-		screen.setTableColumnHeader("ScoreBackground", 1, "", 23+iLeaderNameWidth)
-		screen.setTableColumnHeader("ScoreBackground", 2, "", 23)
-		screen.setTableColumnHeader("ScoreBackground", 3, "", 23)
-		screen.setTableColumnHeader("ScoreBackground", 4, "", 73)
+		screen.addTableControlGFC("ScoreForeground", 5, xResolution - self.iScoreWidth - 150 - iLeaderNameWidth, yResolution - iHeight - 180, self.iScoreWidth + 150 + iLeaderNameWidth, iHeight, False, False, 23, 23, TableStyles.TABLE_STYLE_EMPTY)
+		screen.enableSelect("ScoreForeground", False)
+		screen.setTableColumnHeader("ScoreForeground", 0, "", self.iScoreWidth)
+		screen.setTableColumnHeader("ScoreForeground", 1, "", 23+iLeaderNameWidth)
+		screen.setTableColumnHeader("ScoreForeground", 2, "", 23)
+		screen.setTableColumnHeader("ScoreForeground", 3, "", 23)
+		screen.setTableColumnHeader("ScoreForeground", 4, "", 73)
 		screen.setButtonGFC("ScoreWidthMinus", "", "", xResolution - 50, yResolution - 180, 20, 20, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_ARROW_RIGHT)
 		screen.setButtonGFC("ScoreRowMinus", "", "", xResolution - 70, yResolution - 180, 20, 20, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_CITY_MINUS )
 		screen.setButtonGFC("ScoreRowPlus", "", "", xResolution - 90, yResolution - 180, 20, 20, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_CITY_PLUS )
 		screen.setButtonGFC("ScoreWidthPlus", "", "", xResolution - 110, yResolution - 180, 20, 20, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_ARROW_LEFT)
 		for iPlayer in lPlayers:
-			iRow = screen.appendTableRow("ScoreBackground")
+			iRow = screen.appendTableRow("ScoreForeground")
 			pPlayer = gc.getPlayer(iPlayer)
 			iTeam = pPlayer.getTeam()
 			pTeam = gc.getTeam(iTeam)
@@ -2959,13 +2960,13 @@ class CvMainInterface:
 			if not pPlayer.isHuman():
 				lVincent = ["INTERFACE_ATTITUDE_0", "INTERFACE_ATTITUDE_1", "INTERFACE_ATTITUDE_2", "INTERFACE_ATTITUDE_3", "INTERFACE_ATTITUDE_4"]
 				sButton = lVincent[pPlayer.AI_getAttitude(CyGame().getActivePlayer())]
-			screen.setTableText("ScoreBackground", 1, iRow, "", ArtFileMgr.getInterfaceArtInfo(sButton).getPath(), WidgetTypes.WIDGET_CONTACT_CIV, iPlayer, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText("ScoreForeground", 1, iRow, "", ArtFileMgr.getInterfaceArtInfo(sButton).getPath(), WidgetTypes.WIDGET_CONTACT_CIV, iPlayer, -1, CvUtil.FONT_LEFT_JUSTIFY)
 			"""
 			sLName = u"<color=%d,%d,%d,%d>%s</color>" %(pPlayer.getPlayerTextColorR(), pPlayer.getPlayerTextColorG(), pPlayer.getPlayerTextColorB(), pPlayer.getPlayerTextColorA(), pPlayer.getName()) + u"</font>"
-			screen.setTableText("ScoreBackground", 1, iRow, sLName, "", WidgetTypes.WIDGET_CONTACT_CIV, iPlayer, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText("ScoreForeground", 1, iRow, sLName, "", WidgetTypes.WIDGET_CONTACT_CIV, iPlayer, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
-			screen.setTableText("ScoreBackground", 2, iRow, "", gc.getLeaderHeadInfo(pPlayer.getLeaderType()).getButton(), WidgetTypes.WIDGET_CONTACT_CIV, iPlayer, -1, CvUtil.FONT_LEFT_JUSTIFY)
-			screen.setTableText("ScoreBackground", 3, iRow, "", gc.getCivilizationInfo(pPlayer.getCivilizationType()).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIV, pPlayer.getCivilizationType(), 1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText("ScoreForeground", 2, iRow, "", gc.getLeaderHeadInfo(pPlayer.getLeaderType()).getButton(), WidgetTypes.WIDGET_CONTACT_CIV, iPlayer, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText("ScoreForeground", 3, iRow, "", gc.getCivilizationInfo(pPlayer.getCivilizationType()).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIV, pPlayer.getCivilizationType(), 1, CvUtil.FONT_LEFT_JUSTIFY)
 			if iPlayer == CyGame().getActivePlayer():
 				pass
 				#sText1 += CyTranslator().getText("[ICON_POWER]", ())
@@ -2985,7 +2986,7 @@ class CvMainInterface:
 				sText1 += CyTranslator().getText("[ICON_SILVER_STAR]", ())
 			#sText1 += u"<color=%d,%d,%d,%d>%d</color>" %(pPlayer.getPlayerTextColorR(), pPlayer.getPlayerTextColorG(), pPlayer.getPlayerTextColorB(), pPlayer.getPlayerTextColorA(), CyGame().getPlayerScore(iPlayer)) + u"</font>"
 			sText1 += u"%d" %( CyGame().getPlayerScore(iPlayer)) + u"</font>"
-			screen.setTableText("ScoreBackground", 0, iRow, sText1, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
+			screen.setTableText("ScoreForeground", 0, iRow, sText1, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
 			bEspionageCanSeeResearch = false
 			for iMissionLoop in xrange(gc.getNumEspionageMissionInfos()):
 				if (gc.getEspionageMissionInfo(iMissionLoop).isSeeResearch()):
@@ -2996,7 +2997,7 @@ class CvMainInterface:
 				iTech = pPlayer.getCurrentResearch()
 				if iTech > -1:
 					sTech = u"<color=%d,%d,%d,%d>%d</color>" %( pPlayer.getPlayerTextColorR(), pPlayer.getPlayerTextColorG(), pPlayer.getPlayerTextColorB(), pPlayer.getPlayerTextColorA(), pPlayer.getResearchTurnsLeft(pPlayer.getCurrentResearch(), True))
-					screen.setTableText("ScoreBackground", 4, iRow, sTech, gc.getTechInfo(iTech).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iTech, 1, CvUtil.FONT_LEFT_JUSTIFY)
+					screen.setTableText("ScoreForeground", 4, iRow, sTech, gc.getTechInfo(iTech).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iTech, 1, CvUtil.FONT_LEFT_JUSTIFY)
 
 
 	# Will update the help Strings
