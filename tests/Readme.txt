@@ -14,3 +14,18 @@ Civ4BeyondSword_Pitboss2014.exe:
 	civ4bts.natneg3.g.zulan.net
 	civ4bts.available.g.zulan.net
 	motd.g.zulan.net ( For http lookup. Server replys '404' )
+
+
+Civ4BeyondSword2014.exe.patch:
+	Open the command line and navigate to your BTS executeable.
+	Create the patched EXE with
+	bspatch Civ4BeyondSword.exe Civ4BeyondSword2014.exe Civ4BeyondSword2014.exe.patch
+
+	Windows:
+	Windows-Version of bsdiff is available here
+	http://sites.inka.de/tesla/download/bsdiff4.3-win32.zip
+
+	Linux:
+	The default softwarerepository of your distrubution should
+	contain the tool bspatch.
+
