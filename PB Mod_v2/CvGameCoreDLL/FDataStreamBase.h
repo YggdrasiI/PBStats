@@ -107,5 +107,6 @@ public:
 
 	virtual void		Write(double value) = 0;
 	virtual void		Write(int count, const double values[]) = 0;
+};
 
 #endif	//FDATASTREAMBASE_H
