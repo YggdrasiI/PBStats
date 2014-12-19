@@ -1,6 +1,6 @@
 {% load i18n %}
 {% blocktrans %}
-Hello {{user_name}},
+Hello {{username}},
 
 you have subscribed to the Civilization 4 Pitboss game "{{game_name}}".
 You will now receive an email whenever there is a new turn in the game.

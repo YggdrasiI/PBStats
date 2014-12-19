@@ -1,6 +1,6 @@
 {% load i18n %}
 {% blocktrans %}
-Hello {{user_name}},
+Hello {{username}},
 
 There is a new turn {{turn}} in the Civilization 4 Pitboss game "{{game_name}}".
 You can control your email settings at http://civ.zulan.net{{manage_url}}.
