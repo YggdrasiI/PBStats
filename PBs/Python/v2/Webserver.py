@@ -10,12 +10,12 @@ import os.path
 import os
 import glob
 import time
-import thread 
+import thread
 from threading import Timer,Thread,Event
 import urllib
 #import hashlib #Python 2.4 has no hashlib use md5
 import md5
-import simplejson 
+import simplejson
 import sys
 
 PB = CyPitboss()
@@ -30,19 +30,19 @@ pbDefaultSettings = {
 		"password" : "defaultpassword" # Password for admin commands on the webinterface
 	},
 	"webfrontend" : {
-		"url" : "http://localhost/civ/page/update.php", # Url of the pbStats file on your http webserver 
+		"url" : "http://localhost/civ/page/update.php", # Url of the pbStats file on your http webserver
 		"gameId" : 0, # Id of game at above website
-		"sendPeriodicalData" : 1, # Set 0 to disable periodical sending of game data 
+		"sendPeriodicalData" : 1, # Set 0 to disable periodical sending of game data
 		"sendInterval" : 10, # Seconds during automatic sending of game data
 		},
 	"save" : {
 		"filename" : "A.CivBeyondSwordSave",  # Filename (without path) of loaded game at startup (require autostart )
 		"adminpw" : "", # Admin password of above save
-		"savefolder" : "saves\\multi\\", # First choice to save games. 
+		"savefolder" : "saves\\multi\\", # First choice to save games.
 		"readfolders" : [] # List of relative paths which can be used to load games.
 	},
 	"shortnames" : { # Truncate names to fix login issue due packet drop
-		"enable": True, 
+		"enable": True,
 		"maxLenName": 1, # Maximal Leader name length. Length of 1 force replacement with player Id, 0=A,1=B,...,51=z
 		"maxLenDesc": 4  # Maximal Nation name length. Length of 1 force replacement with player Id, 0=A,1=B,...,51=z
 	},
@@ -56,8 +56,8 @@ pbSettings = None
 
 #Try to load pbSettings file.
 # To get a different settings file for each pitboss we need
-# access to a variable in the ini file 
-# We reuse a widely unused variable of the standard BTS ini file 
+# access to a variable in the ini file
+# We reuse a widely unused variable of the standard BTS ini file
 altrootDir = gc.getAltrootDir()
 
 #Cut of badly formated beginning of String [...]@ (If EMail Ini variable used)
@@ -71,7 +71,7 @@ def getPbSettings():
 	global pbFn
 	global pbSettings
 	global pbDefaultSettings
-	if pbSettings != None: 
+	if pbSettings != None:
 		return pbSettings
 
 	if os.path.isfile(pbFn):
@@ -93,7 +93,7 @@ def getPbSettings():
 def savePbSettings():
 	global pbFn
 	global pbSettings
-	if pbFn == None: 
+	if pbFn == None:
 		return
 
 	try:
@@ -106,7 +106,7 @@ def savePbSettings():
 # Use two default paths and the given path from the setting file
 # to generate possible paths of saves.
 # A hashmap construction would destroy the ordering and OrderedDict requires
-# at least Python 2.7. Thus, the duplicates free list will be constructed 
+# at least Python 2.7. Thus, the duplicates free list will be constructed
 # by hand.
 def getPossibleSaveFolders():
 	global altrootDir
@@ -140,7 +140,7 @@ def getPossibleSaveFolders():
 							my_set.add(e)
 			return res
 	return remove_duplicates(folders)
-	
+
 
 # The do_POTH method of this class handle the control commands
 # of the webinterface
@@ -167,7 +167,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 					"""
 					parseddata = rawdata.split("&")
 					inputdata = simplejson.loads( parseddata[0] )
-					""" 
+					"""
 
 					action = inputdata.get("action")
 
@@ -178,7 +178,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 							msg = msg.replace('<', '&lt;')
 							msg = msg.replace('>', '&gt;')
 							PB.sendChat( msg )
-							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Send: '+msg } ) +"\n" ) 
+							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Send: '+msg } ) +"\n" )
 						except:
 							self.wfile.write( simplejson.dumps( {'return':'fail','info':'Some error occured trying to send the message. Probably a character that cannot be encoded.' } ) +"\n" )
 
@@ -203,7 +203,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 						filename = filename[max(filename.rfind("/"),filename.rfind("\\"))+1:len(filename)]
 
 						ret = self.server.createSave(filename)
-						self.wfile.write( simplejson.dumps( ret ) +"\n" ) 
+						self.wfile.write( simplejson.dumps( ret ) +"\n" )
 
 					elif( action == "setTurnTimer" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
 							iHours = int( inputdata.get("value",24) )
@@ -215,7 +215,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 							if bPause:
 								if not gc.getGame().isPaused():
 									PB.sendChat( "(Webinterface) Activate pause."  )
-									gc.getGame().setPausePlayer(1) 
+									gc.getGame().setPausePlayer(1)
 								self.wfile.write( simplejson.dumps( {'return':'ok','info':'Activate pause.' } ) +"\n" )
 							else:
 								if gc.getGame().isPaused():
@@ -252,7 +252,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 							#Save selected filename for reloading in the settings file
 							filename =  filename + ".CivBeyondSwordSave"
 							filename = filename.replace("CivBeyondSwordSave.CivBeyondSwordSave","CivBeyondSwordSave")
-							# Now, checks if file can be found. Otherwise abort because 
+							# Now, checks if file can be found. Otherwise abort because
 							# loading of missing files let crash the pb server and grab 100% of cpu.
 							folderpaths = getPossibleSaveFolders()
 							try:
@@ -312,7 +312,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 									adminPWHash = ""
 								ret = gc.getGame().setCivPassword( playerId, newCivPW, adminPWHash )
 
-							if ret == 0:	
+							if ret == 0:
 								self.wfile.write( simplejson.dumps( {'return':'ok','info':'Passwort of player ' + str(playerId) + ' changed to "' + newCivPW + '"' } ) +"\n" )
 							else:
 								self.wfile.write( simplejson.dumps( {'return':'fail','info':'Passwort change failed.' } ) +"\n" )
@@ -331,7 +331,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 							if self.server.adminApp!= None:
 								self.server.adminApp.setMotD(msg)
 
-							self.wfile.write( simplejson.dumps( {'return':'ok','info':'New MotD: '+msg } ) +"\n" ) 
+							self.wfile.write( simplejson.dumps( {'return':'ok','info':'New MotD: '+msg } ) +"\n" )
 						except Exception, e:
 							self.wfile.write( simplejson.dumps( {'return':'fail','info':'Some error occured trying to set the MotD. Probably a character that cannot be encoded. Error msg:'+str(e) } ) +"\n" )
 
@@ -346,19 +346,19 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 							self.server.savePbSettings()
 							gc.getGame().setPitbossShortNames( bShortNames, iMaxLenName, iMaxLenDesc)
 
-							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Short names enabled: '+ str(bShortNames) 
+							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Short names enabled: '+ str(bShortNames)
 								+ ', Maximal length of Leadername: ' + str(iMaxLenName)
-								+ 'Maximal length of Civ description: ' + str(iMaxLenDesc) } ) +"\n" ) 
+								+ 'Maximal length of Civ description: ' + str(iMaxLenDesc) } ) +"\n" )
 						except Exception, e:
 							self.wfile.write( simplejson.dumps( {'return':'fail','info':'Some error occured during change of short names-feature. Error msg:'+str(e) } ) +"\n" )
 
 					elif( action == "info" ):
 						gamedata = self.server.createGamedata()
 
-						self.wfile.write( simplejson.dumps( {'return':'ok','info':gamedata} ) +"\n" ) 
+						self.wfile.write( simplejson.dumps( {'return':'ok','info':gamedata} ) +"\n" )
 
 					elif( action == "listSaves" ):
-						# Print list of saves of the selected folder. This can be used for a dropdown list 
+						# Print list of saves of the selected folder. This can be used for a dropdown list
 						# of available saves.
 						folderpaths = getPossibleSaveFolders()
 						saveList = []
@@ -375,10 +375,46 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 										'timestamp':timestamp
 											})
 
-						self.wfile.write( simplejson.dumps( {'return':'ok','list':saveList} ) +"\n" ) 
+						self.wfile.write( simplejson.dumps( {'return':'ok','list':saveList} ) +"\n" )
+
+					elif( action == "cleanupSigns" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+						#Debugging: Reset all Signs. Remove some special chars
+						engine = CyEngine()
+						signs = []
+						for i in range(engine.getNumSigns()-1,-1,-1):
+							pSign = engine.getSignByIndex(i)
+							sign = {
+								'plot': [pSign.getPlot().getX(), pSign.getPlot().getY()],
+								'id' : pSign.getPlayerType(),
+								'caption' : pSign.getCaption()
+							}
+							signs.append( sign)
+							engine.removeSign( pSign.getPlot(), pSign.getPlayerType() )
+
+						#Add some signs to extend file size
+						pid = signs[0]['id']
+						rndX = len(signs)%49
+						rndY = len(signs)%31
+						for i in range(1):
+							sign = {
+								'plot': [rndX+i,rndY],
+								'id' : pid,
+								'caption' : "To many characters"
+							}
+							signs.append( sign )
+
+						for sign in signs:
+							caption = sign['caption']
+							#caption = re.sub("[^A-z 0-9]","", caption)
+							caption = sign['caption'].encode('ascii', 'ignore')
+							caption = caption[0:15] # More than 15 Chars made the Save unloadable on Linux
+							sign['caption'] = caption
+							engine.addSign( gc.getMap().plot( sign['plot'][0], sign['plot'][1]), sign['id'], caption.__str__() )
+
+						self.wfile.write( simplejson.dumps( {'return':'ok','info':signs} ) +"\n" )
 
 					else:
-						self.wfile.write( simplejson.dumps( {'return':'fail','info':'Wrong password or unknown action. Available actions are info, chat, save, restart, listSaves, setAutostart, setHeadless, setMotD, setShortNames'} ) +"\n" ) 
+						self.wfile.write( simplejson.dumps( {'return':'fail','info':'Wrong password or unknown action. Available actions are info, chat, save, restart, listSaves, setAutostart, setHeadless, setMotD, setShortNames'} ) +"\n" )
 
 				except Exception, e:
 					try:
@@ -449,22 +485,22 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 		iMaxLenName =  int(shortnames.get("maxLenName",1))
 		iMaxLenDesc =  int(shortnames.get("maxLenDesc",4))
 		gc.getGame().setPitbossShortNames( bShortNames, iMaxLenName, iMaxLenDesc)
-	
+
 	def createSave(self, filename, folderIndex=0):
 		filepath = os.path.join(self.getSaveFolder(folderIndex),filename)
 
 		if (filename != ""):
 			self.lock.acquire()
 			if ( not PB.save(filepath) ):
-				ret = {'return':'fail','info':'Saving of '+filepath+' failed.' } 
+				ret = {'return':'fail','info':'Saving of '+filepath+' failed.' }
 				self.lock.release()
 			else:
-				# Update last file name info and save json file 
+				# Update last file name info and save json file
 				pbSettings["save"]["filename"] = filename
 				pbSettings["save"]["folderIndex"] = folderIndex
 				self.lock.release()
 				self.savePbSettings()
-				ret = {'return':'ok','info':'File was saved in '+filepath+'.' }  
+				ret = {'return':'ok','info':'File was saved in '+filepath+'.' }
 
 		return ret
 
@@ -520,7 +556,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 		else:
 			gamedata["turnTimer"] = 0
 
-		players = []		
+		players = []
 		for rowNum in range(gc.getMAX_CIV_PLAYERS()):
 			gcPlayer = gc.getPlayer(rowNum)
 			if (gcPlayer.isEverAlive()):
@@ -536,10 +572,10 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 				player['civilization'] = gcPlayer.getCivilizationDescription(0)
 				player['leader'] = gc.getLeaderHeadInfo(gcPlayer.getLeaderType()).getDescription()
 				player['color'] = u"%d,%d,%d" % ( gcPlayer.getPlayerTextColorR(), gcPlayer.getPlayerTextColorG(), gcPlayer.getPlayerTextColorB()  )
-				
+
 				players.append(player)
 
-		gamedata['players'] = players	
+		gamedata['players'] = players
 
 		gamedata['bHeadless'] = pbSettings.get("noGui",0)
 		gamedata['bAutostart'] = pbSettings.get("autostart",0)

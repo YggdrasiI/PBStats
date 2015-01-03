@@ -328,48 +328,6 @@ function gameFull($game,$online /* False for preview during creation of new game
 						<input type='hidden' name='opid' value='$opid' />\n
 						</p></form>\n";
 
-
-					//Testing parsing of replay messages. Require debug=True in pbSettings.json
-					/*
-					$pbAction = array('action'=>'getReplay','password'=>$pw);
-					$replayData = json_decode(handle_pitboss_action($gameData, $pbAction));
-					if( ($replayData->return === "ok") ){
-						$dHtml .= "<h4>Replay Messages</h4><p>\n";
-						foreach( $replayData->replay as $message ){
-							$dHtml .= 'Round ' . $message->turn . ", Player ". $message->player .": ". $message->text . "<br>";
-						}
-						$dHtml .= "</p>\n";
-						$dHtml .= "<h4>Graphs</h4>\n";
-						if( isset( $replayData->graphs ) ){
-							foreach( $replayData->graphs as $id=>$player ){
-								$dHtml .= "<h5>Player $id</h5>\n";
-								$dHtml .= "</>Score: \n";
-								foreach( $player->score as $val ){
-									$dHtml .= "$val ";
-								}
-								$dHtml .= "</p>\n";
-								$dHtml .= "</>Economy: \n";
-								foreach( $player->economy as $val ){
-									$dHtml .= "$val ";
-								}
-								$dHtml .= "</p>\n";
-								$dHtml .= "</>Industry: \n";
-								foreach( $player->industry as $val ){
-									$dHtml .= "$val ";
-								}
-								$dHtml .= "</p>\n";
-								$dHtml .= "</>Agriculture: \n";
-								foreach( $player->agriculture as $val ){
-									$dHtml .= "$val ";
-								}
-								$dHtml .= "</p>\n";
-							}
-						}
-					}else{
-						$dHtml .= "<p>{L_GAME_ERROR_MSG}".$replayData->info ."</p>";
-					}
-					*/
-
 				}
 				$dHtml .= "<p><a href='$this_page?game=$gameId&action=admin'>{L_GAME_ADMIN_BACK}</a></p>";
 				$dHtml .= $mainpageLink;
@@ -418,6 +376,29 @@ function gameFull($game,$online /* False for preview during creation of new game
 							$dHtml .= "</p>\n";
 						}
 					}
+				}else{
+					$dHtml .= "<p>{L_GAME_ERROR_MSG}".$replayData->info ."</p>";
+				}
+
+				$dHtml .= "<p><a href='$this_page?game=$gameId&action=admin'>{L_GAME_ADMIN_BACK}</a></p>";
+				$dHtml .= $mainpageLink;
+			}
+
+			if( $action === "fixSigns" ){
+				$step = 0;
+				if( isset($_GET["step"] ) ){
+					$step = $_GET["step"];
+				}
+
+				$dHtml .= "<h3>{L_GAME_SIGNS}</h3>";
+				$pbAction = array('action'=>'cleanupSigns','password'=>$pw);
+				$replayData = json_decode(handle_pitboss_action($gameData, $pbAction));
+				if( ($replayData->return === "ok") ){
+					$dHtml .= "<h4>Cleanup Signs</h4><p>\n";
+					foreach( $replayData->info as $sign ){
+						$dHtml .= "Id: " . $sign->id . ", Caption: " . $sign->caption . "<br>\n";
+					}
+					$dHtml .= "</p>\n";
 				}else{
 					$dHtml .= "<p>{L_GAME_ERROR_MSG}".$replayData->info ."</p>";
 				}
@@ -720,7 +701,8 @@ function gameFull($game,$online /* False for preview during creation of new game
 							<input type='hidden' name='opid' value='$opid' />\n
 							</form>\n";
 
-						$dHtml .= "<h3 class=''><a href='$this_page?game=$gameId&action=color&opid=$opid'>{L_GAME_COLOR}</a></h3>";
+						$dHtml .= "<h3 class=''><a href='$this_page?game=$gameId&action=color'>{L_GAME_COLOR}</a></h3>";
+						$dHtml .= "<h3 class=''><a href='$this_page?game=$gameId&action=fixSigns'>{L_GAME_SIGNS}</a></h3>";
 					}else{
 						$dHtml .= "<h3>{L_ERROR}</h3><p>{L_GAME_CONNECTION_ERROR0}</p>";
 						$dHtml .= "<h3 class=' '><a href='$this_page?game=$gameId&action=setWebserverpassword'>{L_GAME_WEBSERVERPASSWORD}</a></h3>";
