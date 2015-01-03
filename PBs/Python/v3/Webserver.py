@@ -665,9 +665,6 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 				'bPaused':gc.getGame().isPaused(),
 				}
 
-		nSigns = CyEngine().getNumSigns()
-		gamedata['gameName'] += "Nbr. of Signs: "+ str(nSigns)
-
 		if( PB.getTurnTimer() ):
 			gamedata["turnTimer"] = 1
 			gamedata['turnTimerMax'] = gc.getGame().getPitbossTurnTime()
