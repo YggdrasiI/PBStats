@@ -229,10 +229,12 @@ function gameFull($game,$online /* False for preview during creation of new game
 
 					if( ($infos->return === "ok") && ($colorData->return === "ok") ){
 						$dHtml .= "<h4>Colorset / Id / Used by player</h4>";
+
 						$colId = 0;
 						foreach( $colorData->colors as $color ){
+
 							$dHtml .= "<p>";
-							$dHtml .= "<p><span class='playerColor' style='background-color:rgba(".$color->primary.");'>Primary</span>\n";
+							$dHtml .= "<span class='playerColor' style='background-color:rgba(".$color->primary.");'>Primary</span>\n";
 							$dHtml .= "<span class='playerColor' style='background-color:rgba(".$color->secondary.");'>Secondary</span>\n";
 							$dHtml .= "<span class='playerColor' style='background-color:rgba(".$color->text.");'>Textcolor</span>\n";
 				
@@ -244,6 +246,31 @@ function gameFull($game,$online /* False for preview during creation of new game
 
 							$colId += 1;
 						}
+
+						// Use Hex values and create list in BB CODE
+						$colId = 0;
+							$dHtml .= "<p>BB-Code: <textarea>Primary Secondary Textcolor ID / {L_GAME_PLAYER}\n";
+						foreach( $colorData->colors as $color ){
+							$tmp = explode(",", $color->primary);
+							$primaryHex = sprintf("%02X%02X%02X", $tmp[0], $tmp[1], $tmp[2]);
+							$tmp = explode(",", $color->secondary);
+							$secondaryHex = sprintf("%02X%02X%02X", $tmp[0], $tmp[1], $tmp[2]);
+							$tmp = explode(",", $color->text);
+							$textHex = sprintf("%02X%02X%02X", $tmp[0], $tmp[1], $tmp[2]);
+
+							$dHtml .= "[COLOR=#$primaryHex]██████[/COLOR]";
+							$dHtml .= "[COLOR=#$secondaryHex]██████[/COLOR]";
+							$dHtml .= "[COLOR=#$textHex]██████[/COLOR]";
+
+							$dHtml .= " $colId / ";
+							foreach( $color->usedBy as $player ){
+								$dHtml .= $player->name.", ";
+							}
+						$dHtml .= "\n";
+
+							$colId += 1;
+						}
+						$dHtml .= "</textarea></p>\n";
 
 						$dHtml .= "<h4>{L_GAME_PLAYER} / {L_GAME_NEW_COLOR}</h4> <form action='$this_page' method='get'>\n";
 						$dHtml .= "<input type='hidden' name='opid' value='$opid' />\n";
