@@ -1324,8 +1324,8 @@ static const void *CriticalParent_CivDesc = (void*) 0x0046ab8e;
 					m_szTemp[0] = (wchar)lKey;
 					return m_szTemp;
 				}else{
-					if( m_szTemp.length() > pbmod.iMaxLenName){
-						m_szTemp.resize(pbmod.iMaxLenName, ' ');
+					if( m_szTemp.length() > pbmod.iMaxLenDesc){
+						m_szTemp.resize(pbmod.iMaxLenDesc, ' ');
 					}
 					return m_szTemp;
 				}
