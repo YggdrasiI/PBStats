@@ -100,6 +100,22 @@ $lang['game_notes_player_color'] = "Um ungünstige Farbkombination zwischen Nach
 	Die verfügbaren Tupel sind definiert in Assets/XML/Interface/CIV4PlayerColorInfos.xml.";
 $lang['game_player'] = "Spieler";
 $lang['game_new_color'] = "Neue Farbe";
+$lang['game_signs'] = "Karten-Markierungen";
+$lang['game_signs_description'] = "Sometimes, the PB Server do not load save games under Wine (Error message mentioned corrupt save).<br>
+	You can use this function to filtering the sign strings (Alt+S). 
+	Then, the game should be loadable again.<br> If your savegame is already corrupt, you need to run the PB server on a Windows machine…<br>\n
+	The following filtering will be applied:<ul>
+	<li>Cut of after 18 characters.</li>
+	<li>Limit on first 127 ascii characters.</li>
+	</ul>\n";
+$lang['game_signs_questions'] = "Are you sure to start the sign fixing?";
+$lang['game_signs_description'] = "Manchmal verweigert der PB-Server unter Wine das Laden von Spielständen mit einer Fehlermeldung, die behauptet, dass der Spielstand korrupt ist. Allerdings kann das Spiel trotzdem noch unter Windows geladen werden.<br>
+	Diese Funktion kann verwendet werden, um die Markierungs-Texte (Alt+S) zu filtern, die im Verdacht stehen, das Problem zu verursachen. Danach sollte das Spiel unter Wine wieder laufen. Wenn der PB-Server schon nicht mehr läuft, wenn man dieses Problem feststellt, muss man außerdem das Spiel auf einem Windows-Rechner laden, um die Funktion anzuwenden…
+	Folgende (wahrscheinlich etwas über das Ziel hinausschießende) Modifikationen werden durchgeführt:<ul>
+	<li>Wörter werden auf 18 Zeichen gekürzt.</li>
+	<li>Alle Buchstaben mit einer Kodierung außerhalb der ersten 127 ascii Zeichen werden entfernt.</li>
+	</ul>\n";
+$lang['game_signs_question'] = "Sollen die Schildertexte modifiziert werden?";
 
 // Log messages
 $lang['log_player_change_name'] = "Spieler umbenannt zu %s.";

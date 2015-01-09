@@ -494,6 +494,19 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
 						self.wfile.write( simplejson.dumps( {'return':'ok','colors':colorList} ) +"\n" )
 
+					elif( action == "listSigns" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+						engine = CyEngine()
+						signs = []
+						for i in range(engine.getNumSigns()-1,-1,-1):
+							pSign = engine.getSignByIndex(i)
+							sign = {
+								'plot': [pSign.getPlot().getX(), pSign.getPlot().getY()],
+								'id' : pSign.getPlayerType(),
+								'caption' : pSign.getCaption()
+							}
+							signs.append( sign)
+						self.wfile.write( simplejson.dumps( {'return':'ok','info':signs} ) +"\n" )
+
 					elif( action == "cleanupSigns" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
 						#Debugging: Reset all Signs. Remove some special chars
 						engine = CyEngine()
@@ -508,29 +521,19 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 							signs.append( sign)
 							engine.removeSign( pSign.getPlot(), pSign.getPlayerType() )
 
-						#Add some signs to extend file size
-						pid = signs[0]['id']
-						for i in range(10):
-							rnd = len(signs)%31
-							sign = {
-								'plot': [rnd+i,10],
-								'id' : pid,
-								'caption' : "Caption of new Sign"
-							}
-							signs.append( sign )
-
 						for sign in signs:
 							caption = sign['caption']
-							#caption = re.sub("[^A-z 0-9]","", caption)
-							caption = sign['caption'].encode('ascii', 'ignore')
-							caption = caption[0:10]
+							#caption = re.sub("[^A-z 0-9]","", caption) # not enought
+							#caption = sign['caption'].encode('ascii', 'ignore') # does not help 
+							caption = caption[0:18] #shortening required 
+							caption = ''.join(i for i in caption if ord(i)<128) #filtering required
 							sign['caption'] = caption
 							engine.addSign( gc.getMap().plot( sign['plot'][0], sign['plot'][1]), sign['id'], caption.__str__() )
 
 						self.wfile.write( simplejson.dumps( {'return':'ok','info':signs} ) +"\n" )
 
 					else:
-						self.wfile.write( simplejson.dumps( {'return':'fail','info':'Wrong password or unknown action. Available actions are info, chat, save, restart, listSaves, setAutostart, setHeadless, getMotD, setMotD, setShortNames, listPlayerColors, setPlayerColor'} ) +"\n" )
+						self.wfile.write( simplejson.dumps( {'return':'fail','info':'Wrong password or unknown action. Available actions are info, chat, save, restart, listSaves, setAutostart, setHeadless, getMotD, setMotD, setShortNames, listPlayerColors, setPlayerColor, listSigns, cleanupSigns'} ) +"\n" )
 
 				except Exception, e:
 					try:

@@ -418,16 +418,34 @@ function gameFull($game,$online /* False for preview during creation of new game
 				}
 
 				$dHtml .= "<h3>{L_GAME_SIGNS}</h3>";
-				$pbAction = array('action'=>'cleanupSigns','password'=>$pw);
-				$replayData = json_decode(handle_pitboss_action($gameData, $pbAction));
-				if( ($replayData->return === "ok") ){
-					$dHtml .= "<h4>Cleanup Signs</h4><p>\n";
-					foreach( $replayData->info as $sign ){
-						$dHtml .= "Id: " . $sign->id . ", Caption: " . $sign->caption . "<br>\n";
+				if( $step == 1 ){
+					$pbAction = array('action'=>'cleanupSigns','password'=>$pw);
+					$signsData = json_decode(handle_pitboss_action($gameData, $pbAction));
+					if( ($signsData->return === "ok") ){
+						$dHtml .= "<h4>Cleanup Signs</h4><p>\n";
+						foreach( $signsData->info as $sign ){
+							$dHtml .= "Id: " . $sign->id . ", Caption: " . $sign->caption . "<br>\n";
+						}
+						$dHtml .= "</p>\n";
+					}else{
+						$dHtml .= "<p>{L_GAME_ERROR_MSG}".$signsData->info ."</p>";
 					}
-					$dHtml .= "</p>\n";
 				}else{
-					$dHtml .= "<p>{L_GAME_ERROR_MSG}".$replayData->info ."</p>";
+					$pbAction = array('action'=>'listSigns','password'=>$pw);
+					$signsData = json_decode(handle_pitboss_action($gameData, $pbAction));
+					if( ($signsData->return === "ok") ){
+						$dHtml .= "<p>{L_GAME_SIGNS_DESCRIPTION}</p>\n";
+						$dHtml .= "<p>{L_GAME_SIGNS_QUESTION}  <a href='$this_page?game=$gameId&action=fixSigns&step=1'>{L_YES}</a></p>";
+						$dHtml .= "<h4>Current Signs</h4><p>\n";
+						foreach( $signsData->info as $sign ){
+							$dHtml .= "Id: " . $sign->id . ", Caption: " . $sign->caption . "<br>\n";
+						}
+						$dHtml .= "</p>\n";
+					}else{
+						$dHtml .= "<p>{L_GAME_ERROR_MSG}".$signsData->info ."</p>";
+					}
+
+
 				}
 
 				$dHtml .= "<p><a href='$this_page?game=$gameId&action=admin'>{L_GAME_ADMIN_BACK}</a></p>";
