@@ -524,9 +524,9 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 						for sign in signs:
 							caption = sign['caption']
 							#caption = re.sub("[^A-z 0-9]","", caption) # not enought
-							#caption = sign['caption'].encode('ascii', 'ignore') # does not help 
-							caption = caption[0:18] #shortening required 
+							#caption = sign['caption'].encode('ascii', 'ignore') # does not help
 							caption = ''.join(i for i in caption if ord(i)<128) #filtering required
+							caption = caption[0:18] #shortening required
 							sign['caption'] = caption
 							engine.addSign( gc.getMap().plot( sign['plot'][0], sign['plot'][1]), sign['id'], caption.__str__() )
 
