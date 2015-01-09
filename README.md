@@ -31,14 +31,14 @@ This Mod package contains three modules: **PB Mod\_v3**, **PBs** and **web** (or
 on one machine you proably know this parameter...) 
 The **PBs**-folder contains a prepared example for the start of the Pitboss server 
 with ALTROOT parameter. See below for more instructions. 
-3a. The **web**-folder contains the HTML front end for the game. 
+3. A) The **web**-folder contains the HTML front end for the game. 
 It's similar to the well known civstats.com page, 
 but allows the administration of games, too.  
 Place the web-folder on your webserver with PHP5 and MySQL or SQLite3 support. Give the server read/write access in the folders **sqlite** (if you use SQLite3) and **files** 
 and read access for the other files. 
 Copy web/page/php/config.dist.php to web/page/php/config.php and adapt the default passwords and environment paths of this configuration file to your needs. 
 Finally, call web/page/install.php in your browser to initialise all database tables. 
-3b. An alternative approach for the webinterface can be found in the **civdj** folder. It contains
+3. B) An alternative approach for the webinterface can be found in the **civdj** folder. It contains
 a Python/Django project.
 
 If you don't want setup an own webserver for this front end, you can use your server, *http://civ.zulan.net/pbspy* or *http://civ.zulan.net/pb*, too. 
@@ -66,26 +66,21 @@ Extend this list if you need more game slots.
     * If all paths are set, run the script and enter 1 to start PB1 (example)
 During the first startup the **seed** directory will be copied to the ALTROOT path of PB1.
 Now, the example save should load and the PB window pops up.
- 
-Note that the startup of the pitboss window is capsuled into a loop. Thus, 
-the game will restart if you close the window. Use Ctrl+C to abort the script. 
-		* Set the autostart flag in **pbSettings.json** to 0 to setup a new game in the wizzard dialog.
+    * Note that the startup of the pitboss window is capsuled into a loop. Thus, the game will restart if you close the window. Use Ctrl+C to abort the script. 
+    * Set the autostart flag in **pbSettings.json** to 0 to setup a new game in the wizzard dialog.
 
-1. (Windows)
+2. (Windows)
 For Windows users exists the script **startPitboss.bat**. The script contains two sample setups for the games 'PB1' and 'PB2'.
-		* Open **startPitboss.bat** in a text editor and adapt the values of
+    * Open **startPitboss.bat** in a text editor and adapt the values of
 _ALTROOT_BASEDIR=C:\PBStats\PBs_
 _CIV4BTS_PATH=C:\Civ4\Beyond the Sword\_
-		* Copy the folder PBs\seed to PBs\PB1 (and PBs\PB2, etc…).
-	  * Open PB1\CivilizationIV.ini and set the value of **PitbossSMTPLogin** to the full path of
-this directory, i.e. C:\PBStats\PBs\PB1. Without this information Civ4 can not find **pbSettings.json**!
-    * Now, start the Batch-File and enter 1 to start PB1. The example save should load and
-the PB window pops up.
-The startup is capsuled by a loop. Thus, the game will restart if you close the window. Use Ctrl+C to 
-abort the script. 
-		* Set the autostart flag in **pbSettings.json** to 0 to setup a new game in the wizzard dialog.
+    * Copy the folder PBs\seed to PBs\PB1 (and PBs\PB2, etc…).
+    * Open PB1\CivilizationIV.ini and set the value of **PitbossSMTPLogin** to the full path of this directory, i.e. C:\PBStats\PBs\PB1. Without this information Civ4 can not find **pbSettings.json**!
+    * Now, start the Batch-File and enter 1 to start PB1. The example save should load and the PB window pops up.
+    * The startup is capsuled by a loop. Thus, the game will restart if you close the window. Use Ctrl+C to abort the script. 
+    * Set the autostart flag in **pbSettings.json** to 0 to setup a new game in the wizzard dialog.
 
-2. Setup of **pbSettings.json** 
+3. Setup of **pbSettings.json** 
 The most important values are 
     * save.adminpw: Enter the admin password of your save game here. (This is the password which
 normally should be entered in the Pitboss wizard at game loading.) 
@@ -94,7 +89,7 @@ normally should be entered in the Pitboss wizard at game loading.)
     * webfrontent.url: This is the url which will be used to propagate the current status of the game.  Enter your web server here or use our service (not online).
     * webfrontent.gameId: Create a game entry in the webfrontend to generate this id. 
 
-3. Create a game entry in the web interface. Your PB server should run if you register a new game.
+4. Create a game entry in the web interface. Your PB server should run if you register a new game.
 
 
 Extras
