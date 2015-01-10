@@ -477,10 +477,10 @@ class Player(models.Model):
     color_rgb     = models.TextField(max_length=3 * 3 + 2)
 
     def status(self):
-        if not self.is_claimed:
-            return _('unclaimed')
         if self.score == 0:
             return _('eliminated')
+        if not self.is_claimed:
+            return _('unclaimed')
         if not self.is_human:
             return _('AI')
         if self.is_online:
