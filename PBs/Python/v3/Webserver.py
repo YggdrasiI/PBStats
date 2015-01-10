@@ -525,8 +525,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 							caption = sign['caption']
 							#caption = re.sub("[^A-z 0-9]","", caption) # not enought
 							#caption = sign['caption'].encode('ascii', 'ignore') # does not help
-							caption = ''.join(i for i in caption if ord(i)<128) #filtering required
 							caption = caption[0:18] #shortening required
+							caption = ''.join(i for i in caption if ord(i)<128) #filtering required
 							sign['caption'] = caption
 							engine.addSign( gc.getMap().plot( sign['plot'][0], sign['plot'][1]), sign['id'], caption.__str__() )
 
@@ -644,7 +644,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 		# can prepend the player name.
 		playerName = playerName.replace("*MOD* ","MOD_").strip()
 
-		existingRecoverySaves = glob.glob(folder + RecoverPrefix + str(playerId) + '*.CivBeyondSwordSave')
+		existingRecoverySaves = glob.glob(folder + RecoverPrefix + 'P' + str(playerId) + '_*.CivBeyondSwordSave')
 		# Add timestamp (as tuple)
 		existingRecoverySavesWithTimestamps = map(lambda x: (x,os.path.getctime(x)), existingRecoverySaves)
 		# Sort by timestamp
@@ -655,7 +655,8 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 			os.remove(old[0])
 
 		#2. Save new recovery save
-		filename = RecoverPrefix + str(int(time.time())) + '_P' + str(playerId) + '_' + playerName + '.CivBeyondSwordSave'
+		filename = ( RecoverPrefix + 'P' + str(playerId) + '_' + playerName + '_T'
+				+ str(int(time.time())) + '.CivBeyondSwordSave' )
 		self.createSave( str(filename), 1)
 
 
