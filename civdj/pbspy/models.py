@@ -102,7 +102,7 @@ class Game(models.Model):
     url                = models.CharField(max_length=200, blank=True, null=True,
                                           validators=[URLValidator()])
 
-    update_date        = models.DateTimeField(blank=True, null=True)
+    update_date        = models.DateTimeField(auto_now_add=True)
     is_paused          = models.BooleanField(default=False)
     is_headless        = models.BooleanField(default=False)
     is_autostart       = models.BooleanField(default=True)
