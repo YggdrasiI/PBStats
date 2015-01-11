@@ -185,10 +185,11 @@ class Game(models.Model):
         except (InvalidPBResponse, URLError):
             if self.is_online:
                 self.is_online = False
-                if ignore_game_state:
-                    self.update_date = cur_date
                 self.save()
-                return
+            elif ignore_game_state:
+                self.update_date = cur_date
+                self.save()
+            return
 
 
     @transaction.atomic
