@@ -360,9 +360,11 @@ class Game(models.Model):
 
     def pb_set_player_password(self, player_id, new_password, user=None):
         if isinstance(player_id, Player):
-            player_id = player_id.ingame_id
+            ingame_id = player_id.ingame_id
+        else:
+            ingame_id = self.player_set.all().filter(id=player_id)[0].ingame_id
         return self.pb_action(action='setPlayerPassword',
-                              playerId=player_id, newCivPW=new_password)
+                              playerId=ingame_id, newCivPW=new_password)
 
     def pb_set_player_color(self, ingame_player_id, new_color, user=None):
         return self.pb_action(action='setPlayerColor', playerId=ingame_player_id, colorId=new_color)
