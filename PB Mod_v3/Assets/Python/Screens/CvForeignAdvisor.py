@@ -479,21 +479,18 @@ class CvForeignAdvisor:
 			player = gc.getPlayer(iPlayer)
 			if (iSelectedLeader != iPlayer):
 				if (player.getTeam() == selectedPlayer.getTeam()):
-					playerReleations.append( (iPlayer,4) )
+					playerReleations.append( (iPlayer, 4) )
 				elif (gc.getTeam(player.getTeam()).isVassal(selectedPlayer.getTeam()) or gc.getTeam(selectedPlayer.getTeam()).isVassal(player.getTeam())):
-					playerReleations.append( (iPlayer,3) )
+					playerReleations.append( (iPlayer, 3) )
 				elif (gc.getTeam(player.getTeam()).isDefensivePact(selectedPlayer.getTeam())):
-					playerReleations.append( (iPlayer,2) )
-				#elif (gc.getTeam(player.getTeam()).isHasMet(selectedPlayer.getTeam())):
-				#  if (gc.getTeam(player.getTeam()).isAtWar(selectedPlayer.getTeam())):
-				#		playerReleations.append( (iPlayer,5) )
-				elif (gc.getTeam(player.getTeam()).isAtWar(selectedPlayer.getTeam())
-						and gc.getTeam(player.getTeam()).isAtWar(selectedPlayer.getTeam()) ):
-					playerReleations.append( (iPlayer,5) )
-				elif (gc.getTeam(player.getTeam()).isOpenBorders(selectedPlayer.getTeam())):
-					playerReleations.append( (iPlayer,1) )
-				elif( gc.getTeam(player.getTeam()).isHasMet(selectedPlayer.getTeam()) ):
-					playerReleations.append( (iPlayer,0) )
+					playerReleations.append( (iPlayer, 2) )
+				elif (gc.getTeam(player.getTeam()).isHasMet(selectedPlayer.getTeam())):
+					if (gc.getTeam(player.getTeam()).isAtWar(selectedPlayer.getTeam())):
+						playerReleations.append( (iPlayer, 5) )
+					elif (gc.getTeam(player.getTeam()).isOpenBorders(selectedPlayer.getTeam())):
+						playerReleations.append( (iPlayer, 1) )
+					else:
+						playerReleations.append( (iPlayer, 0) )
 		return playerReleations
 
 	def extendSelection(self, iPlayer, releationList, addActivePlayer): 
@@ -676,7 +673,7 @@ class CvForeignAdvisor:
 
 			# Leader attitude towards active player
 			szName = self.getNextWidgetName()
-			if (gc.getTeam(player.getTeam()).isHasMet(playerBase.getTeam()) and iBaseLeader != iPlayer):		
+			if (gc.getTeam(player.getTeam()).isHasMet(playerBase.getTeam()) and iBaseLeader != iPlayer):
 				szText = " (" + gc.getAttitudeInfo(gc.getPlayer(iPlayer).AI_getAttitude(iBaseLeader)).getDescription()
 				if (iBaseLeader != iPlayer):
 					if (gc.getTeam(player.getTeam()).isVassal(playerBase.getTeam())):
@@ -691,7 +688,7 @@ class CvForeignAdvisor:
 		# draw lines
 		for iSelectedLeader in range(gc.getMAX_PLAYERS()):
 			bDisplayed = (not gc.getPlayer(iSelectedLeader).isBarbarian() and not gc.getPlayer(iSelectedLeader).isMinorCiv() and gc.getPlayer(iSelectedLeader).isAlive() and (gc.getGame().isDebugMode() or gc.getTeam(playerActive.getTeam()).isHasMet(gc.getPlayer(iSelectedLeader).getTeam())))
-			if iSelectedLeader in self.listSelectedLeaders or (bNoLeadersSelected and bDisplayed):
+			if( (iSelectedLeader in self.listSelectedLeaders or bNoLeadersSelected) and bDisplayed):
 				# get selected player and location
 				if (iSelectedLeader in leaderMap):
 					if self.bReduceOnSelectedLeaders and not iSelectedLeader in self.listSelectedLeaders:
@@ -756,6 +753,7 @@ class CvForeignAdvisor:
 									szName = self.getNextLineName()
 									screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(fX), int(fY), gc.getInfoTypeForString("COLOR_WHITE") )
 
+				"""
 				player = gc.getPlayer(self.iActiveLeader)
 				if (player.getTeam() == gc.getPlayer(iSelectedLeader).getTeam()):
 					szName = self.getNextLineName()
@@ -789,6 +787,7 @@ class CvForeignAdvisor:
 						if (bJustPeace and self.bShowRelationLines):
 							szName = self.getNextLineName()
 							screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(self.X_LEADER_CIRCLE_TOP), int(fLeaderTop + iLeaderHeight/2), gc.getInfoTypeForString("COLOR_WHITE") )
+				"""
 
 		# PB Mod
 		self.newSelection = False
