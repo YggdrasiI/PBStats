@@ -420,7 +420,9 @@ def game_manage(request, game_id, action=""):
                 game.pb_set_player_password(
                     form.cleaned_data['player'].id,
                     form.cleaned_data['password'])
-                return HttpResponse('passwort set.', status=200)
+                player = game.player_set.all().filter(id=form.cleaned_data['player'].id)[0]
+                return HttpResponse('Set password for player ' + str(player.ingame_id) + '/'
+                                    + str(player.name) + '.', status=200)
             context['set_player_password_form'] = form
         elif action == 'set_player_color':
             form = GameManagementSetPlayerColorForm(
