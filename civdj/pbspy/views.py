@@ -73,8 +73,8 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         '-name': ['-name', '-score', 'ingame_id'],
         'status': ['ingame_id'],
         '-status': ['-ingame_id'],
-        'finished': ['-finished_turn', 'ingame_id'],
-        '-finished': ['finished_turn', 'ingame_id'],
+        'finished': ['-finished_turn', '-score', 'ingame_id'],
+        '-finished': ['finished_turn', '-score', 'ingame_id'],
     }
 
     # Tuple of GameLog sub classes (subset)
