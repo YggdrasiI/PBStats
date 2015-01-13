@@ -759,7 +759,7 @@ class GameLogMissedTurn(GameLog):
             self.missed_turn_ids = ""
 
     def is_turn_incomplete(self):
-        return not self.missed_turn_names
+        return len(self.missed_turn_names)>0
 
     def message(self):
         format_names = []
