@@ -417,12 +417,15 @@ def game_manage(request, game_id, action=""):
             form = GameManagementSetPlayerPasswordForm(
                 game.player_set, request.POST)
             if form.is_valid():
-                game.pb_set_player_password(
-                    form.cleaned_data['player'].id,
-                    form.cleaned_data['password'])
-                player = game.player_set.all().filter(id=form.cleaned_data['player'].id)[0]
-                return HttpResponse('Set password for player ' + str(player.ingame_id) + '/'
-                                    + str(player.name) + '.', status=200)
+                try:
+                    game.pb_set_player_password(
+                        form.cleaned_data['player'],
+                        form.cleaned_data['password'])
+                    player = game.player_set.all().filter(id=form.cleaned_data['player'].id)[0]
+                    return HttpResponse('Set password for player ' + str(player.ingame_id) + '/'
+                                        + str(player.name) + '.', status=200)
+                except InvalidPBResponse:
+                    return HttpResponseBadRequest('Setting of password failed.')
             context['set_player_password_form'] = form
         elif action == 'set_player_color':
             form = GameManagementSetPlayerColorForm(
