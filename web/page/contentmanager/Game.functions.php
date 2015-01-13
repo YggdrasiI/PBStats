@@ -229,10 +229,12 @@ function gameFull($game,$online /* False for preview during creation of new game
 
 					if( ($infos->return === "ok") && ($colorData->return === "ok") ){
 						$dHtml .= "<h4>Colorset / Id / Used by player</h4>";
+
 						$colId = 0;
 						foreach( $colorData->colors as $color ){
+
 							$dHtml .= "<p>";
-							$dHtml .= "<p><span class='playerColor' style='background-color:rgba(".$color->primary.");'>Primary</span>\n";
+							$dHtml .= "<span class='playerColor' style='background-color:rgba(".$color->primary.");'>Primary</span>\n";
 							$dHtml .= "<span class='playerColor' style='background-color:rgba(".$color->secondary.");'>Secondary</span>\n";
 							$dHtml .= "<span class='playerColor' style='background-color:rgba(".$color->text.");'>Textcolor</span>\n";
 				
@@ -244,6 +246,31 @@ function gameFull($game,$online /* False for preview during creation of new game
 
 							$colId += 1;
 						}
+
+						// Use Hex values and create list in BB CODE
+						$colId = 0;
+							$dHtml .= "<p>BB-Code: <textarea>Primary Secondary Textcolor ID / {L_GAME_PLAYER}\n";
+						foreach( $colorData->colors as $color ){
+							$tmp = explode(",", $color->primary);
+							$primaryHex = sprintf("%02X%02X%02X", $tmp[0], $tmp[1], $tmp[2]);
+							$tmp = explode(",", $color->secondary);
+							$secondaryHex = sprintf("%02X%02X%02X", $tmp[0], $tmp[1], $tmp[2]);
+							$tmp = explode(",", $color->text);
+							$textHex = sprintf("%02X%02X%02X", $tmp[0], $tmp[1], $tmp[2]);
+
+							$dHtml .= "[COLOR=#$primaryHex]██████[/COLOR]";
+							$dHtml .= "[COLOR=#$secondaryHex]██████[/COLOR]";
+							$dHtml .= "[COLOR=#$textHex]██████[/COLOR]";
+
+							$dHtml .= " $colId / ";
+							foreach( $color->usedBy as $player ){
+								$dHtml .= $player->name.", ";
+							}
+						$dHtml .= "\n";
+
+							$colId += 1;
+						}
+						$dHtml .= "</textarea></p>\n";
 
 						$dHtml .= "<h4>{L_GAME_PLAYER} / {L_GAME_NEW_COLOR}</h4> <form action='$this_page' method='get'>\n";
 						$dHtml .= "<input type='hidden' name='opid' value='$opid' />\n";
@@ -328,48 +355,6 @@ function gameFull($game,$online /* False for preview during creation of new game
 						<input type='hidden' name='opid' value='$opid' />\n
 						</p></form>\n";
 
-
-					//Testing parsing of replay messages. Require debug=True in pbSettings.json
-					/*
-					$pbAction = array('action'=>'getReplay','password'=>$pw);
-					$replayData = json_decode(handle_pitboss_action($gameData, $pbAction));
-					if( ($replayData->return === "ok") ){
-						$dHtml .= "<h4>Replay Messages</h4><p>\n";
-						foreach( $replayData->replay as $message ){
-							$dHtml .= 'Round ' . $message->turn . ", Player ". $message->player .": ". $message->text . "<br>";
-						}
-						$dHtml .= "</p>\n";
-						$dHtml .= "<h4>Graphs</h4>\n";
-						if( isset( $replayData->graphs ) ){
-							foreach( $replayData->graphs as $id=>$player ){
-								$dHtml .= "<h5>Player $id</h5>\n";
-								$dHtml .= "</>Score: \n";
-								foreach( $player->score as $val ){
-									$dHtml .= "$val ";
-								}
-								$dHtml .= "</p>\n";
-								$dHtml .= "</>Economy: \n";
-								foreach( $player->economy as $val ){
-									$dHtml .= "$val ";
-								}
-								$dHtml .= "</p>\n";
-								$dHtml .= "</>Industry: \n";
-								foreach( $player->industry as $val ){
-									$dHtml .= "$val ";
-								}
-								$dHtml .= "</p>\n";
-								$dHtml .= "</>Agriculture: \n";
-								foreach( $player->agriculture as $val ){
-									$dHtml .= "$val ";
-								}
-								$dHtml .= "</p>\n";
-							}
-						}
-					}else{
-						$dHtml .= "<p>{L_GAME_ERROR_MSG}".$replayData->info ."</p>";
-					}
-					*/
-
 				}
 				$dHtml .= "<p><a href='$this_page?game=$gameId&action=admin'>{L_GAME_ADMIN_BACK}</a></p>";
 				$dHtml .= $mainpageLink;
@@ -420,6 +405,47 @@ function gameFull($game,$online /* False for preview during creation of new game
 					}
 				}else{
 					$dHtml .= "<p>{L_GAME_ERROR_MSG}".$replayData->info ."</p>";
+				}
+
+				$dHtml .= "<p><a href='$this_page?game=$gameId&action=admin'>{L_GAME_ADMIN_BACK}</a></p>";
+				$dHtml .= $mainpageLink;
+			}
+
+			if( $action === "fixSigns" ){
+				$step = 0;
+				if( isset($_GET["step"] ) ){
+					$step = $_GET["step"];
+				}
+
+				$dHtml .= "<h3>{L_GAME_SIGNS}</h3>";
+				if( $step == 1 ){
+					$pbAction = array('action'=>'cleanupSigns','password'=>$pw);
+					$signsData = json_decode(handle_pitboss_action($gameData, $pbAction));
+					if( ($signsData->return === "ok") ){
+						$dHtml .= "<h4>Cleanup Signs</h4><p>\n";
+						foreach( $signsData->info as $sign ){
+							$dHtml .= "Id: " . $sign->id . ", Caption: " . $sign->caption . "<br>\n";
+						}
+						$dHtml .= "</p>\n";
+					}else{
+						$dHtml .= "<p>{L_GAME_ERROR_MSG}".$signsData->info ."</p>";
+					}
+				}else{
+					$pbAction = array('action'=>'listSigns','password'=>$pw);
+					$signsData = json_decode(handle_pitboss_action($gameData, $pbAction));
+					if( ($signsData->return === "ok") ){
+						$dHtml .= "<p>{L_GAME_SIGNS_DESCRIPTION}</p>\n";
+						$dHtml .= "<p>{L_GAME_SIGNS_QUESTION}  <a href='$this_page?game=$gameId&action=fixSigns&step=1'>{L_YES}</a></p>";
+						$dHtml .= "<h4>Current Signs</h4><p>\n";
+						foreach( $signsData->info as $sign ){
+							$dHtml .= "Id: " . $sign->id . ", Caption: " . $sign->caption . "<br>\n";
+						}
+						$dHtml .= "</p>\n";
+					}else{
+						$dHtml .= "<p>{L_GAME_ERROR_MSG}".$signsData->info ."</p>";
+					}
+
+
 				}
 
 				$dHtml .= "<p><a href='$this_page?game=$gameId&action=admin'>{L_GAME_ADMIN_BACK}</a></p>";
@@ -720,7 +746,8 @@ function gameFull($game,$online /* False for preview during creation of new game
 							<input type='hidden' name='opid' value='$opid' />\n
 							</form>\n";
 
-						$dHtml .= "<h3 class=''><a href='$this_page?game=$gameId&action=color&opid=$opid'>{L_GAME_COLOR}</a></h3>";
+						$dHtml .= "<h3 class=''><a href='$this_page?game=$gameId&action=color'>{L_GAME_COLOR}</a></h3>";
+						$dHtml .= "<h3 class=''><a href='$this_page?game=$gameId&action=fixSigns'>{L_GAME_SIGNS}</a></h3>";
 					}else{
 						$dHtml .= "<h3>{L_ERROR}</h3><p>{L_GAME_CONNECTION_ERROR0}</p>";
 						$dHtml .= "<h3 class=' '><a href='$this_page?game=$gameId&action=setWebserverpassword'>{L_GAME_WEBSERVERPASSWORD}</a></h3>";

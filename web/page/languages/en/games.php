@@ -99,6 +99,15 @@ $lang['game_notes_player_color'] = "To avoid bad color combinations of neigboure
 	The available colorsets are defined in Assets/XML/Interface/CIV4PlayerColorInfos.xml.";
 $lang['game_player'] = "Player";
 $lang['game_new_color'] = "New color";
+$lang['game_signs'] = "Ingame signs";
+$lang['game_signs_description'] = "Sometimes, the PB Server do not load save games under Wine (Error message mentioned corrupt save), but the save game is still loadable under Windows.<br>
+	You can use this function to filtering the sign strings (Alt+S). 
+	Then, the game should be loadable again.<br> If your savegame is already corrupt, you need to run the PB server on a Windows machine…<br>\n
+	The following filtering will be applied:<ul>
+	<li>Cut of after 18 characters.</li>
+	<li>Limit on first 127 ascii characters.</li>
+	</ul>\n";
+$lang['game_signs_question'] = "Are you sure to start the sign fixing?";
 
 // Log messages
 $lang['log_player_change_name'] = "Changed name to %s.";

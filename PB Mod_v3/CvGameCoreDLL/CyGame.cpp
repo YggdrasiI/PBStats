@@ -629,12 +629,12 @@ bool CyGame::isPitboss()
 }
 bool CyGame::isPitbossShortNames() const
 {
-	return m_pGame ? GC.getInitCore().isPitbossShortNames() : false;
+	return m_pGame ? CvInitCore::isPitbossShortNames() : false;
 }
 
 void CyGame::setPitbossShortNames(bool bShort, int maxLenName, int maxLenDesc){
 	if( m_pGame != NULL ){
-		GC.getInitCore().setPitbossShortNames( bShort, maxLenName, maxLenDesc );
+		CvInitCore::setPitbossShortNames( bShort, maxLenName, maxLenDesc );
 	}
 }
 

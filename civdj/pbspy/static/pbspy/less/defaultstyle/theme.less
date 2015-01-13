@@ -11,6 +11,9 @@
 @linkColor: @fontColor1;
 @linkColorHover: @fontColor3;
 
+@hoverForeground : darken(#D9BF8C,0%);
+@hoverBackground : darken(mix(yellow, @BGColor, 13%),-3%);
+
 body {
 	color: @fontColor1;
 	background-color:@BGColor;
@@ -89,20 +92,28 @@ table.game_players {
   .colColor {
       border-right-style:none;
       padding:0px;
-      font-weight:blod;
+      font-weight:bold;
       font-size:120%;
   }
   td.colColor {
+			width:1.5em;
+			text-align: center;
+			border-left-style:none;
   }
+  //.colLeader { border-right-style:none; }
   .colNation { border-left-style:none; }
 }
 
 table.game_players tr:hover,
 table.game_log tr:hover,
 {
-        background-color: desaturate(@BGColor,40%);
+        background-color: @hoverBackground;
+				a:hover {
+						color: @hoverForeground;
+					}
     td.colColor {
-        background-color: desaturate(@fontColor2,40%);
+        //background-color: black;
+        background-color: darken(grey, 50%);
     }
 }
 
@@ -157,8 +168,12 @@ table.game_log tr:hover,
 }
 
 //Special Colouring of log entries
+.logScore {
+    background-color: darken(mix(green, @BGColor, 13%),-3%);
+}
 .logTurn, .logFinish {
-    background-color: darken(mix(brown, @BGColor, 20%),10%);
+    //background-color: darken(mix(brown, @BGColor, 20%),10%);
+    background-color: darken(mix(green, @BGColor, 13%),-3%);
     //color: @fontColor2;
     font-weight: bold;
     :first-child {

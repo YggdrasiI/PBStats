@@ -987,7 +987,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 			if (inputClass.getData1() == 301312):
 				if (inputClass.getData2() == 1 ):
 					# Extend selection by all contact of selected nation
-					self.extendSelection(self.iSelectedLeader2, [0,1,2,3,4,5], False)
+					self.extendSelection(self.iSelectedLeader2, [0,1,2,3,4,5], True)
 					self.drawContents(False)
 
 				elif (inputClass.getData2() == 2 ):
@@ -1018,17 +1018,17 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 			 
 				elif (inputClass.getData2() == 5 ):
 					# Draw relation lines for all friendly nations (green/cyan/yellow/blue lines)
-					self.extendSelection(self.iSelectedLeader2, [1,2,3,4], False)
+					self.extendSelection(self.iSelectedLeader2, [1,2,3,4], True)
 					self.drawContents(False)
 
 				elif (inputClass.getData2() == 6 ):
 					# Draw relation lines for neutral nations (white lines)
-					self.extendSelection(self.iSelectedLeader2, [0], False)
+					self.extendSelection(self.iSelectedLeader2, [0], True)
 					self.drawContents(False)
 
 				elif (inputClass.getData2() == 7 ):
 					# Draw relation lines for enemies (red lines)
-					self.extendSelection(self.iSelectedLeader2, [5], False)
+					self.extendSelection(self.iSelectedLeader2, [5], True)
 					self.drawContents(False)
 
 			 

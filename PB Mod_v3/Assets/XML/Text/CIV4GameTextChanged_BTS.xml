@@ -9,71 +9,70 @@
 		<Italian>Continue Game (Pitboss)</Italian>
 		<Spanish>Continue Game (Pitboss)</Spanish>
 	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MOD_ALL</Tag>
-		<English>All contacts</English>
-		<French>All contacts</French>
-		<German>Alle Kontakte</German>
-		<Italian>All contacts</Italian>
-		<Spanish>All contacts</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MOD_TRADE</Tag>
-		<English>Trade partners</English>
-		<French>Trade partners</French>
-		<German>Handelskontakte</German>
-		<Italian>Trade partners</Italian>
-		<Spanish>Trade partners</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MOD_FRIENDLY</Tag>
-		<English>Friendly nations</English>
-		<French>Friendly nations</French>
-		<German>Befreundete Nationen</German>
-		<Italian>Friendly nations</Italian>
-		<Spanish>Friendly nations</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MOD_NEUTRAL</Tag>
-		<English>Neutrale nations</English>
-		<French>Neutrale nations</French>
-		<German>Neutrale Nationen</German>
-		<Italian>Neutrale nations</Italian>
-		<Spanish>Neutrale nations</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MOD_ENEMY</Tag>
-		<English>Hostile nations</English>
-		<French>Hostile nations</French>
-		<German>Feindliche Nationen</German>
-		<Italian>Hostile nations</Italian>
-		<Spanish>Hostile nations</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MOD_SHOW_RELATION_LINES</Tag>
-		<English>Show white lines</English>
-		<French>Show white lines</French>
-		<!--<German>Zeige Linen f&#252;r Kontakte</German>-->
-		<German>Zeige wei&#223;e Linen</German>
-		<Italian>Show white lines</Italian>
-		<Spanish>Show white lines</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MOD_REDUCE_ON_SELECTED_LEADRES</Tag>
-		<English>Show selected only</English>
-		<French>Show selected only</French>
-		<German>Nur ausgew&#228;hlte Nationen anzeigen</German>
-		<Italian>Show selected only</Italian>
-		<Spanish>Show selected only</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MOD_EXPAND</Tag>
-		<English>Expand selection</English>
-		<French>Expand selection</French>
-		<German>Auswahl erweitern</German>
-		<Italian>Expand selection</Italian>
-		<Spanish>Expand selection</Spanish>
-	</TEXT>
+  <TEXT>
+     <Tag>TXT_KEY_MOD_ALL</Tag>
+     <English>All contacts</English>
+     <French>All contacts</French>
+     <German>Alle Kontakte</German>
+     <Italian>All contacts</Italian>
+     <Spanish>Todos los contactos</Spanish>
+   </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_TRADE</Tag>
+     <English>Trade partners</English>
+     <French>Trade partners</French>
+     <German>Handelskontakte</German>
+     <Italian>Trade partners</Italian>
+     <Spanish>Contactos comerciales</Spanish>
+   </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_FRIENDLY</Tag>
+     <English>Friendly nations</English>
+     <French>Friendly nations</French>
+     <German>Befreundete Nationen</German>
+     <Italian>Friendly nations</Italian>
+     <Spanish>Naciones amistosas</Spanish>
+   </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_NEUTRAL</Tag>
+     <English>Neutrale nations</English>
+     <French>Neutrale nations</French>
+     <German>Neutrale Nationen</German>
+     <Italian>Neutrale nations</Italian>
+     <Spanish>Naciones neutrales</Spanish>
+   </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_ENEMY</Tag>
+     <English>Hostile nations</English>
+     <French>Hostile nations</French>
+     <German>Feindliche Nationen</German>
+     <Italian>Hostile nations</Italian>
+     <Spanish>Naciones hostiles</Spanish>
+   </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_SHOW_RELATION_LINES</Tag>
+     <English>Show contacts (white lines)</English>
+     <French>Show contacts (white lines)</French>
+     <German>Zeige Kontakte (wei&#223;e Linien).</German>
+     <Italian>Show contacts (white lines)</Italian>
+     <Spanish>Mostrar contactos (l&#237;neas blancas)</Spanish>
+   </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_REDUCE_ON_SELECTED_LEADRES</Tag>
+     <English>Show selected nations only</English>
+     <French>Show selected nations only</French>
+     <German>Nur ausgew&#228;hlte Nationen anzeigen</German>
+     <Italian>Show selected nations only</Italian>
+     <Spanish>Mostrar solo naciones seleccionadas</Spanish>
+   </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_EXPAND</Tag>
+     <English>Expand selection</English>
+     <French>Expand selection</French>
+     <German>Auswahl erweitern</German>
+     <Italian>Expand selection</Italian>
+     <Spanish>Expandir selecci&#243;n</Spanish>
+   </TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MOD_</Tag>
 		<English></English>

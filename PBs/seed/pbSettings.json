@@ -1,7 +1,7 @@
 {
  "comment" : "Look into Webserver.py for a commented version of this structure with all options.",
  "numRecoverySavesPerPlayer": 5, 
- "MotD": "Welcome on the modified PitBoss Server", 
+ "MotD": "Modified PitBoss Server, Version 3",
  "noGui": 0, 
  "autostart": 0,
  "webserver": {
@@ -16,7 +16,7 @@
   "sendInterval": 10
  }, 
  "save": {
-  "filename": "Beispiel2.CivBeyondSwordSave",
+  "filename": "Beispiel3.CivBeyondSwordSave",
   "adminpw": "",
 	"savefolder" : "saves\\multi\\",
 	"readfolders" : []

@@ -102,7 +102,7 @@ class Game(models.Model):
     url                = models.CharField(max_length=200, blank=True, null=True,
                                           validators=[URLValidator()])
 
-    update_date        = models.DateTimeField(blank=True, null=True)
+    update_date        = models.DateTimeField(auto_now_add=True)
     is_paused          = models.BooleanField(default=False)
     is_headless        = models.BooleanField(default=False)
     is_autostart       = models.BooleanField(default=True)
@@ -181,15 +181,15 @@ class Game(models.Model):
             return
         try:
             info = self.pb_info()
+            self.set_from_dict(info)
         except (InvalidPBResponse, URLError):
             if self.is_online:
                 self.is_online = False
-                if ignore_game_state:
-                    self.update_date = cur_date
                 self.save()
-                return
-
-        self.set_from_dict(info)
+            elif ignore_game_state:
+                self.update_date = cur_date
+                self.save()
+            return
 
 
     @transaction.atomic
@@ -360,9 +360,11 @@ class Game(models.Model):
 
     def pb_set_player_password(self, player_id, new_password, user=None):
         if isinstance(player_id, Player):
-            player_id = player_id.ingame_id
+            ingame_id = player_id.ingame_id
+        else:
+            ingame_id = self.player_set.all().filter(id=player_id)[0].ingame_id
         return self.pb_action(action='setPlayerPassword',
-                              playerId=player_id, newCivPW=new_password)
+                              playerId=ingame_id, newCivPW=new_password)
 
     def pb_set_player_color(self, ingame_player_id, new_color, user=None):
         return self.pb_action(action='setPlayerColor', playerId=ingame_player_id, colorId=new_color)
@@ -478,10 +480,10 @@ class Player(models.Model):
     color_rgb     = models.TextField(max_length=3 * 3 + 2)
 
     def status(self):
-        if not self.is_claimed:
-            return _('unclaimed')
         if self.score == 0:
             return _('eliminated')
+        if not self.is_claimed:
+            return _('unclaimed')
         if not self.is_human:
             return _('AI')
         if self.is_online:
@@ -757,7 +759,7 @@ class GameLogMissedTurn(GameLog):
             self.missed_turn_ids = ""
 
     def is_turn_incomplete(self):
-        return not self.missed_turn_names
+        return len(self.missed_turn_names)>0
 
     def message(self):
         format_names = []
