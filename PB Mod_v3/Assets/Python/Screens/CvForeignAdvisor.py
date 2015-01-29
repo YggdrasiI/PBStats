@@ -706,8 +706,9 @@ class CvForeignAdvisor:
 
 				for iPlayer in leaderMap.keys():
 					# PB Mod, Omit double drawing of lines
-					if iPlayer < iSelectedLeader and iPlayer in self.listSelectedLeaders:
-						continue
+					# Hm, the first filter contain a logical error...
+					#if iPlayer < iSelectedLeader and iPlayer in self.listSelectedLeaders:
+					#	continue
 					if self.bReduceOnSelectedLeaders and not iPlayer in self.listSelectedLeaders:
 						continue
 
