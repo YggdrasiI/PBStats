@@ -73,6 +73,14 @@
      <Italian>Expand selection</Italian>
      <Spanish>Expandir selecci&#243;n</Spanish>
    </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_CLEAR_SELECTION</Tag>
+     <English>Clear selection</English>
+     <French>Clear selection</French>
+     <German>Auswahl leeren</German>
+     <Italian>Clear selection</Italian>
+     <Spanish>Vaciar selecci&#243;n</Spanish>
+   </TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MOD_</Tag>
 		<English></English>

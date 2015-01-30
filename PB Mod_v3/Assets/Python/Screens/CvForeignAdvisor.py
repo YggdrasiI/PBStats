@@ -479,18 +479,18 @@ class CvForeignAdvisor:
 			player = gc.getPlayer(iPlayer)
 			if (iSelectedLeader != iPlayer):
 				if (player.getTeam() == selectedPlayer.getTeam()):
-					playerReleations.append( (iPlayer, 4) )
+					playerReleations.append( (iPlayer,4) )
 				elif (gc.getTeam(player.getTeam()).isVassal(selectedPlayer.getTeam()) or gc.getTeam(selectedPlayer.getTeam()).isVassal(player.getTeam())):
-					playerReleations.append( (iPlayer, 3) )
+					playerReleations.append( (iPlayer,3) )
 				elif (gc.getTeam(player.getTeam()).isDefensivePact(selectedPlayer.getTeam())):
-					playerReleations.append( (iPlayer, 2) )
+					playerReleations.append( (iPlayer,2) )
 				elif (gc.getTeam(player.getTeam()).isHasMet(selectedPlayer.getTeam())):
 					if (gc.getTeam(player.getTeam()).isAtWar(selectedPlayer.getTeam())):
-						playerReleations.append( (iPlayer, 5) )
+						playerReleations.append( (iPlayer,5) )
 					elif (gc.getTeam(player.getTeam()).isOpenBorders(selectedPlayer.getTeam())):
-						playerReleations.append( (iPlayer, 1) )
+						playerReleations.append( (iPlayer,1) )
 					else:
-						playerReleations.append( (iPlayer, 0) )
+						playerReleations.append( (iPlayer,0) )
 		return playerReleations
 
 	def extendSelection(self, iPlayer, releationList, addActivePlayer): 
@@ -688,7 +688,7 @@ class CvForeignAdvisor:
 		# draw lines
 		for iSelectedLeader in range(gc.getMAX_PLAYERS()):
 			bDisplayed = (not gc.getPlayer(iSelectedLeader).isBarbarian() and not gc.getPlayer(iSelectedLeader).isMinorCiv() and gc.getPlayer(iSelectedLeader).isAlive() and (gc.getGame().isDebugMode() or gc.getTeam(playerActive.getTeam()).isHasMet(gc.getPlayer(iSelectedLeader).getTeam())))
-			if( (iSelectedLeader in self.listSelectedLeaders or bNoLeadersSelected) and bDisplayed):
+			if( (iSelectedLeader in self.listSelectedLeaders or bNoLeadersSelected) and bDisplayed ):
 				# get selected player and location
 				if (iSelectedLeader in leaderMap):
 					if self.bReduceOnSelectedLeaders and not iSelectedLeader in self.listSelectedLeaders:
@@ -706,8 +706,7 @@ class CvForeignAdvisor:
 
 				for iPlayer in leaderMap.keys():
 					# PB Mod, Omit double drawing of lines
-					# Hm, the first filter contain a logical error...
-					#if iPlayer < iSelectedLeader and iPlayer in self.listSelectedLeaders:
+					#if( iPlayer > iSelectedLeader and iSelectedLeader in self.listSelectedLeaders ):
 					#	continue
 					if self.bReduceOnSelectedLeaders and not iPlayer in self.listSelectedLeaders:
 						continue
@@ -794,7 +793,7 @@ class CvForeignAdvisor:
 		self.newSelection = False
 		# PB Mod, extra Buttons
 		# Right Buttons
-		numRows = 6
+		numRows = 7
 		# Background for Right Buttons
 		#x = self.X_LEGEND + self.W_LEGEND 
 		x = self.W_SCREEN - self.W_LEGEND
@@ -807,6 +806,11 @@ class CvForeignAdvisor:
 		x = self.W_SCREEN - self.MARGIN_LEGEND
 		y = self.Y_LEGEND + self.H_LEGEND - numRows * 2 * self.MARGIN_LEGEND
 		justify = CvUtil.FONT_RIGHT_JUSTIFY
+		screen.setText("ForeignSelectClearing", "Background",
+				u"<font=2>" + localText.getText("TXT_KEY_MOD_CLEAR_SELECTION", ()) + u"</font>",
+				justify, x, y, -0.1, FontTypes.TITLE_FONT,
+				WidgetTypes.WIDGET_GENERAL, 301312, 8 )
+		y += 2 * self.MARGIN_LEGEND
 		screen.setLabel("ForeignSelectHeadline", "Background",
 				u"<font=2>" + localText.getText("TXT_KEY_MOD_EXPAND", ()) + u"</font>",
 				CvUtil.FONT_LEFT_JUSTIFY, self.W_SCREEN - self.W_LEGEND + 2 * self.MARGIN_LEGEND,

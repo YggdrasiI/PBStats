@@ -1031,6 +1031,18 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 					self.extendSelection(self.iSelectedLeader2, [5], True)
 					self.drawContents(False)
 
+				elif (inputClass.getData2() == 8 ):
+					# Reduce selection on active player (or all if shift is pressed)
+					(listPlayers, nNumPLayers) = self.getActiveDealsMap(self.iSelectedLeader2)
+					if self.iShiftKeyDown == 0:
+						self.listSelectedLeaders = []
+						self.lastRemovedLeader = -1
+					else:
+						self.listSelectedLeaders = []
+						self.extendSelection(self.iActiveLeader, [0,1,2,3,4,5], True)
+					self.getScreen().hide("SelectionCircle")
+					self.drawContents(False)
+
 			 
 		elif (inputClass.getNotifyCode() == NotifyCode.NOTIFY_LISTBOX_ITEM_SELECTED):
 			if (inputClass.getFunctionName() + str(inputClass.getID()) == self.getWidgetName(self.DEBUG_DROPDOWN_ID)):
