@@ -102,7 +102,11 @@ class Game(models.Model):
     url                = models.CharField(max_length=200, blank=True, null=True,
                                           validators=[URLValidator()])
 
-    update_date        = models.DateTimeField(auto_now_add=True)
+    # Timestamp of last successful connection. Field is null if the game was never connected.
+    last_update_successful = models.DateTimeField(null=True)
+    # Timestamp of last connection attempt. Will be used to  omit multiple connection attempts.
+    last_update_attempt = models.DateTimeField(null=False, default=datetime.datetime.now())
+
     is_paused          = models.BooleanField(default=False)
     is_headless        = models.BooleanField(default=False)
     is_autostart       = models.BooleanField(default=True)
@@ -132,13 +136,13 @@ class Game(models.Model):
 
     def timer_end(self):
         delta = datetime.timedelta(seconds=round(self.timer_remaining_4s / 4))
-        return self.update_date + delta
+        return self.last_update_successful + delta
 
     # Estimate end in realtime (PB clock runs slower).
     # TODO find better way to estimate e.g. interpolate from log
     def timer_end_realtime(self):
         delta = datetime.timedelta(seconds=round(self.timer_remaining_4s / 4))
-        return self.update_date + delta * 5 / 4
+        return self.last_update_successful + delta * 5 / 4
 
     def year_str(self):
         return format_year(self.year)
@@ -159,7 +163,7 @@ class Game(models.Model):
                 return "offline"
 
     def get_last_activity(self):
-        return self.update_date
+        return self.last_update_attempt
 
     def get_online_players(self):
         if not self.is_online:
@@ -177,7 +181,7 @@ class Game(models.Model):
             return
         cur_date = timezone.now()
         delta = datetime.timedelta(seconds=min_time_diff)
-        if cur_date < self.update_date + delta:
+        if cur_date < self.last_update_attempt + delta:
             return
         try:
             info = self.pb_info()
@@ -187,7 +191,7 @@ class Game(models.Model):
                 self.is_online = False
                 self.save()
             elif ignore_game_state:
-                self.update_date = cur_date
+                self.last_update_attempt = cur_date
                 self.save()
             return
 
@@ -261,7 +265,8 @@ class Game(models.Model):
 
         self.timer_max_h        = timer_max_h
         self.timer_remaining_4s = timer_remaining_4s
-        self.update_date        = date
+        self.last_update_successful = date
+        self.last_update_attempt = date
         self.pb_name            = pb_name
         self.turn               = turn
         self.is_paused          = is_paused
@@ -358,11 +363,10 @@ class Game(models.Model):
     def pb_restart(self, filename, folder_index=0, user=None):
         return self.pb_action(action='restart', filename=filename, folder_index=folder_index)
 
-    def pb_set_player_password(self, player_id, new_password, user=None):
-        if isinstance(player_id, Player):
-            ingame_id = player_id.ingame_id
-        else:
-            ingame_id = self.player_set.all().filter(id=player_id)[0].ingame_id
+    def pb_set_player_password(self, player_obj, new_password, user=None):
+        if not isinstance(player_obj, Player):
+            raise InvalidPBResponse(_("No valid player given."))
+        ingame_id = player_obj.ingame_id
         return self.pb_action(action='setPlayerPassword',
                               playerId=ingame_id, newCivPW=new_password)
 

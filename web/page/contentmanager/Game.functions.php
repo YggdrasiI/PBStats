@@ -23,6 +23,17 @@ function gameShort($game){
 	return $dHtml;
 }
 
+
+function sign_is_ok($signCaption){
+	if( strlen($signCaption) > 18) return false;
+	foreach( str_split($signCaption) as $c ){
+		if( ord($c)> 127 ){
+			return false;
+		}
+	}
+	return true;
+}
+
 /* $online=0 reduce the display to
  * values of the games table .*/
 function gameFull($game,$online /* False for preview during creation of new game entry */ ){
@@ -424,7 +435,9 @@ function gameFull($game,$online /* False for preview during creation of new game
 					if( ($signsData->return === "ok") ){
 						$dHtml .= "<h4>Cleanup Signs</h4><p>\n";
 						foreach( $signsData->info as $sign ){
-							$dHtml .= "Id: " . $sign->id . ", Caption: " . $sign->caption . "<br>\n";
+							$dHtml .= "<span" . (sign_is_ok($sign->caption)?"":" class='fontColorWarn' ") . ">";
+							$dHtml .= "Id: " . $sign->id . ", Caption: " . $sign->caption;
+							$dHtml .= "</span><br>\n";
 						}
 						$dHtml .= "</p>\n";
 					}else{
@@ -438,7 +451,9 @@ function gameFull($game,$online /* False for preview during creation of new game
 						$dHtml .= "<p>{L_GAME_SIGNS_QUESTION}  <a href='$this_page?game=$gameId&action=fixSigns&step=1'>{L_YES}</a></p>";
 						$dHtml .= "<h4>Current Signs</h4><p>\n";
 						foreach( $signsData->info as $sign ){
-							$dHtml .= "Id: " . $sign->id . ", Caption: " . $sign->caption . "<br>\n";
+							$dHtml .= "<span" . (sign_is_ok($sign->caption)?"":" class='fontColorWarn' ") . ">";
+							$dHtml .= "Id: " . $sign->id . ", Caption: " . $sign->caption; 
+							$dHtml .= "</span><br>\n";
 						}
 						$dHtml .= "</p>\n";
 					}else{
