@@ -491,11 +491,19 @@ function trim_database_tables($gameId){
 	 * to an internal "free-list" and is reused the next time you insert data. The disk space is not lost.
 	 * But neither is it returned to the operating system.
 	 * If you delete a lot of data and want to shrink the database file, run the VACUUM command.
+	 *
+	 * Note for MySQL: Subqueries in UPDATE commands are ugly:
+	 * see http://stackoverflow.com/a/14302701/620382
 	 */
 
 	try{
 		$statement = $db->prepare('DELETE FROM statusCache WHERE gameId = ? AND
-			id<(SELECT id from statusCache WHERE gameId = ? ORDER BY id DESC LIMIT 1 OFFSET 10); ');
+			id < (SELECT id FROM
+				(SELECT id from statusCache
+				WHERE gameId = ?
+				ORDER BY id
+				DESC LIMIT 1 OFFSET 10) foo
+			);');
 		if( $statement == null ) throw new Exception("Wrong sql statement");
 		$statement->bindValue(1, $gameId,  PDO::PARAM_INT);
 		$statement->bindValue(2, $gameId,  PDO::PARAM_INT);
