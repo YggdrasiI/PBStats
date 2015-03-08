@@ -672,7 +672,6 @@ class GameLogFinish(GameLogPlayer):
 
 class GameLogScore(GameLogPlayer):
     score = models.PositiveIntegerField()
-    increase = models.BooleanField(default=None)
     delta = models.IntegerField(default=0)
 
     def message(self):
