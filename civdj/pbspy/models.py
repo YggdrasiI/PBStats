@@ -520,7 +520,7 @@ class Player(models.Model):
 
             if self.score != score:
                 if score > 0:
-                    GameLogScore(score=score, increase=(score > self.score), **logargs).save()
+                    GameLogScore(score=score, delta=(score - self.score), **logargs).save()
                 else:
                     GameLogEliminated(**logargs).save()
 
@@ -673,12 +673,15 @@ class GameLogFinish(GameLogPlayer):
 class GameLogScore(GameLogPlayer):
     score = models.PositiveIntegerField()
     increase = models.BooleanField(default=None)
+    delta = models.IntegerField(default=0)
 
     def message(self):
-        if self.increase:
-            return _("Score increased to {score}").format(score=self.score)
+        if self.delta > 0:
+            return _("Score increased to {score} ({delta:+})").format(score=self.score, delta=self.delta)
+        elif self.delta < 0:
+            return _("Score decreased to {score} ({delta})").format(score=self.score, delta=self.delta)
         else:
-            return _("Score decreased to {score}").format(score=self.score)
+            return _("Score changed to {score}").format(score=self.score)
 
 
 class GameLogNameChange(GameLogPlayer):
