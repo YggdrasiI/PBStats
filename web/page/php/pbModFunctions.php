@@ -115,7 +115,7 @@ function handle_pitboss_action($gameData, $arr_in) {
 		}
 
 		//$timeout = array('sec'=>0,'usec'=>500000);
-		$timeout = array('sec'=>1,'usec'=>0);
+		$timeout = array('sec'=>5,'usec'=>0); // low values could disturb the sending of large WBfiles
 		socket_set_option($socket,SOL_SOCKET,SO_RCVTIMEO,$timeout);
 
 		if (!socket_connect ($socket, $address, $port)) {

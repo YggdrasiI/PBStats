@@ -1,6 +1,14 @@
 from CvPythonExtensions import *
 import CvUtil
 
+# For WB Saves
+#import StringIO
+import cStringIO
+import CvWBDesc
+#import CvWBInterface
+#import zlib # not included
+#import gzip # exists in Civ4/Assets/Python/System, but can not be importet
+
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 import re
@@ -196,7 +204,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 							self.server.savePbSettings()
 							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Headless/noGui flag: ' + str(pbSettings["noGui"]) } ) +"\n" )
 
-					elif( action == "save" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+					elif( action == "getSave" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
 						defaultFile="Pitboss_" + PB.getGamedate(True)
 						filename =  str( inputdata.get("filename",defaultFile) ) + ".CivBeyondSwordSave"
 						#remove "\ or /" chars to cut of directory changes
@@ -353,8 +361,15 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 								{'return':'ok', 'info':'Return MotD.', 'msg':motd } ) +"\n" )
 						except Exception, e:
 							self.wfile.write( simplejson.dumps( {'return':'fail','info':'Some error occured trying to get the MotD. Error msg:'+str(e) } ) +"\n" )
+					elif( action == "getWBSave" and
+							inputdata.get("password") == pbSettings["webserver"]["password"] and
+							pbSettings["webserver"].get("allowWB",False) ):
+						bCache = (inputdata.get("noCache","0") == "0")
+						bCompress = (inputdata.get("compress", "0") == "1")
+						ret = self.server.createWBSave( bCache, bCompress)
+						self.wfile.write( simplejson.dumps( ret ) +"\n" )
 
-					elif( action == "getReplay" and pbSettings.get("debug",False) ):
+					elif( action == "getReplay" and pbSettings["webserver"].get("allowReplay",False) ):
 						try:
 							replayInfo = gc.getGame().getReplayInfo()
 							if replayInfo.isNone():
@@ -373,9 +388,13 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 								color = colRgba[7:colRgba.find(">")]
 								if eMessageType in [ReplayMessageTypes.REPLAY_MESSAGE_CITY_FOUNDED,
 													ReplayMessageTypes.REPLAY_MESSAGE_MAJOR_EVENT]:
+									# Why does this not work?!
+									#msgText = replayInfo.getReplayMessageText(i).decode('ascii', 'replace') 
+									msgText = replayInfo.getReplayMessageText(i)
+									msgText = ''.join(i for i in msgText if ord(i)<128) #filtering 
 									replayMessages.append( {'id':i,'turn':iTurn,'player':iPlayer,
 															'color':color,
-															'text':str(replayInfo.getReplayMessageText(i))})
+															'text':msgText } )
 								i += 1
 
 							#Scores
@@ -494,7 +513,9 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
 						self.wfile.write( simplejson.dumps( {'return':'ok','colors':colorList} ) +"\n" )
 
-					elif( action == "listSigns" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+					elif( action == "listSigns" and 
+							inputdata.get("password") == pbSettings["webserver"]["password"] and 
+							pbSettings["webserver"].get("allowSigns", False) ):
 						engine = CyEngine()
 						signs = []
 						for i in range(engine.getNumSigns()-1,-1,-1):
@@ -507,7 +528,9 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 							signs.append( sign)
 						self.wfile.write( simplejson.dumps( {'return':'ok','info':signs} ) +"\n" )
 
-					elif( action == "cleanupSigns" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+					elif( action == "cleanupSigns" and 
+							inputdata.get("password") == pbSettings["webserver"]["password"] and
+							pbSettings["webserver"].get("allowSigns", False) ):
 						#Debugging: Reset all Signs. Remove some special chars
 						engine = CyEngine()
 						signs = []
@@ -533,7 +556,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 						self.wfile.write( simplejson.dumps( {'return':'ok','info':signs} ) +"\n" )
 
 					else:
-						self.wfile.write( simplejson.dumps( {'return':'fail','info':'Wrong password or unknown action. Available actions are info, chat, save, restart, listSaves, setAutostart, setHeadless, getMotD, setMotD, setShortNames, listPlayerColors, setPlayerColor, listSigns, cleanupSigns'} ) +"\n" )
+						self.wfile.write( simplejson.dumps( {'return':'fail','info':'Wrong password or unknown action. Available actions are info, chat, save, restart, listSaves, setAutostart, setHeadless, getMotD, setMotD, setShortNames, listPlayerColors, setPlayerColor, listSigns, cleanupSigns, getReplay, getWBSave. For security reasons the last four commands require the activation of some extra flags, see Webserver.py'} ) +"\n" )
 
 				except Exception, e:
 					try:
@@ -605,6 +628,86 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 		iMaxLenDesc =  int(shortnames.get("maxLenDesc",4))
 		gc.getGame().setPitbossShortNames( bShortNames, iMaxLenName, iMaxLenDesc)
 
+	# Cache value because the evaluation is an expensive operation
+	wbsaveCache = None
+	def createWBSave(self, bCache = True, bCompress = False):
+		self.lock.acquire()
+
+		# Reset cache for new rounds
+		if self.wbsaveCache != None and self.wbsaveCache.get("turn",-1) != PB.getGameturn():
+			self.wbsaveCache = None
+
+		if self.wbsaveCache == None or bCache == False:
+			self.wbsaveCache = {"turn": PB.getGameturn()}
+			#f = file("/dev/shm/Test.WBSave", "w")
+			f = cStringIO.StringIO()
+			version = 11
+			f.write("Version=%d\n" %(version,))
+
+			CvWBDesc.CvGameDesc().write(f)
+			for i in range(gc.getMAX_TEAMS()):
+				CvWBDesc.CvTeamDesc().write(f, i)    # write team info
+
+			for i in range(gc.getMAX_PLAYERS()):
+				CvWBDesc.CvPlayerDesc().write(f, i)    # write player info
+
+			CvWBDesc.CvMapDesc().write(f)
+			f.write("\n### Plot Info ###\n")
+			iGridW = CyMap().getGridWidth() 
+			iGridH = CyMap().getGridHeight()
+			for iX in range(iGridW):
+				for iY in range(iGridH):
+					plot = CyMap().plot(iX, iY)
+					pDesc = CvWBDesc.CvPlotDesc()
+					if pDesc.needToWritePlot(plot):
+						pDesc.write(f, plot)
+			# Signs should be private
+			"""
+			f.write("\n### Sign Info ###\n")
+			iNumSigns = CyEngine().getNumSigns()
+			for i in range(iNumSigns):
+				sign = CyEngine().getSignByIndex(i)
+				pDesc = CvSignDesc()
+				pDesc.write(f, sign)
+			"""
+
+			wbsave = f.getvalue()
+			self.wbsaveCache["raw"] = wbsave.decode('ascii', 'replace') # required for umlauts
+			f.close()
+
+		if bCompress and not self.wbsaveCache.has_key("zip"):
+			#self.wbsaveCache["zip"] = zlib.compress(self.wbsaveCache.get("raw","No WB data cached."))
+			"""
+			zf = cStringIO.StringIO()
+			z = GzipFile(None, 'w', 9, zf)
+			z.write( self.wbsaveCache.get("raw","No WB data cached.") )
+			self.wbsaveCache["zip"] = z.read()
+			zf.close()
+			"""
+			self.wbsaveCache["zip"] = self.wbsaveCache.get("raw","No WB data cached.") 
+		
+		if bCompress:
+			ret = {'return':'ok','info':'Compressed WBSave returned.', 'save': self.wbsaveCache["zip"] }
+		else:
+			ret = {'return':'ok','info':'WBSave returned.', 'save': self.wbsaveCache["raw"] }
+		self.lock.release()
+		return ret
+
+	def createWBSaveDoNotWork(self, filename, folderIndex=0):
+		filepath = os.path.join(self.getSaveFolder(folderIndex),filename)
+		if (filepath != ""):
+			self.lock.acquire()
+			WBDesc = CvWBDesc.CvWBDesc()
+			if 0 == WBDesc.write(filename):
+				ret = {'return':'ok','info':'File was saved in '+filepath+'.','save':'blub' }
+			else:
+				ret = {'return':'fail','info':'Can not create WBSave '+filepath+'.', 'save': '' }
+		else:
+			ret = {'return':'fail','info':'No filename.', 'save': '' }
+
+			self.lock.release()
+		return ret
+
 	def createSave(self, filename, folderIndex=0):
 		filepath = os.path.join(self.getSaveFolder(folderIndex),filename)
 
@@ -627,9 +730,9 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 		global altrootDir
 		folderpaths = getPossibleSaveFolders()
 		try:
-			   return folderpaths[folderIndex][0]
+			return folderpaths[folderIndex][0]
 		except IndexError:
-			   return folderpaths[0][0]
+			return folderpaths[0][0]
 
 
 	def createPlayerRecoverySave(self, playerId, playerName, bOnline):

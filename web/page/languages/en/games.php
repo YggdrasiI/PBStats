@@ -108,6 +108,9 @@ $lang['game_signs_description'] = "Sometimes, the PB Server do not load save gam
 	<li>Limit on first 127 ascii characters.</li>
 	</ul>\n";
 $lang['game_signs_question'] = "Are you sure to start the sign fixing?";
+$lang['game_wbsave'] = "Create Worldbuilder Savegame";
+$lang['game_replay'] = "Display Replay";
+$lang['game_advanced_settings'] = "Advanced Settings";
 
 // Log messages
 $lang['log_player_change_name'] = "Changed name to %s.";

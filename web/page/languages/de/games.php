@@ -116,6 +116,9 @@ $lang['game_signs_description'] = "Manchmal verweigert der PB-Server unter Wine 
 	<li>Alle Buchstaben mit einer Kodierung außerhalb der ersten 127 ascii Zeichen werden entfernt.</li>
 	</ul>\n";
 $lang['game_signs_question'] = "Sollen die Schildertexte modifiziert werden?";
+$lang['game_wbsave'] = "Weltenbauer-Spielstand erzeugen";
+$lang['game_replay'] = "Replay anzeigen";
+$lang['game_advanced_settings'] = "Erweiterte Einstellungen";
 
 // Log messages
 $lang['log_player_change_name'] = "Spieler umbenannt zu %s.";

@@ -422,6 +422,27 @@ function gameFull($game,$online /* False for preview during creation of new game
 				$dHtml .= $mainpageLink;
 			}
 
+			if( $action === "getWBSave" ){
+				$step = 0;
+				if( isset($_GET["step"] ) ){
+					$step = $_GET["step"];
+				}
+
+				$dHtml .= "<h3>{L_GAME_WBSAVE}</h3>";
+				$pbAction = array('action'=>'getWBSave','password'=>$pw,'noCache'=>'0','compress'=>'0');
+				$wbSaveData = json_decode(handle_pitboss_action($gameData, $pbAction));
+				if( ($wbSaveData->return === "ok") ){
+					$dHtml .= "<h4>WBSave</h4><p><textarea>\n";
+					$dHtml .= $wbSaveData->save;
+					$dHtml .= "</textarea></p>\n";
+				}else{
+					$dHtml .= "<p>{L_GAME_ERROR_MSG}".$wbSaveData->info ."</p>";
+				}
+
+				$dHtml .= "<p><a href='$this_page?game=$gameId&action=admin'>{L_GAME_ADMIN_BACK}</a></p>";
+				$dHtml .= $mainpageLink;
+			}
+
 			if( $action === "fixSigns" ){
 				$step = 0;
 				if( isset($_GET["step"] ) ){
@@ -761,8 +782,12 @@ function gameFull($game,$online /* False for preview during creation of new game
 							<input type='hidden' name='opid' value='$opid' />\n
 							</form>\n";
 
+						$dHtml .= "<h3 class='hr pad'>{L_GAME_ADVANCED_SETTINGS}</h3><div style='padding-left:2em'>";
 						$dHtml .= "<h3 class=''><a href='$this_page?game=$gameId&action=color'>{L_GAME_COLOR}</a></h3>";
 						$dHtml .= "<h3 class=''><a href='$this_page?game=$gameId&action=fixSigns'>{L_GAME_SIGNS}</a></h3>";
+						$dHtml .= "<h3 class=''><a href='$this_page?game=$gameId&action=replay'>{L_GAME_REPLAY}</a></h3>";
+						$dHtml .= "<h3 class=''><a href='$this_page?game=$gameId&action=getWBSave'>{L_GAME_WBSAVE}</a></h3>";
+						$dHtml .= "</div>";
 					}else{
 						$dHtml .= "<h3>{L_ERROR}</h3><p>{L_GAME_CONNECTION_ERROR0}</p>";
 						$dHtml .= "<h3 class=' '><a href='$this_page?game=$gameId&action=setWebserverpassword'>{L_GAME_WEBSERVERPASSWORD}</a></h3>";
