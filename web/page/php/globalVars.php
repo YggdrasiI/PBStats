@@ -1,4 +1,4 @@
-<?
+<?php
 
 $supportedLanguages = array(
 	'en', 'de', 'fr',
