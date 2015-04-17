@@ -41,7 +41,7 @@ This mod try to reduce the size of this package and cut of leader names and civ 
 		Note that both strings will be replaced by the Id of the player if only one character is allowed.
 
 
-New in version 3 (PB Mod_v3): 
+New in version 3 (PB Mod_v4): 
   • Bugfix on scrollable player list
 	• Infoscreen (F9) fixes:
 			- It's possible to select a subset of all players to reduce the number of displayed graphs.
@@ -54,6 +54,9 @@ New in version 3 (PB Mod_v3):
 		is useful if two neigbours has the same culture border color.
 	• Add option to change timer of current round
 
+New in version 4 (PB Mod_v4): 
+  • Bugfixes in F4 Screen
+	• Add Wordbuilder-Save generation
 
 (Removed from master branch)
 - Admin password change in one special Game.

@@ -345,6 +345,10 @@ class Game(models.Model):
                          filename=filename).save()
         return result
 
+    def pb_set_current_turn_timer(self, hours, minutes, seconds, user=None):
+        return self.pb_action(action='setCurrentTurnTimer', hours=int(hours),
+                              minutes=int(minutes), seconds=int(seconds))
+
     def pb_set_turn_timer(self, value, user=None):
         return self.pb_action(action='setTurnTimer', value=int(value))
 
@@ -745,7 +749,7 @@ class GameLogForceDisconnect(GameLog):
 class GameLogMissedTurn(GameLog):
     missed_turn_names = models.CharField(max_length=2000)
     missed_turn_ids = models.CommaSeparatedIntegerField(max_length=200)
-    is_public = False
+    is_public = True
 
     # The integration of set_missed_players into the constructor
     # creates conflicts with the polymorphic stuff. Thus, I separeted both (Ramk)

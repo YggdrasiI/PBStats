@@ -5,7 +5,7 @@
 # Dan McGarry 3-24-05
 #
 
-# This file is only a stub in this Mod. The main content 
+# This file is only a stub in this Mod. The main content
 # can be found in 'PBs/Python'
 
 from CvPythonExtensions import *
@@ -15,5 +15,5 @@ import string
 gc = CyGlobalContext()
 
 # Extra path for extra python modules
-pythonDir = os.path.join(gc.getAltrootDir(),'..','Python','v3')
+pythonDir = os.path.join(gc.getAltrootDir(),'..','Python','v4')
 execfile( os.path.join(pythonDir,'PbAdmin.py'))

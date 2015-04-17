@@ -41,6 +41,15 @@
              </form>
         </div>
         <div class="game_management_section_imploded">
+          <h2>{% trans "set turn timer of current round" %}</h2>
+             <form method="post" action="{% url 'game_manage' game.id 'set_current_turn_timer' %}">
+                 {% csrf_token %}
+                 <span class="description" todo="Fill in description">{% trans "description set turn timer" %}</span>
+                 <table>{{ current_timer_form }}</table>
+                 <span><input type="submit" value="{% trans "set timer" %}" /></span>
+             </form>
+        </div>
+        <div class="game_management_section_imploded">
           <h2>{% trans "save game" %}</h2>
              <form method="post" action="{% url 'game_manage' game.id 'save' %}">
                  {% csrf_token %}

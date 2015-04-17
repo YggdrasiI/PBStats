@@ -6,7 +6,7 @@ from django.views import generic
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
 from pbspy.models import Game, GameLog, Player, InvalidPBResponse
 from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm,\
-        GameManagementTimerForm, GameManagementLoadForm, GameManagementSetPlayerPasswordForm,\
+        GameManagementTimerForm, GameManagementCurrentTimerForm, GameManagementLoadForm, GameManagementSetPlayerPasswordForm,\
         GameManagementSaveForm, GameLogTypesForm, GameManagementShortNamesForm,\
         GameManagementSetPlayerColorForm
 
@@ -90,6 +90,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         GameLogClaimed,
         GameLogEliminated,
         GameLogNameChange,
+        GameLogMissedTurn,
     )
 
     # Generate key and names for select form
@@ -329,6 +330,9 @@ def game_manage(request, game_id, action=""):
 
     context = {'game': game,
                'timer_form': GameManagementTimerForm(initial={'timer': game.timer_max_h}),
+               'current_timer_form': GameManagementCurrentTimerForm( initial={
+                       'hours': (game.timer_remaining_4s/4/3600),
+                       'minutes': (game.timer_remaining_4s/4 % 3600)/60 }),
                'chat_form': GameManagementChatForm(),
                'motd_form': GameManagementMotDForm(),
                'short_names_form': GameManagementShortNamesForm(),
@@ -370,6 +374,13 @@ def game_manage(request, game_id, action=""):
         elif action == 'end_turn':
             game.pb_end_turn()
             return HttpResponse('turn ended', status=200)
+        elif action == 'set_current_turn_timer':
+            form = GameManagementCurrentTimerForm(request.POST)
+            if form.is_valid():
+                game.pb_set_current_turn_timer( form.cleaned_data['hours'],
+                    form.cleaned_data['minutes'], 20)
+                return HttpResponse('timer set', status=200)
+            context['current_timer_form'] = form
         elif action == 'set_turn_timer':
             form = GameManagementTimerForm(request.POST)
             if form.is_valid():

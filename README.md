@@ -17,16 +17,16 @@ Installation
 =======
 
 ##A) As Player/User 
-Just download this Mod package and place the folder **PB Mod_v3** in the mod folder of your Civ4:BTS installation ([Civ4 Installation Path]\Beyond the Sword\Mods ). 
+Just download this Mod package and place the folder **PB Mod_v4** in the mod folder of your Civ4:BTS installation ([Civ4 Installation Path]\Beyond the Sword\Mods ). 
 *Do not* place the folder into My Games\Beyond the Sword\Mods! Civ4 would interpret this as different version of the mod. 
 To start Civ4 with the modification create a new startup shortcut and extend the target with the mod-parameter. The result should look like  
-`[Your Civ 4 install folder]\Civ4\Beyond the Sword\Civ4BeyondSword.exe" mod= PB Mod_v3"\"`
+`[Your Civ 4 install folder]\Civ4\Beyond the Sword\Civ4BeyondSword.exe" mod= PB Mod_v4"\"`
 
 ##B) As Pitboss Server Administrator. 
 
-This Mod package contains three modules: **PB Mod\_v3**, **PBs** and **web** (or **civdj**). 
+This Mod package contains three modules: **PB Mod\_v4**, **PBs** and **web** (or **civdj**). 
 
-1. **PB Mod\_v3** is the common mod folder. Place it in the mod folder of your Civ4:BTS installation. 
+1. **PB Mod\_v4** is the common mod folder. Place it in the mod folder of your Civ4:BTS installation. 
 2. The Pitboss server should be started with the ALTROOT parameter. (If you host multiple games 
 on one machine you proably know this parameter...) 
 The **PBs**-folder contains a prepared example for the start of the Pitboss server 

@@ -16,7 +16,7 @@
   "sendInterval": 10
  }, 
  "save": {
-  "filename": "Beispiel3.CivBeyondSwordSave",
+  "filename": "Beispiel_v4.CivBeyondSwordSave",
   "adminpw": "",
 	"savefolder" : "saves\\multi\\",
 	"readfolders" : []

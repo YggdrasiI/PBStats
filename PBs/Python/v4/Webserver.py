@@ -204,7 +204,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 							self.server.savePbSettings()
 							self.wfile.write( simplejson.dumps( {'return':'ok','info':'Headless/noGui flag: ' + str(pbSettings["noGui"]) } ) +"\n" )
 
-					elif( action == "getSave" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
+					elif( action == "save" and inputdata.get("password") == pbSettings["webserver"]["password"] ):
 						defaultFile="Pitboss_" + PB.getGamedate(True)
 						filename =  str( inputdata.get("filename",defaultFile) ) + ".CivBeyondSwordSave"
 						#remove "\ or /" chars to cut of directory changes
@@ -389,9 +389,9 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 								if eMessageType in [ReplayMessageTypes.REPLAY_MESSAGE_CITY_FOUNDED,
 													ReplayMessageTypes.REPLAY_MESSAGE_MAJOR_EVENT]:
 									# Why does this not work?!
-									#msgText = replayInfo.getReplayMessageText(i).decode('ascii', 'replace') 
+									#msgText = replayInfo.getReplayMessageText(i).decode('ascii', 'replace')
 									msgText = replayInfo.getReplayMessageText(i)
-									msgText = ''.join(i for i in msgText if ord(i)<128) #filtering 
+									msgText = ''.join(i for i in msgText if ord(i)<128) #filtering
 									replayMessages.append( {'id':i,'turn':iTurn,'player':iPlayer,
 															'color':color,
 															'text':msgText } )
@@ -513,8 +513,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
 						self.wfile.write( simplejson.dumps( {'return':'ok','colors':colorList} ) +"\n" )
 
-					elif( action == "listSigns" and 
-							inputdata.get("password") == pbSettings["webserver"]["password"] and 
+					elif( action == "listSigns" and
+							inputdata.get("password") == pbSettings["webserver"]["password"] and
 							pbSettings["webserver"].get("allowSigns", False) ):
 						engine = CyEngine()
 						signs = []
@@ -528,7 +528,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 							signs.append( sign)
 						self.wfile.write( simplejson.dumps( {'return':'ok','info':signs} ) +"\n" )
 
-					elif( action == "cleanupSigns" and 
+					elif( action == "cleanupSigns" and
 							inputdata.get("password") == pbSettings["webserver"]["password"] and
 							pbSettings["webserver"].get("allowSigns", False) ):
 						#Debugging: Reset all Signs. Remove some special chars
@@ -653,7 +653,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 			CvWBDesc.CvMapDesc().write(f)
 			f.write("\n### Plot Info ###\n")
-			iGridW = CyMap().getGridWidth() 
+			iGridW = CyMap().getGridWidth()
 			iGridH = CyMap().getGridHeight()
 			for iX in range(iGridW):
 				for iY in range(iGridH):
@@ -684,8 +684,8 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 			self.wbsaveCache["zip"] = z.read()
 			zf.close()
 			"""
-			self.wbsaveCache["zip"] = self.wbsaveCache.get("raw","No WB data cached.") 
-		
+			self.wbsaveCache["zip"] = self.wbsaveCache.get("raw","No WB data cached.")
+
 		if bCompress:
 			ret = {'return':'ok','info':'Compressed WBSave returned.', 'save': self.wbsaveCache["zip"] }
 		else:

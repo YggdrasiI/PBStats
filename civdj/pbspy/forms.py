@@ -12,6 +12,11 @@ class GameForm(ModelForm):
                   'manage_port', 'pb_remote_password', 'url', 'is_private']
 
 
+class GameManagementCurrentTimerForm(Form):
+    hours = forms.IntegerField(label=_('Remaining hours'), min_value=0, max_value=9999)
+    minutes = forms.IntegerField(label=_('Remaining minutes'), min_value=0, max_value=9999)
+
+
 class GameManagementTimerForm(Form):
     timer = forms.IntegerField(label=_('New timer (h)'), min_value=0, max_value=9999)
 
