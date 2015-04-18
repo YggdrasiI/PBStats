@@ -569,6 +569,25 @@ function get_cached_game_status($gameId){
 	return $ret;
 }
 
+function update_cached_game_timestamp($gameId){
+	$db = get_db_handle();
+	if( $db == null ) return -1;
+
+	$dtobj = new DateTime();
+	$curTime = $dtobj->getTimestamp ( );
+
+	global $db_type;
+	if( $db_type == 1 ){
+		$db->query("PRAGMA synchronous = OFF");
+	}
+	$statement = $db->prepare('UPDATE statusCache SET timestamp=? WHERE gameid=?;');
+	$statement->bindValue(1, $curTime, PDO::PARAM_INT);
+	$statement->bindValue(2, $gameId, PDO::PARAM_STR);
+	$statement->execute();
+	check_pdo_error($db);
+	return 0;
+}
+
 function set_cached_game_status($gameId, $gameStatus){
 	$db = get_db_handle();
 	if( $db == null ) return -1;

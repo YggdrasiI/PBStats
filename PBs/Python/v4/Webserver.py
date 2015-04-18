@@ -370,7 +370,6 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 						self.wfile.write( simplejson.dumps( ret ) +"\n" )
 
 					elif( action == "getReplay" and pbSettings["webserver"].get("allowReplay",False) ):
-					elif( action == "getReplay" and pbSettings["webserver"].get("allowReplay",False) ):
 						try:
 							replayInfo = gc.getGame().getReplayInfo()
 							if replayInfo.isNone():
@@ -864,14 +863,14 @@ class PerpetualTimer:
 
 		url = self.settings["url"]
 		gameId = self.settings["gameId"]
-		#pwHash = hashlib.sha512(b'hello').hexdigest()
 		pwHash = md5.new( pbSettings['webserver']['password'] ).hexdigest()
 
 		self.requestCounter += 1
 
-		if newState or not self.reduceTraffic:
+		if( newState or not self.reduceTraffic 
+				or self.requestCounter%self.reduceFactor == 0 ):
 			params = urllib.urlencode({'action': 'update','id':gameId, 'pwHash':pwHash, 'info': simplejson.dumps({'return':'ok','info':gamedata}) })
-		elif( self.requestCounter%self.reduceFactor == 0 ):
+		else:
 			# Minimal alive message.
 			gamedataMinimal = {"turnTimer" : gamedata.get("turnTimer") }
 			if gamedata["turnTimer"] == 1:
