@@ -56,43 +56,48 @@ if( isset( $_POST["action"] ) && $_POST["action"] === "update" ){
 
 		if( $pwHashLocal == $pwHashRemote ){
 
-			$newGameStatus = $infos->info;
-			$newGameStatus->players = append_status($newGameStatus->players);
+				if( !isset($infos->info->gameName)){
+						//Minimal messages without further information
+						update_cached_game_timestamp($gameId);
+				}else{
 
-			$dtobj = new DateTime();
-			$curTime = $dtobj->getTimestamp ( );
-			$cachedStatus = get_cached_game_status($gameId);
-			$oldGameStatus = json_decode($cachedStatus["jsonStatus"]);
+						$newGameStatus = $infos->info;
+						$newGameStatus->players = append_status($newGameStatus->players);
 
-			if( $oldGameStatus != null ){
-				$oldGameStatus->players = append_status($oldGameStatus->players);
-				update_game_log($gameId, $curTime, $newGameStatus, $oldGameStatus );
-			}
+						$dtobj = new DateTime();
+						$curTime = $dtobj->getTimestamp ( );
+						$cachedStatus = get_cached_game_status($gameId);
+						$oldGameStatus = json_decode($cachedStatus["jsonStatus"]);
 
-			set_cached_game_status($gameId,$newGameStatus);
-
-			//Update saved ip if difference detected
-			if( intval($gameData["urlUpdate"]) > 0 ){
-					$newIp = filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP);
-					$oldIp = $gameData["url"];
-
-					if( $newIp !== $oldIp ){
-						$gameTableName = $contentTables["Games"]["sqlTable"];
-						$sql = "UPDATE " . $gameTableName . " SET url = ?, port = ? WHERE id = ?";
-						$preparedValues = array($newIp, $gameData["port"], $gameData["id"] );
-						$db = get_db_handle();
-						try{
-							$statement = $db->prepare($sql);
-							$result  = $statement->execute($preparedValues);
-						}catch(Exception $e){
-							echo 'Exception : '.$e->getMessage();
+						if( $oldGameStatus != null ){
+								$oldGameStatus->players = append_status($oldGameStatus->players);
+								update_game_log($gameId, $curTime, $newGameStatus, $oldGameStatus );
 						}
-						unset($db);
-					}
-			}
 
+						set_cached_game_status($gameId,$newGameStatus);
 
-			echo "</head><body>ok</body></html>";
+						//Update saved ip if difference detected
+						if( intval($gameData["urlUpdate"]) > 0 ){
+								$newIp = filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP);
+								$oldIp = $gameData["url"];
+
+								if( $newIp !== $oldIp ){
+										$gameTableName = $contentTables["Games"]["sqlTable"];
+										$sql = "UPDATE " . $gameTableName . " SET url = ?, port = ? WHERE id = ?";
+										$preparedValues = array($newIp, $gameData["port"], $gameData["id"] );
+										$db = get_db_handle();
+										try{
+												$statement = $db->prepare($sql);
+												$result  = $statement->execute($preparedValues);
+										}catch(Exception $e){
+												echo 'Exception : '.$e->getMessage();
+										}
+										unset($db);
+								}
+						}
+				}
+
+				echo "</head><body>ok</body></html>";
 		}else{
 			echo "</head><body>wrong hash</body></html>";
 		}

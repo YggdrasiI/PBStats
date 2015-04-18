@@ -367,13 +367,13 @@ function display_game_info($gameData){
 	}
 
 	//try cache, otherwise request new data
-	if( $cachedStatus != null && $timeDiff < 12 ){
+	if( $cachedStatus != null && $timeDiff < 150 ){
 		$gameStatus = json_decode($cachedStatus["jsonStatus"]);
 	}else{
 		$action_info = array('action'=>'info');
 		$infos = json_decode(handle_pitboss_action($gameData, $action_info));
 
-		if( $infos->return !== "ok" ){
+		if( $infos->return !== "ok" || !isset($infos->info->gameName)/*this indicate minimal messages*/ ){
 			$dHtml .= "<p>{L_GAME_STATUS_ERROR}";
 			if( isset($infos->info ) ){
 				$dHtml .= print_r($infos->info, 1);
