@@ -71,6 +71,14 @@ class GameLogTypesForm(forms.Form):
           #widget=forms.CheckboxSelectMultiple()
           )
 
+class GameLogSaveFilterForm(forms.Form):
+    MAX_SAVEABLE_NUMBER = 20
+    def __init__(self, *args, **kwargs):
+        super(GameLogSaveFilterForm, self).__init__(*args, **kwargs)
+        self.fields['log_filter_name'] = forms.CharField(label=_('Filter name'),
+                                                         required=False,
+                                                         min_length=0, max_length=50)
+
 class GameManagementSetPlayerColorForm(Form):
     def __init__(self, players, num_colors, *args, **kwargs):
         super(GameManagementSetPlayerColorForm, self).__init__(*args, **kwargs)

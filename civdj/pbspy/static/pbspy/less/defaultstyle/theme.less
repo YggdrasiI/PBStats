@@ -138,6 +138,9 @@ table.game_log tr:hover,
 
 #game_log_filter {
   .mixin_filter_form;
+  h3 {
+    text-align:left;
+  }
   ul {
     text-align:left;
     max-width:20em;
@@ -148,13 +151,27 @@ table.game_log tr:hover,
       display:inline-block;
       min-width:10em;
   }
+  ul#game_log_saved_filter_list {
+    li {
+      min-width:20em;
+    }
+    a {
+      text-decoration: none;
+    }
+    a:first-child{
+      padding-right: 1em;
+    }
+  }
   select {
     min-height:20em;
     max-width:12em;
 		.mixin_conflate_form_elements
   }
 	input[type="text"], input[type="number"], textarea {
-		.mixin_conflate_form_elements
+		.mixin_conflate_form_elements;
+	}
+	input[type="text"], input[type="number"] {
+		max-width: 11em;
 	}
 }
 
@@ -205,7 +222,7 @@ table.game_log tr:hover,
 	}
 	form {
 		input[type="text"], input[type="number"], textarea {
-			.mixin_conflate_form_elements
+			.mixin_conflate_form_elements;
 		}
 	}
 }
