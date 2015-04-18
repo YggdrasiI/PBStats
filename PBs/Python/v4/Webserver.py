@@ -7,7 +7,7 @@ import cStringIO
 import CvWBDesc
 #import CvWBInterface
 #import zlib # not included
-#import gzip # exists in Civ4/Assets/Python/System, but can not be importet
+#import gzip # exists in Civ4/Assets/Python/System, but can not be imported
 
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
@@ -370,6 +370,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 						self.wfile.write( simplejson.dumps( ret ) +"\n" )
 
 					elif( action == "getReplay" and pbSettings["webserver"].get("allowReplay",False) ):
+					elif( action == "getReplay" and pbSettings["webserver"].get("allowReplay",False) ):
 						try:
 							replayInfo = gc.getGame().getReplayInfo()
 							if replayInfo.isNone():
@@ -606,6 +607,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 	allow_reuse_address = True
+	oldGamestate = {}
 
 	def shutdown(self):
 		self.socket.close()
@@ -763,6 +765,19 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 		self.createSave( str(filename), 1)
 
 
+	def compareGamedata(self, new, old=None):
+		if old == None:
+			old = self.oldGamestate
+		# Remove volative keys
+		ttvOld = old.pop("turnTimerValue", None)
+		ttvNew = new.pop("turnTimerValue", None)
+		bSame = (old == new)
+		if ttvNew != None:
+			new["turnTimerValue"] = ttvNew
+
+		# cache new value
+		self.oldGamestate = new
+		return bSame
 
 	def createGamedata(self):
 		#Collect all available data
@@ -786,7 +801,6 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 				playerData = PB.getPlayerAdminData(rowNum)
 				player = {'id':rowNum}
 				player['finishedTurn'] = not playerData.bTurnActive
-				#player['name'] = playerData.getName()
 				player['name'] = gcPlayer.getName()
 				player['score'] = playerData.getScore()
 				player['ping'] = playerData.getPing()
@@ -817,12 +831,18 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 
 # Class to invoke request from to the 'client' side of webinterface
+# if reduceTraffic flag is set, only changed game states will be send
+# Moreover, every self.reduceFactor times an alive message will be send
+# to omit offline detection mechanisms of the webinterface.
 class PerpetualTimer:
 
-	def __init__(self,settings,webserver):
+	def __init__(self,settings,webserver, reduceTraffic=False ):
 		self.settings = settings
 		self.t = settings['sendInterval']
 		self.tFirst = self.t + 10
+		self.reduceTraffic = reduceTraffic
+		self.reduceFactor = 12
+		self.requestCounter = 0
 		self.webserver = webserver
 		self.hFunction = self.request
 		self.thread = Timer(self.tFirst,self.handle_function)
@@ -840,11 +860,24 @@ class PerpetualTimer:
 
 	def request(self,webserver):
 		gamedata = webserver.createGamedata()
+		newState = not webserver.compareGamedata(gamedata)
+
 		url = self.settings["url"]
 		gameId = self.settings["gameId"]
 		#pwHash = hashlib.sha512(b'hello').hexdigest()
 		pwHash = md5.new( pbSettings['webserver']['password'] ).hexdigest()
-		params = urllib.urlencode({'action': 'update','id':gameId, 'pwHash':pwHash, 'info': simplejson.dumps({'return':'ok','info':gamedata}) })
+
+		self.requestCounter += 1
+
+		if newState or not self.reduceTraffic:
+			params = urllib.urlencode({'action': 'update','id':gameId, 'pwHash':pwHash, 'info': simplejson.dumps({'return':'ok','info':gamedata}) })
+		elif( self.requestCounter%self.reduceFactor == 0 ):
+			# Minimal alive message.
+			gamedataMinimal = {"turnTimer" : gamedata.get("turnTimer") }
+			if gamedata["turnTimer"] == 1:
+				gamedataMinimal["turnTimerValue"] = gamedata.get("turnTimerValue")
+			params = urllib.urlencode({'action': 'update','id':gameId, 'pwHash':pwHash, 'info': simplejson.dumps({'return':'ok','info':gamedataMinimal}) })
+
 		try:
 			#f = urllib.urlopen("%s?%s" % (url,params) ) #GET method
 			f = urllib.urlopen(url, params) #POST method

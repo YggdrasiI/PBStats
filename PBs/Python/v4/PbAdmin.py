@@ -64,7 +64,7 @@ if noGui:
 
 			#Periodical game data upload
 			if( pbSettings['webfrontend']['sendPeriodicalData'] != 0 ):
-				self.webupload = Webserver.PerpetualTimer(pbSettings['webfrontend'], self.webserver)
+				self.webupload = Webserver.PerpetualTimer(pbSettings['webfrontend'], self.webserver, True)
 				self.t2 = Thread(target=self.webupload.start)
 				self.t2.setDaemon(True)
 				self.t2.start()
@@ -328,7 +328,7 @@ else:
 
 			#Periodical game data upload
 			if( pbSettings['webfrontend']['sendPeriodicalData'] != 0 ):
-				self.webupload = Webserver.PerpetualTimer(pbSettings['webfrontend'], self.webserver)
+				self.webupload = Webserver.PerpetualTimer(pbSettings['webfrontend'], self.webserver, True)
 				self.t2 = Thread(target=self.webupload.start)
 				self.t2.setDaemon(True)
 				self.t2.start()
