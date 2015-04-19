@@ -201,17 +201,11 @@ class Game(models.Model):
     def set_from_dict(self, info):
         date = timezone.now()
 
+        # Minimal alive messages do not contain
+        # all fields.
+        bMinimal = (info.get('gameName') == None)
+
         is_online = True
-        year      = parse_year(info['gameDate'])
-        turn      = int(info['gameTurn'])
-        is_paused = bool(info['bPaused'])
-        is_headless = bool(info['bHeadless'])
-        is_autostart = bool(info['bAutostart'])
-        pb_name   = info['gameName']
-
-        logargs = {'game': self, 'date': date,
-                   'year': year, 'turn': turn}
-
         if info['turnTimer']:
             timer_max_h        = int(info['turnTimerMax'])
             timer_remaining_4s = int(info['turnTimerValue'])
@@ -222,67 +216,82 @@ class Game(models.Model):
         if timer_max_h != self.timer_max_h:
             GameLogTimerChanged(timer_max_h=timer_max_h, **logargs).save()
 
-        player_count_old = self.player_set.count()
-        player_count = len(info['players'])
-        if (self.pb_name != info['gameName'] or
-                player_count_old != player_count):
-            GameLogMetaChange(
-                pb_name_old=self.pb_name,
-                pb_name=info['gameName'],
-                player_count_old=player_count_old,
-                player_count=player_count,
-                **logargs).save()
-            #Remove player list of old game
-            if player_count_old > 0:
-                self.player_set.all().delete()
+        if not bMinimal:
+            year      = parse_year(info['gameDate'])
+            turn      = int(info['gameTurn'])
+            is_paused = bool(info['bPaused'])
+            is_headless = bool(info['bHeadless'])
+            is_autostart = bool(info['bAutostart'])
+            pb_name   = info['gameName']
 
-        if turn > self.turn:
-            mt = GameLogMissedTurn(**logargs)
-            mt.set_missed_players(self.player_set.all())
-            if mt.is_turn_incomplete():
-                mt.save()
-            GameLogTurn(**logargs).save()
-            self.send_new_turn_info()
-        elif (turn < self.turn or
-                (timer_remaining_4s is not None and
-                 self.timer_remaining_4s is not None and
-                 timer_remaining_4s > self.timer_remaining_4s + 1200 / 4)):
-            # TODO find a better way than to hardcode the value
-            #Note: Ignore small time difference because every combat increase
-            # the timer by the combat animation time
-            GameLogReload(**logargs).save()
+            logargs = {'game': self, 'date': date,
+                       'year': year, 'turn': turn}
 
-        if is_paused != self.is_paused:
-            GameLogPause(paused=is_paused, **logargs).save()
 
-        if is_headless != self.is_headless:
-            pass
+            player_count_old = self.player_set.count()
+            player_count = len(info['players'])
+            if (self.pb_name != info['gameName'] or
+                    player_count_old != player_count):
+                GameLogMetaChange(
+                    pb_name_old=self.pb_name,
+                    pb_name=info['gameName'],
+                    player_count_old=player_count_old,
+                    player_count=player_count,
+                    **logargs).save()
+                #Remove player list of old game
+                if player_count_old > 0:
+                    self.player_set.all().delete()
 
-        if is_autostart != self.is_autostart:
-            pass
+            if turn > self.turn:
+                mt = GameLogMissedTurn(**logargs)
+                mt.set_missed_players(self.player_set.all())
+                if mt.is_turn_incomplete():
+                    mt.save()
+                GameLogTurn(**logargs).save()
+                self.send_new_turn_info()
+            elif (turn < self.turn or
+                    (timer_remaining_4s is not None and
+                     self.timer_remaining_4s is not None and
+                     timer_remaining_4s > self.timer_remaining_4s + 1200 / 4)):
+                # TODO find a better way than to hardcode the value
+                #Note: Ignore small time difference because every combat increase
+                # the timer by the combat animation time
+                GameLogReload(**logargs).save()
 
-        if is_online != self.is_online:
-            pass
+            if is_paused != self.is_paused:
+                GameLogPause(paused=is_paused, **logargs).save()
+
+            if is_headless != self.is_headless:
+                pass
+
+            if is_autostart != self.is_autostart:
+                pass
+
+            if is_online != self.is_online:
+                pass
 
         self.timer_max_h        = timer_max_h
         self.timer_remaining_4s = timer_remaining_4s
-        self.last_update_successful = date
-        self.last_update_attempt = date
-        self.pb_name            = pb_name
-        self.turn               = turn
-        self.is_paused          = is_paused
-        self.is_headless        = is_headless
-        self.is_autostart       = is_autostart
-        self.year               = year
-        self.is_online          = is_online
+        if not bMinimal:
+            self.last_update_successful = date
+            self.last_update_attempt = date
+            self.pb_name            = pb_name
+            self.turn               = turn
+            self.is_paused          = is_paused
+            self.is_headless        = is_headless
+            self.is_autostart       = is_autostart
+            self.year               = year
+            self.is_online          = is_online
+
         self.save()
 
-        for player_info in info['players']:
-            try:
-                player = self.player_set.get(ingame_id=player_info['id'])
-            except Player.DoesNotExist:
-                player = Player(ingame_id=player_info['id'], game=self)
-            player.set_from_dict(player_info, logargs)
+        if not bMinimal:
+            for player_info in info['players']:
+                try:
+                    player = self.player_set.get(ingame_id=player_info['id'])
+                except Player.DoesNotExist:
+                    player = Player(ingame_id=player_info['id'], game=self)
+                player.set_from_dict(player_info, logargs)
 
     def pb_action(self, **kwargs):
         url = "http://{}:{}/api/v1/".format(self.hostname, self.manage_port)
