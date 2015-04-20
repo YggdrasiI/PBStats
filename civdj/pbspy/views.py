@@ -645,7 +645,7 @@ def game_remove_filter(request, game_id, filter_name=""):
 
 def save_default_filter(session, game):
     filter_name = "Default"
-    player_ids = [-1]
+    player_ids = None
     turn_filter = GameDetailView.log_turn_filter
     log_keys = ",".join(GameDetailView.log_keys)
     filter_definition = {

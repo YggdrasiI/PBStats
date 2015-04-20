@@ -7,7 +7,10 @@ sudo pip install Django==1.7
 sudo pip install django-polymorphic django-debug-toolbar django-erroneous \
 django-registration-redux django-crispy-forms \
 django-floppyforms django-sendmail-backend django-static-precompiler \
-mysql-connector-python pytz setuptools six South sqlparse
+mysql-connector-python pytz setuptools six sqlparse
+
+# For python2.7 or older Django versions
+sudo pip install South
 
 The following command updates less/css files:
 python manage.py collectstatic
