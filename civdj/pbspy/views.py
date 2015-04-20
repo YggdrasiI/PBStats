@@ -96,7 +96,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
     # Generate key and names for select form
     log_choices = tuple(
         [(l.__name__, l.generate_generic_log_type_name()()) for l in log_classes])
-    log_keys = dict(log_choices).keys()
+    log_keys = list(dict(log_choices).keys())
 
     player_choices = tuple(zip(range(52), range(52)))
 
@@ -628,7 +628,7 @@ def game_load_filter(request, game_id, filter_name=""):
     }
     request.session.setdefault('player_ids', {})[str(game.id)] = fd['player_ids']
     request.session['log_turn_filter'] = log_turn_filter
-    request.session['log_type_filter'] = fd['log_type_filter'].split(",")
+    request.session['log_type_filter'] = fd['log_type_filter']
     request.session.modified = True
 
     return redirect('game_detail', pk=game_id)
@@ -647,7 +647,7 @@ def save_default_filter(session, game):
     filter_name = "Default"
     player_ids = [-1]
     turn_filter = GameDetailView.log_turn_filter
-    log_keys = ",".join(GameDetailView.log_keys)
+    log_keys = GameDetailView.log_keys
     filter_definition = {
         'player_ids' : player_ids,
         'turn_max': game.turn - turn_filter['offset_max'],
@@ -670,7 +670,7 @@ def save_current_filter(session, game, filter_name):
 
     player_ids = session.get('player_ids', {}).get(str(game.id),[-1])
     turn_filter = session.get('log_turn_filter', GameDetailView.log_turn_filter)
-    log_keys = session.get('log_type_filter', ",".join(GameDetailView.log_keys))
+    log_keys = session.get('log_type_filter', GameDetailView.log_keys)
     filter_definition = {
         'player_ids' : player_ids,
         'turn_max': game.turn - turn_filter['offset_max'],
