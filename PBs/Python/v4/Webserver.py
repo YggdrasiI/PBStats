@@ -784,6 +784,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 				'gameName':PB.getGamename(),
 				'gameDate':PB.getGamedate(False),
 				'bPaused':gc.getGame().isPaused(),
+				'modName':PB.getModName(),
 				}
 
 		if( PB.getTurnTimer() ):
@@ -867,7 +868,7 @@ class PerpetualTimer:
 
 		self.requestCounter += 1
 
-		if( newState or not self.reduceTraffic 
+		if( newState or not self.reduceTraffic
 				or self.requestCounter%self.reduceFactor == 0 ):
 			params = urllib.urlencode({'action': 'update','id':gameId, 'pwHash':pwHash, 'info': simplejson.dumps({'return':'ok','info':gamedata}) })
 		else:

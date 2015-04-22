@@ -42,6 +42,9 @@
               <p class="game_info">{% trans "No timer set." %}:</p>
           {% endif %}
           <p class="game_info">
+              {% if game.mod_name %}
+							{% trans "Name of modification"%}: {{ game.mod_name }}
+              {% endif %}
           </p>
           <p class="game_info">
               Admins for this game: {{ game.admins.all | join:", " }}

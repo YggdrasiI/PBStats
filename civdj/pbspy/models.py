@@ -113,6 +113,7 @@ class Game(models.Model):
     is_autostart       = models.BooleanField(default=True)
     year               = models.IntegerField(blank=True, null=True)
     pb_name            = models.CharField(blank=True, null=True, max_length=200)
+    mod_name            = models.CharField(blank=True, null=True, max_length=50)
     turn               = models.PositiveSmallIntegerField(default=0)
     # In hours
     timer_max_h        = models.PositiveIntegerField(blank=True, null=True)
@@ -223,6 +224,7 @@ class Game(models.Model):
             is_headless = bool(info['bHeadless'])
             is_autostart = bool(info['bAutostart'])
             pb_name   = info['gameName']
+            mod_name = info.get('modName',"").strip("\\").replace("Mods\\","",1)
 
             logargs = {'game': self, 'date': date,
                        'year': year, 'turn': turn}
@@ -276,6 +278,7 @@ class Game(models.Model):
             self.last_update_successful = date
             self.last_update_attempt = date
             self.pb_name            = pb_name
+            self.mod_name            = mod_name
             self.turn               = turn
             self.is_paused          = is_paused
             self.is_headless        = is_headless

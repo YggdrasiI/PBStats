@@ -404,10 +404,19 @@ function display_game_info($gameData){
 	}
 
 	if( $gameStatus != null ){
+		$modName = null;
+		if(isset($gameStatus->modName)){
+			$modName = str_ireplace("Mods\\","",trim($gameStatus->modName,"\\"));
+			if( strlen($modName)>0 ){
+				$modHtml = "<span style='padding-left:3em'>Mod: " . $modName . "</span>";
+			}else{
+				$modName = null;
+			}
+		}
 		$dHtml .= "<div class='statusContainer'>";
 		$dHtml .= "<h3>{L_GAME_STATUS}</h3>\n";
 		$dHtml .= "<div class='status'>";
-		$dHtml .= "<p>{L_GAME_NAME}: " . $gameStatus->gameName . "</p>\n";
+		$dHtml .= "<p>{L_GAME_NAME}: " . $gameStatus->gameName . "" . (($modName!==null)?$modHtml:"") . "</p>\n";
 		$dHtml .= "<p>{L_GAME_TURN}: " . $gameStatus->gameTurn . "</p>\n";
 		$dHtml .= "<p>{L_GAME_DATE}: " . $gameStatus->gameDate . "</p>\n";
 		if( $gameStatus->turnTimer != 0 ){

@@ -85,9 +85,9 @@ echo '
 
 	<div id="headerCenter">
 	<div id="headerCenterBottom">
-	<div id="headerCenterCIV4"> ⊶⊷</div>
+	<div id="headerCenterCIV4">PBStats</div>
 	<div id="headerCenterText">
-	<h1><a href="'.$subdir.'index.php'.'" dyn>Display and<br>Manage Pitboss Games</a></h1></div>
+	<h1><a href="'.$subdir.'index.php'.'" dyn>Administration Tool for<br>Civ4:BTS Pitboss Games</a></h1></div>
 	</div>
 	<div id="logo"></div>
 	</div>
