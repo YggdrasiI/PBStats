@@ -203,6 +203,7 @@ class Game(models.Model):
 
         # Minimal alive messages do not contain
         # all fields.
+        # FIXME bMinimal - bad logic structure
         bMinimal = (info.get('gameName') == None)
 
         is_online = True
@@ -212,9 +213,6 @@ class Game(models.Model):
         else:
             timer_max_h        = None
             timer_remaining_4s = None
-
-        if timer_max_h != self.timer_max_h:
-            GameLogTimerChanged(timer_max_h=timer_max_h, **logargs).save()
 
         if not bMinimal:
             year      = parse_year(info['gameDate'])
@@ -270,8 +268,13 @@ class Game(models.Model):
             if is_online != self.is_online:
                 pass
 
-        self.timer_max_h        = timer_max_h
-        self.timer_remaining_4s = timer_remaining_4s
+            if timer_max_h != self.timer_max_h:
+                GameLogTimerChanged(timer_max_h=timer_max_h, **logargs).save()
+
+            # FIXME Where does this belong?
+            self.timer_max_h        = timer_max_h
+            self.timer_remaining_4s = timer_remaining_4s
+
         if not bMinimal:
             self.last_update_successful = date
             self.last_update_attempt = date
