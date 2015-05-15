@@ -1,1 +1,1 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"> <html><head><title>History Frame</title> <script src="js/ifrm.js" type="text/javascript"></script> </head><body onload="reload('<?php echo $_GET["startpage"];?>')"></body></html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"> <html><head><title>History Frame</title> <script src="js/ifrm.js" type="text/javascript"></script> </head><body onload="reload('<?php echo addslashes(@$_GET["startpage"]);?>')"></body></html>
