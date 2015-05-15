@@ -208,7 +208,10 @@ class Game(models.Model):
 
         is_online = True
         if info['turnTimer']:
-            timer_max_h        = int(info['turnTimerMax'])
+            if 'turnTimerMax' in info:
+                timer_max_h = int(info['turnTimerMax'])
+            else:
+                timer_max_h = self.timer_max_h
             timer_remaining_4s = int(info['turnTimerValue'])
         else:
             timer_max_h        = None
