@@ -60,18 +60,6 @@ selectAltroot() {
 			ALTROOT="$ALTROOT_BASEDIR/PB2"
 			MOD="PB Mod_v4"
 			;;
-		11)
-			ALTROOT="$ALTROOT_BASEDIR/PB1"
-			MOD="PB Mod_v3"
-			;;
-		9)
-			ALTROOT="$ALTROOT_BASEDIR/shadowPB1"
-			MOD="PB Mod_v4"
-			;;
-		base)
-			ALTROOT="$ALTROOT_BASEDIR/BASE_PB"
-			MOD="BASE_PB"
-			;;
 		help)
 			printHelp
 			exit 0
@@ -136,11 +124,11 @@ listSaves() {
 
 # Return 1 if autostart is 'true' or '1'
 isAutostartEnabled() {
-	AUTOSTART_VAL=$( grep '"autostart".*:' < "$1/pbSettings.json" | sed -e 's/^.*:\([^,}]*\).*$/\1/' ) 
+	AUTOSTART_VAL=$( grep '"autostart".*:' < "$1/pbSettings.json" | sed -e 's/^.*:[ ]*\([^,}]*\).*$/\1/' ) 
 	if [ "$AUTOSTART_VAL" = "1" -o "${AUTOSTART_VAL,,}" = "true" ] ; then
-		return 1
+		return 0
 	fi
-	return 0
+	return -1
 }
 
 # Open pbSettings.json to detect filename of current save
@@ -204,6 +192,7 @@ setupGame() {
 			FPATH=$(findPath "$FNAME")
 			if [ "${#FPATH}" -gt 0 ]
 			then
+				echo "Update save name in pbSettings.json"
 				setSaveName "${ALTROOT}" "${FPATH}" "${FPASSWORD}"
 			else
 				echo -n "Can not find save for $FNAME. "
