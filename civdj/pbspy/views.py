@@ -322,10 +322,11 @@ def game_create(request):
                 return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
             except ValidationError:
                 """
-                TODO: Add some locking mechanism to prevent multiple calls of validate_connection?!
-                      I do not know if the django form already consides this attack.
+                TODO: The game creation allows to ping an arbitary server/port.
+                    We should restrict the number of calls for each user.
                 """
-                return HttpResponseBadRequest('Creation failed. PB server does not respond.')
+                #return HttpResponseBadRequest('Creation incomplete. PB server does not respond.')
+                return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
     else:
         form = GameForm()
     return render(request, 'pbspy/game_create.html', {'form': form})
