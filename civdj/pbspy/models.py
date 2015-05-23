@@ -128,7 +128,7 @@ class Game(models.Model):
     victory_player_id  = models.SmallIntegerField(default=-1)
     victory_type       = models.SmallIntegerField(default=-1)
 
-    subscribed_users   = models.ManyToManyField(User, related_name='subscribed_games')
+    subscribed_users   = models.ManyToManyField(User, related_name='subscribed_games', blank=True)
 
     def auth_hash(self):
         return hashlib.md5(self.pb_remote_password.encode()).hexdigest()
