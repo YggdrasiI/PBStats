@@ -1,5 +1,5 @@
 Civ4BeyondSword2015.exe:
-  Bugfix of a wrong written url. The Civ4:BTS multiplayer lobby should now work.
+  Bugfix of a wrong written url. The Civ4:BTS multiplayer lobby should work now.
 
 Civ4BeyondSword2014.exe:
 Civ4BeyondSword_Pitboss2014.exe:
