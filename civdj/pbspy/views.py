@@ -589,6 +589,11 @@ def game_update(request):
             info = json.loads(request.POST['info'])
         except (KeyError, ValueError):
             return HttpResponseBadRequest('bad request (info)')
+
+        if game.is_dynamic_ip:
+            game.hostname = str(request.META.get("REMOTE_ADDR"))
+            #game.save() # Not required. Should be redundant.
+
         if info['return'] != 'ok':
             return HttpResponseBadRequest('bad request (return)')
         game.set_from_dict(info['info'])

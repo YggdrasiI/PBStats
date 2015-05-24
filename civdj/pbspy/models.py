@@ -130,6 +130,9 @@ class Game(models.Model):
 
     subscribed_users   = models.ManyToManyField(User, related_name='subscribed_games', blank=True)
 
+    # Update hostname
+    is_dynamic_ip      = models.BooleanField(default=False)
+
     def auth_hash(self):
         return hashlib.md5(self.pb_remote_password.encode()).hexdigest()
 
@@ -324,7 +327,7 @@ class Game(models.Model):
         # which decoding? Let's just hope default (probably utf-8) is ok
         ret_str = response.read().decode()
         ret = json.loads(ret_str)
-        if ret['return'] != 'ok':
+        if ret.get('return') != 'ok':
             # some info may be in ret['info'], but I don't want to leak anything
             raise InvalidPBResponse(ret)
         return ret
