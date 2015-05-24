@@ -19,9 +19,9 @@
 				{% endif %}
         <div class="game_management_section">
           <h2>{% trans "load game" %}</h2>
+					<span class="description">{% trans "Mostly saves are protected by an admin password. The password is deposited in the configuration file 'pbSettings.json' and can not be modified over the webinterface. Thus, you should only load saves with same password." %}</span>
              <form method="post" action="{% url 'game_manage' game.id 'load' %}">
                  {% csrf_token %}
-                 <span class="description" todo="Fill in description">{% trans "description load game" %}</span>
                  <table>{{ load_form }}</table>
                  <span><input type="submit" value="{% trans "load game" %}" /></span>
              </form>

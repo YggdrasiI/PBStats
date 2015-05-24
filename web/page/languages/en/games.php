@@ -85,8 +85,8 @@ $lang['game_notes_password'] = "To control the Pitboss server the <i>webpassword
 	</p><p>Your password will be stored in a cookie. It's not required to create an account on this site to set/use game administration passwords.
 	</p><p>The game administration password isn't related to the account of the game creator. Other players can manage the Pitboss server, too. ";
 
-$lang['game_notes_autostart'] =  "Attention: The webinterface requires a running game. If you disable the autostart, you has no remote access until the host has load an save game by hand.
-</p><p>Nevertheless, you can use the restart function even if the autostart is disabled (autostart will be enabled on time if you restart).";
+$lang['game_notes_autostart'] =  "Attention: The webinterface requires a running game. If you disable the autostart, you has no remote access until the host loades a save by hand.
+</p><p>Nevertheless, you can use the restart function even if the autostart is disabled (autostart will be enabled one time if you restart).";
 
 $lang['game_notes_headless'] = "The redrawing of the Pitboss administration window on the local machine causes needless CPU load. If you use the webinterface for all administration tasks you can disable the GUI with this option.";
 

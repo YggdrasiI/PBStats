@@ -9,9 +9,9 @@
 				(<a href="{% url 'game_change' game.id %}">edit game</a>)
 				<div class="game_management_section">
           <h2>{% trans "set message of the day" %}</h2>
+						 <span class="description">{% trans "Change message of the day (MotD). It will be shown every player after the login." %}</span>
              <form method="post" action="{% url 'game_manage' game.id 'motd' %}">
 							 {% csrf_token %}
-							 <span class="description" todo="Fill in description">{% trans "send message of the day" %}</span>
 							 <table>{{ motd_form }}</table>
 							 <span><input type="submit" value="{% trans "set motd" %}" /></span>
 						</form>
