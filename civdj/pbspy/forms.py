@@ -3,13 +3,82 @@
 from django.forms import ModelForm, Form
 from django import forms
 from pbspy.models import Game
+from django.contrib.auth.models import User
 from django.utils.translation import ugettext as _
 
+
+class ModelCommaSeparatedChoiceField(forms.ModelMultipleChoiceField):
+    widget = forms.TextInput
+    MAX_LIST_SIZE = 20
+    def clean(self, value):
+        if value is not None:
+            users = []
+            for item in value.split(",")[:self.MAX_LIST_SIZE]:
+                try:
+                    user = User.objects.get(username=item.strip())
+                    users.append(user)
+                except User.DoesNotExist:
+                    pass
+            value = [ user.pk for user in users]
+            return value
+        else:
+            return []
+
+
 class GameForm(ModelForm):
+    password_dummy = "*****"
+    adminsAsStr = ModelCommaSeparatedChoiceField(
+        required = False,
+        queryset = User.objects.filter().all(),
+        label =  _("Admins"),
+        help_text = _("Comma separated list. You can not remove yourself."),
+    )
     class Meta:
         model = Game
         fields = ['name', 'description', 'hostname', 'port',
-                  'manage_port', 'pb_remote_password', 'url', 'is_private', 'is_dynamic_ip']
+                  'manage_port', 'pb_remote_password', 'url',
+                  'is_private', 'is_dynamic_ip', 'adminsAsStr',
+                  ]
+        labels = {
+            'url' : _("Website"),
+            'is_dynamic_ip': _("Dynamic hostname"),
+        }
+        help_texts = {
+            'is_private' : _("Exclude game from public list."),
+            'is_dynamic_ip': _('Update stored hostname/ip if Pitboss server'
+                               + 'sends an update with a new address.'),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
+        super(GameForm, self).__init__(*args, **kwargs)
+
+        # Fill list of admins into adminsAsStr field if game already exists.
+        a = self.fields["adminsAsStr"]
+        if self.instance.id != None:
+            a.initial =  ",".join([str(u) for u in self.instance.admins.all()])
+        else:
+            a.initial = str(self.user.username)
+
+    def save(self):
+        # Todo
+        #if self.fields['pb_remote_password']  == self.password_dummy:
+        #    self.fields['pb_remote_password'] = game.pb_remote_password
+
+        if self.instance.id != None and self.user != None:
+            adminsNew = self.cleaned_data.get('adminsAsStr', [])
+            game = self.instance
+            user = self.user
+            if game.can_manage(user) and not user.pk in adminsNew:
+                self.fields['adminsAsStr'].initial += ","+str(user.username)
+                adminsNew.append(user.pk)
+
+            if len(adminsNew) > 0:
+                game.admins.clear()
+                for a in adminsNew:
+                    game.admins.add(a)
+
+        return super(GameForm, self).save()
 
 
 class GameManagementCurrentTimerForm(Form):

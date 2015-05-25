@@ -311,7 +311,7 @@ game_log = GameLogView.as_view()
 @login_required()
 def game_create(request):
     if request.method == 'POST':
-        form = GameForm(request.POST)
+        form = GameForm(request.POST, user=request.user)
         if form.is_valid():
             game = form.save()
             game.admins.add(request.user)
@@ -328,7 +328,7 @@ def game_create(request):
                 #return HttpResponseBadRequest('Creation incomplete. PB server does not respond.')
                 return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
     else:
-        form = GameForm()
+        form = GameForm(user=request.user)
     return render(request, 'pbspy/game_create.html', {'form': form})
 
 
@@ -530,31 +530,30 @@ def game_update_manual(request, game_id):
 @login_required()
 def game_change(request, game_id):
     game = Game.objects.get(id=game_id)
-    password_dummy = "*****"
     context = {'game': game}
     form = None
 
     if request.method == 'POST':
-        pw_backup = game.pb_remote_password
-        form = GameForm(request.POST, instance=game)
-        if form.fields['pb_remote_password']  == password_dummy:
-            form.fields['pb_remote_password'] = game.pb_backup
+        form = GameForm(request.POST, instance=game, user=request.user)
         if form.is_valid():
+            form.save()
             try:
                 game.validate_connection()
-                game.save()
                 game.update()
                 return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
             except ValidationError:
-                #Save, but write warning and display form again
-                game.save()
+                # Form would still saved, but we will write a warning and display the form again.
                 context['game_no_connection'] = True
         else:
             context['game_data_not_valid'] = True
 
     if form is None:
-        form = GameForm(instance=game)
-        form.fields['pb_remote_password'].initial = password_dummy
+        form = GameForm(instance=game, user=request.user)
+
+
+    # Todo
+    #game.pb_remote_password = GameForm.password_dummy
+
     context['form'] = form
     return render(request, 'pbspy/game_change.html', context)
 
