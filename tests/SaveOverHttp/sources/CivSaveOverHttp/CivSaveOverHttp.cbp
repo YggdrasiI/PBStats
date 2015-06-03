@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="CivSaveOverHttp" />
+		<Option pch_mode="2" />
+		<Option compiler="msvc10" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/../../../CivSaveOverHttp.dll" prefix_auto="0" extension_auto="0" />
+				<Option object_output="obj/Debug/" />
+				<Option type="3" />
+				<Option compiler="msvc10" />
+				<Compiler>
+					<Add option="/W3" />
+					<Add option="/DBUILD_DLL" />
+					<Add option="/Zi" />
+					<Add option="/D_DEBUG" />
+					<Add option="/MDd" />
+				</Compiler>
+				<Linker>
+					<Add option="/DEBUG" />
+					<Add option="/INCREMENTAL:NO" />
+					<Add library="user32" />
+					<Add library="urlmon" />
+					<Add library="wininet" />
+					<Add library="libcurl" />
+				</Linker>
+				<ExtraCommands>
+				</ExtraCommands>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/../../../CivSaveOverHttp.dll" prefix_auto="0" extension_auto="0" />
+				<Option object_output="obj/Release/" />
+				<Option type="3" />
+				<Option compiler="msvc10" />
+				<Compiler>
+					<Add option="/MD" />
+					<Add option="/EHc" />
+					<Add option="/EHs" />
+					<Add option="/Ox" />
+					<Add option="/W3" />
+					<Add option="/DBUILD_DLL" />
+					<Add option="/DNDEBUG" />
+					<Add directory="../../../include" />
+				</Compiler>
+				<Linker>
+					<Add option="/INCREMENTAL:NO" />
+					<Add library="user32" />
+					<Add library="urlmon" />
+					<Add library="wininet" />
+					<Add library="libcurl" />
+					<Add directory="../../VC10/bin/Release" />
+					<Add directory=".." />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="main.cpp" />
+		<Unit filename="main.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
