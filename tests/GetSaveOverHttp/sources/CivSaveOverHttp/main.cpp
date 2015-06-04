@@ -35,7 +35,7 @@ static const int EXTENSION_LEN = STRLEN(EXTENSION); //19; //with leading dot
 static const TCHAR PITBOSS[] = _T("\\pitboss\\");
 static const TCHAR URL[] = _T("_url_");
 static const TCHAR HTTPS[] = _T("https://");
-static const char HTTP[] = _T(" http");
+static const char HTTP[] = _T(" http://");
 static const TCHAR TMP_NAME[] = _T("Pitboss.CivBeyondSwordSave");
 
 #define MAX_TMP_NAME_LEN 256
@@ -44,7 +44,7 @@ TCHAR* last_cached_file = NULL;
 bool flush_last_cached_file = false;
 
 #ifdef USE_CURL
-
+/* Define file writer handle for libcurl */
 struct DownloadFile {
 	const char *filename;
 	FILE *stream;
@@ -62,11 +62,10 @@ static size_t my_fwrite(void *buffer, size_t size, size_t nmemb, void *stream)
 	}
 	return fwrite(buffer, size, nmemb, out->stream);
 }
-
 #endif
 
+// Create path for savegame, i.e C:\Temp\[filename]
 int gen_temp_file_path( TCHAR * const path ){
-
 	unsigned int tmp_len = GetTempPathA( MAX_TMP_NAME_LEN, path);
 	if( tmp_len+sizeof(TMP_NAME) <= MAX_TMP_NAME_LEN ){
 		memcpy( path+tmp_len, TMP_NAME, sizeof(TMP_NAME) );
@@ -75,6 +74,17 @@ int gen_temp_file_path( TCHAR * const path ){
 	return -1;
 }
 
+
+/* Filter out paths for pitboss saves and
+ * download this files over http(s).
+ *
+ * Every pitboss save will be accessed four times.
+ * 2x CreateFileA,
+ * 1x GetFileAttributesA
+ * 1x CreateFileA.
+ *
+ * After the fourth access 'last_cached_file' will be reset.
+ */
 HANDLE WINAPI MyCreateFileA(
 		_In_     LPCTSTR               lpFileName,
 		_In_     DWORD                 dwDesiredAccess,
@@ -96,8 +106,6 @@ HANDLE WINAPI MyCreateFileA(
 	}
 
 
-	// Check if filename maps to pitboss savegame
-	// Try to download it.
 	int fnLen = strlen(lpFileName);
 
 	if( fnLen > EXTENSION_LEN &&
@@ -126,7 +134,7 @@ HANDLE WINAPI MyCreateFileA(
 		}
 
 
-		// Extract url from filepath
+		// Extract hostname from filepath
 		const char* _url_substr = strstr( lpFileName, URL);
 		if( _url_substr != NULL ){
 			const char* urlBegin = _url_substr + 5;
@@ -134,10 +142,9 @@ HANDLE WINAPI MyCreateFileA(
 			if( urlEnd != NULL ){
 
 				// Construct download url
-				//const TCHAR url[] = _T("http://192.168.0.11/webdav/PB1/Saves/pitboss/auto/Recovery_Ramk.CivBeyondSwordSave");
 				const unsigned int server_len = (urlEnd-urlBegin);
 				const unsigned int filename_len = ( fnLen - ( urlEnd - lpFileName ) - 1 );
-				const unsigned int url_len = STRLEN( HTTPS ) // 'http://' or 'https://'
+				const unsigned int url_len = STRLEN( HTTPS ) // 'https://'
 					+ server_len + 1 // '[server]', '/'
 					+ filename_len + 1; // 'PBx/Saves/pitboss/[auto]/filename', '\0'
 
@@ -155,7 +162,7 @@ HANDLE WINAPI MyCreateFileA(
 					backslash = (char*) strchr( backslash+1, '\\');
 				}
 
-				// Target path for download
+				// Get target path for download
 				if( 0 == gen_temp_file_path( filePath ) ){
 
 					// Try https and http
@@ -212,6 +219,7 @@ HANDLE WINAPI MyCreateFileA(
 
 						if(res == CURLE_OK){
 
+							// Save new file as cached one.
 							free(last_cached_file);
 							last_cached_file = (TCHAR*) malloc( fnLen * sizeof(TCHAR) );
 							memcpy( last_cached_file, lpFileName, fnLen * sizeof(TCHAR) );
@@ -229,7 +237,7 @@ HANDLE WINAPI MyCreateFileA(
 					}
 					curl_global_cleanup();
 
-#else //USE_URL
+#else //USE_CURL
 
 					// invalidate cache, so file is always downloaded from web site
 					// (if not called, the file will be retieved from the cache if
@@ -255,12 +263,12 @@ HANDLE WINAPI MyCreateFileA(
 								filePath,
 								0,      // Reserved. Must be set to 0.
 								NULL ); // status callback interface (not needed for basic use)
-
 					}
 
 					free( url ); url = NULL;
 					if(SUCCEEDED(hr))
 					{
+						// Save new file as cached one.
 						free(last_cached_file);
 						last_cached_file = (TCHAR*) malloc( fnLen * sizeof(TCHAR) );
 						memcpy( last_cached_file, lpFileName, fnLen * sizeof(TCHAR) );
@@ -291,29 +299,21 @@ HANDLE WINAPI MyCreateFileA(
 			hTemplateFile );
 }
 
-
-DWORD WINAPI MyGetFileAttributesA(
-		_In_ LPCTSTR lpFileName
-		){
-	//hm, das geht, aber pitboss ist problematisch!
-	/*
-		 if( strstr( lpFileName, PITBOSS) != NULL ){
-		 flush_last_cached_file = true;
-		 return fpGetFileAttributesA( filePath );
-		 }*/
-
-	//und das nicht. Multibyte-Kompilierungs-Problem?!
-	if( last_cached_file != NULL && 
-			0 == strncmp( lpFileName, last_cached_file, strlen(lpFileName) ) ){
-		if( 0 == gen_temp_file_path( filePath ) ){
-			flush_last_cached_file = true;
-			return fpGetFileAttributesA( filePath );
-		}
+/* Filter out access to the cached file.
+ */
+DWORD WINAPI MyGetFileAttributesA( _In_ LPCTSTR lpFileName ){
+	if( last_cached_file != NULL 
+		&&	0 == strncmp( lpFileName, last_cached_file, strlen(lpFileName) ) 
+		&& 0 == gen_temp_file_path( filePath ) )
+	{
+		flush_last_cached_file = true;
+		return fpGetFileAttributesA( filePath );
 	}
 	return fpGetFileAttributesA( lpFileName );
 }
 
 
+// For MinHook
 extern "C" BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvReserved)
 {
 	switch (dwReason)
