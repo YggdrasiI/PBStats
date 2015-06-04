@@ -118,7 +118,7 @@ listSaves() {
 	echo "Youngest saves for $1:"
 	selectAltroot "$1" 
 	INAME="*.CivBeyondSwordSave"
-	LIST=$(	/usr/bin/find ${ALTROOT}  -maxdepth 20 -type f -iname "${INAME}" -printf "%11.10T@ ,%f\n" | /usr/bin/sort -n -r -k1 | /usr/bin/head -n 20 )
+	LIST=$(	/usr/bin/find -L ${ALTROOT}  -maxdepth 20 -type f -iname "${INAME}" -printf "%11.10T@ ,%f\n" | /usr/bin/sort -n -r -k1 | /usr/bin/head -n 20 )
 	echo "${LIST}" | sed -e 's/.*,/  /'
 }
 
@@ -154,7 +154,7 @@ setSaveName(){
 findPath() {
 	INAME=${1,,}
 	INAME="${INAME%.civbeyondswordsave}*.CivBeyondSwordSave"
-	LIST=$(	/usr/bin/find ${ALTROOT}  -maxdepth 20 -type f -iname "${INAME}" -printf "%11.10T@ ,%p\n" | /usr/bin/sort -n -r -k1 | /usr/bin/head -n 1 )
+	LIST=$(	/usr/bin/find -L ${ALTROOT}  -maxdepth 20 -type f -iname "${INAME}" -printf "%11.10T@ ,%p\n" | /usr/bin/sort -n -r -k1 | /usr/bin/head -n 1 )
 	echo ${LIST#*,}
 }
 

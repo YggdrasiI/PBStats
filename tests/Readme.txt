@@ -1,3 +1,17 @@
+fix_upload_bug:
+	The pitboss server contains a bug which leads
+	to very high bandwith usages.
+ 	This folder contailn server applications which 
+	detect this bug and close the network connections.
+	( It's fakes the disconnect messages of clients. )
+
+
+SaveOverHttp:
+	Speed up the save game tranfer to lower the
+	login times. ( Without these changes is the
+	bandwidth limited to 1024kb/s! )
+
+
 Civ4BeyondSword2015.exe:
   Bugfix of a wrong written url. The Civ4:BTS multiplayer lobby should work now.
 
