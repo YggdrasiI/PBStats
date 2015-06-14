@@ -43,6 +43,9 @@
 			<Add option="/EHsc" />
 		</Compiler>
 		<Unit filename="main.cpp" />
+		<Unit filename="resource.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<envvars />
