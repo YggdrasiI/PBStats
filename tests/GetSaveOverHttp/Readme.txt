@@ -19,6 +19,8 @@ Civ4:BTS installation folder. Do not delete/move the normal executable. It's sti
 • Start your game with the wrapper, i.e.
 'BTS_Wrapper.exe mod= "PB Mod_v4"\"'.
 
+• If MSVCP100.dll is missing, see http://answers.microsoft.com/en-us/windows/forum/windows_other-performance/msvcp100dll-missing/9a687c31-0619-4ee9-b511-020985e29b5f
+
 
 2. As Pitboss host ( with Linux in mind):
 Assume that your current Altroot folder for the server is $HOME/PBs/PB1
