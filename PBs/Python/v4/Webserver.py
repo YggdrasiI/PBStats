@@ -752,7 +752,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 		# Add timestamp (as tuple)
 		existingRecoverySavesWithTimestamps = map(lambda x: (x,os.path.getctime(x)), existingRecoverySaves)
 		# Sort by timestamp
-		sorted(existingRecoverySavesWithTimestamps, key=lambda xx: xx[1])
+		existingRecoverySavesWithTimestamps.sort( key=lambda xx: xx[1])
 		#	Remove oldest
 		while( len(existingRecoverySavesWithTimestamps) >= pbSettings.get("numRecoverySavesPerPlayer",3) ):
 			old = existingRecoverySavesWithTimestamps.pop(0)
