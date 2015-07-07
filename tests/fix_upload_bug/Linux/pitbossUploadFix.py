@@ -11,14 +11,23 @@
 # - Python wrapper https://github.com/Onuonga/pycap
 #
 # Notes:
-# - Script requires 'sudo' to get access to the network traffic.
+# - Script requires root/'sudo' to get access to the network traffic.
+# - Alternative you can use a copy of your python executable and run
+#   sudo setcap cap_net_raw=+ep python2
 # - If you get the following error message:
 #     '[...]ImportError: No module named sll'
 #   , then remove 'ssl' from list in pycap/constants/__init__.py.
 #
 #
 
-import time, socket, sys, os
+import time
+import socket
+import sys
+import os
+import argparse
+import logging
+from collections import defaultdict
+import time
 
 # Add subfolders to python paths for imports
 # Remove this lines if you has install the packages
@@ -33,67 +42,132 @@ import ip as ip2
 import udp as udp2
 
 
-# === Configuration ===
+class PBNetworkConnection:
+    # outgoing means Server to Client because this program runs on the server :-)
+    def __init__(self, client_ip, client_port, server_ip, server_port, packet_limit, now):
+        self.client_ip = client_ip
+        self.client_port = client_port
+        self.server_ip = server_ip
+        self.server_port = server_port
 
-device = "eth0" # Interface name
-#server_ip = "148.251.126.92" # Ip of your PB Server
-server_ip = "192.168.0.35" # Ip of your PB Server
+        self.packet_limit = packet_limit
+        self.activity_timeout = 5 * 60
 
-## server_portlist contains list (seperated by ,)
-# of single ports (P) or portranges (P1-P2).
-#
-# format: (P|P1-P2)[,Q|Q1-Q2[,...]]
-#
-server_portlist = "2056" # Default value if you use no arguments.
-logfileName = "detections.log" # Default logfile name
+        self.number_unanswered_outgoing_packets = 0
+        # Just unix timestamps
+        self.time_last_outgoing_packet = None
+        self.time_last_incoming_packet = None
+        self.time_disconnected = None
+        pass
 
-# Note: If the client
-package_limit = 200
-package_counter = {}
-timeout = 500
-clients = {}
+    def __str__(self):
+        return 'connection[{}:{}->{}:{}]'.format(self.client_ip, self.client_port,
+                                                 self.server_ip, self.server_port)
+
+    def handle_server_to_client(self, payload, now):
+        self.number_unanswered_outgoing_packets += 1
+        self.timestamp_last_outgoing_packet = now
+
+        if len(payload) != 25 and len(payload) != 37:
+            return
+
+        # This package could be indicate an upload error. Add the payload
+        # for this client (destination ip) to an set. Force analysation
+        # of the packages if an sufficient amount of packages reached.
+        #
+        # The length 37 occours if the connections was aborted during the loading
+        # of a game.
+
+        if self.number_unanswered_outgoing_packets < self.packet_limit:
+            return
+
+        # TODO We could also check the time here,
+        # but the packet count is a much better metric, because with the the packet rate is much higher than usually
+        self.disconnect(payload)
+
+    def handle_client_to_server(self, now):
+        if self.number_unanswered_outgoing_packets > 100:
+            logging.debug('Received client data at {} after {} server packets / {} seconds.'.
+                          format(self,
+                                 self.number_unanswered_outgoing_packets,
+                                 now - self.time_last_incoming_packet))
+
+        self.number_unanswered_outgoing_packets = 0
+        self.time_last_incoming_packet = now
+
+    def disconnect(self, payload):
+        # Send fake packet to stop upload
+        # Structure of content:
+        # 254 254 06 B (A+1) (7 bytes)
+        A = payload[3:5] # String!
+        B = payload[5:7]
+        a1 = ord(A[0]) * 256 + ord(A[1]) + 1
+        A1 = chr(a1 / 256) + chr(a1 % 256)
+        data = chr(254) + chr(254) + chr(06) + B + A1
+
+        logging.info('Disconnecting client at {}'.format(self))
+        upacket = udp2.Packet()
+        upacket.sport = self.client_port
+        upacket.dport = self.server_port
+        upacket.data = data
+
+        ipacket = ip2.Packet()
+        ipacket.src = self.client_ip
+        ipacket.dst = self.server_ip
+        ipacket.df = 1
+        ipacket.ttl = 64
+        ipacket.p = 17
+
+        ipacket.data = udp2.assemble(upacket, False)
+        raw_ip = ip2.assemble(ipacket, 1)
+
+        # Send fake packet to the PB server that looks like its coming from the client
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
+        except socket.error as err:
+            logging.error('Socket could not be created: {}'.format(err))
+
+        sock.sendto(raw_ip, (ipacket.dst, 0))
+        self.time_disconnected = time.time()
+
+    def is_active(self):
+        now = time.time()
+        inactive_time = now - max(self.time_last_incoming_packet, self.time_last_outgoing_packet)
+        return inactive_time < self.activity_timeout
 
 
+class PBNetworkConnectionRegister:
+    def __init__(self, packet_limit):
+        self.packet_limit = packet_limit
+        self.connections = {}
+        self.last_cleanup = time.time()
+        self.cleanup_interval = 1 * 60
 
-# === Send Fake Paket ===
-# Inject paket, but fake client ip
-# src,dst : (ip,port) tuple
-def sendUdpReply(src,dst,data):
-    upacket = udp2.Packet()
-    upacket.sport = src[1]
-    upacket.dport = dst[1]
-    upacket.data = data
+    def get(self, client_ip, client_port, server_ip, server_port, now):
+        # This is more efficient than .get, because then we don't have to create a useless Client object if
+        # Already exists
+        connection_id = (client_ip, client_port, server_ip, server_port)
+        if connection_id not in self.connections:
+            self.connections[connection_id] = PBNetworkConnection(client_ip=client_ip, client_port=client_port,
+                                                                  server_ip=server_ip, server_port=server_port, now)
+        return self.connections[connection_id]
 
-    ipacket = ip2.Packet()
-    ipacket.src = src[0]
-    ipacket.dst = dst[0]
-    ipacket.df = 1
-    ipacket.ttl = 64
-    ipacket.p = 17
+    def cleanup(self):
+        if (time.time() - self.last_cleanup) < self.cleanup_interval:
+            return
 
-    ipacket.data = udp2.assemble(upacket, False)
-    raw_ip = ip2.assemble(ipacket, 1)
-
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
-    except socket.error , msg:
-        print 'Socket could not be created. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
-
-    sock.sendto(raw_ip, (ipacket.dst, 0))
-    #print ipacket
+        for (con_id, con) in self.connections.items():
+            if not con.is_active():
+                del self.connections[con_id]
+        self.last_cleanup = time.time()
 
 
-# === Analyse Traffic ===
-# device: "eth0" or other devicename (string)
-# server: (ip,port) tuple or (ip,port1,port2) triple for port range
-# clients: List
-# timeout: Waiting time on package
-def analyseUdpTraffic(device, server, clients, timeout):
-
-    # Construct filter string
+# Converts portlist in 2056-2060,2070 format to pcap filter format
+# Note: Filter does not respect PB host ip"
+def portlist_to_filter(portlist_str):
     port_str = "udp and ( "
     portlist_first = True
-    portlist = str(server[1]).split(',')
+    portlist = str(portlist_str).split(',')
     for p in portlist:
         portrange = p.split('-')
         if not portlist_first:
@@ -101,130 +175,93 @@ def analyseUdpTraffic(device, server, clients, timeout):
         else:
             portlist_first = False
 
-        if len(portrange) > 1:
-            port_str += "portrange {}-{}".format( int(portrange[0]), int(portrange[1]) )
+        if len(portrange) == 2:
+            port_str += "portrange {}-{}".format(int(portrange[0]), int(portrange[1]))
+        elif len(portrange) == 1:
+            port_str += "port {}".format(int(portrange[0]))
         else:
-            port_str += "port {}".format( int(portrange[0]) )
+            raise Exception("Failed to parse portlist '{}'".format(port_str))
 
     port_str += " )"
 
-    # Note: Filter does not respect PB host ip"
-    filter = port_str
-    #print "Used filter: ", filter
 
-    pcap = pycap.capture.capture(device, timeout = timeout)
-    pcap.filter(filter);
+# === Analyse Traffic ===
+# device: "eth0" or other devicename (string)
+# server: (ip,port) tuple or (ip,port1,port2) triple for port range
+# clients: Map {'client_ip:client_port' : client_object, ...}
+# timeout: For pycap
+# Ideally this function should run forever, but in case of odd errors we return outside to wait a bit
+def analyze_udp_traffic(device, ip_address, pcap_filter, connections, pcap_timeout, packet_limit):
+    pcap = pycap.capture.capture(device, timeout=pcap_timeout)
+    pcap.filter(pcap_filter)
 
-    nCaptureErrors = 0
-
+    continuous_capture_error_count = 0
     while True:
+        connections.cleanup()
         try:
-            if nCaptureErrors > 20 :
-                # Sleep a minute
-                break
+            if continuous_capture_error_count > 20:
+                return
             packet = pcap.next()
-        except pycap.capture.error:
-            nCaptureErrors += 1
+        except pycap.capture.error as ex:
+            logging.info('pycap.capture.error: {}'.format(ex))
+            continuous_capture_error_count += 1
             continue
         if packet is None:
-            nCaptureErrors += 1
+            logging.info('empty packet')
+            continuous_capture_error_count += 1
             continue
 
-        nCaptureErrors = 0
+        # Capture looks good, lets reset error count
+        continuous_capture_error_count = 0
 
         ip = packet[1]
         udp = packet[2]
         payload = packet[3]
+        now = packet[4]
         assert isinstance(ip, pycap.protocol.ip)
         assert isinstance(udp, pycap.protocol.udp)
 
-        if (ip.source == server[0]):
-            client = ip.destination
-
-            if len(payload) != 25 and len(payload) != 30:
-                continue
-
-            # This package could be indicate an upload error. Add the payload
-            # for this client (destination ip) to an set. Force analysation
-            # of the packages if an sufficient amount of packages reached.
-            #
-            # The length 37 occours if the connections was aborted during the loading
-            # of a game.
-            #
-
-            pc = package_counter.get(client, 0)
-            pc += 1
-            package_counter[client] = pc
-
-            if pc > package_limit:
-                #print packet
-                # Send fake packet to stop upload
-                # Structure of content:
-                # 254 254 06 B (A+1) (7 bytes)
-                A = payload[3:5] # String!
-                B = payload[5:7]
-                a1 = ord(A[0])*256 + ord(A[1])+1
-                A1 = chr(a1/256) + chr(a1%256)
-                #print (a1,A1,A)
-                src = (packet[1].destination,packet[2].destinationport)
-                dst = (packet[1].source,packet[2].sourceport)
-                data = chr(254)+chr(254)+chr(06) + B + A1
-
-                msg = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
-                msg += " | %s:%s | %s:%s \n" % (src[0], src[1], dst[0], dst[1])
-
-                print msg,
-                if logfile != None:
-                    logfile.write(msg)
-                    logfile.flush()
-
-                #comment in do activate kicking....
-                sendUdpReply(src,dst,data)
-
-                # End detection for all clients
-                break
-
-        elif (ip.destination == server[0]):
-            #Use this package as client heartbeat and flush the history of tracked packages.
-            client = ip.source
-            if package_counter.get(client) > 100:
-                print "Heartbeat after ", package_counter.get(client), " server packages!"
-            package_counter[client] = 0
+        if ip.source == ip_address:
+            connections.get(ip.destination, udp.destinationport, now).handle_server_to_client(payload, now)
+        elif ip.destination == ip_address:
+            connections.get(ip.source, udp.sourceport, now).handle_client_to_server(payload, now)
         else:
-            print "IP confusion. PB server neither match source or destination."
-            print "Serverip:", server[0]
-            print "Source:", ip.destination
-            print "Dest:", ip.destination
-
-# === Main ===
-if len(sys.argv) < 2:
-    print "Usage: ./", sys.argv[0] , "[portlist]", "[network device]", "[logfile]"
-    print "No arguments given. Assume default interface %s,\n Pitboss server portlist=%s, and \n Logfile %s." % (device, server_portlist, logfileName)
-else:
-    server_portlist = sys.argv[1]
-
-    if len(sys.argv) > 2:
-        device = sys.argv[2]
-
-    if len(sys.argv) > 3:
-        logfileName = sys.argv[3]
-
-    if len(logfileName) > 0:
-        logfile = file(logfileName,"a")
-    else:
-        logfile = None
-
-    print "Use network device %s and Pitboss server portlist=%s." % (device, server_portlist)
-    print "\n\n"
-    print " List of detected upload bugs"
-
-    msg = "      Timestamp           |    Client         |    Server          \n"
-    print msg,
-    if logfile != None:
-        logfile.write(msg)
-        logfile.flush()
+            logging.warning('PB server matches neither source ({}) nor destination ({})'.
+                            format(ip.source, ip.destination))
 
 
-while True:
-    analyseUdpTraffic(device, (server_ip,server_portlist), clients, timeout)
-    time.sleep(60)
+def main():
+    logging.basicConfig(format='%(asctime)s %(message)s')
+
+    parser = argparse.ArgumentParser(
+        description='Tame the Civilization Pitboss Server to avoid spamming network packets to dead clients')
+    # server_portlist contains list (seperated by ,)
+    # of single ports (P) or portranges (P1-P2).
+    #
+    # format: (P|P1-P2)[,Q|Q1-Q2[,...]]
+    #
+    parser.add_argument('network_interface', metavar='INTERFACE', type=str, help='The interface to listen to, e.g. eth0.')
+    parser.add_argument('ip_address', metavar='IP', type=str, help='The IP address used for the PB server.')
+    parser.add_argument('port_list', metavar='PORTS', type=str, default='2056',
+                        help='List of ports of the PB server, e.g. 2056-2060,2070.')
+    parser.add_argument('packet_limit', metavar='COUNT', type=int, default=2000,
+                        help='Number of stray packets after which the client is disconnected.')
+
+    args = parser.parse_args()
+
+    clients = PBNetworkConnectionRegister(packet_limit=args.packet_limit)
+
+    print("Pitboss upload killer running.")
+    print("Listening on: {} for ip: {}, ports: {}".format(args.network_interface, args.ip_address, args.port_list))
+    print("")
+
+    while True:
+        try:
+            analyze_udp_traffic(args.network_interface, args.ip_address, portlist_to_filter(args.port_list),
+                                clients, timeout=500)
+        except Exception as e:
+            logging.error("Caught exception {}".format(e))
+        logging.warning("Taking a break before resuming analysis.")
+        time.sleep(10)
+
+main()
