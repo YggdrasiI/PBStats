@@ -72,6 +72,7 @@ class PBNetworkConnection:
                                                   self.time_last_outgoing_packet)
         if not self.is_active():
             s += ' inactive'
+        return s
 
     def handle_server_to_client(self, payload, now):
         self.number_unanswered_outgoing_packets += 1
@@ -260,9 +261,8 @@ def main():
 
     connections = PBNetworkConnectionRegister(packet_limit=args.packet_limit)
 
-    print("Pitboss upload killer running.")
-    print("Listening on: {} for ip: {}, ports: {}".format(args.network_interface, args.ip_address, args.port_list))
-    print("")
+    logging.info("Pitboss upload killer running.")
+    logging.info("Listening on: {} for ip: {}, ports: {}".format(args.network_interface, args.ip_address, args.port_list))
 
     while True:
         try:
