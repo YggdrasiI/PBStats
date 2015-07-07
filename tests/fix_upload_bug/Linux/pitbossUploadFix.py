@@ -149,7 +149,7 @@ class PBNetworkConnectionRegister:
         connection_id = (client_ip, client_port, server_ip, server_port)
         if connection_id not in self.connections:
             self.connections[connection_id] = PBNetworkConnection(client_ip=client_ip, client_port=client_port,
-                                                                  server_ip=server_ip, server_port=server_port, now)
+                                                                  server_ip=server_ip, server_port=server_port, now=now)
         return self.connections[connection_id]
 
     def cleanup(self):
