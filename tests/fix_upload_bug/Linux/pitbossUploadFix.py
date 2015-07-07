@@ -67,7 +67,7 @@ class PBNetworkConnection:
 
     def handle_server_to_client(self, payload, now):
         self.number_unanswered_outgoing_packets += 1
-        self.timestamp_last_outgoing_packet = now
+        self.time_last_outgoing_packet = now
 
         if len(payload) != 25 and len(payload) != 37:
             return
@@ -230,7 +230,7 @@ def analyze_udp_traffic(device, ip_address, pcap_filter, connections, pcap_timeo
 
 
 def main():
-    logging.basicConfig(format='%(asctime)s %(message)s')
+    logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
 
     parser = argparse.ArgumentParser(
         description='Tame the Civilization Pitboss Server to avoid spamming network packets to dead clients')
