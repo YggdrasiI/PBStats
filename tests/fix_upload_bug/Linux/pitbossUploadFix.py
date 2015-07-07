@@ -28,6 +28,7 @@ import argparse
 import logging
 from collections import defaultdict
 import time
+import traceback
 
 # Add subfolders to python paths for imports
 # Remove this lines if you has install the packages
@@ -183,15 +184,12 @@ def portlist_to_filter(portlist_str):
             raise Exception("Failed to parse portlist '{}'".format(port_str))
 
     port_str += " )"
+    return port_str
 
 
 # === Analyse Traffic ===
-# device: "eth0" or other devicename (string)
-# server: (ip,port) tuple or (ip,port1,port2) triple for port range
-# clients: Map {'client_ip:client_port' : client_object, ...}
-# timeout: For pycap
 # Ideally this function should run forever, but in case of odd errors we return outside to wait a bit
-def analyze_udp_traffic(device, ip_address, pcap_filter, connections, pcap_timeout, packet_limit):
+def analyze_udp_traffic(device, ip_address, pcap_filter, connections, pcap_timeout):
     pcap = pycap.capture.capture(device, timeout=pcap_timeout)
     pcap.filter(pcap_filter)
 
@@ -222,9 +220,9 @@ def analyze_udp_traffic(device, ip_address, pcap_filter, connections, pcap_timeo
         assert isinstance(udp, pycap.protocol.udp)
 
         if ip.source == ip_address:
-            connections.get(ip.destination, udp.destinationport, now).handle_server_to_client(payload, now)
+            connections.get(ip.destination, udp.destinationport, ip.source, udp.sourceport, now).handle_server_to_client(payload, now)
         elif ip.destination == ip_address:
-            connections.get(ip.source, udp.sourceport, now).handle_client_to_server(payload, now)
+            connections.get(ip.source, udp.sourceport, ip.destination, udp.destinationport, now).handle_client_to_server(payload, now)
         else:
             logging.warning('PB server matches neither source ({}) nor destination ({})'.
                             format(ip.source, ip.destination))
@@ -249,7 +247,7 @@ def main():
 
     args = parser.parse_args()
 
-    clients = PBNetworkConnectionRegister(packet_limit=args.packet_limit)
+    connections = PBNetworkConnectionRegister(packet_limit=args.packet_limit)
 
     print("Pitboss upload killer running.")
     print("Listening on: {} for ip: {}, ports: {}".format(args.network_interface, args.ip_address, args.port_list))
@@ -258,9 +256,10 @@ def main():
     while True:
         try:
             analyze_udp_traffic(args.network_interface, args.ip_address, portlist_to_filter(args.port_list),
-                                clients, timeout=500)
+                                connections, pcap_timeout=500)
         except Exception as e:
             logging.error("Caught exception {}".format(e))
+            traceback.print_exc()
         logging.warning("Taking a break before resuming analysis.")
         time.sleep(10)
 
