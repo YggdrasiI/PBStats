@@ -244,7 +244,7 @@ def main():
     parser.add_argument('ip_address', metavar='IP', type=str, help='The IP address used for the PB server.')
     parser.add_argument('port_list', metavar='PORTS', type=str, default='2056',
                         help='List of ports of the PB server, e.g. 2056-2060,2070.')
-    parser.add_argument('packet_limit', metavar='COUNT', type=int, default=2000,
+    parser.add_argument('-c', '--packet_limit', metavar='COUNT', type=int, default=2000,
                         help='Number of stray packets after which the client is disconnected.')
 
     args = parser.parse_args()
