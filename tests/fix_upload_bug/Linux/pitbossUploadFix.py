@@ -86,7 +86,7 @@ class PBNetworkConnection:
         # but the packet count is a much better metric, because with the the packet rate is much higher than usually
         self.disconnect(payload)
 
-    def handle_client_to_server(self, now):
+    def handle_client_to_server(self, payload, now):
         if self.number_unanswered_outgoing_packets > 100:
             logging.debug('Received client data at {} after {} server packets / {} seconds.'.
                           format(self,
@@ -150,7 +150,8 @@ class PBNetworkConnectionRegister:
         connection_id = (client_ip, client_port, server_ip, server_port)
         if connection_id not in self.connections:
             self.connections[connection_id] = PBNetworkConnection(client_ip=client_ip, client_port=client_port,
-                                                                  server_ip=server_ip, server_port=server_port, now=now)
+                                                                  server_ip=server_ip, server_port=server_port,
+                                                                  packet_limit=self.packet_limit, now=now)
         return self.connections[connection_id]
 
     def cleanup(self):
