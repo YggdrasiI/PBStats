@@ -65,6 +65,14 @@ class PBNetworkConnection:
         return 'connection[{}:{}->{}:{}]'.format(self.client_ip, self.client_port,
                                                  self.server_ip, self.server_port)
 
+    def __repr__(self):
+        s = self.__str__()
+        s += '#p: {}, t_in: {}, t_out: {}'.format(self.number_unanswered_outgoing_packets,
+                                                  self.time_last_incoming_packet,
+                                                  self.time_last_outgoing_packet)
+        if not self.is_active():
+            s += ' inactive'
+
     def handle_server_to_client(self, payload, now):
         self.number_unanswered_outgoing_packets += 1
         self.time_last_outgoing_packet = now
@@ -158,7 +166,9 @@ class PBNetworkConnectionRegister:
         if (time.time() - self.last_cleanup) < self.cleanup_interval:
             return
 
+        logging.debug('Starting cleanup for {} connections.'.format(len(self.connections)))
         for (con_id, con) in self.connections.items():
+            logging.debug('{!r}'.format(con))
             if not con.is_active():
                 del self.connections[con_id]
         self.last_cleanup = time.time()
