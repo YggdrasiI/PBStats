@@ -108,6 +108,7 @@ class PBNetworkConnection:
         self.time_last_incoming_packet = now
 
     def disconnect(self, payload):
+        # TODO Throttle disconnects!
         # Send fake packet to stop upload
         # Structure of content:
         # 254 254 06 B (A+1) (7 bytes)
