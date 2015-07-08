@@ -217,8 +217,7 @@ def analyze_udp_traffic(device, ip_address, pcap_filter, connections, pcap_timeo
             continuous_capture_error_count += 1
             continue
         if packet is None:
-            logging.info('empty packet')
-            continuous_capture_error_count += 1
+            # This is fine. Simply traffic. Don't need to wait, timeout does that
             continue
 
         # Capture looks good, lets reset error count
