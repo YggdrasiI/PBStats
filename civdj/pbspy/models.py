@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 from django.template.loader import render_to_string
 from django.core.urlresolvers import reverse
 
+import socket
 import datetime
 import re
 import json
@@ -191,7 +192,7 @@ class Game(models.Model):
         try:
             info = self.pb_info()
             self.set_from_dict(info)
-        except (InvalidPBResponse, URLError):
+        except (InvalidPBResponse, URLError, socket.timeout):
             if self.is_online:
                 self.is_online = False
                 self.save()
