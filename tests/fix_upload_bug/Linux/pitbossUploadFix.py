@@ -151,7 +151,7 @@ class PBNetworkConnectionRegister:
         self.packet_limit = packet_limit
         self.connections = {}
         self.last_cleanup = time.time()
-        self.cleanup_interval = 1 * 60
+        self.cleanup_interval = 2 * 60
 
     def get(self, client_ip, client_port, server_ip, server_port, now):
         # This is more efficient than .get, because then we don't have to create a useless Client object if
