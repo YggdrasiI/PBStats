@@ -78,6 +78,8 @@ class PBNetworkConnection:
         self.number_unanswered_outgoing_packets += 1
         self.time_last_outgoing_packet = now
 
+        # TODO Check if we can also use different payload sizes here, but we need to make sure the specific
+        # payload information "A, B" is available for this kind of packet!
         if len(payload) != 25 and len(payload) != 37:
             return
 
