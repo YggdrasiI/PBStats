@@ -59,7 +59,8 @@ class PBNetworkConnection:
         self.time_last_outgoing_packet = None
         self.time_last_incoming_packet = None
         self.time_disconnected = None
-        pass
+
+        logging.debug("Detecting new connection {}".format(self))
 
     def __str__(self):
         return 'connection[{}:{}->{}:{}]'.format(self.client_ip, self.client_port,
@@ -142,6 +143,7 @@ class PBNetworkConnection:
 
         sock.sendto(raw_ip, (ipacket.dst, 0))
         self.time_disconnected = time.time()
+        self.number_unanswered_outgoing_packets = 0
 
     def is_active(self):
         now = time.time()
