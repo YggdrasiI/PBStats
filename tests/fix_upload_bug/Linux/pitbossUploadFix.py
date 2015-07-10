@@ -29,6 +29,7 @@ import logging
 from collections import defaultdict
 import time
 import traceback
+import datetime
 
 # Add subfolders to python paths for imports
 # Remove this lines if you has install the packages
@@ -68,7 +69,7 @@ class PBNetworkConnection:
 
     def __repr__(self):
         s = self.__str__()
-        s += '#p: {}, t_in: {}, t_out: {}'.format(self.number_unanswered_outgoing_packets,
+        s += "#p: {}, t_in: {}, t_out: {}".format(self.number_unanswered_outgoing_packets,
                                                   self.time_last_incoming_packet,
                                                   self.time_last_outgoing_packet)
         if not self.is_active():
@@ -119,7 +120,7 @@ class PBNetworkConnection:
         A1 = chr(a1 / 256) + chr(a1 % 256)
         data = chr(254) + chr(254) + chr(06) + B + A1
 
-        logging.info('Disconnecting client at {}'.format(self))
+        logging.info('Disconnecting client at {!r}'.format(self))
         upacket = udp2.Packet()
         upacket.sport = self.client_port
         upacket.dport = self.server_port
