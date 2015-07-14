@@ -2,6 +2,8 @@
 # Script for Civ4 BTS
 # Add/Change a mod name in a save game. Please note that it only works if both mods are
 # save compatible. Thus it does not work if the number of players (MAX_PLAYERS) changes.
+# The Assets folder contains a DLL for 18 players. Use it you want continue a
+# vanilla BTS save with this mod.
 #
 # Requirements:
 #  Script use xdd and hexdump

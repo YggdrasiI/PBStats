@@ -8,8 +8,9 @@ which made the hosting of your beloved game hard. This mod tries to solve some o
 problems. The Mod does not change any game mechanics. 
 
 If you're interested to use this mod in your games note that it's possible to transfer 
-save games without mod name to save games of this mod. (This transformation isn't reversible 
-if the save game is protected with a password.) 
+save games without mod name to save games of this mod, but you must replace the default DLL (of this mod)
+with the DLL for 18 players, see Assets/CvGameCoreDLL.dll.18players.
+Remove the admin password before you tranfer your save game and reset it after. 
 Look at **PBs/convertSavesToMod.sh** if you want convert your saves.
 
 
