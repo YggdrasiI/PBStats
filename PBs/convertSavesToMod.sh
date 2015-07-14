@@ -1,8 +1,9 @@
 #!/bin/bash
 # Script for Civ4 BTS
-# Add/Change a mod name in a save game.
+# Add/Change a mod name in a save game. Please note that it only works if both mods are
+# save compatible. Thus it does not work if the number of players (MAX_PLAYERS) changes.
 #
-# Requrement:
+# Requirements:
 #  Script use xdd and hexdump
 #
 # Usage:
