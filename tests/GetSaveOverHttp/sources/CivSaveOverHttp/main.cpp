@@ -45,10 +45,10 @@ static size_t my_fwrite(void *buffer, size_t size, size_t nmemb, void *stream)
 {
 	struct DownloadFile *out=(struct DownloadFile *)stream;
 	if(out && !out->stream) {
-		/* open file for writing */ 
+		/* open file for writing */
 		if( 0 != fopen_s( &out->stream, out->filename, "wb")){
 			out->stream = NULL;
-			return -1; /* failure, can't open file to write */ 
+			return -1; /* failure, can't open file to write */
 		}
 	}
 	return fwrite(buffer, size, nmemb, out->stream);
@@ -160,14 +160,16 @@ HANDLE WINAPI MyCreateFileA(
 				}else{
 					slash = url + strlen(url) - 1;
 				}
-				
+
 				const unsigned int filename_encoded_len = strlen(filename_encoded);
 				const unsigned int url_path_len = (slash-url) + 1;
 
-				// Well, the whole url is not encoded, but the filename...
-				char* url_encoded = (char*) malloc( (url_path_len+filename_encoded_len) * sizeof(char) );
+				// Well, not the whole url is encoded, but the filename...
+				// +1 for \0
+				char* url_encoded = (char*) malloc( (url_path_len+filename_encoded_len+1) * sizeof(char) );
 				memcpy( url_encoded, url, url_path_len);
 				memcpy( url_encoded+url_path_len, filename_encoded, filename_encoded_len);
+				*(url_encoded+url_path_len+filename_encoded_len) = '\0';
 				curl_free(filename_encoded);
 
 				// Target path for download
@@ -195,10 +197,10 @@ HANDLE WINAPI MyCreateFileA(
 						fprintf(stderr, "curl_easy_perform() failed: %s\n",
 								curl_easy_strerror(res));
 
-						/* always cleanup */ 
+						/* always cleanup */
 						curl_easy_cleanup(curl);
 						if(downloadFile.stream){
-							fclose(downloadFile.stream); 
+							fclose(downloadFile.stream);
 							downloadFile.stream = NULL;
 						}
 
@@ -212,7 +214,7 @@ HANDLE WINAPI MyCreateFileA(
 					/* always cleanup */
 					curl_easy_cleanup(curl);
 					if(downloadFile.stream){
-						fclose(downloadFile.stream); 
+						fclose(downloadFile.stream);
 						downloadFile.stream = NULL;
 					}
 
@@ -257,7 +259,7 @@ HANDLE WINAPI MyCreateFileA(
 DWORD WINAPI MyGetFileAttributesA(
 		_In_ LPCTSTR lpFileName
 		){
-	if( last_cached_file != NULL && 
+	if( last_cached_file != NULL &&
 			0 == strncmp( lpFileName, last_cached_file, strlen(lpFileName) ) ){
 		if( 0 == gen_temp_file_path( filePath ) ){
 			flush_last_cached_file = true;

@@ -12,16 +12,15 @@
 				<Option type="3" />
 				<Option compiler="msvc10" />
 				<Compiler>
-					<Add option="/W3" />
-					<Add option="/DBUILD_DLL" />
-					<Add option="/Zi" />
-					<Add option="/D_DEBUG" />
 					<Add option="/MDd" />
+					<Add option="/W3" />
+					<Add option="/Zi" />
+					<Add option="/DBUILD_DLL" />
+					<Add option="/D_DEBUG" />
 				</Compiler>
 				<Linker>
 					<Add option="/DEBUG" />
 					<Add option="/INCREMENTAL:NO" />
-					<Add library="user32" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='mt.exe /nologo /manifest &quot;bin\Debug\myDll.dll.manifest&quot; /outputresource:&quot;bin\Debug\myDll.dll&quot;;2' />
@@ -40,19 +39,22 @@
 					<Add option="/W3" />
 					<Add option="/DBUILD_DLL" />
 					<Add option="/DNDEBUG" />
-					<Add directory="../../../include" />
 				</Compiler>
 				<Linker>
 					<Add option="/INCREMENTAL:NO" />
-					<Add library="user32" />
-					<Add library="urlmon" />
-					<Add library="wininet" />
-					<Add library="libcurl" />
-					<Add directory="../../VC10/bin/Release" />
-					<Add directory=".." />
 				</Linker>
 			</Target>
 		</Build>
+		<Compiler>
+			<Add directory="minhook" />
+		</Compiler>
+		<Linker>
+			<Add library="user32" />
+			<Add library="urlmon" />
+			<Add library="wininet" />
+			<Add library="libcurl" />
+			<Add directory=".." />
+		</Linker>
 		<Unit filename="main.cpp" />
 		<Unit filename="main.h" />
 		<Extensions>
