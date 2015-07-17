@@ -5918,17 +5918,28 @@ void CvTeam::read(FDataStreamBase* pStream)
 	pStream->Read(&m_bCapitulated);
 
 	pStream->Read((int*)&m_eID);
+	REPLACE_BARBARIAN((int*)&m_eID);
 
+	/*
 	pStream->Read(MAX_TEAMS, m_aiStolenVisibilityTimer);
 	pStream->Read(MAX_TEAMS, m_aiWarWeariness);
 	pStream->Read(MAX_TEAMS, m_aiTechShareCount);
 	pStream->Read(MAX_TEAMS, m_aiEspionagePointsAgainstTeam);
 	pStream->Read(MAX_TEAMS, m_aiCounterespionageTurnsLeftAgainstTeam);
 	pStream->Read(MAX_TEAMS, m_aiCounterespionageModAgainstTeam);
+	*/
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiStolenVisibilityTimer);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiWarWeariness);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiTechShareCount);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiEspionagePointsAgainstTeam);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiCounterespionageTurnsLeftAgainstTeam);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiCounterespionageModAgainstTeam);
+
 	pStream->Read(NUM_COMMERCE_TYPES, m_aiCommerceFlexibleCount);
 	pStream->Read(NUM_DOMAIN_TYPES, m_aiExtraMoves);
 	pStream->Read(GC.getNumVoteSourceInfos(), m_aiForceTeamVoteEligibilityCount);
 
+	/*
 	pStream->Read(MAX_TEAMS, m_abHasMet);
 	pStream->Read(MAX_TEAMS, m_abAtWar);
 	pStream->Read(MAX_TEAMS, m_abPermanentWarPeace);
@@ -5936,6 +5947,15 @@ void CvTeam::read(FDataStreamBase* pStream)
 	pStream->Read(MAX_TEAMS, m_abDefensivePact);
 	pStream->Read(MAX_TEAMS, m_abForcePeace);
 	pStream->Read(MAX_TEAMS, m_abVassal);
+	*/
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_abHasMet);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_abAtWar);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_abPermanentWarPeace);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_abOpenBorders);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_abDefensivePact);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_abForcePeace);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_abVassal);
+
 	pStream->Read(GC.getNumVictoryInfos(), m_abCanLaunch);
 
 	pStream->Read(GC.getNumRouteInfos(), m_paiRouteChange);

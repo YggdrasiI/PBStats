@@ -7545,8 +7545,10 @@ void CvGame::read(FDataStreamBase* pStream)
 
 	pStream->Read((int*)&m_eHandicap);
 	pStream->Read((int*)&m_ePausePlayer);
+	REPLACE_BARBARIAN((int*)&m_ePausePlayer);
 	pStream->Read((int*)&m_eBestLandUnit);
 	pStream->Read((int*)&m_eWinner);
+	REPLACE_BARBARIAN((int*)&m_eWinner);
 	pStream->Read((int*)&m_eVictory);
 	pStream->Read((int*)&m_eGameState);
 
@@ -7555,14 +7557,23 @@ void CvGame::read(FDataStreamBase* pStream)
 	if (uiFlag < 1)
 	{
 		std::vector<int> aiEndTurnMessagesReceived(MAX_PLAYERS);
-		pStream->Read(MAX_PLAYERS, &aiEndTurnMessagesReceived[0]);
+	//	pStream->Read(MAX_PLAYERS, &aiEndTurnMessagesReceived[0]);
+		READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  &aiEndTurnMessagesReceived[0]);
 	}
+	/*
 	pStream->Read(MAX_PLAYERS, m_aiRankPlayer);
 	pStream->Read(MAX_PLAYERS, m_aiPlayerRank);
 	pStream->Read(MAX_PLAYERS, m_aiPlayerScore);
 	pStream->Read(MAX_TEAMS, m_aiRankTeam);
 	pStream->Read(MAX_TEAMS, m_aiTeamRank);
 	pStream->Read(MAX_TEAMS, m_aiTeamScore);
+	*/
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiRankPlayer);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiPlayerRank);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiPlayerScore);
+	READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0,  m_aiRankTeam);
+	READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0,  m_aiTeamRank);
+	READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0,  m_aiTeamScore);
 
 	pStream->Read(GC.getNumUnitInfos(), m_paiUnitCreatedCount);
 	pStream->Read(GC.getNumUnitClassInfos(), m_paiUnitClassCreatedCount);
@@ -7583,12 +7594,14 @@ void CvGame::read(FDataStreamBase* pStream)
 	for (iI=0;iI<GC.getNumReligionInfos();iI++)
 	{
 		pStream->Read((int*)&m_paHolyCity[iI].eOwner);
+		REPLACE_BARBARIAN((int*)&m_paHolyCity[iI].eOwner);
 		pStream->Read(&m_paHolyCity[iI].iID);
 	}
 
 	for (iI=0;iI<GC.getNumCorporationInfos();iI++)
 	{
 		pStream->Read((int*)&m_paHeadquarters[iI].eOwner);
+		REPLACE_BARBARIAN((int*)&m_paHeadquarters[iI].eOwner);
 		pStream->Read(&m_paHeadquarters[iI].iID);
 	}
 
@@ -7695,7 +7708,8 @@ void CvGame::read(FDataStreamBase* pStream)
 	// Get the active player information from the initialization structure
 	if (!isGameMultiPlayer())
 	{
-		for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+		const int iI_max = ((expand_arrays)?(MAX_PLAYERS2):(MAX_PLAYERS)); 
+		for (iI = 0; iI < iI_max; iI++)
 		{
 			if (GET_PLAYER((PlayerTypes)iI).isHuman())
 			{

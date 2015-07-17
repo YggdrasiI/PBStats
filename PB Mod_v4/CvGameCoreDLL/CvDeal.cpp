@@ -674,6 +674,9 @@ void CvDeal::read(FDataStreamBase* pStream)
 	pStream->Read((int*)&m_eFirstPlayer);
 	pStream->Read((int*)&m_eSecondPlayer);
 
+	REPLACE_BARBARIAN( (int*)&m_eFirstPlayer);
+	REPLACE_BARBARIAN( (int*)&m_eSecondPlayer);
+
 	m_firstTrades.Read(pStream);
 	m_secondTrades.Read(pStream);
 }

@@ -930,6 +930,7 @@ void CvArea::read(FDataStreamBase* pStream)
 
 	pStream->Read(&m_bWater);
 
+	/*
 	pStream->Read(MAX_PLAYERS, m_aiUnitsPerPlayer);
 	pStream->Read(MAX_PLAYERS, m_aiAnimalsPerPlayer);
 	pStream->Read(MAX_PLAYERS, m_aiCitiesPerPlayer);
@@ -945,22 +946,39 @@ void CvArea::read(FDataStreamBase* pStream)
 	pStream->Read(MAX_TEAMS, m_aiBorderObstacleCount);
 
 	pStream->Read(MAX_TEAMS, (int*)m_aeAreaAIType);
+	*/
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0, m_aiUnitsPerPlayer);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiAnimalsPerPlayer);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiCitiesPerPlayer);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiPopulationPerPlayer);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiBuildingGoodHealth);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiBuildingBadHealth);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiBuildingHappiness);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiFreeSpecialist);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiPower);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiBestFoundValue);
+	READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiNumRevealedTiles);
+	READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiCleanPowerCount);
+	READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiBorderObstacleCount);
 
-	for (iI=0;iI<MAX_PLAYERS;iI++)
+	READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, (int*)m_aeAreaAIType );
+
+	const int iI_max = ((expand_arrays)?(MAX_PLAYERS2):(MAX_PLAYERS)); 
+	for (iI=0;iI<iI_max;iI++)
 	{
 		pStream->Read((int*)&m_aTargetCities[iI].eOwner);
 		pStream->Read(&m_aTargetCities[iI].iID);
 	}
 
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (iI=0;iI<iI_max;iI++)
 	{
 		pStream->Read(NUM_YIELD_TYPES, m_aaiYieldRateModifier[iI]);
 	}
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (iI=0;iI<iI_max;iI++)
 	{
 		pStream->Read(NUM_UNITAI_TYPES, m_aaiNumTrainAIUnits[iI]);
 	}
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (iI=0;iI<iI_max;iI++)
 	{
 		pStream->Read(NUM_UNITAI_TYPES, m_aaiNumAIUnits[iI]);
 	}

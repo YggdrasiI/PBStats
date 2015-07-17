@@ -31,11 +31,13 @@ void EventTriggeredData::read(FDataStreamBase* pStream)
 	pStream->Read((int*)&m_eTrigger);
 	pStream->Read(&m_iTurn);
 	pStream->Read((int*)&m_ePlayer);
+	REPLACE_BARBARIAN((int*)&m_ePlayer);
 	pStream->Read(&m_iCityId);
 	pStream->Read(&m_iPlotX);
 	pStream->Read(&m_iPlotY);
 	pStream->Read(&m_iUnitId);
 	pStream->Read((int*)&m_eOtherPlayer);
+	REPLACE_BARBARIAN((int*)&m_eOtherPlayer);
 	pStream->Read(&m_iOtherPlayerCityId);
 	pStream->Read((int*)&m_eReligion);
 	pStream->Read((int*)&m_eCorporation);

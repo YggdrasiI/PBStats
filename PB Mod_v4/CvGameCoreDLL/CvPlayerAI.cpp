@@ -12424,6 +12424,7 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 
 	pStream->Read(NUM_UNITAI_TYPES, m_aiNumTrainAIUnits);
 	pStream->Read(NUM_UNITAI_TYPES, m_aiNumAIUnits);
+	/*
 	pStream->Read(MAX_PLAYERS, m_aiSameReligionCounter);
 	pStream->Read(MAX_PLAYERS, m_aiDifferentReligionCounter);
 	pStream->Read(MAX_PLAYERS, m_aiFavoriteCivicCounter);
@@ -12434,12 +12435,26 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 	pStream->Read(MAX_PLAYERS, m_aiAttitudeExtra);
 
 	pStream->Read(MAX_PLAYERS, m_abFirstContact);
+	*/
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiSameReligionCounter);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0, m_aiSameReligionCounter);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0, m_aiDifferentReligionCounter);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0, m_aiFavoriteCivicCounter);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0, m_aiBonusTradeCounter);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0, m_aiPeacetimeTradeValue);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0, m_aiPeacetimeGrantValue);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0, m_aiGoldTradedTo);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0, m_aiAttitudeExtra);
 
-	for (int i = 0; i < MAX_PLAYERS; i++)
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0, m_abFirstContact);
+
+
+	const int iI_max = ((expand_arrays)?(MAX_PLAYERS2):(MAX_PLAYERS)); 
+	for (int i = 0; i < iI_max; i++)
 	{
 		pStream->Read(NUM_CONTACT_TYPES, m_aaiContactTimer[i]);
 	}
-	for (int i = 0; i < MAX_PLAYERS; i++)
+	for (int i = 0; i < iI_max; i++)
 	{
 		pStream->Read(NUM_MEMORY_TYPES, m_aaiMemoryCount[i]);
 	}

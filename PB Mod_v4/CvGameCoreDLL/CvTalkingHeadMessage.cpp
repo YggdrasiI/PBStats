@@ -44,6 +44,7 @@ void CvTalkingHeadMessage::read(FDataStreamBase& stream)
 	stream.Read(&iType);
 	m_eMessageType = (InterfaceMessageTypes)iType;
 	stream.Read(&iType);
+	REPLACE_BARBARIAN(&iType);
 	m_eFromPlayer = (PlayerTypes)iType;
 	stream.Read(&iType);
 	m_eTarget = (ChatTargetTypes)iType;

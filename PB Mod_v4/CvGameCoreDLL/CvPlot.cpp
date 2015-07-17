@@ -8476,6 +8476,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 	// m_bLayoutStateWorked not saved
 
 	pStream->Read(&m_eOwner);
+	REPLACE_BARBARIAN(&m_eOwner);
 	pStream->Read(&m_ePlotType);
 	pStream->Read(&m_eTerrainType);
 	pStream->Read(&m_eFeatureType);
@@ -8486,76 +8487,96 @@ void CvPlot::read(FDataStreamBase* pStream)
 	pStream->Read(&m_eRiverWEDirection);
 
 	pStream->Read((int*)&m_plotCity.eOwner);
+	REPLACE_BARBARIAN((int*)&m_plotCity.eOwner);
 	pStream->Read(&m_plotCity.iID);
 	pStream->Read((int*)&m_workingCity.eOwner);
+	REPLACE_BARBARIAN((int*)&m_workingCity.eOwner);
 	pStream->Read(&m_workingCity.iID);
 	pStream->Read((int*)&m_workingCityOverride.eOwner);
+	REPLACE_BARBARIAN((int*)&m_workingCityOverride.eOwner);
 	pStream->Read(&m_workingCityOverride.iID);
 
 	pStream->Read(NUM_YIELD_TYPES, m_aiYield);
 
 	SAFE_DELETE_ARRAY(m_aiCulture);
 	pStream->Read(&cCount);
+	// cCount is MAX_PLAYERS in most cases
 	if (cCount > 0)
 	{
-		m_aiCulture = new int[cCount];
-		pStream->Read(cCount, m_aiCulture);
+		//m_aiCulture = new int[cCount];
+		//pStream->Read(cCount, m_aiCulture); 
+		m_aiCulture = new int[MAX_PLAYERS];
+		READ_ARRAY(pStream, MAX_PLAYERS, cCount, 0,  m_aiCulture);
 	}
 
 	SAFE_DELETE_ARRAY(m_aiFoundValue);
 	pStream->Read(&cCount);
 	if (cCount > 0)
 	{
-		m_aiFoundValue = new short[cCount];
-		pStream->Read(cCount, m_aiFoundValue);
+		//m_aiFoundValue = new short[cCount];
+		//pStream->Read(cCount, m_aiFoundValue);
+		m_aiFoundValue = new short[MAX_PLAYERS];
+		READ_ARRAY(pStream, MAX_PLAYERS, cCount, 0,  m_aiFoundValue);
 	}
 
 	SAFE_DELETE_ARRAY(m_aiPlayerCityRadiusCount);
 	pStream->Read(&cCount);
 	if (cCount > 0)
 	{
-		m_aiPlayerCityRadiusCount = new char[cCount];
-		pStream->Read(cCount, m_aiPlayerCityRadiusCount);
+		//m_aiPlayerCityRadiusCount = new char[cCount];
+		//pStream->Read(cCount, m_aiPlayerCityRadiusCount);
+		m_aiPlayerCityRadiusCount = new char[MAX_PLAYERS];
+		READ_ARRAY(pStream, MAX_PLAYERS, cCount, 0,  m_aiPlayerCityRadiusCount);
 	}
 
 	SAFE_DELETE_ARRAY(m_aiPlotGroup);
 	pStream->Read(&cCount);
 	if (cCount > 0)
 	{
-		m_aiPlotGroup = new int[cCount];
-		pStream->Read(cCount, m_aiPlotGroup);
+		//m_aiPlotGroup = new int[cCount];
+		//pStream->Read(cCount, m_aiPlotGroup);
+		m_aiPlotGroup = new int[MAX_PLAYERS];
+		READ_ARRAY(pStream, MAX_PLAYERS, cCount, 0,  m_aiPlotGroup);
 	}
 
 	SAFE_DELETE_ARRAY(m_aiVisibilityCount);
 	pStream->Read(&cCount);
 	if (cCount > 0)
 	{
-		m_aiVisibilityCount = new short[cCount];
-		pStream->Read(cCount, m_aiVisibilityCount);
+		//m_aiVisibilityCount = new short[cCount];
+		//pStream->Read(cCount, m_aiVisibilityCount);
+		m_aiVisibilityCount = new short[MAX_TEAMS];
+		READ_ARRAY(pStream, MAX_TEAMS, cCount, 0,  m_aiVisibilityCount);
 	}
 
 	SAFE_DELETE_ARRAY(m_aiStolenVisibilityCount);
 	pStream->Read(&cCount);
 	if (cCount > 0)
 	{
-		m_aiStolenVisibilityCount = new short[cCount];
-		pStream->Read(cCount, m_aiStolenVisibilityCount);
+		//m_aiStolenVisibilityCount = new short[cCount];
+		//pStream->Read(cCount, m_aiStolenVisibilityCount);
+		m_aiStolenVisibilityCount = new short[MAX_TEAMS];
+		READ_ARRAY(pStream, MAX_TEAMS, cCount, 0,  m_aiStolenVisibilityCount);
 	}
 
 	SAFE_DELETE_ARRAY(m_aiBlockadedCount);
 	pStream->Read(&cCount);
 	if (cCount > 0)
 	{
-		m_aiBlockadedCount = new short[cCount];
-		pStream->Read(cCount, m_aiBlockadedCount);
+		//m_aiBlockadedCount = new short[cCount];
+		//pStream->Read(cCount, m_aiBlockadedCount);
+		m_aiBlockadedCount = new short[MAX_TEAMS];
+		READ_ARRAY(pStream, MAX_TEAMS, cCount, 0,  m_aiBlockadedCount);
 	}
 
 	SAFE_DELETE_ARRAY(m_aiRevealedOwner);
 	pStream->Read(&cCount);
 	if (cCount > 0)
 	{
-		m_aiRevealedOwner = new char[cCount];
-		pStream->Read(cCount, m_aiRevealedOwner);
+		//m_aiRevealedOwner = new char[cCount];
+		//pStream->Read(cCount, m_aiRevealedOwner);
+		m_aiRevealedOwner = new char[MAX_TEAMS];
+		READ_ARRAY(pStream, MAX_TEAMS, cCount, 0,  m_aiRevealedOwner);
 	}
 
 	SAFE_DELETE_ARRAY(m_abRiverCrossing);
@@ -8570,24 +8591,30 @@ void CvPlot::read(FDataStreamBase* pStream)
 	pStream->Read(&cCount);
 	if (cCount > 0)
 	{
-		m_abRevealed = new bool[cCount];
-		pStream->Read(cCount, m_abRevealed);
+		//m_abRevealed = new bool[cCount];
+		//pStream->Read(cCount, m_abRevealed);
+		m_abRevealed = new bool[MAX_TEAMS];
+		READ_ARRAY(pStream, MAX_TEAMS, cCount, 0,  m_abRevealed);
 	}
 
 	SAFE_DELETE_ARRAY(m_aeRevealedImprovementType);
 	pStream->Read(&cCount);
 	if (cCount > 0)
 	{
+		//m_aeRevealedImprovementType = new short[cCount];
+		//pStream->Read(cCount, m_aeRevealedImprovementType);
 		m_aeRevealedImprovementType = new short[cCount];
-		pStream->Read(cCount, m_aeRevealedImprovementType);
+		READ_ARRAY(pStream, MAX_TEAMS, cCount, 0,  m_aeRevealedImprovementType);
 	}
 
 	SAFE_DELETE_ARRAY(m_aeRevealedRouteType);
 	pStream->Read(&cCount);
 	if (cCount > 0)
 	{
+		//m_aeRevealedRouteType = new short[cCount];
+		//pStream->Read(cCount, m_aeRevealedRouteType);
 		m_aeRevealedRouteType = new short[cCount];
-		pStream->Read(cCount, m_aeRevealedRouteType);
+		READ_ARRAY(pStream, MAX_TEAMS, cCount, 0,  m_aeRevealedRouteType);
 	}
 
 	m_szScriptData = pStream->ReadString();
@@ -8602,7 +8629,8 @@ void CvPlot::read(FDataStreamBase* pStream)
 
 	if (NULL != m_apaiCultureRangeCities)
 	{
-		for (int iI = 0; iI < MAX_PLAYERS; ++iI)
+		const int iI_max = ((expand_arrays)?(MAX_PLAYERS2):(MAX_PLAYERS)); 
+		for (int iI = 0; iI < iI_max; ++iI)
 		{
 			SAFE_DELETE_ARRAY(m_apaiCultureRangeCities[iI]);
 		}
@@ -8611,7 +8639,8 @@ void CvPlot::read(FDataStreamBase* pStream)
 	pStream->Read(&cCount);
 	if (cCount > 0)
 	{
-		m_apaiCultureRangeCities = new char*[cCount];
+		//m_apaiCultureRangeCities = new char*[cCount];
+		m_apaiCultureRangeCities = new char*[MAX_PLAYERS];
 		for (iI = 0; iI < cCount; ++iI)
 		{
 			pStream->Read(&iCount);
@@ -8625,6 +8654,11 @@ void CvPlot::read(FDataStreamBase* pStream)
 				m_apaiCultureRangeCities[iI] = NULL;
 			}
 		}
+		for ( ; iI < MAX_PLAYERS; ++iI)
+		{
+				m_apaiCultureRangeCities[iI] = NULL;
+		}
+		SWAP_BARBARIAN(m_apaiCultureRangeCities); //swapping pointers
 	}
 
 	if (NULL != m_apaiInvisibleVisibilityCount)
@@ -8638,7 +8672,8 @@ void CvPlot::read(FDataStreamBase* pStream)
 	pStream->Read(&cCount);
 	if (cCount > 0)
 	{
-		m_apaiInvisibleVisibilityCount = new short*[cCount];
+		//m_apaiInvisibleVisibilityCount = new short*[cCount];
+		m_apaiInvisibleVisibilityCount = new short*[MAX_TEAMS];
 		for (iI = 0; iI < cCount; ++iI)
 		{
 			pStream->Read(&iCount);
@@ -8652,6 +8687,11 @@ void CvPlot::read(FDataStreamBase* pStream)
 				m_apaiInvisibleVisibilityCount[iI] = NULL;
 			}
 		}
+		for ( ; iI < cCount; ++iI)
+		{
+			m_apaiInvisibleVisibilityCount[iI] = NULL;
+		}
+		SWAP_BARBARIAN(m_apaiInvisibleVisibilityCount); //swapping pointers
 	}
 
 	m_units.Read(pStream);

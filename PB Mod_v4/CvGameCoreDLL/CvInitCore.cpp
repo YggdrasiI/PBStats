@@ -2018,6 +2018,7 @@ void CvInitCore::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iNumAdvancedStartPoints);
 
 	// PLAYER DATA
+	/*
 	pStream->ReadString(MAX_PLAYERS, m_aszLeaderName);
 	pStream->ReadString(MAX_PLAYERS, m_aszCivDescription);
 	pStream->ReadString(MAX_PLAYERS, m_aszCivShortDesc);
@@ -2040,6 +2041,27 @@ void CvInitCore::read(FDataStreamBase* pStream)
 
 	pStream->Read(MAX_PLAYERS, (int*)m_aeSlotStatus);
 	pStream->Read(MAX_PLAYERS, (int*)m_aeSlotClaim);
+	*/
+
+	READ_STRING_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, m_aszLeaderName);
+	READ_STRING_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, m_aszCivDescription);
+	READ_STRING_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, m_aszCivShortDesc);
+	READ_STRING_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, m_aszCivAdjective);
+	READ_STRING_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, m_aszCivPassword);
+	READ_STRING_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, m_aszEmail);
+	READ_STRING_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, m_aszSmtpHost);
+
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_abWhiteFlag);
+	READ_STRING_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, m_aszFlagDecal);
+
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeCiv);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeLeader);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeTeam);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeHandicap);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeColor);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeArtStyle);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeSlotStatus);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeSlotClaim);
 
 	for (int i=0;i<MAX_PLAYERS;i++)
 	{
@@ -2049,8 +2071,10 @@ void CvInitCore::read(FDataStreamBase* pStream)
 		}
 	}
 
-	pStream->Read(MAX_PLAYERS, m_abPlayableCiv);
-	pStream->Read(MAX_PLAYERS, m_abMinorNationCiv);
+	//pStream->Read(MAX_PLAYERS, m_abPlayableCiv);
+	//pStream->Read(MAX_PLAYERS, m_abMinorNationCiv);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_abPlayableCiv);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_abMinorNationCiv);
 
 	if(CvPlayerAI::areStaticsInitialized())
 	{

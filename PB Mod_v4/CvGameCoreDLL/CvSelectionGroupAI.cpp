@@ -818,6 +818,7 @@ void CvSelectionGroupAI::read(FDataStreamBase* pStream)
 	pStream->Read((int*)&m_eMissionAIType);
 
 	pStream->Read((int*)&m_missionAIUnit.eOwner);
+	REPLACE_BARBARIAN((int*)&m_missionAIUnit.eOwner);
 	pStream->Read(&m_missionAIUnit.iID);
 
 	pStream->Read(&m_bGroupAttack);

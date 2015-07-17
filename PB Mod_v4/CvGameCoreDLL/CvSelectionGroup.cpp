@@ -4443,6 +4443,7 @@ void CvSelectionGroup::read(FDataStreamBase* pStream)
 	pStream->Read(&m_bForceUpdate);
 
 	pStream->Read((int*)&m_eOwner);
+	REPLACE_BARBARIAN((int*)&m_eOwner);
 	pStream->Read((int*)&m_eActivityType);
 	pStream->Read((int*)&m_eAutomateType);
 

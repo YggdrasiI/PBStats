@@ -11335,15 +11335,19 @@ void CvUnit::read(FDataStreamBase* pStream)
 	}
 
 	pStream->Read((int*)&m_eOwner);
+	REPLACE_BARBARIAN((int*)&m_eOwner);
 	pStream->Read((int*)&m_eCapturingPlayer);
+	REPLACE_BARBARIAN((int*)&m_eCapturingPlayer);
 	pStream->Read((int*)&m_eUnitType);
 	FAssert(NO_UNIT != m_eUnitType);
 	m_pUnitInfo = (NO_UNIT != m_eUnitType) ? &GC.getUnitInfo(m_eUnitType) : NULL;
 	pStream->Read((int*)&m_eLeaderUnitType);
 
 	pStream->Read((int*)&m_combatUnit.eOwner);
+	REPLACE_BARBARIAN((int*)&m_combatUnit.eOwner);
 	pStream->Read(&m_combatUnit.iID);
 	pStream->Read((int*)&m_transportUnit.eOwner);
+	REPLACE_BARBARIAN((int*)&m_transportUnit.eOwner);
 	pStream->Read(&m_transportUnit.iID);
 
 	pStream->Read(NUM_DOMAIN_TYPES, m_aiExtraDomainModifier);

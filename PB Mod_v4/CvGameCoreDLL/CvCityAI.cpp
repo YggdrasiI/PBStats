@@ -9413,6 +9413,7 @@ void CvCityAI::read(FDataStreamBase* pStream)
 	pStream->Read(&m_bChooseProductionDirty);
 
 	pStream->Read((int*)&m_routeToCity.eOwner);
+	REPLACE_BARBARIAN((int*)&m_routeToCity.eOwner);
 	pStream->Read(&m_routeToCity.iID);
 
 	pStream->Read(NUM_YIELD_TYPES, m_aiEmphasizeYieldCount);
@@ -9424,7 +9425,8 @@ void CvCityAI::read(FDataStreamBase* pStream)
 	pStream->Read(NUM_YIELD_TYPES, m_aiSpecialYieldMultiplier);
 	pStream->Read(&m_iCachePlayerClosenessTurn);
 	pStream->Read(&m_iCachePlayerClosenessDistance);
-	pStream->Read(MAX_PLAYERS, m_aiPlayerCloseness);
+	//pStream->Read(MAX_PLAYERS, m_aiPlayerCloseness);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiPlayerCloseness);
 	pStream->Read(&m_iNeededFloatingDefenders);
 	pStream->Read(&m_iNeededFloatingDefendersCacheTurn);
 	pStream->Read(&m_iWorkersNeeded);

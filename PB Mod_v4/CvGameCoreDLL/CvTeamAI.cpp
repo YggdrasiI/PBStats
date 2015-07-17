@@ -2730,6 +2730,7 @@ void CvTeamAI::read(FDataStreamBase* pStream)
 	uint uiFlag=0;
 	pStream->Read(&uiFlag);	// flags for expansion
 
+	/*
 	pStream->Read(MAX_TEAMS, m_aiWarPlanStateCounter);
 	pStream->Read(MAX_TEAMS, m_aiAtWarCounter);
 	pStream->Read(MAX_TEAMS, m_aiAtPeaceCounter);
@@ -2742,7 +2743,22 @@ void CvTeamAI::read(FDataStreamBase* pStream)
 	pStream->Read(MAX_TEAMS, m_aiEnemyPeacetimeGrantValue);
 
 	pStream->Read(MAX_TEAMS, (int*)m_aeWarPlan);
+	*/
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiWarPlanStateCounter);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiAtWarCounter);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiAtPeaceCounter);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiHasMetCounter);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiOpenBordersCounter);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiDefensivePactCounter);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiShareWarCounter);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiWarSuccess);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiEnemyPeacetimeTradeValue);
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_aiEnemyPeacetimeGrantValue);
+
+ READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, NO_WARPLAN, (int*)m_aeWarPlan);
+
 	pStream->Read((int*)&m_eWorstEnemy);
+	REPLACE_BARBARIAN((int*)&m_eWorstEnemy);
 }
 
 

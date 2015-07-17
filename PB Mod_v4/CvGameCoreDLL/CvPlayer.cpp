@@ -15692,10 +15692,12 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	pStream->Read(&m_bStrike);
 
 	pStream->Read((int*)&m_eID);
+	REPLACE_BARBARIAN((int*)&m_eID);
 	pStream->Read((int*)&m_ePersonalityType);
 	pStream->Read((int*)&m_eCurrentEra);
 	pStream->Read((int*)&m_eLastStateReligion);
 	pStream->Read((int*)&m_eParent);
+	REPLACE_BARBARIAN((int*)&m_eParent);
 	updateTeamType(); //m_eTeamType not saved
 	updateHuman();
 
@@ -15712,8 +15714,10 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	pStream->Read(NUM_COMMERCE_TYPES, m_aiStateReligionBuildingCommerce);
 	pStream->Read(NUM_COMMERCE_TYPES, m_aiSpecialistExtraCommerce);
 	pStream->Read(NUM_COMMERCE_TYPES, m_aiCommerceFlexibleCount);
-	pStream->Read(MAX_PLAYERS, m_aiGoldPerTurnByPlayer);
-	pStream->Read(MAX_TEAMS, m_aiEspionageSpendingWeightAgainstTeam);
+	//pStream->Read(MAX_PLAYERS, m_aiGoldPerTurnByPlayer);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiGoldPerTurnByPlayer);
+	//pStream->Read(MAX_TEAMS, m_aiEspionageSpendingWeightAgainstTeam);
+	READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0,  m_aiEspionageSpendingWeightAgainstTeam);
 
 	pStream->Read(NUM_FEAT_TYPES, m_abFeatAccomplished);
 	pStream->Read(NUM_PLAYEROPTION_TYPES, m_abOptions);

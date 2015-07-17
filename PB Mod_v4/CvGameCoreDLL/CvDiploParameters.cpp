@@ -224,6 +224,7 @@ void CvDiploParameters::read(FDataStreamBase& stream)
 	stream.Read(&uiFlag);	// flags for expansion
 
 	stream.Read(&iType);
+	REPLACE_BARBARIAN(&iType);
 	m_eWhoTalkingTo = (PlayerTypes)iType;
 	stream.Read(&iType);
 	m_eCommentType = (DiploCommentTypes)iType;

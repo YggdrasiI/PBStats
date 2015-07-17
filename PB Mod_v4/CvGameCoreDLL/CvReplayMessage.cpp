@@ -107,6 +107,7 @@ void CvReplayMessage::read(FDataStreamBase& stream)
 	stream.Read(&m_iPlotY);
 
 	stream.Read(&iType);
+	REPLACE_BARBARIAN( &iType );
 	m_ePlayer = (PlayerTypes)iType;
 
 	stream.ReadString(m_szText);

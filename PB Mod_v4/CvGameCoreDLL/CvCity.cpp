@@ -11798,6 +11798,10 @@ void CvCity::read(FDataStreamBase* pStream)
 	pStream->Read((int*)&m_eOriginalOwner);
 	pStream->Read((int*)&m_eCultureLevel);
 
+	REPLACE_BARBARIAN((int*)&m_eOwner);
+	REPLACE_BARBARIAN((int*)&m_ePreviousOwner);
+	REPLACE_BARBARIAN((int*)&m_eOriginalOwner);
+
 	pStream->Read(NUM_YIELD_TYPES, m_aiSeaPlotYield);
 	pStream->Read(NUM_YIELD_TYPES, m_aiRiverPlotYield);
 	pStream->Read(NUM_YIELD_TYPES, m_aiBaseYieldRate);
@@ -11817,6 +11821,7 @@ void CvCity::read(FDataStreamBase* pStream)
 	pStream->Read(NUM_COMMERCE_TYPES, m_aiCommerceHappinessPer);
 	pStream->Read(NUM_DOMAIN_TYPES, m_aiDomainFreeExperience);
 	pStream->Read(NUM_DOMAIN_TYPES, m_aiDomainProductionModifier);
+	/*
 	pStream->Read(MAX_PLAYERS, m_aiCulture);
 	pStream->Read(MAX_PLAYERS, m_aiNumRevolts);
 
@@ -11824,6 +11829,14 @@ void CvCity::read(FDataStreamBase* pStream)
 	pStream->Read(MAX_PLAYERS, m_abTradeRoute);
 	pStream->Read(MAX_TEAMS, m_abRevealed);
 	pStream->Read(MAX_TEAMS, m_abEspionageVisibility);
+	*/
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiCulture);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiNumRevolts);
+
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_abEverOwned);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_abTradeRoute);
+	READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_abRevealed);
+	READ_ARRAY(pStream, MAX_TEAMS, MAX_TEAMS2, 0, m_abEspionageVisibility);
 
 	pStream->ReadString(m_szName);
 	pStream->ReadString(m_szScriptData);
@@ -11860,6 +11873,7 @@ void CvCity::read(FDataStreamBase* pStream)
 	for (iI=0;iI<GC.getDefineINT("MAX_TRADE_ROUTES");iI++)
 	{
 		pStream->Read((int*)&m_paTradeCities[iI].eOwner);
+		REPLACE_BARBARIAN((int*)&m_paTradeCities[iI].eOwner);
 		pStream->Read(&m_paTradeCities[iI].iID);
 	}
 
