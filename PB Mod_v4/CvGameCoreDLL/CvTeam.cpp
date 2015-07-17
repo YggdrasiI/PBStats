@@ -5886,6 +5886,11 @@ void CvTeam::read(FDataStreamBase* pStream)
 	// Init data before load
 	reset();
 
+	//Do not read bytes of unsaved players
+	if( CvPlayerAI.read_latest_player == true ){
+		return;
+	}
+
 	uint uiFlag=0;
 	pStream->Read(&uiFlag);	// flags for expansion
 

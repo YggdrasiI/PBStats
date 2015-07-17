@@ -15585,6 +15585,11 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	// Init data before load
 	reset();
 
+	//Do not read bytes of unsaved players
+	if( CvPlayerAI.read_latest_player == true ){
+		return;
+	}
+
 	uint uiFlag=0;
 	pStream->Read(&uiFlag);	// flags for expansion
 
@@ -15692,6 +15697,9 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	pStream->Read(&m_bStrike);
 
 	pStream->Read((int*)&m_eID);
+	if( m_e_ID >= BARBARIAN_PLAYER2 ){
+		CvPlayerAI.read_latest_player = true;
+	}
 	REPLACE_BARBARIAN((int*)&m_eID);
 	pStream->Read((int*)&m_ePersonalityType);
 	pStream->Read((int*)&m_eCurrentEra);

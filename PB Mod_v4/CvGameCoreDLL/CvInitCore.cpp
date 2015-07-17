@@ -2076,6 +2076,9 @@ void CvInitCore::read(FDataStreamBase* pStream)
 	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_abPlayableCiv);
 	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_abMinorNationCiv);
 
+	// Reset before first player will be read.
+	CvPlayerAI::read_latest_player = false;
+
 	if(CvPlayerAI::areStaticsInitialized())
 	{
 		for (int i=0;i<MAX_PLAYERS;i++)

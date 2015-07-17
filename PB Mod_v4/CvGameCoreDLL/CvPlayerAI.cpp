@@ -12397,7 +12397,15 @@ void CvPlayerAI::AI_doDiplo()
 //
 void CvPlayerAI::read(FDataStreamBase* pStream)
 {
+
+	bool tmp = CvPlayerAI.read_latest_player;
 	CvPlayer::read(pStream);	// read base class data first
+
+	//Do not read bytes of unsaved players
+	if( tmp ){
+		return;
+	}
+
 
 	uint uiFlag=0;
 	pStream->Read(&uiFlag);	// flags for expansion
@@ -12480,6 +12488,13 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 	pStream->Read(GC.getNumUnitClassInfos(), m_aiUnitClassWeights);
 	pStream->Read(GC.getNumUnitCombatInfos(), m_aiUnitCombatWeights);
 	pStream->Read(MAX_PLAYERS, m_aiCloseBordersAttitudeCache);
+
+
+	// 18 -> 52 players, shift barbarian object
+	if( getID() == BARBARIAN_PLAYER2 ){
+		CvPlayerAI.swapPlayer((PlayerTypes)BARBARIAN_PLAYER2,(PlayerTypes)BARBARIAN_PLAYER);
+		CvTeamAI.swapTeam((TeamTypes)BARBARIAN_PLAYER2,(TeamTypes)BARBARIAN_PLAYER);
+	}
 }
 
 

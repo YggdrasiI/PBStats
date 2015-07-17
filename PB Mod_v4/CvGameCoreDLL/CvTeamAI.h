@@ -23,6 +23,18 @@ public:
 		FAssertMsg(eTeam < MAX_TEAMS, "eTeam is not assigned a valid value");
 		return m_aTeams[eTeam]; 
 	}
+
+	//For Barbarian swap
+	static void swapTeam(TeamTypes eTeam1, TeamTypes eTeam2)
+	{
+		FAssertMsg(eTeam1 != NO_TEAM, "eTeam1 is not assigned a valid value");
+		FAssertMsg(eTeam1 < MAX_TEAMS, "eTeam1 is not assigned a valid value");
+		FAssertMsg(eTeam2 != NO_TEAM, "eTeam2 is not assigned a valid value");
+		FAssertMsg(eTeam2 < MAX_TEAMS, "eTeam2 is not assigned a valid value");
+		CvTeamAI* tmp = m_aTeams[eTeam1];
+		m_aTeams[eTeam1] = m_aTeams[eTeam2];
+		m_aTeams[eTeam2] =  tmp;
+	}
 #endif
 	DllExport static CvTeamAI& getTeamNonInl(TeamTypes eTeam);
 
