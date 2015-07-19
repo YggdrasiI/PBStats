@@ -8,6 +8,12 @@
 #include "CvPlayer.h"
 #include "AI_defines.h"
 
+namespace globals
+{
+	extern bool read_latest_player;
+	extern bool swap_barbarian_player;
+}
+
 class CvEventTriggerInfo;
 
 class CvPlayerAI : public CvPlayer
@@ -24,20 +30,12 @@ public:
   {
 	  FAssertMsg(ePlayer != NO_PLAYER, "Player is not assigned a valid value");
 	  FAssertMsg(ePlayer < MAX_PLAYERS, "Player is not assigned a valid value");
+		if( globals::swap_barbarian_player ){
+			if( (int)ePlayer == BARBARIAN_PLAYER2 ) return m_aPlayers[BARBARIAN_PLAYER];
+			if( (int)ePlayer == BARBARIAN_PLAYER ) return m_aPlayers[BARBARIAN_PLAYER2];
+		}
 	  return m_aPlayers[ePlayer]; 
   }
-	//For Barbarian swap
-	static void swapPlayer(PlayerTypes ePlayer1, PlayerTypes ePlayer2)
-	{
-		FAssertMsg(ePlayer1 != NO_TEAM, "ePlayer1 is not assigned a valid value");
-		FAssertMsg(ePlayer1 < MAX_TEAMS, "ePlayer1 is not assigned a valid value");
-		FAssertMsg(ePlayer2 != NO_TEAM, "ePlayer2 is not assigned a valid value");
-		FAssertMsg(ePlayer2 < MAX_TEAMS, "ePlayer2 is not assigned a valid value");
-		CvPlayerAI* tmp = m_aPlayers[ePlayer1];
-		m_aPlayers[ePlayer1] = m_aPlayers[ePlayer2];
-		m_aPlayers[ePlayer2] =  tmp;
-	}
-	static bool read_latest_player = false;
 #endif
 	DllExport static CvPlayerAI& getPlayerNonInl(PlayerTypes ePlayer);
 

@@ -12398,11 +12398,20 @@ void CvPlayerAI::AI_doDiplo()
 void CvPlayerAI::read(FDataStreamBase* pStream)
 {
 
-	bool tmp = CvPlayerAI.read_latest_player;
+	bool tmp = globals::read_latest_player;
+	bool last = (getID() == BARBARIAN_PLAYER2);
 	CvPlayer::read(pStream);	// read base class data first
+
+
+	// 18 -> 52 players, shift barbarian object
+	// Note that the readorder is 0,1,...,17,52,19,...,51,18
+	if( last ){
+		globals::swap_barbarian_player = false;
+	}
 
 	//Do not read bytes of unsaved players
 	if( tmp ){
+
 		return;
 	}
 
@@ -12444,7 +12453,6 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 
 	pStream->Read(MAX_PLAYERS, m_abFirstContact);
 	*/
-	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aiSameReligionCounter);
 	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0, m_aiSameReligionCounter);
 	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0, m_aiDifferentReligionCounter);
 	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0, m_aiFavoriteCivicCounter);
@@ -12487,13 +12495,14 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 	pStream->Read(GC.getNumBonusInfos(), m_aiBonusValue);
 	pStream->Read(GC.getNumUnitClassInfos(), m_aiUnitClassWeights);
 	pStream->Read(GC.getNumUnitCombatInfos(), m_aiUnitCombatWeights);
-	pStream->Read(MAX_PLAYERS, m_aiCloseBordersAttitudeCache);
+	//pStream->Read(MAX_PLAYERS, m_aiCloseBordersAttitudeCache);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0, m_aiCloseBordersAttitudeCache);
 
 
 	// 18 -> 52 players, shift barbarian object
+	// Note that the readorder is 0,1,...,17,52,19,...,51,18
 	if( getID() == BARBARIAN_PLAYER2 ){
-		CvPlayerAI.swapPlayer((PlayerTypes)BARBARIAN_PLAYER2,(PlayerTypes)BARBARIAN_PLAYER);
-		CvTeamAI.swapTeam((TeamTypes)BARBARIAN_PLAYER2,(TeamTypes)BARBARIAN_PLAYER);
+		globals::swap_barbarian_player = false;
 	}
 }
 

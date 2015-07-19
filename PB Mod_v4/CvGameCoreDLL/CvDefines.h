@@ -52,28 +52,33 @@
 // Moreover swap values of POINTER+A and POINTER+b (=>swap barbarian slots)
 #define READ_ARRAY(STREAM, A, b, DEFAULT_VALUE, POINTER) \
 	if( (expand_arrays) ){ \
-	(STREAM)->Read(b, (POINTER) ); \
-	*(POINTER+A-1) = *(POINTER+b-1); \
-	for( int rai=b-1; rai<A-1; ++rai){ *( (POINTER) + rai ) = DEFAULT_VALUE }\
+		(STREAM)->Read(b, (POINTER) ); \
+		*(POINTER+A-1) = *(POINTER+b-1); \
+		for( int rai=b-1; rai<A-1; ++rai){ *( (POINTER) + rai ) = DEFAULT_VALUE; }\
 	}else{\
 		(STREAM)->Read(A,(POINTER) ); \
 	}
 
 #define READ_STRING_ARRAY(STREAM, A, b, POINTER) \
 	if( (expand_arrays) ){ \
-	(STREAM)->ReadString(b, (POINTER) ); \
-	*(POINTER+A-1) = *(POINTER+b-1); \
-	*(POINTER+b-1) = ""; \
+		(STREAM)->ReadString(b, (POINTER) ); \
+		*(POINTER+A-1) = *(POINTER+b-1); \
+		(POINTER[b-1]).clear(); \
 	}else{\
-		(STREAM)->Read(A,(POINTER) ); \
+		(STREAM)->ReadString(A,(POINTER) ); \
 	}
 
-#define SWAP_BARBARIAN(POINTER) \
+#define SWAP_BARBARIAN(POINTER, TYPE) \
 	if( (expand_arrays) ){ \
-		*((POINTER)+ (BARBARIAN_PLAYER)) ^= *((POINTER) +(BARBARIAN_PLAYER2)); \
-		*((POINTER)+(BARBARIAN_PLAYER2)) ^= *((POINTER)+(BARBARIAN_PLAYER)); \
-		*((POINTER)+ (BARBARIAN_PLAYER)) ^= *((POINTER) +(BARBARIAN_PLAYER2)); \
-	}
+		TYPE val = *((POINTER) + BARBARIAN_PLAYER); \
+		*((POINTER) + BARBARIAN_PLAYER) = *((POINTER) + BARBARIAN_PLAYER2); \
+		*((POINTER) + BARBARIAN_PLAYER2) = val; \
+	} \
+	
+//		std::swap( (POINTER)+(BARBARIAN_PLAYER), (POINTER)+(BARBARIAN_PLAYER2));\
+	//	*((POINTER)+ (BARBARIAN_PLAYER)) ^= *((POINTER) +(BARBARIAN_PLAYER2)); \
+	//	*((POINTER)+(BARBARIAN_PLAYER2)) ^= *((POINTER)+(BARBARIAN_PLAYER)); \
+	//	*((POINTER)+ (BARBARIAN_PLAYER)) ^= *((POINTER) +(BARBARIAN_PLAYER2)); \
 
 #define REPLACE_BARBARIAN(POINTER) \
 	if( (expand_arrays) && *(POINTER) == (BARBARIAN_PLAYER2) ){ \

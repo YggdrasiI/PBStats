@@ -2725,7 +2725,7 @@ int CvTeamAI::AI_teamCloseness(TeamTypes eIndex, int iMaxDistance) const
 
 void CvTeamAI::read(FDataStreamBase* pStream)
 {
-	bool tmp = CvPlayerAI.read_latest_player;
+	bool tmp = globals::read_latest_team;
 	CvTeam::read(pStream);
 
 	//Do not read bytes of unsaved players
@@ -2765,6 +2765,7 @@ void CvTeamAI::read(FDataStreamBase* pStream)
 
 	pStream->Read((int*)&m_eWorstEnemy);
 	REPLACE_BARBARIAN((int*)&m_eWorstEnemy);
+
 }
 
 

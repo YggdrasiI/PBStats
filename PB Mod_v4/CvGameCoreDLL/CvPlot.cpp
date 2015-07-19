@@ -8603,7 +8603,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 	{
 		//m_aeRevealedImprovementType = new short[cCount];
 		//pStream->Read(cCount, m_aeRevealedImprovementType);
-		m_aeRevealedImprovementType = new short[cCount];
+		m_aeRevealedImprovementType = new short[MAX_TEAMS];
 		READ_ARRAY(pStream, MAX_TEAMS, cCount, 0,  m_aeRevealedImprovementType);
 	}
 
@@ -8613,7 +8613,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 	{
 		//m_aeRevealedRouteType = new short[cCount];
 		//pStream->Read(cCount, m_aeRevealedRouteType);
-		m_aeRevealedRouteType = new short[cCount];
+		m_aeRevealedRouteType = new short[MAX_TEAMS];
 		READ_ARRAY(pStream, MAX_TEAMS, cCount, 0,  m_aeRevealedRouteType);
 	}
 
@@ -8658,7 +8658,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 		{
 				m_apaiCultureRangeCities[iI] = NULL;
 		}
-		SWAP_BARBARIAN(m_apaiCultureRangeCities); //swapping pointers
+		SWAP_BARBARIAN(m_apaiCultureRangeCities, char*); //swapping pointers
 	}
 
 	if (NULL != m_apaiInvisibleVisibilityCount)
@@ -8691,7 +8691,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 		{
 			m_apaiInvisibleVisibilityCount[iI] = NULL;
 		}
-		SWAP_BARBARIAN(m_apaiInvisibleVisibilityCount); //swapping pointers
+		SWAP_BARBARIAN(m_apaiInvisibleVisibilityCount, short*); //swapping pointers
 	}
 
 	m_units.Read(pStream);

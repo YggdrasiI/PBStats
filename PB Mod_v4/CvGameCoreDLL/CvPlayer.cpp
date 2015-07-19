@@ -15586,7 +15586,7 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	reset();
 
 	//Do not read bytes of unsaved players
-	if( CvPlayerAI.read_latest_player == true ){
+	if( globals::read_latest_player == true ){
 		return;
 	}
 
@@ -15697,8 +15697,8 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	pStream->Read(&m_bStrike);
 
 	pStream->Read((int*)&m_eID);
-	if( m_e_ID >= BARBARIAN_PLAYER2 ){
-		CvPlayerAI.read_latest_player = true;
+	if( m_eID >= BARBARIAN_PLAYER2 ){
+		globals::read_latest_player = true;
 	}
 	REPLACE_BARBARIAN((int*)&m_eID);
 	pStream->Read((int*)&m_ePersonalityType);

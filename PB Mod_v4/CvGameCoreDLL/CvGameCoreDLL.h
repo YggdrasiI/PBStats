@@ -213,4 +213,13 @@ namespace python = boost::python;
 #define OutputDebugString(x)
 #endif //FINAL_RELEASE
 
+//Global varibles
+namespace globals
+{
+	extern bool read_latest_team;
+	extern bool read_latest_player;
+	extern bool swap_barbarian_player;
+}
+
+
 #endif	// CvGameCoreDLL_h

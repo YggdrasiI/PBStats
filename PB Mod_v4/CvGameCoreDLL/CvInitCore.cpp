@@ -2054,14 +2054,14 @@ void CvInitCore::read(FDataStreamBase* pStream)
 	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_abWhiteFlag);
 	READ_STRING_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, m_aszFlagDecal);
 
-	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeCiv);
-	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeLeader);
-	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeTeam);
-	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeHandicap);
-	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeColor);
-	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeArtStyle);
-	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeSlotStatus);
-	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_aeSlotClaim);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, (int) NO_CIVILIZATION, (int*) m_aeCiv);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, (int) NO_LEADER,  (int*) m_aeLeader);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, (int) NO_TEAM, (int*) m_aeTeam);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, (int) GC.getDefineINT("STANDARD_HANDICAP"), (int*) m_aeHandicap);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, (int) NO_PLAYERCOLOR, (int*) m_aeColor);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, (int) NO_ARTSTYLE, (int*)  m_aeArtStyle);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, (int) SS_CLOSED, (int*)  m_aeSlotStatus);
+	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, (int) SLOTCLAIM_ASSIGNED, (int*) m_aeSlotClaim);
 
 	for (int i=0;i<MAX_PLAYERS;i++)
 	{
@@ -2077,7 +2077,10 @@ void CvInitCore::read(FDataStreamBase* pStream)
 	READ_ARRAY(pStream, MAX_PLAYERS, MAX_PLAYERS2, 0,  m_abMinorNationCiv);
 
 	// Reset before first player will be read.
-	CvPlayerAI::read_latest_player = false;
+	globals::read_latest_team = false;
+	globals::read_latest_player = false;
+	// swap indicies in getTeam() and getPlayer() due save reading
+	globals::swap_barbarian_player = true;
 
 	if(CvPlayerAI::areStaticsInitialized())
 	{

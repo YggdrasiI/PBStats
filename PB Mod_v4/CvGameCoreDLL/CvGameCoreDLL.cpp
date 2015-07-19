@@ -1,5 +1,9 @@
 #include "CvGameCoreDLL.h"
 
+bool globals::read_latest_team = false;
+bool globals::read_latest_player = false;
+bool globals::swap_barbarian_player = false;
+
 #include "CvGameCoreDLLUndefNew.h"
 
 #include <new>
