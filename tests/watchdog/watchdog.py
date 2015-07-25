@@ -360,16 +360,16 @@ class ServerStatus:
 
     def popup_confirm(self):
         subprocess.call(os.path.join(os.path.dirname(__file__), ".",
-                                     "xconfirmPopup.sh {}".format(self.game_id)), shell=True)
+                                     "confirmPopup.sh {}".format(self.game_id)), shell=True)
 
     def restart_game(self, previous_save=False):
-        previous = 1 if previous_save else 0
+        previous = "-p" if previous_save else ""
         subprocess.call(os.path.join(os.path.dirname(__file__), ".",
-                                     "killPitbossExecutable.sh {} {}".format(self.game_id, previous)), shell=True)
+                                     "killPitboss.sh {} {}".format(previous, self.game_id)), shell=True)
 
     def stop_game(self):
         subprocess.call(os.path.join(os.path.dirname(__file__), ".",
-                                     "killPitbossScript.sh {}".format(self.game_id)), shell=True)
+                                     "killPitboss.sh -s {}".format(self.game_id)), shell=True)
 
 
 class ServerStatuses:
