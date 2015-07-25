@@ -228,6 +228,13 @@ setupGame() {
 
 main() {
 
+# Path for xvfb-run framebuffer. Screenshot available via
+# xwud --id $XVFB_DIR
+XVFB_DIR=/run/shm/${ALTROOT##*/}
+if [ ! -d "${XVFB_DIR}" ] ; then
+	mkdir "${XVFB_DIR}"
+fi
+
 # Create Altroot path with backslashes
 ALTROOT_W=`echo "Z:${ALTROOT}" | sed -e 's/[\/]/\\\\/g' `
 
@@ -271,7 +278,7 @@ for(( ; ; )) do
 		set -m
 
 		# Invoke Xvfb
-		xvfb-run -a  -e /dev/shm/xvfb.err --auth-file=${MCOOKIE} -s " -fbdir /var/tmp -screen 0 640x480x24" wine "$CIV4BTS_EXE"  mod= "${MOD}"\" /ALTROOT="${ALTROOT_W}" &
+		xvfb-run -a  -e /dev/shm/xvfb.err --auth-file=${MCOOKIE} -s " -fbdir ${XVFB_DIR} -screen 0 640x480x24" wine "$CIV4BTS_EXE"  mod= "${MOD}"\" /ALTROOT="${ALTROOT_W}" &
 
 		# Propagate cookie and wait
 		sleep 2
