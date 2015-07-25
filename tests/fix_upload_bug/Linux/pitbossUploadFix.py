@@ -9,6 +9,11 @@
 # - sudo apt-get install libnet1-dev libpcap0.8-dev
 # - Python wrapper http://sourceforge.net/projects/pyip/
 # - Python wrapper https://github.com/Onuonga/pycap
+#   ( Canonical installation steps
+#     cd [pycap/pyip]
+#     python setup.py build
+#     python setup.py install --user
+#   )
 #
 # Notes:
 # - Script requires root/'sudo' to get access to the network traffic.
@@ -27,7 +32,6 @@ import os
 import argparse
 import logging
 from collections import defaultdict
-import time
 import traceback
 import datetime
 
@@ -114,7 +118,7 @@ class PBNetworkConnection:
         # Send fake packet to stop upload
         # Structure of content:
         # 254 254 06 B (A+1) (7 bytes)
-        A = payload[3:5] # String!
+        A = payload[3:5]  # String!
         B = payload[5:7]
         a1 = ord(A[0]) * 256 + ord(A[1]) + 1
         A1 = chr(a1 / 256) + chr(a1 % 256)
