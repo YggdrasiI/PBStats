@@ -2,27 +2,27 @@ from CvPythonExtensions import *
 import CvUtil
 import CvEventInterface
 
-# For WB Saves
-#import StringIO
+#  For WB Saves
+#  import StringIO
 import cStringIO
 import CvWBDesc
-#import CvWBInterface
-#import zlib # not included
-#import gzip # exists in Civ4/Assets/Python/System, but can not be imported
+#  import CvWBInterface
+# import zlib #  not included
+# import gzip #  exists in Civ4/Assets/Python/System, but can not be imported
 
 from SocketServer import ThreadingMixIn
-from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import re
 import cgi
 import os.path
-#import os.listdir
+#  import os.listdir
 import os
 import glob
 import time
 import thread
-from threading import Timer,Thread,Event
+from threading import Timer, Thread, Event
 import urllib
-#import hashlib #Python 2.4 has no hashlib use md5
+# import hashlib #  Python 2.4 has no hashlib use md5
 import md5
 import simplejson
 import sys
@@ -33,126 +33,150 @@ localText = CyTranslator()
 
 #Default settings. Does not work for multiple PB instances due port collision.
 pbDefaultSettings = {
-	"webserver": {
-		"host" : "", # Leave string empty
-		"port" : 13373, # Port of the python web interface of this mod. Use different port for each game
-		"password" : "defaultpassword" # Password for admin commands on the webinterface
-	},
-	"webfrontend" : {
-		"url" : "http://localhost/civ/page/update.php", # Url of the pbStats file on your http webserver
-		"gameId" : 0, # Id of game at above website
-		"sendPeriodicalData" : 1, # Set 0 to disable periodical sending of game data
-		"sendInterval" : 10, # Seconds during automatic sending of game data
-		},
-	"save" : {
-		"filename" : "A.CivBeyondSwordSave",  # Filename (without path) of loaded game at startup (require autostart )
-		"adminpw" : "", # Admin password of above save
-		"savefolder" : "saves\\multi\\", # First choice to save games.
-		"readfolders" : [] # List of relative paths which can be used to load games.
-	},
-	"shortnames" : { # Truncate names to fix login issue due packet drop
-		"enable": True,
-		"maxLenName": 1, # Maximal Leader name length. Length of 1 force replacement with player Id, 0=A,1=B,...,51=z
-		"maxLenDesc": 4  # Maximal Nation name length. Length of 1 force replacement with player Id, 0=A,1=B,...,51=z
-	},
-	"numRecoverySavesPerPlayer" : 5, # Each login and logoff produce a save. This option controls the length of history
-	"MotD" : "Welcome on the modified PitBoss Server",
-	"noGui" : 0, # Do not show admin window. (This option force the autostart.)
-	"autostart" : 0, # Load savegame at startup
-	"errorLogFile" : None
+    "webserver": {
+        "host": "",  # Leave string empty
+        #  Port of the python web interface of this mod. Use different port for
+        #  each game
+        "port": 13373,
+        #  Password for admin commands on the webinterface
+        "password": "defaultpassword"
+    },
+    "webfrontend": {
+        #  Url of the pbStats file on your http webserver
+        "url": "http://localhost/civ/page/update.php",
+        "gameId": 0,  # Id of game at above website
+        #  Set 0 to disable periodical sending of game data
+        "sendPeriodicalData": 1,
+        "sendInterval": 10,  # Seconds during automatic sending of game data
+        },
+    "save": {
+        #  Filename (without path) of loaded game at startup (require autostart
+        #  )
+        "filename": "A.CivBeyondSwordSave",
+        "adminpw": "",  # Admin password of above save
+        "savefolder": "saves\\multi\\",  # First choice to save games.
+        #  List of relative paths which can be used to load games.
+        "readfolders": []
+    },
+    "shortnames": {  # Truncate names to fix login issue due packet drop
+        "enable": True,
+        #  Maximal Leader name length. Length of 1 force replacement with player
+        #  Id, 0=A,1=B,...,51=z
+        "maxLenName": 1,
+        #  Maximal Nation name length. Length of 1 force replacement with player
+        #  Id, 0=A,1=B,...,51=z
+        "maxLenDesc": 4
+    },
+    #  Each login and logoff produce a save. This option controls the length of
+    #  history
+    "numRecoverySavesPerPlayer": 5,
+    "MotD": "Welcome on the modified PitBoss Server",
+    "noGui": 0,  # Do not show admin window. (This option force the autostart.)
+    "autostart": 0,  # Load savegame at startup
+    "errorLogFile": None
 }
 pbSettings = None
 
-#Try to load pbSettings file.
-# To get a different settings file for each pitboss we need
-# access to a variable in the ini file
-# We reuse a widely unused variable of the standard BTS ini file
+#  Try to load pbSettings file.
+#  To get a different settings file for each pitboss we need
+#  access to a variable in the ini file
+#  We reuse a widely unused variable of the standard BTS ini file
 altrootDir = gc.getAltrootDir()
 
-#Cut of badly formated beginning of String [...]@ (If EMail Ini variable used)
-#altrootDir = altrootDir[altrootDir.rfind("@")+1:len(altrootDir)]
+#  Cut of badly formated beginning of String [...]@ (If EMail Ini variable used)
+#  altrootDir = altrootDir[altrootDir.rfind("@")+1:len(altrootDir)]
 
-# If the loading of the setting file failed the path will be set no None in getPbSettings()
+#  If the loading of the setting file failed the path will be set no None
+#  in getPbSettings()
 pbFn = os.path.join(altrootDir, "pbSettings.json")
 
+
 def getPbSettings():
-	global altrootDir
-	global pbFn
-	global pbSettings
-	global pbDefaultSettings
-	if pbSettings != None:
-		return pbSettings
+    global altrootDir
+    global pbFn
+    global pbSettings
+    global pbDefaultSettings
+    if pbSettings is not None:
+        return pbSettings
 
-	if os.path.isfile(pbFn):
-		fp = file(pbFn,"r")
-		pbSettings = simplejson.load(fp)
-		fp.close()
-		return pbSettings
-	elif altrootDir != "":
-		pbSettings = pbDefaultSettings
-		savePbSettings()
-		return pbSettings
-	else:
-		pbSettings = pbDefaultSettings
-		pbFn = None
-		return pbDefaultSettings
+    if os.path.isfile(pbFn):
+        fp = file(pbFn, "r")
+        pbSettings = simplejson.load(fp)
+        fp.close()
+        return pbSettings
+    elif altrootDir != "":
+        pbSettings = pbDefaultSettings
+        savePbSettings()
+        return pbSettings
+    else:
+        pbSettings = pbDefaultSettings
+        pbFn = None
+        return pbDefaultSettings
 
-# Attention: Use the ThreadedHTTPServer.savePbSettings to wrap this into a mutex if you saved the file over the webinterface.
-# This function should only be called direct if the webserver wasn't started.
+#  Attention: Use the ThreadedHTTPServer.savePbSettings to wrap this into a mutex if you saved the file over the webinterface.
+#  This function should only be called direct if the webserver wasn't started.
+
+
 def savePbSettings():
-	global pbFn
-	global pbSettings
-	if pbFn == None:
-		return
+    global pbFn
+    global pbSettings
+    if pbFn is None:
+        return
 
-	try:
-		fp = file(pbFn,"w")
-		# Note that it's ness. to use the old syntax (integer value) for indent argument!
-		simplejson.dump(pbSettings, fp, indent=1 )
-	except Exception, e:
-		pass
+    try:
+        fp = file(pbFn, "w")
+        #  Note that it's ness. to use the old syntax (integer value) for indent
+        #  argument!
+        simplejson.dump(pbSettings, fp, indent=1)
+    except Exception as e:
+        pass
 
-# Use two default paths and the given path from the setting file
-# to generate possible paths of saves.
-# A hashmap construction would destroy the ordering and OrderedDict requires
-# at least Python 2.7. Thus, the duplicates free list will be constructed
-# by hand.
+#  Use two default paths and the given path from the setting file
+#  to generate possible paths of saves.
+#  A hashmap construction would destroy the ordering and OrderedDict requires
+#  at least Python 2.7. Thus, the duplicates free list will be constructed
+#  by hand.
+
+
 def getPossibleSaveFolders():
-	global altrootDir
-	if not "save" in pbSettings:
-		pbSettings["save"] = {}
+    global altrootDir
+    if not "save" in pbSettings:
+        pbSettings["save"] = {}
 
-	# Note: "path" is the deprecated name of "savefolder"
-	userPath = str( pbSettings["save"].get("savefolder",
-		pbSettings["save"].get("path",
-			"saves\\multi\\") ) )
-	folders = [
-			altrootDir + "\\" + userPath,
-			altrootDir + "\\" + userPath + "auto\\",
-			altrootDir + "\\" + "saves\\multi\\",
-			altrootDir + "\\" + "saves\\multi\\auto\\",
-			altrootDir + "\\" + "saves\\pitboss\\",
-			altrootDir + "\\" + "saves\\pitboss\\auto\\"
-			]
+    #  Note: "path" is the deprecated name of "savefolder"
+    userPath = str(
+        pbSettings["save"].get(
+            "savefolder",
+            pbSettings["save"].get(
+                "path",
+                "saves\\multi\\")))
+    folders = [
+        altrootDir + "\\" + userPath,
+        altrootDir + "\\" + userPath + "auto\\",
+        altrootDir + "\\" + "saves\\multi\\",
+        altrootDir + "\\" + "saves\\multi\\auto\\",
+        altrootDir + "\\" + "saves\\pitboss\\",
+        altrootDir + "\\" + "saves\\pitboss\\auto\\"
+        ]
 
-	#Add extra folders
-	for extraUserPath in pbSettings["save"].get("readfolders",[]):
-		folders.append( altrootDir + "\\" + str(extraUserPath) )
-		folders.append( altrootDir + "\\" + str(extraUserPath) + "auto\\" )
+    #  Add extra folders
+    for extraUserPath in pbSettings["save"].get("readfolders", []):
+        folders.append(altrootDir + "\\" + str(extraUserPath))
+        folders.append(altrootDir + "\\" + str(extraUserPath) + "auto\\")
 
-	def remove_duplicates(li):
-			my_set = set()
-			res = []
-			for e in li:
-					if e not in my_set:
-							res.append((e,len(res)))
-							my_set.add(e)
-			return res
-	return remove_duplicates(folders)
+    def remove_duplicates(li):
+        my_set = set()
+        res = []
+        for e in li:
+            if e not in my_set:
+                res.append((e, len(res)))
+                my_set.add(e)
+        return res
+    return remove_duplicates(folders)
 
 
-# The do_POTH method of this class handle the control commands
-# of the webinterface
+#  The do_POTH method of this class handle the control commands
+#  of the webinterface
 class HTTPRequestHandler(BaseHTTPRequestHandler):
 
 	# Redefine is ness. to omit python error popups!!
@@ -841,58 +865,63 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 # to omit offline detection mechanisms of the webinterface.
 class PerpetualTimer:
 
-	def __init__(self,settings,webserver, reduceTraffic=False ):
-		self.settings = settings
-		self.t = settings['sendInterval']
-		self.tFirst = self.t + 10
-		self.reduceTraffic = reduceTraffic
-		self.reduceFactor = 12
-		self.requestCounter = 0
-		self.webserver = webserver
-		self.hFunction = self.request
-		self.thread = Timer(self.tFirst,self.handle_function)
+    def __init__(self, settings, webserver, reduceTraffic=False):
+        self.settings = settings
+        self.t = settings['sendInterval']
+        self.tFirst = self.t + 10
+        self.reduceTraffic = reduceTraffic
+        self.reduceFactor = 12
+        self.requestCounter = 0
+        self.webserver = webserver
+        self.hFunction = self.request
+        self.thread = Timer(self.tFirst, self.handle_function)
 
-	def handle_function(self):
-		self.hFunction(self.webserver)
-		self.thread = Timer(self.t,self.handle_function)
-		self.thread.start()
+    def handle_function(self):
+        self.hFunction(self.webserver)
+        self.thread = Timer(self.t, self.handle_function)
+        self.thread.start()
 
-	def start(self):
-		self.thread.start()
+    def start(self):
+        self.thread.start()
 
-	def cancel(self):
-		self.thread.cancel()
+    def cancel(self):
+        self.thread.cancel()
 
-	def request(self,webserver):
-		gamedata = webserver.createGamedata()
-		newState = not webserver.compareGamedata(gamedata)
+    def request(self, webserver):
+        gamedata = webserver.createGamedata()
+        newState = not webserver.compareGamedata(gamedata)
 
-		# Check if CvGame::doTurn is currently running.
-		inconsistentState = CvEventInterface.getEventManager().bGameTurnProcessing
-		inconsistentState = True
+        #  Check if CvGame::doTurn is currently running.
+        inconsistentState = CvEventInterface.getEventManager(
+            ).bGameTurnProcessing
 
+        url = self.settings["url"]
+        gameId = self.settings["gameId"]
+        pwHash = md5.new(pbSettings['webserver']['password']).hexdigest()
 
-		url = self.settings["url"]
-		gameId = self.settings["gameId"]
-		pwHash = md5.new( pbSettings['webserver']['password'] ).hexdigest()
+        self.requestCounter += 1
 
-		self.requestCounter += 1
+        if(not inconsistentState and (newState or not self.reduceTraffic
+                                      or self.requestCounter % self.reduceFactor == 0)):
+            params = urllib.urlencode(
+                {'action': 'update', 'id': gameId,
+                 'pwHash': pwHash, 'info':
+                 simplejson.dumps(
+                     {'return': 'ok', 'info': gamedata})})
+        else:
+            #  Minimal alive message.
+            gamedataMinimal = {"turnTimer": gamedata.get("turnTimer")}
+            if gamedata["turnTimer"] == 1:
+                gamedataMinimal["turnTimerValue"] = gamedata.get(
+                    "turnTimerValue")
+            params = urllib.urlencode(
+                {'action': 'update', 'id': gameId, 'pwHash': pwHash, 'info':
+                 simplejson.dumps(
+                     {'return': 'ok', 'info': gamedataMinimal})})
 
-		if( not inconsistentState and ( newState or not self.reduceTraffic
-				or self.requestCounter%self.reduceFactor == 0 ) ):
-			params = urllib.urlencode({'action': 'update','id':gameId, 'pwHash':pwHash, 'info': simplejson.dumps({'return':'ok','info':gamedata}) })
-		else:
-			# Minimal alive message.
-			gamedataMinimal = {"turnTimer" : gamedata.get("turnTimer") }
-			if gamedata["turnTimer"] == 1:
-				gamedataMinimal["turnTimerValue"] = gamedata.get("turnTimerValue")
-			params = urllib.urlencode({'action': 'update','id':gameId, 'pwHash':pwHash, 'info': simplejson.dumps({'return':'ok','info':gamedataMinimal}) })
+        try:
+            # f = urllib.urlopen("%s?%s" % (url,params) ) #  GET method
+            f = urllib.urlopen(url, params)  # POST method
 
-		try:
-			#f = urllib.urlopen("%s?%s" % (url,params) ) #GET method
-			f = urllib.urlopen(url, params) #POST method
-
-		except:
-			pass
-
-
+        except:
+            pass
