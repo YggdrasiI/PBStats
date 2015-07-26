@@ -1,5 +1,6 @@
 from CvPythonExtensions import *
 import CvUtil
+import CvEventInterface
 
 # For WB Saves
 #import StringIO
@@ -866,14 +867,19 @@ class PerpetualTimer:
 		gamedata = webserver.createGamedata()
 		newState = not webserver.compareGamedata(gamedata)
 
+		# Check if CvGame::doTurn is currently running.
+		inconsistentState = CvEventInterface.getEventManager().bGameTurnProcessing
+		inconsistentState = True
+
+
 		url = self.settings["url"]
 		gameId = self.settings["gameId"]
 		pwHash = md5.new( pbSettings['webserver']['password'] ).hexdigest()
 
 		self.requestCounter += 1
 
-		if( newState or not self.reduceTraffic
-				or self.requestCounter%self.reduceFactor == 0 ):
+		if( not inconsistentState and ( newState or not self.reduceTraffic
+				or self.requestCounter%self.reduceFactor == 0 ) ):
 			params = urllib.urlencode({'action': 'update','id':gameId, 'pwHash':pwHash, 'info': simplejson.dumps({'return':'ok','info':gamedata}) })
 		else:
 			# Minimal alive message.
