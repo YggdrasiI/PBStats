@@ -34,7 +34,7 @@ ALTROOT_BASEDIR="$HOME/PBStats/PBs"
 # Defaut mod name. 
 # Can be overwritten in selectAltroot. Moreover, the modname
 # will be changed automatically if the save contains an other mod name.
-MOD="PB Mod_v4"
+MOD="PB Mod_v5"
 
 # Insert the names of your games here.
 START_MENU="""
@@ -54,11 +54,11 @@ selectAltroot() {
 	case "$1" in
 		1)
 			ALTROOT="$ALTROOT_BASEDIR/PB1"
-			MOD="PB Mod_v4"
+			MOD="PB Mod_v5"
 			;;
 		2)
 			ALTROOT="$ALTROOT_BASEDIR/PB2"
-			MOD="PB Mod_v4"
+			MOD="PB Mod_v5"
 			;;
 		help)
 			printHelp
@@ -85,13 +85,6 @@ RESTART_TIMEOUT=3
 
 # Seed directory
 ALTROOT_SEED="$ALTROOT_BASEDIR/seed"
-
-# Check if patched executable is available
-if [ -f "$CIV4BTS_PATH/Civ4BeyondSword_PitBoss2014.exe" ] ; then
-	CIV4BTS_EXE="$CIV4BTS_PATH/Civ4BeyondSword_PitBoss2014.exe"
-else
-	CIV4BTS_EXE="$CIV4BTS_PATH/Civ4BeyondSword_PitBoss.exe"
-fi
 
 ###### End of internal constants
 
