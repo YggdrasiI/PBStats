@@ -77,7 +77,7 @@ class CvForeignAdvisor:
 		#if self.bReduceOnSelectedLeaders:
 		#	self.iActiveLeader = CyGame().getActivePlayer()
 		#	# If Option is enabled at startup, add all known players
-		#	self.listSelectedLeaders = self.getRelatedPlayers().keys() 
+		#	self.listSelectedLeaders = self.getRelatedPlayers().keys()
 
 	def killScreen(self):
 		if (self.iScreen >= 0):
@@ -113,7 +113,7 @@ class CvForeignAdvisor:
 		if self.bReduceOnSelectedLeaders and self.iActiveLeader == -1:
 			# If Option is enabled at startup, add all known players
 			self.iActiveLeader = CyGame().getActivePlayer()
-			self.listSelectedLeaders = self.getRelatedPlayers().keys() 
+			self.listSelectedLeaders = self.getRelatedPlayers().keys()
 
 		#self.iActiveLeader = CyGame().getActivePlayer()
 		#if (self.iScreen != FOREIGN_RELATIONS_SCREEN):
@@ -230,7 +230,7 @@ class CvForeignAdvisor:
 			screen.attachPanel(playerPanelName, innerPanelName, "", "", False, False, PanelStyles.PANEL_STYLE_EMPTY)
 
 			dealPanelName = self.getNextWidgetName()
-			screen.attachListBoxGFC(innerPanelName, dealPanelName, "", TableStyles.TABLE_STYLE_EMPTY)	
+			screen.attachListBoxGFC(innerPanelName, dealPanelName, "", TableStyles.TABLE_STYLE_EMPTY)
 			screen.enableSelect(dealPanelName, False)
 
 			iRow = 0
@@ -312,14 +312,14 @@ class CvForeignAdvisor:
 
 		# Add active player leaderhead
 		screen.attachLabel(activePlayerPanelName, "", "   ")
-		szName = self.getNextWidgetName()			
+		szName = self.getNextWidgetName()
 		screen.addCheckBoxGFCAt(activePlayerPanelName, szName, gc.getLeaderHeadInfo(gc.getPlayer(self.iActiveLeader).getLeaderType()).getButton(), ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SQUARE").getPath(), 10, 0, self.W_LEADER, self.H_LEADER, WidgetTypes.WIDGET_LEADERHEAD, self.iActiveLeader, -1, ButtonStyles.BUTTON_STYLE_LABEL, False)
 		if (self.iSelectedLeader == self.iActiveLeader):
 			screen.setState(szName, True)
 		else:
 			screen.setState(szName, False)
 
-		# Their leaderheads		
+		# Their leaderheads
 		for iLoopPlayer in range(gc.getMAX_PLAYERS()):
 			if (gc.getPlayer(iLoopPlayer).isAlive() and iLoopPlayer != self.iActiveLeader and (gc.getTeam(gc.getPlayer(iLoopPlayer).getTeam()).isHasMet(gc.getPlayer(self.iActiveLeader).getTeam()) or gc.getGame().isDebugMode()) and not gc.getPlayer(iLoopPlayer).isBarbarian() and not gc.getPlayer(iLoopPlayer).isMinorCiv()):
 
@@ -334,7 +334,7 @@ class CvForeignAdvisor:
 					szPlayerName += u" : " + localText.getText("TXT_KEY_FOREIGN_ADVISOR_NOT_CONNECTED", ())
 				elif (not gc.getTeam(playerActive.getTeam()).isTechTrading() and not gc.getTeam(gc.getPlayer(iLoopPlayer).getTeam()).isTechTrading()):
 					szPlayerName += u" : " + localText.getText("TXT_KEY_FOREIGN_ADVISOR_NO_TECH_TRADING", ())
-				screen.attachPanel(mainPanelName, currentPlayerPanelName, szPlayerName, "", False, True, PanelStyles.PANEL_STYLE_EMPTY )				
+				screen.attachPanel(mainPanelName, currentPlayerPanelName, szPlayerName, "", False, True, PanelStyles.PANEL_STYLE_EMPTY )
 
 				screen.attachLabel(currentPlayerPanelName, "", "                    ")
 
@@ -376,7 +376,7 @@ class CvForeignAdvisor:
 					else:
 						listTradeable = []
 						listUntradeable = []
-						listTradeNotAllowed = []						
+						listTradeNotAllowed = []
 						tradeData = TradeData()
 						tradeData.ItemType = TradeableItems.TRADE_TECHNOLOGIES
 						for iLoopTech in range(gc.getNumTechInfos()):
@@ -431,7 +431,7 @@ class CvForeignAdvisor:
 
 	def getRadiusChange(self, iCount, numLayers, iPlayerIndex, iEvenRadiusModifier):
 		if numLayers > 0:
-			tmp = 0	
+			tmp = 0
 			iLayer = 0
 			if iCount%2 == 0:
 				#iEvenRadiusChange = (min(iPlayerIndex,iCount-iPlayerIndex-1)%2==0)*iEvenRadiusModifier
@@ -461,7 +461,7 @@ class CvForeignAdvisor:
 				#if not gc.getTeam(gc.getPlayer(iLoopPlayer).getTeam()).isHasMet(gc.getPlayer(self.iActiveLeader).getTeam()):
 				#		continue
 				if (gc.getTeam(gc.getPlayer(iLoopPlayer).getTeam()).isHasMet(gc.getPlayer(iPlayer).getTeam()) or gc.getGame().isDebugMode()):
-					nDeals = 0				
+					nDeals = 0
 					for i in range(gc.getGame().getIndexAfterLastDeal()):
 						deal = gc.getGame().getDeal(i)
 						if ((deal.getFirstPlayer() == iLoopPlayer and deal.getSecondPlayer() == iPlayer) or (deal.getSecondPlayer() == iLoopPlayer and deal.getFirstPlayer() == iPlayer)):
@@ -493,7 +493,7 @@ class CvForeignAdvisor:
 						playerReleations.append( (iPlayer,0) )
 		return playerReleations
 
-	def extendSelection(self, iPlayer, releationList, addActivePlayer): 
+	def extendSelection(self, iPlayer, releationList, addActivePlayer):
 					relations = self.getPlayerReleations(iPlayer)
 					if self.iShiftKeyDown == 1:
 						self.listSelectedLeaders = []
@@ -511,11 +511,11 @@ class CvForeignAdvisor:
 	def drawRelations(self, bInitial):
 		if self.bFirstDraw:
 			self.bFirstDraw = False
+			self.iSelectedLeader2 = self.iActiveLeader
 			allRelations = self.getPlayerReleations(self.iActiveLeader)
-			if( len(allRelations) < 13 ): 
-				self.listSelectedLeaders = allRelations 
+			if( len(allRelations) < 13 ):
+				self.listSelectedLeaders = allRelations
 				self.extendSelection(self.iActiveLeader, [0,1,2,3,4,5], True)
-				self.iSelectedLeader2 = self.iActiveLeader
 				self.newSelection = False
 
 		if self.newSelection:
@@ -533,7 +533,7 @@ class CvForeignAdvisor:
 				self.listSelectedLeaders = []
 				self.lastRemovedLeader = -1
 				if (not bInitial):
-					self.listSelectedLeaders.append(self.iSelectedLeader2)	
+					self.listSelectedLeaders.append(self.iSelectedLeader2)
 
 		bNoLeadersSelected = (len(self.listSelectedLeaders) == 0)
 		bSingleLeaderSelected = (len(self.listSelectedLeaders) == 1)
@@ -610,7 +610,7 @@ class CvForeignAdvisor:
 		szLeaderHead = self.getNextWidgetName()
 		screen.addCheckBoxGFC(szLeaderHead, gc.getLeaderHeadInfo(gc.getPlayer(self.iActiveLeader).getLeaderType()).getButton(), ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SQUARE").getPath(), self.X_LEADER_CIRCLE_TOP - iLeaderWidth/2, int(fLeaderTop), iLeaderWidth, iLeaderHeight, WidgetTypes.WIDGET_LEADERHEAD, self.iActiveLeader, -1, ButtonStyles.BUTTON_STYLE_LABEL)
 		if self.iSelectedLeader2 == self.iActiveLeader:
-			screen.addDDSGFC( "SelectionCircle" 
+			screen.addDDSGFC( "SelectionCircle"
 					#, ArtFileMgr.getInterfaceArtInfo("WHITE_CIRCLE_40").getPath()
 					, ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SMALLCIRCLE").getPath()
 					,self.X_LEADER_CIRCLE_TOP + iLeaderWidth/2 - 0*16, int(fLeaderTop) #+ iLeaderHeight - 16
@@ -633,7 +633,7 @@ class CvForeignAdvisor:
 		# draw other leaderheads
 		for iPlayer in leaderMap.keys():
 			# PB Mod
-			if( self.bReduceOnSelectedLeaders and 
+			if( self.bReduceOnSelectedLeaders and
 					not iPlayer in self.listSelectedLeaders and
 					not iPlayer == self.lastRemovedLeader ):
 				continue
@@ -650,14 +650,14 @@ class CvForeignAdvisor:
 
 			iPlayerIndex = leaderMap[iPlayer]
 
-			iEvenRadiusChange = self.getRadiusChange(iCount, numLeaderLayers, iPlayerIndex, iEvenRadiusModifier)				
+			iEvenRadiusChange = self.getRadiusChange(iCount, numLeaderLayers, iPlayerIndex, iEvenRadiusModifier)
 			fX = int(self.X_LEADER_CIRCLE_TOP - (fRadius + iEvenRadiusChange) * math.cos(deltaTheta * leaderMap[iPlayer]) - iLeaderWidth/2)
 			fY = int(fLeaderArcTop + (fRadius + iEvenRadiusChange) * math.sin(deltaTheta * leaderMap[iPlayer]) - iLeaderHeight/2)
 
 			szLeaderHead = self.getNextWidgetName()
 			screen.addCheckBoxGFC(szLeaderHead, gc.getLeaderHeadInfo(player.getLeaderType()).getButton(), ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SQUARE").getPath(), int(fX), int(fY), iLeaderWidth, iLeaderHeight, WidgetTypes.WIDGET_LEADERHEAD, iPlayer, iBaseLeader, ButtonStyles.BUTTON_STYLE_LABEL)
 			if self.iSelectedLeader2 == iPlayer:
-				screen.addDDSGFC( "SelectionCircle" 
+				screen.addDDSGFC( "SelectionCircle"
 						#, ArtFileMgr.getInterfaceArtInfo("WHITE_CIRCLE_40").getPath()
 						, ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SMALLCIRCLE").getPath()
 						,int(fX) + iLeaderWidth - 0*16, int(fY) + iLeaderHeight - 16
@@ -722,10 +722,10 @@ class CvForeignAdvisor:
 					if (iSelectedLeader != iPlayer):
 						if (player.getTeam() == gc.getPlayer(iSelectedLeader).getTeam()):
 							szName = self.getNextLineName()
-							screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(fX), int(fY), gc.getInfoTypeForString("COLOR_YELLOW") )						
+							screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(fX), int(fY), gc.getInfoTypeForString("COLOR_YELLOW") )
 						elif (gc.getTeam(player.getTeam()).isVassal(gc.getPlayer(iSelectedLeader).getTeam()) or gc.getTeam(gc.getPlayer(iSelectedLeader).getTeam()).isVassal(player.getTeam())):
 							szName = self.getNextLineName()
-							screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(fX), int(fY), gc.getInfoTypeForString("COLOR_CYAN") )						
+							screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(fX), int(fY), gc.getInfoTypeForString("COLOR_CYAN") )
 						elif (gc.getTeam(player.getTeam()).isHasMet(gc.getPlayer(iSelectedLeader).getTeam())):
 							if (gc.getTeam(player.getTeam()).isAtWar(gc.getPlayer(iSelectedLeader).getTeam())):
 								szName = self.getNextLineName()
@@ -795,7 +795,7 @@ class CvForeignAdvisor:
 		# Right Buttons
 		numRows = 7
 		# Background for Right Buttons
-		#x = self.X_LEGEND + self.W_LEGEND 
+		#x = self.X_LEGEND + self.W_LEGEND
 		x = self.W_SCREEN - self.W_LEGEND
 		y = self.Y_LEGEND + self.H_LEGEND - numRows * 2 * self.MARGIN_LEGEND
 		screen.addPanel(self.getNextWidgetName(), u"", u"", True, False,
@@ -864,7 +864,7 @@ class CvForeignAdvisor:
 		iButtonWidth = 32
 		iButtonHeight = 32
 		screen.addCheckBoxGFC(
-			"ShowRelationCheckbox",	
+			"ShowRelationCheckbox",
 			ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SQUARE").getPath(),
 			ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SQUARE").getPath(),
 			x,
@@ -924,7 +924,7 @@ class CvForeignAdvisor:
 		self.nLineCount = 0
 		for i in range(nLines):
 			screen.removeLineGFC(self.BACKGROUND_ID, self.getNextLineName())
-		self.nLineCount = 0	
+		self.nLineCount = 0
 
 
 	def deleteAllWidgets(self):
@@ -936,7 +936,7 @@ class CvForeignAdvisor:
 			i -= 1
 
 		self.nWidgetCount = 0
-		self.clearAllLines()			
+		self.clearAllLines()
 
 	# Handles the input for this screen...
 	def handleInput (self, inputClass):
