@@ -1,5 +1,6 @@
 {% extends "pbspy/base.html" %}
 {% load i18n %}
+{% load format_log_date %}
 
 {% block content %}
     <h1 id="game_name">{{ game.name }}</h1>
@@ -181,7 +182,7 @@
             {% for logentry in log %}
               {% if can_manage or logentry.is_public %}
                 <tr class="log{{ logentry.get_log_name }}">
-                    <td class="colDate">{{ logentry.date }}</td>
+                    <td class="colDate">{{ logentry.date | log_date:14 }}</td>
                     <td class="colTurn">{{ logentry.turn }}</td>
                     <td class="colPlayer">{{ logentry.player_name|default:"-" }}</td>
                     {% autoescape off %}
