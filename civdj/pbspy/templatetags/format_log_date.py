@@ -17,8 +17,6 @@ def log_date(value, arg):  # , date_now, distance_in_s):
         if(delta.days >= arg):
             return formats.date_format(value, "SHORT_DATE_FORMAT")
         else:
-            #  return formats.date_format(value, "DATETIME_FORMAT")
-            return formats.date_format(value, "DATETIME_WITH_SECONDS")
-
+            return formats.date_format(value, "SHORT_DATE_FORMAT") + ' ' + formats.date_format(value, "TIME_WITH_SECONDS_FORMAT")
 
 register.filter('log_date', log_date)
