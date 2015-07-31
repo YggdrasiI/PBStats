@@ -28,6 +28,11 @@ a:hover {
 	color: @linkColorHover;
 }
 
+ul {
+    margin-top: 0em;
+    margin-bottom: 0em;
+}
+
 // Add this prop to capitalize the first word
 .capitalize {
 	&::first-letter {
@@ -71,7 +76,10 @@ table.game_list, table.game_players, table.game_log {
 	border-collapse: collapse;
 	th, td {
 		border: 1px solid @fontColor2;
-		padding: 0.4em;
+		padding-top: 0.2em;
+		padding-bottom: 0.2em;
+		padding-left: 0.4em;
+		padding-right: 0.4em;
 	}
 }
 
@@ -87,7 +95,10 @@ table.game_list {
 }
 
 table.game_players {
-	.colName { font-weight:bold; }
+  .colName a {
+      text-decoration:none;
+      font-weight:bold;
+  }
   .colScore, .colTurn, .colId {
       text-align: right;
   }
