@@ -245,7 +245,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         self.log_setup(game, context)
 
         context['timezone'] = self.request.session.get('django_timezone')
-        context['timezone_name'] = timezone.get_current_timezone_name();
+        context['timezone_actual'] = timezone.get_current_timezone_name();
         return context
 
     @staticmethod

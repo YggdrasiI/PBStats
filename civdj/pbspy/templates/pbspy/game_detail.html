@@ -159,8 +159,9 @@
 							<select onClick="getTimezoneList('{% url "set_timezone" %}', this,'{{ timezone }}');">
 								<option value="{{ timezone }}">{{ timezone }}</option>
 							</select>
-                                ({% trans "currently:" %}{{ timezone_actual }}
 							</p>
+<p>{% trans "Actual timezone" %}: {{ timezone_actual }}</p>
+<p>{% trans "Server time" %}: {% now "TIME_FORMAT" %}</p>
 						</div>
         {% if log %}
             <table class='game_log'>
