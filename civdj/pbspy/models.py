@@ -124,7 +124,7 @@ class Game(models.Model):
     admins             = models.ManyToManyField(User, related_name='admin_games')
     is_private         = models.BooleanField(default=False)
     is_online          = models.BooleanField(default=True)
-    #This values has to set manually by Admins
+    # This values has to set manually by Admins
     is_finished        = models.BooleanField(default=False)
     victory_player_id  = models.SmallIntegerField(default=-1)
     victory_type       = models.SmallIntegerField(default=-1)
@@ -208,8 +208,8 @@ class Game(models.Model):
 
         # Minimal alive messages do not contain
         # all fields.
-        # FIXME bMinimal - bad logic structure
-        bMinimal = (info.get('gameName') == None)
+        # FIXME is_minimal - bad logic structure
+        is_minimal = info.get('gameName') is None
 
         is_online = True
         if info['turnTimer']:
@@ -222,18 +222,17 @@ class Game(models.Model):
             timer_max_h        = None
             timer_remaining_4s = None
 
-        if not bMinimal:
+        if not is_minimal:
             year      = parse_year(info['gameDate'])
             turn      = int(info['gameTurn'])
             is_paused = bool(info['bPaused'])
             is_headless = bool(info['bHeadless'])
             is_autostart = bool(info['bAutostart'])
             pb_name   = info['gameName']
-            mod_name = info.get('modName',"").strip("\\").replace("Mods\\","",1)
+            mod_name = info.get('modName', "").strip("\\").replace("Mods\\", "", 1)
 
             logargs = {'game': self, 'date': date,
                        'year': year, 'turn': turn}
-
 
             player_count_old = self.player_set.count()
             player_count = len(info['players'])
@@ -284,7 +283,6 @@ class Game(models.Model):
             self.timer_max_h        = timer_max_h
             self.timer_remaining_4s = timer_remaining_4s
 
-        if not bMinimal:
             self.last_update_successful = date
             self.last_update_attempt = date
             self.pb_name            = pb_name
@@ -298,7 +296,7 @@ class Game(models.Model):
 
         self.save()
 
-        if not bMinimal:
+        if not is_minimal:
             for player_info in info['players']:
                 try:
                     player = self.player_set.get(ingame_id=player_info['id'])
@@ -309,7 +307,7 @@ class Game(models.Model):
     def pb_action(self, **kwargs):
         url = "http://{}:{}/api/v1/".format(self.hostname, self.manage_port)
         values = kwargs
-        if not 'password' in values:
+        if 'password' not in values:
             values['password'] = self.pb_remote_password
         json_data = json.dumps(values)
         # should we maybe use 'ascii' or the default 'utf-8'
@@ -413,7 +411,7 @@ class Game(models.Model):
             return ''
 
     def pb_list_colors(self):
-        #Wrap in try to respect older mod versions
+        # Wrap in try to respect older mod versions
         try:
             result = self.pb_action(action='listPlayerColors')
             # Add id for template usage
@@ -438,7 +436,7 @@ class Game(models.Model):
         # The validation is still required for game creation
         # (see game_create(request) in views.py)
         # to prevent UDP flood attacks on other servers.
-        #self.validate_connection()
+        # self.validate_connection()
         pass
 
     def validate_connection(self):
@@ -591,7 +589,7 @@ class GameLog(PolymorphicModel):
     year = models.IntegerField()
     turn = models.PositiveSmallIntegerField()
     text = "(GameLog) No text defined."
-    is_public = True # non-public log entries are for admins, only.
+    is_public = True  # non-public log entries are for admins, only.
 
     def message(self):
         return _(self.text)
@@ -775,7 +773,7 @@ class GameLogMissedTurn(GameLog):
 
     # The integration of set_missed_players into the constructor
     # creates conflicts with the polymorphic stuff. Thus, I separeted both (Ramk)
-    #def __init__(self, *args, **kwargs):
+    # def __init__(self, *args, **kwargs):
     #    super(GameLogMissedTurn, self).__init__(bPublic=False,*args, **kwargs)
 
     def set_missed_players(self, players):

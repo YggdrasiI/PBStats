@@ -26,6 +26,9 @@ from django.core.exceptions import PermissionDenied
 from django.core.exceptions import ValidationError
 from django.utils.html import escape, strip_tags
 
+from datetime import datetime
+from django.utils import formats
+
 import pytz
 import json
 import operator
@@ -179,7 +182,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
         # Form to save current filter
         filterstore = self.request.session.get('filterstore', {}).get(str(game.id),{})
-        if( len(filterstore) < GameLogSaveFilterForm.MAX_SAVEABLE_NUMBER ):
+        if len(filterstore) < GameLogSaveFilterForm.MAX_SAVEABLE_NUMBER:
             log_filter_save_form = GameLogSaveFilterForm()
             log_filter_save_form.fields['log_filter_name'].initial = ""
             context['log_filter_save_form'] = log_filter_save_form
@@ -204,7 +207,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
                     ).order_by('-id')
             else:
                 for c in GameDetailView.log_classes:
-                    if not c.__name__ in log_type_filter:
+                    if c.__name__ not in log_type_filter:
                         c_list.append(Q(**{'not_instance_of': c}))
 
                 context['log'] = roundlog.filter(
@@ -325,7 +328,7 @@ def game_create(request):
                 TODO: The game creation allows to ping an arbitary server/port.
                     We should restrict the number of calls for each user.
                 """
-                #return HttpResponseBadRequest('Creation incomplete. PB server does not respond.')
+                # return HttpResponseBadRequest('Creation incomplete. PB server does not respond.')
                 return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
     else:
         form = GameForm(user=request.user)
@@ -389,8 +392,7 @@ def game_manage(request, game_id, action=""):
         elif action == 'set_current_turn_timer':
             form = GameManagementCurrentTimerForm(request.POST)
             if form.is_valid():
-                game.pb_set_current_turn_timer( form.cleaned_data['hours'],
-                    form.cleaned_data['minutes'], 20)
+                game.pb_set_current_turn_timer(form.cleaned_data['hours'], form.cleaned_data['minutes'], 20)
                 return HttpResponse('timer set', status=200)
             context['current_timer_form'] = form
         elif action == 'set_turn_timer':
@@ -480,8 +482,7 @@ def render_game_manage_color(request, game, context):
     context['colors'] = game.pb_list_colors()
     if len(context['colors']) == 0:
         return HttpResponseBadRequest('Command not supported by PB Server.')
-    context['set_player_color_form'] = GameManagementSetPlayerColorForm(
-            game.player_set, len(context['colors']) )
+    context['set_player_color_form'] = GameManagementSetPlayerColorForm(game.player_set, len(context['colors']))
     return render(request, 'pbspy/game_manage_color.html', context)
 
 
@@ -603,6 +604,7 @@ def game_update(request):
 
     return HttpResponse('ok')
 
+
 @require_http_methods(['POST'])
 def game_save_filter(request, game_id):
     game = Game.objects.get(id=game_id)
@@ -610,20 +612,19 @@ def game_save_filter(request, game_id):
     form = GameLogSaveFilterForm(request.POST)
 
     if form.is_valid():
-      filter_name = form.cleaned_data.get('log_filter_name','')
-      if len(filter_name) == 0:
-        from datetime import datetime
-        date_joined = datetime.now()
-        from django.utils import formats
-        filter_name = formats.date_format(date_joined, "SHORT_DATETIME_FORMAT")
-      save_current_filter(request.session, game, filter_name )
+        filter_name = form.cleaned_data.get('log_filter_name','')
+        if len(filter_name) == 0:
+            date_joined = datetime.now()
+            filter_name = formats.date_format(date_joined, "SHORT_DATETIME_FORMAT")
+        save_current_filter(request.session, game, filter_name )
 
     return redirect('game_detail', pk=game_id)
+
 
 def game_load_filter(request, game_id, filter_name=""):
     game = Game.objects.get(id=game_id)
     filterstore = request.session.get('filterstore', {}).get(str(game.id),{})
-    if filterstore.get(filter_name) == None:
+    if filterstore.get(filter_name) is None:
         return HttpResponse('No filter with this name found.', status=200)
 
     fd = filterstore.get(filter_name)
@@ -638,15 +639,17 @@ def game_load_filter(request, game_id, filter_name=""):
 
     return redirect('game_detail', pk=game_id)
 
+
 def game_remove_filter(request, game_id, filter_name=""):
     game = Game.objects.get(id=game_id)
     filterstore = request.session.get('filterstore', {}).get(str(game.id),{})
-    if filterstore.get(filter_name) == None:
+    if filterstore.get(filter_name) is None:
         return HttpResponse('No filter with this name found.', status=200)
 
     filterstore.pop(filter_name)
     request.session.modified = True
     return redirect('game_detail', pk=game_id)
+
 
 def save_default_filter(session, game):
     filter_name = "Default"
@@ -654,7 +657,7 @@ def save_default_filter(session, game):
     turn_filter = GameDetailView.log_turn_filter
     log_keys = GameDetailView.log_keys
     filter_definition = {
-        'player_ids' : player_ids,
+        'player_ids': player_ids,
         'turn_max': game.turn - turn_filter['offset_max'],
         'turn_min': game.turn - turn_filter['offset_min'],
         'log_type_filter': log_keys,
@@ -663,21 +666,22 @@ def save_default_filter(session, game):
         str(game.id),{})[filter_name] = filter_definition
     session.modified = True
 
+
 def save_current_filter(session, game, filter_name):
     filterstore = session.setdefault('filterstore',{}).setdefault(str(game.id),{})
     filter_name = str(filter_name)
     filter_name = escape(strip_tags(filter_name)).strip()
     m = GameLogSaveFilterForm.MAX_SAVEABLE_NUMBER
     if len(filterstore) >= m:
-      raise ValueError( ('Can not store more than %i entries.' % (m)) )
+        raise ValueError(('Can not store more than %i entries.' % (m)))
     if len(filter_name) < 1:
-      raise ValueError('Invalid filter name')
+        raise ValueError('Invalid filter name')
 
-    player_ids = session.get('player_ids', {}).get(str(game.id),None)
+    player_ids = session.get('player_ids', {}).get(str(game.id), None)
     turn_filter = session.get('log_turn_filter', GameDetailView.log_turn_filter)
     log_keys = session.get('log_type_filter', GameDetailView.log_keys)
     filter_definition = {
-        'player_ids' : player_ids,
+        'player_ids': player_ids,
         'turn_max': game.turn - turn_filter['offset_max'],
         'turn_min': game.turn - turn_filter['offset_min'],
         'log_type_filter': log_keys,
