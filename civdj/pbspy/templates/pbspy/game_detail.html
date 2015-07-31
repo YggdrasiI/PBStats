@@ -177,7 +177,6 @@
                     <th class="colTurn">{% trans "Turn" %}</th>
                     <th class="colPlayer">{% trans "Player" %}</th>
                     <th class="colEvent">{% trans "Event" %}</th>
-                    <th class="colType">{% trans "Type" %}</th>
                 </tr>
             {% for logentry in log %}
               {% if can_manage or logentry.is_public %}
@@ -188,7 +187,6 @@
                     {% autoescape off %}
                     <td class="colEvent">{{ logentry.message }}</td>
                     {% endautoescape %}
-                    <td class="colType">{{ logentry.get_log_name }}</td>
                 </tr>
               {% endif %}
             {% endfor %}
