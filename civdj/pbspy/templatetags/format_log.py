@@ -8,7 +8,7 @@ from django.conf import settings
 
 register = template.Library()
 
-
+@register.filter(expects_localtime=True)
 def log_date_privacy(log_date, threshold_days):
     """Removes time from datetimes older than threshold_days days."""
     now = timezone.now()
@@ -17,11 +17,10 @@ def log_date_privacy(log_date, threshold_days):
         return formats.date_format(log_date, "SHORT_DATE_FORMAT")
     else:
         return (formats.date_format(log_date, "SHORT_DATE_FORMAT") + ' ' +
-                formats.date_format(log_date, "TIME_WITH_SECONDS_FORMAT"))
-
-register.filter('log_date_privacy', log_date_privacy)
+                formats.time_format(log_date, "TIME_WITH_SECONDS_FORMAT"))
 
 
+@register.filter(expects_localtime=True)
 def log_player_privacy(logentry, theshold_days):
     now = timezone.now()
     delta = now - logentry.date
@@ -32,5 +31,3 @@ def log_player_privacy(logentry, theshold_days):
             return logentry.player_name
     except AttributeError:
         return '-'
-
-register.filter('log_player_privacy', log_player_privacy)
