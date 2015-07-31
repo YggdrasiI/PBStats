@@ -159,6 +159,7 @@
 							<select onClick="getTimezoneList('{% url "set_timezone" %}', this,'{{ timezone }}');">
 								<option value="{{ timezone }}">{{ timezone }}</option>
 							</select>
+                                ({% trans "currently:" %}{{ timezone_actual }}
 							</p>
 						</div>
         {% if log %}

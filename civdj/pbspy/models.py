@@ -577,11 +577,15 @@ class Player(models.Model):
         index_together  = (('ingame_id', 'game'),)
 
     def __str__(self):
-        return _("{} ({} of {})").format(self.name, self.leader, self.civilization)
+        return _("{name} ({leader} of {civilization})").format(name=self.name,
+                                                               leader=self.leader,
+                                                               civilization=self.civilization)
 
     # Required for python2.x and umlautes
     def __unicode__(self):
-        return _("{} ({} of {})").format(self.name, self.leader, self.civilization)
+        return _("{name} ({leader} of {civilization})").format(name=self.name,
+                                                               leader=self.leader,
+                                                               civilization=self.civilization)
 
 
 class GameLog(PolymorphicModel):

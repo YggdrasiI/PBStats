@@ -25,6 +25,7 @@ from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
 from django.core.exceptions import ValidationError
 from django.utils.html import escape, strip_tags
+from django.utils import timezone
 
 from datetime import datetime
 from django.utils import formats
@@ -244,6 +245,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
         self.log_setup(game, context)
 
         context['timezone'] = self.request.session.get('django_timezone')
+        context['timezone_name'] = timezone.get_current_timezone_name();
         return context
 
     @staticmethod
