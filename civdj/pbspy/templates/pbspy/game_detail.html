@@ -184,7 +184,7 @@
                 <tr class="log{{ logentry.get_log_name }}">
                     <td class="colDate">{{ logentry.date | log_date_privacy:14 }}</td>
                     <td class="colTurn">{{ logentry.turn }}</td>
-                    <td class="colPlayer">{{ logentry | log_player_name_privacy:14 }}</td>
+                    <td class="colPlayer">{{ logentry | log_player_privacy:14 }}</td>
                     {% autoescape off %}
                     <td class="colEvent">{{ logentry.message }}</td>
                     {% endautoescape %}

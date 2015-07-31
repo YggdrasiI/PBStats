@@ -27,9 +27,9 @@ def log_player_privacy(logentry, theshold_days):
     delta = now - logentry.date
     try:
         if delta.days >= theshold_days:
-            return logentry.player_name
-        else:
             return logentry.player.leader
+        else:
+            return logentry.player_name
     except AttributeError:
         return '-'
 
