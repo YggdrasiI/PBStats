@@ -15,9 +15,7 @@
         <div class="game_metadata">
           <p class="game_info">{% trans "Turn" %}: {{ game.turn|default_if_none:_("n/a") }}<br/>{% trans "Year" %}: {{ game.year_str|default:_("n/a") }}</p>
           <p class="game_info">
-              {% blocktrans with players=game.player_count finished=game.player_finished_count %}
-                  {{ finished }} of {{ players }} have finished their turn.
-							{% endblocktrans %}<br/>
+              {% blocktrans with players=game.player_count finished=game.player_finished_count %}{{ finished }} of {{ players }} players have finished their turn.{% endblocktrans %}<br/>
               {% if game.is_paused %}
                   {% trans "The game is paused." %}
               {% else %}
@@ -27,17 +25,10 @@
           {% if game.timer %}
               <p class="game_info">
 							<span style="text-align:right;display:inline-block;">{% trans "Timer" %}:
-                  {% blocktrans with end=game.timer_end|timeuntil %}
-                      Turn ends in {{ end }} (ingame clock) 
-                  {% endblocktrans %}<br/>
-                  {% blocktrans with end_rt=game.timer_end_realtime|timeuntil %}
-                      {{ end_rt }} (realtime clock) 
-											{% endblocktrans %}<br/>
+                {% blocktrans with end=game.timer_end|timeuntil end_rt=game.timer_end_realtime|timeuntil %}Turn ends in {{ end }} (ingame), {{ end_rt }} (realtime).{% endblocktrans %}<br/>
 										</span><br/>
-									{% trans "Turn timer" %}:
-                  {% blocktrans with hours=game.timer_max_h %}
-                      {{ hours }} hours per turn
-									{% endblocktrans %}
+		{% trans "Turn timer" %}:
+                {% blocktrans with hours=game.timer_max_h %}{{ hours }} hours per turn.{% endblocktrans %}
               </p>
           {% else %}
               <p class="game_info">{% trans "No timer set." %}:</p>
