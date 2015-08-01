@@ -14,4 +14,5 @@ class TimezoneMiddleware(object):
 #                print("Timezone error for tzname=", tzname)
                 request.session['django_timezone'] = None
         else:
-            timezone.activate(pytz.timezone('Europe/Berlin'))
+            from django.conf import settings
+            timezone.activate(pytz.timezone(settings.TIME_ZONE))
