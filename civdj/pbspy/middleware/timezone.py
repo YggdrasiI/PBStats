@@ -15,4 +15,7 @@ class TimezoneMiddleware(object):
                 request.session['django_timezone'] = None
         else:
             from django.conf import settings
-            timezone.activate(pytz.timezone(settings.TIME_ZONE))
+            try:
+                timezone.activate(pytz.timezone(settings.TIME_ZONE_INTERFACE))
+            except AttributeError:
+                timezone.deactivate()
