@@ -82,6 +82,38 @@
      <Spanish>Vaciar selecci&#243;n</Spanish>
    </TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_POPUP_ARE_YOU_SURE_MOD_PITBOSS</Tag>
+		<English>Are you sure?</English>
+		<French>Vraiment ?</French>
+		<German>Sind Sie sicher?</German>
+		<Italian>Sei sicuro?</Italian>
+		<Spanish>&#191;Seguro?</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_MOD_NO_BUT_EXIT</Tag>
+		<English>No, but leave to main menu.</English>
+		<French>Non, quitter le Pitboss</French>
+		<German>Nein, nur Spiel verlassen.</German>
+		<Italian>No, e&amp;sci il Pitboss</Italian>
+		<Spanish>No, salir al Pitboss</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_MOD_YES_KI</Tag>
+		<English>Yes, set natin to AI.</English>
+		<French>Oui, transmettre partie &#224; intelligence artificielle.</French>
+		<German>Ja, stelle Nation auf KI.</German>
+		<Italian>S&#236;, set nation to AI.</Italian>
+		<Spanish>S&#237;, set nation to AI.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_RETIRE_MOD_PITBOSS</Tag>
+		<English>Retire (AI)</English>
+		<French>Abandonner (AI)</French>
+		<German>Auf KI stellen</German>
+		<Italian>Ritirati (AI)</Italian>
+		<Spanish>Retirarse (AI)</Spanish>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_MOD_</Tag>
 		<English></English>
 		<French></French>
