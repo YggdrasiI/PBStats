@@ -53,6 +53,7 @@ WSGI_APPLICATION = 'civdj.wsgi.application'
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
+TIME_WITH_SECONDS_FORMAT = "H:i:s"
 
 USE_I18N = True
 
