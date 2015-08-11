@@ -83,19 +83,27 @@
    </TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_POPUP_ARE_YOU_SURE_MOD_PITBOSS</Tag>
-		<English>Are you sure?</English>
-		<French>Vraiment ?</French>
-		<German>Sind Sie sicher?</German>
-		<Italian>Sei sicuro?</Italian>
-		<Spanish>&#191;Seguro?</Spanish>
+		<English>Are you sure? You can assign a new password during next login.</English>
+		<French>Vraiment? You can assign a new password during next login.</French>
+		<German>Sind Sie sicher? Die Nation kann beim n&#228;chsten Login mit einem neuen Passwort versehen werden.</German>
+		<Italian>Sei sicuro? You can assign a new password during next login.</Italian>
+		<Spanish>&#191;Seguro? You can assign a new password during next login.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_ARE_YOU_SURE_MOD_PITBOSS2</Tag>
+		<English>Are you sure? Attention, you can not take over this nation again.</English>
+		<French>Vraiment? Attention, you can not take this over nation again.</French>
+		<German>Sind Sie sicher? Achtung, die Nation kann nicht wieder übernommen werden.</German>
+		<Italian>Sei sicuro? Attention, you can not take over this nation again.</Italian>
+		<Spanish>&#191;Seguro? Attention, you can not take over this nation again.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_POPUP_MOD_NO_BUT_EXIT</Tag>
 		<English>No, but leave to main menu.</English>
-		<French>Non, quitter le Pitboss</French>
+		<French>Non, quitter le Pitboss.</French>
 		<German>Nein, nur Spiel verlassen.</German>
-		<Italian>No, e&amp;sci il Pitboss</Italian>
-		<Spanish>No, salir al Pitboss</Spanish>
+		<Italian>No, e&amp;sci il Pitboss.</Italian>
+		<Spanish>No, salir al Pitboss.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_POPUP_MOD_YES_KI</Tag>
