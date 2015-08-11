@@ -3,10 +3,11 @@
 from __future__ import unicode_literals
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_noop
 from django.db import models, transaction
 from django.core.validators import MaxValueValidator, MinValueValidator, URLValidator
 from polymorphic import PolymorphicModel
-from django.utils import timezone
+from django.utils import timezone, html
 from django.contrib.auth.models import User
 from django.template.loader import render_to_string
 from django.core.urlresolvers import reverse
@@ -124,7 +125,7 @@ class Game(models.Model):
     admins             = models.ManyToManyField(User, related_name='admin_games')
     is_private         = models.BooleanField(default=False)
     is_online          = models.BooleanField(default=True)
-    #This values has to set manually by Admins
+    # This values has to set manually by Admins
     is_finished        = models.BooleanField(default=False)
     victory_player_id  = models.SmallIntegerField(default=-1)
     victory_type       = models.SmallIntegerField(default=-1)
@@ -208,8 +209,8 @@ class Game(models.Model):
 
         # Minimal alive messages do not contain
         # all fields.
-        # FIXME bMinimal - bad logic structure
-        bMinimal = (info.get('gameName') == None)
+        # FIXME is_minimal - bad logic structure
+        is_minimal = info.get('gameName') is None
 
         is_online = True
         if info['turnTimer']:
@@ -222,18 +223,17 @@ class Game(models.Model):
             timer_max_h        = None
             timer_remaining_4s = None
 
-        if not bMinimal:
+        if not is_minimal:
             year      = parse_year(info['gameDate'])
             turn      = int(info['gameTurn'])
             is_paused = bool(info['bPaused'])
             is_headless = bool(info['bHeadless'])
             is_autostart = bool(info['bAutostart'])
             pb_name   = info['gameName']
-            mod_name = info.get('modName',"").strip("\\").replace("Mods\\","",1)
+            mod_name = info.get('modName', "").strip("\\").replace("Mods\\", "", 1)
 
             logargs = {'game': self, 'date': date,
                        'year': year, 'turn': turn}
-
 
             player_count_old = self.player_set.count()
             player_count = len(info['players'])
@@ -284,7 +284,6 @@ class Game(models.Model):
             self.timer_max_h        = timer_max_h
             self.timer_remaining_4s = timer_remaining_4s
 
-        if not bMinimal:
             self.last_update_successful = date
             self.last_update_attempt = date
             self.pb_name            = pb_name
@@ -298,7 +297,7 @@ class Game(models.Model):
 
         self.save()
 
-        if not bMinimal:
+        if not is_minimal:
             for player_info in info['players']:
                 try:
                     player = self.player_set.get(ingame_id=player_info['id'])
@@ -309,7 +308,7 @@ class Game(models.Model):
     def pb_action(self, **kwargs):
         url = "http://{}:{}/api/v1/".format(self.hostname, self.manage_port)
         values = kwargs
-        if not 'password' in values:
+        if 'password' not in values:
             values['password'] = self.pb_remote_password
         json_data = json.dumps(values)
         # should we maybe use 'ascii' or the default 'utf-8'
@@ -413,7 +412,7 @@ class Game(models.Model):
             return ''
 
     def pb_list_colors(self):
-        #Wrap in try to respect older mod versions
+        # Wrap in try to respect older mod versions
         try:
             result = self.pb_action(action='listPlayerColors')
             # Add id for template usage
@@ -438,7 +437,7 @@ class Game(models.Model):
         # The validation is still required for game creation
         # (see game_create(request) in views.py)
         # to prevent UDP flood attacks on other servers.
-        #self.validate_connection()
+        # self.validate_connection()
         pass
 
     def validate_connection(self):
@@ -578,11 +577,15 @@ class Player(models.Model):
         index_together  = (('ingame_id', 'game'),)
 
     def __str__(self):
-        return _("{} ({} of {})").format(self.name, self.leader, self.civilization)
+        return _("{name} ({leader} of {civilization})").format(name=self.name,
+                                                               leader=self.leader,
+                                                               civilization=self.civilization)
 
     # Required for python2.x and umlautes
     def __unicode__(self):
-        return _("{} ({} of {})").format(self.name, self.leader, self.civilization)
+        return _("{name} ({leader} of {civilization})").format(name=self.name,
+                                                               leader=self.leader,
+                                                               civilization=self.civilization)
 
 
 class GameLog(PolymorphicModel):
@@ -590,8 +593,8 @@ class GameLog(PolymorphicModel):
     date = models.DateTimeField(db_index=True)
     year = models.IntegerField()
     turn = models.PositiveSmallIntegerField()
-    text = "(GameLog) No text defined."
-    is_public = True # non-public log entries are for admins, only.
+    text = "(GameLog) no text defined."
+    is_public = True  # non-public log entries are for admins, only.
 
     def message(self):
         return _(self.text)
@@ -618,7 +621,7 @@ class GameLog(PolymorphicModel):
 
 class GameLogTurn(GameLog):
     def message(self):
-        return _("A new turn has begun. It is now {year}").\
+        return _("a new turn has begun. It is now {year}").\
             format(year=format_year(self.year))
 
     # Example how to set the displayed name manually.
@@ -633,7 +636,7 @@ class GameLogTurn(GameLog):
 
 class GameLogReload(GameLog):
     def message(self):
-        return _("The game was reloaded on year {year}").\
+        return _("the game was reloaded on year {year}").\
             format(year=format_year(self.year))
 
 
@@ -644,7 +647,7 @@ class GameLogMetaChange(GameLog):
     player_count     = models.SmallIntegerField()
 
     def message(self):
-        return _("A game named {name} was started with {num_players} players.").\
+        return _("a game named {name} was started with {num_players} players.").\
             format(name=self.pb_name, num_players=self.player_count)
 
 
@@ -653,9 +656,9 @@ class GameLogTimerChanged(GameLog):
 
     def message(self):
         if self.timer_max_h is not None:
-            return _("Turn timer changed to {timer} hours.").\
+            return _("turn timer changed to {timer} hours.").\
                 format(timer=self.timer_max_h)
-        return _("Turn timer disabled.")
+        return _("turn timer disabled.")
 
 
 class GameLogPause(GameLog):
@@ -663,14 +666,14 @@ class GameLogPause(GameLog):
 
     def message(self):
         if self.paused:
-            return _("Game paused by player.")
+            return _("game paused by player.")
         else:
-            return _("Game resumed by player.")
+            return _("game resumed by player.")
 
 
 class GameLogServerTimeout(GameLog):
     def message(self):
-        return _("Server timed out.")
+        return _("server timed out.")
 
 
 class GameLogPlayer(GameLog):
@@ -685,15 +688,15 @@ class GameLogPlayer(GameLog):
 
 
 class GameLogLogin(GameLogPlayer):
-    text = "Logged in"
+    text = ugettext_noop("logged in")
 
 
 class GameLogLogout(GameLogPlayer):
-    text = "Logged out"
+    text = ugettext_noop("logged out")
 
 
 class GameLogFinish(GameLogPlayer):
-    text = "Finished turn"
+    text = ugettext_noop("finished turn")
 
 
 class GameLogScore(GameLogPlayer):
@@ -702,30 +705,30 @@ class GameLogScore(GameLogPlayer):
 
     def message(self):
         if self.delta > 0:
-            return _("Score increased to {score} ({delta:+})").format(score=self.score, delta=self.delta)
+            return _("score increased to {score} ({delta:+})").format(score=self.score, delta=self.delta)
         elif self.delta < 0:
-            return _("Score decreased to {score} ({delta})").format(score=self.score, delta=self.delta)
+            return _("score decreased to {score} ({delta})").format(score=self.score, delta=self.delta)
         else:
-            return _("Score changed to {score}").format(score=self.score)
+            return _("score changed to {score}").format(score=self.score)
 
 
 class GameLogNameChange(GameLogPlayer):
     player_name_new = models.CharField(max_length=200)
 
     def message(self):
-        return _("Changed name to {new_name}").format(new_name=self.player_name_new)
+        return _("changed name to {new_name}").format(new_name=self.player_name_new)
 
 
 class GameLogEliminated(GameLogPlayer):
-    text = "Eliminated"
+    text = ugettext_noop("eliminated")
 
 
 class GameLogAI(GameLogPlayer):
-    text = "Converted to AI"
+    text = ugettext_noop("converted to AI")
 
 
 class GameLogClaimed(GameLogPlayer):
-    text = "Claimed"
+    text = ugettext_noop("claimed")
 
 
 class GameLogAdminAction(GameLog):
@@ -743,7 +746,7 @@ class GameLogAdminSave(GameLogAdminAction):
     bPublic = False
 
     def message(self):
-        return _("Game saved by {username}").format(username=self.get_username())
+        return _("game saved by {username}").format(username=self.get_username())
 
 
 class GameLogAdminPause(GameLogAdminAction):
@@ -751,21 +754,21 @@ class GameLogAdminPause(GameLogAdminAction):
 
     def message(self):
         if self.paused:
-            return _("Pause activated by {username}").\
+            return _("pause activated by {username}").\
                 format(username=self.get_username())
         else:
-            return _("Pause deactivated by {username}").\
+            return _("poause deactivated by {username}").\
                 format(username=self.get_username())
 
 
 class GameLogAdminEndTurn(GameLogAdminAction):
     def message(self):
-        return _("Turn ended by {username}").format(username=self.get_username())
+        return _("turn ended by {username}").format(username=self.get_username())
 
 
 class GameLogForceDisconnect(GameLog):
     def message(self):
-        return _("A player was disconnected due to the upload-bug.")
+        return _("a player was disconnected due to the upload-bug.")
 
 
 class GameLogMissedTurn(GameLog):
@@ -775,7 +778,7 @@ class GameLogMissedTurn(GameLog):
 
     # The integration of set_missed_players into the constructor
     # creates conflicts with the polymorphic stuff. Thus, I separeted both (Ramk)
-    #def __init__(self, *args, **kwargs):
+    # def __init__(self, *args, **kwargs):
     #    super(GameLogMissedTurn, self).__init__(bPublic=False,*args, **kwargs)
 
     def set_missed_players(self, players):
@@ -799,6 +802,6 @@ class GameLogMissedTurn(GameLog):
         names = self.missed_turn_names.split(",")
         ids = self.missed_turn_ids.split(",")
         for (player_name, player_id) in zip(names, ids):
-            format_names.append(_("<li>{} (Id={})</li>").format(player_name, player_id))
-        return _("The following players did not finished their turn:") + "<ul>{players}</ul>".\
+            format_names.append(_("<li>{} (id={})</li>").format(html.escape(player_name), int(player_id)))
+        return _("the following players did not finished their turn:") + "<ul>{players}</ul>".\
             format(players="\r\n".join(format_names))

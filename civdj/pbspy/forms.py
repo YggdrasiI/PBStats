@@ -130,9 +130,9 @@ class GameLogTypesForm(forms.Form):
           required=False,
           widget=forms.CheckboxSelectMultiple()
           )
-        self.fields['log_turn_max'] = forms.IntegerField(label=_('Maximal Round'),
+        self.fields['log_turn_max'] = forms.IntegerField(label=_('Maximal turn'),
                 min_value=0, max_value=9999)
-        self.fields['log_turn_min'] = forms.IntegerField(label=_('Minimal Round'),
+        self.fields['log_turn_min'] = forms.IntegerField(label=_('Minimal turn'),
                 min_value=0, max_value=9999)
         self.fields['log_player_ids'] = forms.MultipleChoiceField(
           label=_('Players'),

@@ -25,24 +25,22 @@ To start Civ4 with the modification create a new startup shortcut and extend the
 
 ##B) As Pitboss Server Administrator. 
 
-This Mod package contains three modules: **PB Mod\_v4**, **PBs** and **web** (or **civdj**). 
+This Mod package contains three modules: **PB Mod\_v4**, **PBs** and **civdj** (or **web**). 
 
 1. **PB Mod\_v4** is the common mod folder. Place it in the mod folder of your Civ4:BTS installation. 
-2. The Pitboss server should be started with the ALTROOT parameter. (If you host multiple games 
-on one machine you proably know this parameter...) 
+2. The Pitboss server **must be started** with the ALTROOT parameter. Otherwise, some Python files can not be found! If you host multiple games on one machine you probably know this parameter... 
 The **PBs**-folder contains a prepared example for the start of the Pitboss server 
-with ALTROOT parameter. See below for more instructions. 
-3. A) The **web**-folder contains the HTML front end for the game. 
-It's similar to the well known civstats.com page, 
-but allows the administration of games, too.  
-Place the web-folder on your webserver with PHP5 and MySQL or SQLite3 support. Give the server read/write access in the folders **sqlite** (if you use SQLite3) and **files** 
+with ALTROOT parameter. We recommend the usage of the startup script, see below. 
+3. A) The **civdj**-folder contains the HTML front end for the game. 
+It's similar to the well known civstats.com page, but allows the administration of games, too.  
+The folder contains a Django project, see civdj/INSTALL and civdj/civdj/settings.py for more information.
+*If you don't want setup an own webserver for this front end, you can use your server, http://civ.zulan.net/pbspy*
+3. B) The old webinterface approach can be found in **web**. You can use this if you are more
+familar with PHP. Place web/page on your webserver with PHP5 and MySQL or SQLite3 support. Give the server read/write access in the folders **web/sqlite** (if you use SQLite3) and **web/files** 
 and read access for the other files. 
 Copy web/page/php/config.dist.php to web/page/php/config.php and adapt the default passwords and environment paths of this configuration file to your needs. 
-Finally, call web/page/install.php in your browser to initialise all database tables. 
-3. B) An alternative approach for the webinterface can be found in the **civdj** folder. It contains
-a Python/Django project.
+Finally, call web/page/install.php in your browser to initialize all database tables. 
 
-If you don't want setup an own webserver for this front end, you can use your server, *http://civ.zulan.net/pbspy* or *http://civ.zulan.net/pb*, too. 
 
 
 Configuration of the ALTROOT Folder
@@ -50,8 +48,7 @@ Configuration of the ALTROOT Folder
 
 I assume here that you will start your Pitboss server with the ALTROOT argument. 
 First, note that this modification tries to load all preferences from 
-the file **pbSettings.json** which is placed in the ALTROOT-directory. You can modify 
-this file with a text editor. 
+the config file **pbSettings.json** which is placed in the ALTROOT-directory.
 
 Follow these steps to setup a new game: 
 
@@ -69,6 +66,7 @@ During the first startup the **seed** directory will be copied to the ALTROOT pa
 Now, the example save should load and the PB window pops up.
     * Note that the startup of the pitboss window is capsuled into a loop. Thus, the game will restart if you close the window. Use Ctrl+C to abort the script. 
     * Set the autostart flag in **pbSettings.json** to 0 to setup a new game in the wizzard dialog.
+Update the saved password in **pbSettings.json**, if you active auto starting!
 
 2. (Windows)
 For Windows users exists the script **startPitboss.bat**. The script contains two sample setups for the games 'PB1' and 'PB2'.
@@ -79,7 +77,8 @@ _CIV4BTS_PATH=C:\Civ4\Beyond the Sword\_
     * Open PB1\CivilizationIV.ini and set the value of **PitbossSMTPLogin** to the full path of this directory, i.e. C:\PBStats\PBs\PB1. Without this information Civ4 can not find **pbSettings.json**!
     * Now, start the Batch-File and enter 1 to start PB1. The example save should load and the PB window pops up.
     * The startup is capsuled by a loop. Thus, the game will restart if you close the window. Use Ctrl+C to abort the script. 
-    * Set the autostart flag in **pbSettings.json** to 0 to setup a new game in the wizzard dialog.
+    * Set the autostart flag in **pbSettings.json** to 0 to setup a new game in the wizard dialog.
+Update the saved password in **pbSettings.json**, if you active auto starting!
 
 3. Setup of **pbSettings.json** 
 The most important values are 
@@ -87,7 +86,7 @@ The most important values are
 normally should be entered in the Pitboss wizard at game loading.) 
     * webserver.password: This password will be required to control this instance of the Pitboss server. 
     * webserver.port: Use a unique value for each Pitboss instance. 
-    * webfrontent.url: This is the url which will be used to propagate the current status of the game.  Enter your web server here or use our service (not online).
+    * webfrontent.url: This is the url which will be used to propagate the current status of the game.  Enter your web server here or use our service ( pb.zulan.net/pbspy ).
     * webfrontent.gameId: Create a game entry in the webfrontend to generate this id. 
 
 4. Create a game entry in the web interface. Your PB server should run if you register a new game.
@@ -96,12 +95,13 @@ normally should be entered in the Pitboss wizard at game loading.)
 Extras
 =======
 
-We developed two solution for Civ4:BTS players which are usable **without** this modification, too. 
+We developed three extras for Civ4:BTS players which are usable **without** this modification, too. 
 
-1. test/fix_upload_bug contains a solution for the upload bug problematic of Pitboss servers. The executable (Windows) or Python script (Linux) will 
+1. tests/fix_upload_bug contains a solution for the upload bug problematic of Pitboss servers. The executable (Windows) or Python script (Linux) will 
 analyze the traffic of your PB servers. If it detects that a client does not response but the server sends data, it will fake the reply of the client (to simulate a normal disconnection).
 
-2. The shutdown of the Gamespy NATNEG Servers causes many issues for Multiplayer games. This was solved 
+2. tests/Civ4BeyondSword2015.exe and tests/Civ4BeyondSword_Pitboss2014.exe
+The shutdown of the Gamespy NATNEG Servers causes many issues for Multiplayer games. This was solved 
 by the community with open NATNEG servers for several games. We've patched the Civ4:BTS executable to 
 redirect you to a reliable and stable NATNEG server. The server is hosted for the next years by the well known community member *Zulan* of *civforum.de*.
 
@@ -117,3 +117,7 @@ Note that all players have to use the same NATNEG server.
 Visit http://realmsbeyond.net/forums/showthread.php?tid=7123 (English) or  
 http://civ-wiki.de/wiki/Mehrspieler_(Civ4) (German)  for more information.
 
+3. tests/GetSaveOverHttp provides our solution for the incredible slow loading of
+Pitboss games. We extended the Civ4:BTS executable and reelease the file transfer 
+from Civ4 to an external library (libcurl). The external library downloads the save
+over http(s).
