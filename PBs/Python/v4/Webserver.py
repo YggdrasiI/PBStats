@@ -30,7 +30,7 @@ PB = CyPitboss()
 gc = CyGlobalContext()
 localText = CyTranslator()
 
-#Default settings. Does not work for multiple PB instances du port collisions.
+#Default settings. Does not work for multiple PB instances due port collision.
 pbDefaultSettings = {
 	"webserver": {
 		"host" : "", # Leave string empty
@@ -297,6 +297,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 								self.wfile.write( simplejson.dumps( {'return':'fail','info':'Reloading failed. Can not detect path of save "'+filename+'".' } ) +"\n" )
 							else:
 								self.server.lock.acquire()
+								pbSettings["save"]["previous_filename"] = pbSettings["save"]["filename"]
+								pbSettings["save"]["previous_folderIndex"] = pbSettings["save"]["folderIndex"]
 								pbSettings["save"]["filename"] = filename
 								pbSettings["save"]["folderIndex"] = folderIndexFound
 								pbSettings["save"]["oneOffAutostart"] = 1
@@ -719,6 +721,8 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 				self.lock.release()
 			else:
 				# Update last file name info and save json file
+				pbSettings["save"]["previous_filename"] = pbSettings["save"]["filename"]
+				pbSettings["save"]["previous_folderIndex"] = pbSettings["save"]["folderIndex"]
 				pbSettings["save"]["filename"] = filename
 				pbSettings["save"]["folderIndex"] = folderIndex
 				self.lock.release()
