@@ -1,9 +1,13 @@
-fix_upload_bug:
+fix_upload_bug/watchdog:
 	The pitboss server contains a bug which leads
 	to very high bandwith usages.
  	This folder contailn server applications which 
 	detect this bug and close the network connections.
 	( It's fakes the disconnect messages of clients. )
+
+	tests/watchdog is similar to tests/fix_upload_bug, but
+	look for dead pitboss servers, too. Ignore this if
+	you do not use a headless linux environment.
 
 
 SaveOverHttp:

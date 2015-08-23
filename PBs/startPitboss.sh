@@ -228,6 +228,13 @@ setupGame() {
 
 main() {
 
+# Path for xvfb-run framebuffer. Screenshot available via
+# xwud --id $XVFB_DIR
+XVFB_DIR=/run/shm/${ALTROOT##*/}
+if [ ! -d "${XVFB_DIR}" ] ; then
+	mkdir "${XVFB_DIR}"
+fi
+
 # Create Altroot path with backslashes
 ALTROOT_W=`echo "Z:${ALTROOT}" | sed -e 's/[\/]/\\\\/g' `
 
@@ -261,8 +268,23 @@ setupGame "${ALTROOT}" "$2" "$3"
 cd "$CIV4BTS_PATH"
 for(( ; ; )) do
 	if [ -z "$DISPLAY" ]; then
-		echo "No display detected. Starting with xvfb-run."
-		xvfb-run -s "-screen 0 640x480x24" wine "$CIV4BTS_EXE"  mod= "${MOD}"\" /ALTROOT="${ALTROOT_W}"
+		echo "No display detected, running with xvfb-run"
+
+		# Use this file for X11 authentication of watchdog
+		MCOOKIE=/tmp/${ALTROOT##*/}
+		rm ${MCOOKIE}
+
+		# Enable job control for non-interactive shell
+		set -m
+
+		# Invoke Xvfb
+		xvfb-run -a  -e /dev/shm/xvfb.err --auth-file=${MCOOKIE} -s " -fbdir ${XVFB_DIR} -screen 0 640x480x24" wine "$CIV4BTS_EXE"  mod= "${MOD}"\" /ALTROOT="${ALTROOT_W}" &
+
+		# Propagate cookie and wait
+		sleep 2
+		xauth merge ${MCOOKIE}
+		fg
+
 	else
 		wine "$CIV4BTS_EXE"  mod= "${MOD}"\" /ALTROOT="${ALTROOT_W}"
 	fi
