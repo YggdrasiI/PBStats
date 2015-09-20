@@ -463,7 +463,7 @@ class Game(models.Model):
     def send_new_turn_info(self):
         for user in self.subscribed_users.all():
             email_helper(user, 'new_turn',
-                         game_name=self.name, game_pb_name=self.pb_name, turn=self.turn,
+                         game_name=self.name, game_pb_name=self.pb_name, turn=(self.turn+1),
                          manage_url=reverse('game_detail', args=[self.id]))
 
     def __str__(self):
