@@ -20,6 +20,9 @@ localText = CyTranslator()
 
 pbSettings = Webserver.getPbSettings()
 noGui =  pbSettings.get("noGui",False)
+playerWasOnline = [] # To track login and logout events
+for rowNum in range(gc.getMAX_CIV_PLAYERS()):
+	playerWasOnline.append(False)
 
 #
 # resource IDs
