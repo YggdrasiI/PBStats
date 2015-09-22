@@ -4,6 +4,7 @@
 # Sample PitBoss window/app framework
 # Mustafa Thamer 2-15-05
 #
+import sys
 from CvPythonExtensions import *
 import wx
 import wx.wizard
@@ -28,6 +29,25 @@ curPage = None
 
 pbSettings = Webserver.getPbSettings()
 noGui =  pbSettings.get("noGui",False)
+
+"""
+# Pipe error messages into a file to avoid popup windows
+# See EntryPoints/CvAppInterface.py for default methods of Civ4.
+errorLogFile = pbSettings.get("errorLogFile",None)
+if errorLogFile != None :
+	logName = os.path.join(gc.getAltrootDir(), str(errorLogFile) )
+	try:
+		os.rename(logName, logName+".old" )
+	except Exception, e:
+		pass
+
+	sys.stdout = open( logName, 'w')
+	sys.stderr = sys.stdout
+"""
+
+playerWasOnline = [] # To track login and logout events
+for rowNum in range(gc.getMAX_CIV_PLAYERS()):
+	playerWasOnline.append(False)
 
 autostart = False
 if( pbSettings.get("save",{}).get("oneOffAutostart") ):
