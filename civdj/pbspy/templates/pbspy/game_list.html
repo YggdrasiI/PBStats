@@ -17,7 +17,7 @@
             <td class="colNumPlayers">{{ game.player_count }}</td>
             <td class="colYear">{{ game.year_str }}</td>
             <td class="colTurn">{{ game.turn }}</td>
-            <td class="colTurn">{{ game.get_status }}</td>
+            <td class="colStatus game_{{ game.get_status }}">{{ game.get_status }}</td>
         </tr>
     {% endfor %}
     </table>

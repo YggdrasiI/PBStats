@@ -31,8 +31,7 @@ PB = CyPitboss()
 gc = CyGlobalContext()
 localText = CyTranslator()
 
-# Default settings. Does not work for multiple PB instances du port
-# collisions.
+#Default settings. Does not work for multiple PB instances due port collision.
 pbDefaultSettings = {
     "webserver": {
         "host": "",  # Leave string empty
@@ -129,7 +128,7 @@ def savePbSettings():
         #  Note that it's ness. to use the old syntax (integer value) for indent
         #  argument!
         simplejson.dump(pbSettings, fp, indent=1)
-    except Exception as e:
+    except Exception, e:
         pass
 
 #  Use two default paths and the given path from the setting file
@@ -481,7 +480,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                             self.wfile.write(
                                 simplejson.dumps(
                                     {'return': 'ok', 'info': 'Return MotD.', 'msg': motd}) + "\n")
-                        except Exception as e:
+                        except Exception, e:
                             self.wfile.write(
                                 simplejson.dumps(
                                     {
@@ -574,7 +573,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                     {'return': 'ok', 'info':
                                      'Return subset of replay messages.', 'replay': replayMessages, 'graphs': playerScores}) +
                                 "\n")
-                        except Exception as e:
+                        except Exception, e:
                             self.wfile.write(
                                 simplejson.dumps(
                                     {
@@ -604,7 +603,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                 simplejson.dumps(
                                     {'return': 'ok', 'info': 'New MotD: ' + msg}) +
                                 "\n")
-                        except Exception as e:
+                        except Exception, e:
                             self.wfile.write(
                                 simplejson.dumps(
                                     {
@@ -638,7 +637,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                      str(iMaxLenName) +
                                      'Maximal length of Civ description: ' +
                                      str(iMaxLenDesc)}) + "\n")
-                        except Exception as e:
+                        except Exception, e:
                             self.wfile.write(
                                 simplejson.dumps(
                                     {
@@ -777,7 +776,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                     'info': 'Wrong password or unknown action. Available actions are info, chat, save, restart, listSaves, setAutostart, setHeadless, getMotD, setMotD, setShortNames, listPlayerColors, setPlayerColor, listSigns, cleanupSigns, getReplay, getWBSave. For security reasons the last four commands require the activation of some extra flags, see Webserver.py'}) +
                             "\n")
 
-                except Exception as e:
+                except Exception, e:
                     try:
                         errInfo = str(e)
                         self.wfile.write(
@@ -793,7 +792,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     self.send_response(200)
                     self.end_headers()
                     self.wfile.write(simplejson.dumps(data) + "\n")
-                except Exception as e:
+                except Exception, e:
                     pass
 
         else:
@@ -801,7 +800,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 self.send_response(403)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
-            except Exception as e:
+            except Exception, e:
                 pass
         return
 

@@ -3,7 +3,7 @@
 == Dependencies ==
 
 sudo apt-get install python-pip node-less
-sudo pip install Django==1.7
+sudo pip install Django==1.8
 sudo pip install django-polymorphic django-debug-toolbar django-erroneous \
 django-registration-redux django-crispy-forms \
 django-floppyforms django-sendmail-backend django-static-precompiler \
@@ -12,18 +12,26 @@ mysql-connector-python pytz setuptools six sqlparse
 # For python2.7 or older Django versions
 sudo pip install South
 
-The following command updates less/css files:
-python manage.py collectstatic
+== Configuaration ==
+Look into civdj/settings.py, create civdj/settings_local.py
+and adapt it to your environment. (See https://docs.djangoproject.com/en/dev/ref/settings/ for details.)
+A minimal example for your local settings is provided in civdj/settings_local.example.py
 
 
 == Setup (Debug mode, Release mode require more steps) ==
+
+python manage.py collectstatic
 python manage.py migrate
 python manage.py createsuperuser
 
-Now, adapt civdj/settings.py to your environment.
-Set Debug on True during the setup.
+#Now, adapt civdj/settings.py to your environment.
 
 == Start ==
-python manage.py runserver
+python manage.py runserver [your hostname/ip:8000]
 
 
+== Known issues ==
+• Error during migrate: 
+  "There is no South database module 'south.db.sqlite3' for your database. Please either choose a supported database, check for SOUTH_DATABASE_ADAPTER[S] settings, or remove South from INSTALLED_APPS."
+  => Could be solved by uninstalling south, i.e.
+  sudo pip uninstall South
