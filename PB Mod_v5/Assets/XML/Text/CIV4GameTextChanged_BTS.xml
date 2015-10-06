@@ -82,6 +82,46 @@
      <Spanish>Vaciar selecci&#243;n</Spanish>
    </TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_POPUP_ARE_YOU_SURE_MOD_PITBOSS</Tag>
+		<English>Are you sure? You can assign a new password during next login.</English>
+		<French>Vraiment? You can assign a new password during next login.</French>
+		<German>Sind Sie sicher? Die Nation kann beim n&#228;chsten Login mit einem neuen Passwort versehen werden.</German>
+		<Italian>Sei sicuro? You can assign a new password during next login.</Italian>
+		<Spanish>&#191;Seguro? You can assign a new password during next login.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_ARE_YOU_SURE_MOD_PITBOSS2</Tag>
+		<English>Are you sure? Attention, you can not take over this nation again.</English>
+		<French>Vraiment? Attention, you can not take this over nation again.</French>
+		<German>Sind Sie sicher? Achtung, die Nation kann nicht wieder übernommen werden.</German>
+		<Italian>Sei sicuro? Attention, you can not take over this nation again.</Italian>
+		<Spanish>&#191;Seguro? Attention, you can not take over this nation again.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_MOD_NO_BUT_EXIT</Tag>
+		<English>No, but leave to main menu.</English>
+		<French>Non, quitter le Pitboss.</French>
+		<German>Nein, nur Spiel verlassen.</German>
+		<Italian>No, e&amp;sci il Pitboss.</Italian>
+		<Spanish>No, salir al Pitboss.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_MOD_YES_KI</Tag>
+		<English>Yes, set natin to AI.</English>
+		<French>Oui, transmettre partie &#224; intelligence artificielle.</French>
+		<German>Ja, stelle Nation auf KI.</German>
+		<Italian>S&#236;, set nation to AI.</Italian>
+		<Spanish>S&#237;, set nation to AI.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_RETIRE_MOD_PITBOSS</Tag>
+		<English>Retire (AI)</English>
+		<French>Abandonner (AI)</French>
+		<German>Auf KI stellen</German>
+		<Italian>Ritirati (AI)</Italian>
+		<Spanish>Retirarse (AI)</Spanish>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_MOD_</Tag>
 		<English></English>
 		<French></French>
