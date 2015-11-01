@@ -180,7 +180,6 @@ def getPossibleSaveFolders():
 class HTTPRequestHandler(BaseHTTPRequestHandler):
 
     #  Redefine is ness. to omit python error popups!!
-
     def log_message(self, format, *args):
         return
 
