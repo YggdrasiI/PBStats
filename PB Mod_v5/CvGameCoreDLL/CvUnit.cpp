@@ -6126,6 +6126,8 @@ bool CvUnit::espionage(EspionageMissionTypes eMission, int iData)
 	{
 		FAssert(GET_PLAYER(getOwnerINLINE()).isHuman());
 		CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DOESPIONAGE);
+		//For espionage popup bugfix: Store turn slice
+		pInfo->setFlags(GC.getGameINLINE().getTurnSlice());
 		if (NULL != pInfo)
 		{
 			gDLL->getInterfaceIFace()->addPopup(pInfo, getOwnerINLINE(), true);
@@ -6135,6 +6137,8 @@ bool CvUnit::espionage(EspionageMissionTypes eMission, int iData)
 	{
 		FAssert(GET_PLAYER(getOwnerINLINE()).isHuman());
 		CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DOESPIONAGE_TARGET);
+		//For espionage popup bugfix: Store turn slice
+		pInfo->setFlags(GC.getGameINLINE().getTurnSlice());
 		if (NULL != pInfo)
 		{
 			pInfo->setData1(eMission);

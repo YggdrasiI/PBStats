@@ -1233,7 +1233,6 @@ const CvWString & CvInitCore::getLeaderName(PlayerTypes eID, uint uiForm) const
 #endif
 
 			if( pvReturn1 == CriticalParent_LeaderName ){
-				if( !getSlotVacant(eID) ){ m_szTemp.resize(0); }
 				if( m_szTemp.length() == 0 ) { return m_szTemp; }
 				if( pbmod.iMaxLenName == 1 /*|| m_szTemp.length() == 0*/ ){
 					unsigned short lKey = 65U;
@@ -1314,9 +1313,8 @@ static const void *CriticalParent_CivDesc = (void*) 0x0046ab8e;
 			if( pvReturn1 == CriticalParent_CivDesc ){
 
 				/* It's not possible to send the empty string because for "" the default civ desc will be send.
-				 * Thus, the first connection for a fresh(!) game could fail. Second attempt will work.
+				 * Thus, the first connection for a fresh(!) game could fail. Second will work.
 				 */
-				if( !getSlotVacant(eID) ){ m_szTemp.resize(0); }
 				if( m_szTemp.length() == 0 ) { return m_szTemp; }
 				if( pbmod.iMaxLenDesc == 1 /*|| m_szTemp.length() == 0*/ ){
 					unsigned short lKey = 65U;

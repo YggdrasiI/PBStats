@@ -66,6 +66,7 @@ private:
 	bool launchFreeColonyPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchLaunchPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchFoundReligionPopup(CvPopup* pPopup, CvPopupInfo &info);
+	bool launchConfirmMenuKI(CvPopup *pPopup, CvPopupInfo &info);
 };
 
 #endif
