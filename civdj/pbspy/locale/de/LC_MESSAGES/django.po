@@ -183,7 +183,7 @@ msgstr ""
 #: models.py:620
 #, python-brace-format
 msgid "a new turn has begun. It is now {year}"
-msgstr "Eine neue Runde begint. Es ist jetzt {year}"
+msgstr "Eine neue Runde beginnt. Es ist jetzt {year}"
 
 #: models.py:635
 #, python-brace-format
