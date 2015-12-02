@@ -797,11 +797,18 @@ class GameLogMissedTurn(GameLog):
     def is_turn_incomplete(self):
         return len(self.missed_turn_names)>0
 
+    # TODO: Hand a clean data structure to the template instead of making out own HTML here.
     def message(self):
+        privacy_days = 14
+        now = timezone.now()
+        delta = now - self.date
         format_names = []
         names = self.missed_turn_names.split(",")
         ids = self.missed_turn_ids.split(",")
         for (player_name, player_id) in zip(names, ids):
-            format_names.append(_("<li>{} (id={})</li>").format(html.escape(player_name), int(player_id)))
+            if delta.days >= privacy_days:
+                format_names.append(_("<li>(id={})</li>").format(int(player_id)))
+            else:
+                format_names.append(_("<li>{} (id={})</li>").format(html.escape(player_name), int(player_id)))
         return _("the following players did not finished their turn:") + "<ul>{players}</ul>".\
             format(players="\r\n".join(format_names))

@@ -17,7 +17,7 @@ def log_date_privacy(log_date, threshold_days):
         return formats.date_format(log_date, "SHORT_DATE_FORMAT")
     else:
         return (formats.date_format(log_date, "SHORT_DATE_FORMAT") + ' ' +
-                formats.time_format(log_date, "TIME_WITH_SECONDS_FORMAT"))
+                formats.time_format(log_date, settings.TIME_WITH_SECONDS_FORMAT))
 
 
 @register.filter(expects_localtime=True)
