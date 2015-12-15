@@ -661,12 +661,11 @@ def game_remove_filter(request, game_id, filter_name=""):
 def save_default_filter(session, game):
     filter_name = "Default"
     player_ids = None
-    turn_filter = GameDetailView.log_turn_filter
     log_keys = GameDetailView.log_keys
     filter_definition = {
         'player_ids': player_ids,
-        'turn_max': game.turn - turn_filter['offset_max'],
-        'turn_min': game.turn - turn_filter['offset_min'],
+        'turn_max': game.turn - 0,
+        'turn_min': game.turn - 1,
         'log_type_filter': log_keys,
     }
     session.setdefault('filterstore',{}).setdefault(
