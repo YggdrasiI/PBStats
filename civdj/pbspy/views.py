@@ -346,11 +346,15 @@ def game_manage(request, game_id, action=""):
     if not game.is_online:
         return HttpResponse('Can not manage. PB Server not available.', status=200)
 
+    cur_timer_form = None
+    if game.timer_remaining_4s is not None:
+        cur_timer_form = GameManagementCurrentTimerForm( initial={
+            'hours': int(game.timer_remaining_4s/4/3600),
+            'minutes': int((game.timer_remaining_4s/4 % 3600)/60) })
+
     context = {'game': game,
                'timer_form': GameManagementTimerForm(initial={'timer': game.timer_max_h}),
-               'current_timer_form': GameManagementCurrentTimerForm( initial={
-                       'hours': int(game.timer_remaining_4s/4/3600),
-                       'minutes': int((game.timer_remaining_4s/4 % 3600)/60) }),
+               'current_timer_form': cur_timer_form,
                'chat_form': GameManagementChatForm(),
                'motd_form': GameManagementMotDForm(),
                'short_names_form': GameManagementShortNamesForm(),
