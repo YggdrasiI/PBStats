@@ -35,3 +35,6 @@ python manage.py runserver [your hostname/ip:8000]
   "There is no South database module 'south.db.sqlite3' for your database. Please either choose a supported database, check for SOUTH_DATABASE_ADAPTER[S] settings, or remove South from INSTALLED_APPS."
   => Could be solved by uninstalling south, i.e.
   sudo pip uninstall South
+
+•	Error "'Settings' object has no attribute 'H:i:s'":
+  ?

@@ -54,6 +54,8 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 TIME_WITH_SECONDS_FORMAT = "H:i:s"
+#Django 1.9, formats.time_format() requires string with constant name :un:
+TIME_WITH_SECONDS_FORMAT_POINTER = "TIME_WITH_SECONDS_FORMAT"
 
 USE_I18N = True
 
