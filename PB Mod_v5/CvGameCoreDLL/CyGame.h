@@ -278,6 +278,7 @@ public:
 	void doControl(int iControl);
 
 	int setCivPassword(int ePlayer, const char *ssNewPw, const char *szAdminPw);
+	bool isDiploScreenUp() const;
 
 protected:
 	CvGame* m_pGame;

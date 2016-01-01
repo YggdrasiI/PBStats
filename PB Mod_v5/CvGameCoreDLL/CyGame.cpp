@@ -1198,3 +1198,8 @@ int CyGame::setCivPassword(int ePlayer, const char *szNewPw, const char *szAdmin
 	}
 	return 0;
 }
+
+bool CyGame::isDiploScreenUp() const
+{
+	return (NULL != m_pGame ? m_pGame->isDiploScreenUp() : false);
+}

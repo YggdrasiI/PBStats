@@ -3,11 +3,19 @@
 <Civ4GameText xmlns="http://www.firaxis.com">
 	<TEXT>
 		<Tag>TXT_KEY_MOD_UNPAUSE</Tag>
-		<English>Continue Game (Pitboss)</English>
-		<French>Continue Game (Pitboss)</French>
-		<German>Pause entfernen (Pitboss)</German>
-		<Italian>Continue Game (Pitboss)</Italian>
-		<Spanish>Continue Game (Pitboss)</Spanish>
+		<English>Unfreeze screen</English>
+		<French>Unfreeze screen</French>
+		<German>Pause aufheben</German>
+		<Italian>Unfreeze screen</Italian>
+		<Spanish>Unfreeze screen</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MOD_UNPAUSE_DESC</Tag>
+		<English>You're stuck in the diplomatic screen because the game is paused. Use this button to unpause the game.</English>
+		<French>You're stuck in the diplomatic screen because the game is paused. Use this button to unpause the game.</French>
+		<German>Das Diplomatiemen&#252; kann nicht geschlossen werden solange das Spiel pausiert ist. Das ist ein Bug von Civ4. Klicke hier um die Pause aufzuheben.</German>
+		<Italian>You're stuck in the diplomatic screen because the game is paused. Use this button to unpause the game.</Italian>
+		<Spanish>You're stuck in the diplomatic screen because the game is paused. Use this button to unpause the game.</Spanish>
 	</TEXT>
   <TEXT>
      <Tag>TXT_KEY_MOD_ALL</Tag>
@@ -120,6 +128,14 @@
 		<German>Auf KI stellen</German>
 		<Italian>Ritirati (AI)</Italian>
 		<Spanish>Retirarse (AI)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MOD_PAUSE_TIMER</Tag>
+		<English>Toggle pause</English>
+		<French>Toggle pause</French>
+		<German>Pause</German>
+		<Italian>Toggle pause</Italian>
+		<Spanish>Toggle pause</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MOD_</Tag>

@@ -385,8 +385,7 @@ class CvDomesticAdvisor:
 			# Remove Pause
 			if (inputClass.getData1() == 301311):
 				if( gc.getGame().isPaused() and not CyGame().isPitbossHost() ):
-					gc.getGame().setPausePlayer(1) #Do not remove this line !!!
-					gc.getGame().setPausePlayer(-1)
+					gc.sendPause(-1)
 					screen = CyGInterfaceScreen( "DomesticAdvisor", CvScreenEnums.DOMESTIC_ADVISOR )
 					screen.hideScreen()
 			

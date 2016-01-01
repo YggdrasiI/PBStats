@@ -294,22 +294,12 @@ class CvEventManager:
 
 	def onModNetMessage(self, argsList):
 		'Called whenever CyMessageControl().sendModNetMessage() is called - this is all for you modders!'
-
 		iData1, iData2, iData3, iData4, iData5 = argsList
-
-		print("Modder's net message!")
-
 		CvUtil.pyPrint( 'onModNetMessage' )
-		# Unpause (not used)
-		if iData1 == 301311:
-			CvUtil.pyPrint("Receive Unpause Message")
 
 	def onInit(self, argsList):
 		'Called when Civ starts up'
 		CvUtil.pyPrint( 'OnInit' )
-		#Mod start Socket Server
-		#t = Thread(target=webserver.serve_forever); t.start()
-		#thread.start_new_thread(webserver.serve_forever, ())
 
 	def onUpdate(self, argsList):
 		'Called every frame'
@@ -337,12 +327,6 @@ class CvEventManager:
 
 	def onLoadGame(self, argsList):
 		CvAdvisorUtils.resetNoLiberateCities()
-		#Unpause Saves on Loading
-		#CyMessageControl().sendModNetMessage( 301311, gc.getGame().getActivePlayer(), -1, -1, -1 )
-		if( False and gc.getGame().isPaused() and not CyGame().isPitbossHost() ):
-			gc.getGame().setPausePlayer(1) #Do not remove this line !!!
-			gc.getGame().setPausePlayer(-1)
-
 		return 0
 
 	def onGameStart(self, argsList):

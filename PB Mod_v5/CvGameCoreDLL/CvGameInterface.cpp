@@ -2832,3 +2832,8 @@ void CvGame::handleDiplomacySetAIComment(DiploCommentTypes eComment) const
 		}
 	}
 }
+
+bool CvGame::isDiploScreenUp() const
+{
+	return (gDLL->isDiplomacy() || gDLL->isMPDiplomacyScreenUp());
+}

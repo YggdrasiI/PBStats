@@ -266,6 +266,7 @@ void CyGamePythonInterface()
 		.def("isEventActive", &CyGame::isEventActive, "bool (int /*EventTriggerTypes*/ eTrigger)")
 		.def("doControl", &CyGame::doControl, "void (int /*ControlTypes*/ iControl)")
 		.def("setCivPassword", &CyGame::setCivPassword, "void (int /*PlayerId*/, string, string) - Allows change of passwords over webinterface")
+		.def("isDiploScreenUp", &CyGame::isDiploScreenUp, "bool ()")
 		;
 
 	python::class_<CyDeal>("CyDeal")

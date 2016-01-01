@@ -541,6 +541,7 @@ public:
 	DllExport void handleMiddleMouse(bool bCtrl, bool bAlt, bool bShift);
 
 	DllExport void handleDiplomacySetAIComment(DiploCommentTypes eComment) const;
+	DllExport bool isDiploScreenUp() const;
 
 protected:
 	int m_iElapsedGameTurns;

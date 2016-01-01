@@ -633,3 +633,11 @@ CvTurnTimerInfo* CyGlobalContext::getTurnTimerInfo(int i) const
 {
 	return &(GC.getTurnTimerInfo((TurnTimerTypes) i));
 }
+
+void CyGlobalContext::sendChat(std::wstring szString, int targetType){
+	gDLL->sendChat(szString, (ChatTargetTypes) targetType);
+}
+
+void CyGlobalContext::sendPause(int iPauseID = -1){
+	gDLL->sendPause(iPauseID);
+}

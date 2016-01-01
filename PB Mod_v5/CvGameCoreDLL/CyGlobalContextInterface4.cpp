@@ -171,5 +171,7 @@ void CyGlobalContextPythonInterface4(python::class_<CyGlobalContext>& x)
 
 		.def("getDiplomacyPowerTypes", &CyGlobalContext::getDiplomacyPowerTypes, "string () - Returns enum string")
 		.def("getAltrootDir", &CyGlobalContext::getAltrootDir, "string ( )" )
+		.def("sendChat", &CyGlobalContext::sendChat, "void (TCHAR, int /*ChatTargetTypes*/ targetType )" )
+		.def("sendPause", &CyGlobalContext::sendPause, "void (int iPlayerID)" )
 		;
 }

@@ -110,7 +110,9 @@ class CvMainInterface:
 		self.iScoreRows = 20	## Score Board
 		self.iScoreWidth = 100
 		self.iScoreRowsBackup = self.iScoreRows ## restore value after Score Board unfolding
-## UltraPack Initialisation ##
+		self.diploScreenDirty = True
+		self.diploScreenActive = False
+		self.pauseActive = CyGame().isPaused()
 	
 	def numPlotListButtons(self):
 		return self.m_iNumPlotListButtons
@@ -132,6 +134,7 @@ class CvMainInterface:
 		global MAX_DISPLAYABLE_TRADE_ROUTES
 		global MAX_BONUS_ROWS
 		global MAX_CITIZEN_BUTTONS
+
 		
 		if ( CyGame().isPitbossHost() ):
 			return
@@ -755,6 +758,23 @@ class CvMainInterface:
 			# Globeview and Globelayer buttons
 			CyInterface().setDirty(InterfaceDirtyBits.GlobeInfo_DIRTY_BIT, False)
 			self.updateGlobeviewButtons()
+
+		# Add unpause button if diplo screen is open.
+		if CyGame().isDiploScreenUp() != self.diploScreenActive:
+			self.diploScreenDirty = True
+			self.diploScreenActive = CyGame().isDiploScreenUp()
+
+		if CyGame().isPaused() != self.pauseActive:
+			self.diploScreenDirty = True
+			self.pauseActive = CyGame().isPaused()
+
+		if self.diploScreenDirty:	
+			self.diploScreenDirty = False	
+			if gc.getGame().isPaused():
+				screen.setButtonGFC("DiploScreenUnpauseBtn", localText.getText("TXT_KEY_MOD_UNPAUSE", ()), "", screen.centerX(512)-50, 750, 200, 20, WidgetTypes.WIDGET_GENERAL,
+						302016, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+			else:
+				screen.hide("DiploScreenUnpauseBtn")
 		
 		return 0
 
@@ -2931,7 +2951,7 @@ class CvMainInterface:
 		screen.setButtonGFC("ScoreWidthMinus", "", "", xResolution - 50, yResolution - 180, 20, 20, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_ARROW_RIGHT)
 		screen.setButtonGFC("ScoreRowMinus", "", "", xResolution - 70, yResolution - 180, 20, 20, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_CITY_MINUS )
 		screen.setButtonGFC("ScoreRowPlus", "", "", xResolution - 90, yResolution - 180, 20, 20, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_CITY_PLUS )
-		screen.setButtonGFC("ScoreWidthPlus", "", "", xResolution - 110, yResolution - 180, 20, 20, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_ARROW_LEFT)
+		screen.setButtonGFC("ScoreWidthPlus", "", "", xResolution - 110, yResolution - 180, 20, 20, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_ARROW_LEFT)
 		for iPlayer in lPlayers:
 			iRow = screen.appendTableRow("ScoreForeground")
 			pPlayer = gc.getPlayer(iPlayer)
@@ -3287,6 +3307,8 @@ class CvMainInterface:
 			elif inputClass.getFunctionName() == "ScoreWidthMinus":
 				self.iScoreWidth = max(0, self.iScoreWidth - 10)
 				self.updateScoreStrings()
+			elif (inputClass.getData1() == 302016):
+				gc.sendPause(-1)
 
 		return 0
 	

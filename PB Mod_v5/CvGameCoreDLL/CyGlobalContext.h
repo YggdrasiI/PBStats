@@ -319,11 +319,11 @@ public:
 
 	mutable CvString tmp;
 	const char * getAltrootDir( ) const { 
-		//return gDLL->GetPitbossEmail();
-		//return gDLL->GetPitbossSmtpLogin().GetCString();
 		tmp.Convert( gDLL->GetPitbossSmtpLogin() );
 		return tmp.GetCString();
 	}
+	void sendChat(std::wstring szString, int targetType);
+	void sendPause(int iPauseID);
 };
 
 #endif	// CyGlobalContext_h
