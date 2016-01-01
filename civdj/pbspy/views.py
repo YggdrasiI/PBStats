@@ -41,8 +41,9 @@ class GameListView(generic.ListView):
 
     def get_queryset(self):
         games_queryset = self.model.objects.filter(
-            Q(is_private=False), ~Q(year=None)  # Filter out (fake) enties without connecection
-            | Q(admins__id=self.request.user.id)).annotate(
+            Q(is_private=False) | Q(admins__id=self.request.user.id),
+            ~Q(year=None)  # Filter out (fake) enties without connecection
+                ).annotate(
                 player_count=Count('player', distinct=True)).order_by('-id')
 
         self.refresh_games(games_queryset)
@@ -345,11 +346,15 @@ def game_manage(request, game_id, action=""):
     if not game.is_online:
         return HttpResponse('Can not manage. PB Server not available.', status=200)
 
+    cur_timer_form = None
+    if game.timer_remaining_4s is not None:
+        cur_timer_form = GameManagementCurrentTimerForm( initial={
+            'hours': int(game.timer_remaining_4s/4/3600),
+            'minutes': int((game.timer_remaining_4s/4 % 3600)/60) })
+
     context = {'game': game,
                'timer_form': GameManagementTimerForm(initial={'timer': game.timer_max_h}),
-               'current_timer_form': GameManagementCurrentTimerForm( initial={
-                       'hours': int(game.timer_remaining_4s/4/3600),
-                       'minutes': int((game.timer_remaining_4s/4 % 3600)/60) }),
+               'current_timer_form': cur_timer_form,
                'chat_form': GameManagementChatForm(),
                'motd_form': GameManagementMotDForm(),
                'short_names_form': GameManagementShortNamesForm(),
@@ -656,12 +661,11 @@ def game_remove_filter(request, game_id, filter_name=""):
 def save_default_filter(session, game):
     filter_name = "Default"
     player_ids = None
-    turn_filter = GameDetailView.log_turn_filter
     log_keys = GameDetailView.log_keys
     filter_definition = {
         'player_ids': player_ids,
-        'turn_max': game.turn - turn_filter['offset_max'],
-        'turn_min': game.turn - turn_filter['offset_min'],
+        'turn_max': game.turn - 0,
+        'turn_min': game.turn - 1,
         'log_type_filter': log_keys,
     }
     session.setdefault('filterstore',{}).setdefault(
