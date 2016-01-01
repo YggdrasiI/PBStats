@@ -31,8 +31,7 @@ PB = CyPitboss()
 gc = CyGlobalContext()
 localText = CyTranslator()
 
-# Default settings. Does not work for multiple PB instances du port
-# collisions.
+#Default settings. Does not work for multiple PB instances due port collision.
 pbDefaultSettings = {
     "webserver": {
         "host": "",  # Leave string empty
@@ -181,7 +180,6 @@ def getPossibleSaveFolders():
 class HTTPRequestHandler(BaseHTTPRequestHandler):
 
     #  Redefine is ness. to omit python error popups!!
-
     def log_message(self, format, *args):
         return
 
@@ -293,7 +291,11 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                         if bPause:
                             if not gc.getGame().isPaused():
                                 PB.sendChat("(Webinterface) Activate pause.")
-                                gc.getGame().setPausePlayer(1)
+                                #gc.getGame().setPausePlayer(gc.getMAX_PLAYERS()-1)
+                                gc.sendPause(0)
+																# Note that babarian player index would
+																# be nice, but leads to an error... just use index 0...
+                                #gc.sendPause(gc.getMAX_CIV_PLAYERS()-1)
                             self.wfile.write(
                                 simplejson.dumps(
                                     {'return': 'ok', 'info': 'Activate pause.'}) +
@@ -301,9 +303,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                         else:
                             if gc.getGame().isPaused():
                                 PB.sendChat("(Webinterface) Deactivate pause.")
-                                #  Do not remove this line !!!
-                                gc.getGame().setPausePlayer(1)
-                                gc.getGame().setPausePlayer(-1)
+                                #gc.getGame().setPausePlayer(-1)
+                                gc.sendPause(-1)
                             self.wfile.write(
                                 simplejson.dumps({'return': 'ok', 'info': 'Deactivate pause.'}) + "\n")
 

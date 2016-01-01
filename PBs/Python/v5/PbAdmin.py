@@ -178,7 +178,15 @@ else:
 				self.Bind(wx.EVT_BUTTON, self.OnChangeTimer, timerChangeButton)
 				timerSizer.Add(timerChangeButton, 0, wx.ALL, 5)
 
+				timerPauseButton = wx.Button(self, -1, localText.getText("TXT_KEY_MOD_PAUSE_TIMER", ()))
+				self.Bind(wx.EVT_BUTTON, self.OnChangePause, timerPauseButton)
+				timerSizer.Add(timerPauseButton, 0, wx.ALL, 5)
+
 				self.timerDisplay = wx.StaticText(self, -1, "")
+
+				timerStr = self.getTimerString(PB.getTurnTimeLeft())
+				self.timerDisplay.SetLabel(timerStr)
+
 				font = wx.Font(16, wx.SWISS, wx.NORMAL, wx.NORMAL)
 				self.timerDisplay.SetFont(font)
 				self.timerDisplay.SetSize(self.timerDisplay.GetBestSize())
@@ -477,10 +485,32 @@ else:
 			if dlg.ShowModal() == wx.ID_OK:
 				# Set the MotD
 				self.motdDisplayBox.SetValue(dlg.GetValue())
-				
+
+		def OnChangePause(self, event):
+			"Turn pause event handler"
+			if gc.getGame().isPaused():
+				gc.sendPause(-1)
+			else:
+				gc.sendPause(0)
+				self.timerDisplay.SetLabel("Game paused.")
+
+				""" Note that the index for the barbarian could
+				lead to an c++ exception.
+				A test case for the bug follows...
+				"""
+				#gc.sendPause(gc.getMAX_CIV_PLAYERS()-1)
+
+				"""
+				gc.getGame().setPausePlayer(gc.getMAX_CIV_PLAYERS()-1)
+			if gc.getGame().isPaused():
+				self.timerDisplay.SetLabel(str(gc.getGame().getPausePlayer()))
+				acOutput = localText.getText("SYSTEM_GAME_PAUSED", (gc.getPlayer(gc.getGame().getPausePlayer()).getNameKey(), ))
+				self.timerDisplay.SetLabel(acOutput)
+				"""
+
 		def OnChangeTimer(self, event):
 			"Turn timer event handler"
-			
+
 			# Changing Timer - pop a modal dialog
 			dlg = wx.TextEntryDialog(
 				self, localText.getText("TXT_KEY_PITBOSS_TURN_TIMER_NEW", ()),
