@@ -66,6 +66,7 @@ void CvEventReporter::reportModNetMessage(int iData1, int iData2, int iData3, in
 
 void CvEventReporter::init()
 {
+	m_pauseString = "RemovePause";
 	m_kPythonEventMgr.reportInit();
 }
 
@@ -389,6 +390,13 @@ void CvEventReporter::playerGoldTrade(PlayerTypes eFromPlayer, PlayerTypes eToPl
 
 void CvEventReporter::chat(CvWString szString)
 {
+	/* Message form: 
+	 * <color=...>[{Playername} to {all|Playername2}]:   {Message}<\color>
+	 * */
+	if( 0 == szString.compare(szString.find(CvWString("]:  "))+4,
+				m_pauseString.length(), m_pauseString)){
+		GC.getGameINLINE().setPausePlayer(NO_PLAYER);
+	}
 	m_kPythonEventMgr.reportChat(szString);
 }
 

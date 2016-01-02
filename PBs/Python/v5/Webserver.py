@@ -293,8 +293,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                 PB.sendChat("(Webinterface) Activate pause.")
                                 #gc.getGame().setPausePlayer(gc.getMAX_PLAYERS()-1)
                                 gc.sendPause(0)
-																# Note that babarian player index would
-																# be nice, but leads to an error... just use index 0...
+                                # Note that babarian player index would
+                                # be nice, but leads to an error... just use index 0...
                                 #gc.sendPause(gc.getMAX_CIV_PLAYERS()-1)
                             self.wfile.write(
                                 simplejson.dumps(
@@ -303,8 +303,12 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                         else:
                             if gc.getGame().isPaused():
                                 PB.sendChat("(Webinterface) Deactivate pause.")
-                                #gc.getGame().setPausePlayer(-1)
-                                gc.sendPause(-1)
+                                # This removes the pause only locally.
+                                gc.getGame().setPausePlayer(-1)
+                                # This crashs on Linux/Wine
+                                #gc.sendPause(-1)
+                                # Workaround sends chat message
+                                gc.sendChat("RemovePause", ChatTargetTypes.CHATTARGET_ALL)
                             self.wfile.write(
                                 simplejson.dumps({'return': 'ok', 'info': 'Deactivate pause.'}) + "\n")
 
