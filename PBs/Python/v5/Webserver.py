@@ -2,27 +2,27 @@ from CvPythonExtensions import *
 import CvUtil
 import CvEventInterface
 
-#  For WB Saves
-#  import StringIO
+# For WB Saves
+# import StringIO
 import cStringIO
 import CvWBDesc
-#  import CvWBInterface
-# import zlib #  not included
-# import gzip #  exists in Civ4/Assets/Python/System, but can not be imported
+# import CvWBInterface
+# import zlib # not included
+# import gzip # exists in Civ4/Assets/Python/System, but can not be imported
 
 from SocketServer import ThreadingMixIn
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import re
 import cgi
 import os.path
-#  import os.listdir
+# import os.listdir
 import os
 import glob
 import time
 import thread
 from threading import Timer, Thread, Event
 import urllib
-# import hashlib #  Python 2.4 has no hashlib use md5
+# import hashlib # Python 2.4 has no hashlib use md5
 import md5
 import simplejson
 import sys
@@ -31,44 +31,43 @@ PB = CyPitboss()
 gc = CyGlobalContext()
 localText = CyTranslator()
 
-#Default settings. Does not work for multiple PB instances due port collision.
+# Default settings. Does not work for multiple PB instances due port collision.
 pbDefaultSettings = {
     "webserver": {
         "host": "",  # Leave string empty
-        #  Port of the python web interface of this mod. Use different port for
-        #  each game
+        # Port of the python web interface of this mod. Use different port for
+        # each game
         "port": 13373,
-        #  Password for admin commands on the webinterface
+        # Password for admin commands on the webinterface
         "password": "defaultpassword"
     },
     "webfrontend": {
-        #  Url of the pbStats file on your http webserver
+        # Url of the pbStats file on your http webserver
         "url": "http://localhost/civ/page/update.php",
         "gameId": 0,  # Id of game at above website
-        #  Set 0 to disable periodical sending of game data
+        # Set 0 to disable periodical sending of game data
         "sendPeriodicalData": 1,
         "sendInterval": 10,  # Seconds during automatic sending of game data
         },
     "save": {
-        #  Filename (without path) of loaded game at startup (require autostart
-        #  )
+        # Filename (without path) of loaded game at startup (require autostart)
         "filename": "A.CivBeyondSwordSave",
         "adminpw": "",  # Admin password of above save
         "savefolder": "saves\\multi\\",  # First choice to save games.
-        #  List of relative paths which can be used to load games.
+        # List of relative paths which can be used to load games.
         "readfolders": []
     },
     "shortnames": {  # Truncate names to fix login issue due packet drop
         "enable": True,
-        #  Maximal Leader name length. Length of 1 force replacement with player
-        #  Id, 0=A,1=B,...,51=z
+        # Maximal Leader name length. Length of 1 force replacement with player
+        # Id, 0=A,1=B,...,51=z
         "maxLenName": 1,
-        #  Maximal Nation name length. Length of 1 force replacement with player
-        #  Id, 0=A,1=B,...,51=z
+        # Maximal Nation name length. Length of 1 force replacement with player
+        # Id, 0=A,1=B,...,51=z
         "maxLenDesc": 4
     },
-    #  Each login and logoff produce a save. This option controls the length of
-    #  history
+    # Each login and logoff produce a save. This option controls the length of
+    # history
     "numRecoverySavesPerPlayer": 5,
     "MotD": "Welcome on the modified PitBoss Server",
     "noGui": 0,  # Do not show admin window. (This option force the autostart.)
@@ -77,21 +76,22 @@ pbDefaultSettings = {
 }
 pbSettings = None
 
-#  Try to load pbSettings file.
-#  To get a different settings file for each pitboss we need
-#  access to a variable in the ini file
-#  We reuse a widely unused variable of the standard BTS ini file
+# Try to load pbSettings file.
+# To get a different settings file for each pitboss we need
+# access to a variable in the ini file
+# We reuse a widely unused variable of the standard BTS ini file
 altrootDir = gc.getAltrootDir()
 
-#  Cut of badly formated beginning of String [...]@ (If EMail Ini variable used)
-#  altrootDir = altrootDir[altrootDir.rfind("@")+1:len(altrootDir)]
+# Cut of badly formated beginning of String [...]@ (If EMail Ini variable used)
+# altrootDir = altrootDir[altrootDir.rfind("@")+1:len(altrootDir)]
 
-#  If the loading of the setting file failed the path will be set no None
-#  in getPbSettings()
+# If the loading of the setting file failed the path will be set no None
+# in getPbSettings()
 pbFn = os.path.join(altrootDir, "pbSettings.json")
 
 
 def getPbSettings():
+    """Loads settings file and use default settings as fallback."""
     global altrootDir
     global pbFn
     global pbSettings
@@ -113,11 +113,36 @@ def getPbSettings():
         pbFn = None
         return pbDefaultSettings
 
-#  Attention: Use the ThreadedHTTPServer.savePbSettings to wrap this into a mutex if you saved the file over the webinterface.
-#  This function should only be called direct if the webserver wasn't started.
+
+def getPbPasswords():
+    """Loads list of alternative passwords for your games.
+    pbSettings['save']['adminpw'] and this list will be tested
+    as valid values before the game try to load the save.
+    """
+
+    global altrootDir
+    pwdFile = os.path.join(altrootDir, "..", "pbPasswords.json")
+
+    if os.path.isfile(pwdFile):
+        try:
+            fp = file(pwdFile, "r")
+            pbPasswords = simplejson.load(fp)
+        finally:
+            fp.close()
+        return pbPasswords.get("adminPasswords", [])
+    else:
+        return []
 
 
 def savePbSettings():
+    """ Save the current state into pbSettings.json.
+
+    Attention: Use the ThreadedHTTPServer.savePbSettings to wrap this
+    into a mutex if you saved the file over the webinterface.
+    This function should only be called directly if the webserver
+    wasn't started.
+    """
+
     global pbFn
     global pbSettings
     if pbFn is None:
@@ -125,25 +150,27 @@ def savePbSettings():
 
     try:
         fp = file(pbFn, "w")
-        #  Note that it's ness. to use the old syntax (integer value) for indent
-        #  argument!
+        # Note that it's ness. to use the old syntax (integer value) for indent
+        # argument!
         simplejson.dump(pbSettings, fp, indent=1)
     except Exception, e:
         pass
 
-#  Use two default paths and the given path from the setting file
-#  to generate possible paths of saves.
-#  A hashmap construction would destroy the ordering and OrderedDict requires
-#  at least Python 2.7. Thus, the duplicates free list will be constructed
-#  by hand.
-
 
 def getPossibleSaveFolders():
+    """Use two default values and the value(s) from the setting file
+    to generate possible source paths of saves.
+
+    The return value dos not contain duplicates. There are two reasons
+    why this was constructed by hand:
+    A hashmap construction would destroy the ordering and OrderedDict requires
+    at least Python 2.7.
+    """
     global altrootDir
-    if not "save" in pbSettings:
+    if "save" not in pbSettings:
         pbSettings["save"] = {}
 
-    #  Note: "path" is the deprecated name of "savefolder"
+    # Note: "path" is the deprecated name of "savefolder"
     userPath = str(
         pbSettings["save"].get(
             "savefolder",
@@ -159,7 +186,7 @@ def getPossibleSaveFolders():
         altrootDir + "\\" + "saves\\pitboss\\auto\\"
         ]
 
-    #  Add extra folders
+    # Add extra folders
     for extraUserPath in pbSettings["save"].get("readfolders", []):
         folders.append(altrootDir + "\\" + str(extraUserPath))
         folders.append(altrootDir + "\\" + str(extraUserPath) + "auto\\")
@@ -175,19 +202,20 @@ def getPossibleSaveFolders():
     return remove_duplicates(folders)
 
 
-#  The do_POTH method of this class handle the control commands
-#  of the webinterface
 class HTTPRequestHandler(BaseHTTPRequestHandler):
+    """The do_POST method of this class handle the control commands
+    of the webinterface
+    """
 
-    #  Redefine is ness. to omit python error popups!!
     def log_message(self, format, *args):
+        "Redefine is ness. to omit python error popups!!"
         return
 
     def do_POST(self):
         if None != re.search('/api/v1/', self.path):
             ctype, pdict = cgi.parse_header(
                 self.headers.getheader('content-type'))
-            #  ctype = self.headers.getheader('content-type').strip(" \n\r\t")
+            # ctype = self.headers.getheader('content-type').strip(" \n\r\t")
             if ctype == 'application/json':
                 self.send_response(200)
                 self.end_headers()
@@ -256,7 +284,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                             inputdata.get(
                                 "filename",
                                 defaultFile)) + ".CivBeyondSwordSave"
-                        #  remove "\ or /" chars to cut of directory changes
+                        # remove "\ or /" chars to cut of directory changes
                         filename = filename[
                             max(filename.rfind("/"), filename.rfind("\\")) + 1:
                             len(filename)]
@@ -306,27 +334,24 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                 # This removes the pause only locally.
                                 gc.getGame().setPausePlayer(-1)
                                 # This crashs on Linux/Wine
-                                #gc.sendPause(-1)
+                                # gc.sendPause(-1)
                                 # Workaround sends chat message
                                 gc.sendChat("RemovePause", ChatTargetTypes.CHATTARGET_ALL)
                             self.wfile.write(
                                 simplejson.dumps({'return': 'ok', 'info': 'Deactivate pause.'}) + "\n")
 
                     elif(action == "endTurn" and inputdata.get("password") == pbSettings["webserver"]["password"]):
-                        #  Create Backup save in auto-Folder
+                        # Create Backup save in auto-Folder
                         filename = r"Auto_" + \
                             PB.getGamename() + r"_R" + str(PB.getGameturn()) + r"end_" + PB.getGamedate(False) + r".CivBeyondSwordSave"
                         self.server.createSave(str(filename), 1)
 
                         if(PB.getTurnTimer()):
-                            gc.getGame().incrementTurnTimer(-
-                                                            PB.getTurnTimeLeft() +
-                                                            4 *
-                                                            20)
+                            gc.getGame().incrementTurnTimer(-PB.getTurnTimeLeft() + 4 * 20)
                             msg = 'Set timer on a few seconds.'
                         else:
-                            #  This variant made trouble with automated units
-                            #  and KI?!
+                            # This variant made trouble with automated units
+                            # and KI?!
                             messageControl = CyMessageControl()
                             messageControl.sendTurnCompleteAll()
                             msg = 'End turn'
@@ -336,31 +361,31 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                             "\n")
 
                     elif(action == "restart" and inputdata.get("password") == pbSettings["webserver"]["password"]):
-                        #  Save current game and reload this save if no expicit
-                        #  filename is given
+                        # Save current game and reload this save if no expicit
+                        # filename is given
                         bReload = True
 
                         filename = str(inputdata.get("filename", ""))
                         folderIndex = int(inputdata.get("folderIndex", 0))
-                        #  remove "\ or /" chars to cut of directory changes
+                        # remove "\ or /" chars to cut of directory changes
                         filename = filename[
                             max(filename.rfind("/"), filename.rfind("\\")) + 1:
                             len(filename)]
 
-                        #  Use first folder if no filename is given
+                        # Use first folder if no filename is given
                         if len(filename) == 0:
                             folderIndex = 0
 
                         if len(filename) > 0:
-                            #  Save selected filename for reloading in the
-                            #  settings file
+                            # Save selected filename for reloading in the
+                            # settings file
                             filename = filename + ".CivBeyondSwordSave"
                             filename = filename.replace(
                                 "CivBeyondSwordSave.CivBeyondSwordSave",
                                 "CivBeyondSwordSave")
-                            #  Now, checks if file can be found. Otherwise abort because
-                            #  loading of missing files let crash the pb server
-                            #  and grab 100% of cpu.
+                            # Now, checks if file can be found. Otherwise abort because
+                            # loading of missing files let crash the pb server
+                            # and grab 100% of cpu.
                             folderpaths = getPossibleSaveFolders()
                             try:
                                 folderpaths.insert(0, folderpaths[folderIndex])
@@ -375,8 +400,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                     break
 
                             if folderIndexFound == -1:
-                                #  No save game with this filename found. Abort
-                                #  reloading
+                                # No save game with this filename found. Abort
+                                # reloading
                                 bReload = False
                                 self.wfile.write(
                                     simplejson.dumps(
@@ -407,8 +432,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                     {'return': 'fail', 'info': 'Reloading failed. Was not able to save game.'}) + "\n")
 
                         if bReload:
-                            #  Quit server. The loop in the batch file should
-                            #  restart the server....
+                            # Quit server. The loop in the batch file should
+                            # restart the server....
                             if self.server.adminWindow is not None:
                                 self.wfile.write(
                                     simplejson.dumps(
@@ -429,10 +454,10 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                         newCivPW = str(inputdata.get("newCivPW", r""))
                         ret = -1
                         if playerId > -1:
-                                #  Well, the hashing should be done in the DLL, but I forgot this call
-                                #  and will not change the DLL in this version of the mod.
-                                #  TODO: Move this line into the DLL for newer
-                                #  versions of the mod.
+                                # Well, the hashing should be done in the DLL, but I forgot this call
+                                # and will not change the DLL in this version of the mod.
+                                # TODO: Move this line into the DLL for newer
+                                # versions of the mod.
                             adminPW = str(
                                 pbSettings.get(
                                     "save",
@@ -507,7 +532,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                             replayInfo = gc.getGame().getReplayInfo()
                             if replayInfo.isNone():
                                 replayInfo = CyReplayInfo()
-                                #  (gc.getGame().getActivePlayer())
+                                # (gc.getGame().getActivePlayer())
                                 replayInfo.createInfo(-1)
 
                             iTurn = replayInfo.getInitialTurn()
@@ -523,8 +548,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                 color = colRgba[7:colRgba.find(">")]
                                 if eMessageType in [ReplayMessageTypes.REPLAY_MESSAGE_CITY_FOUNDED,
                                                     ReplayMessageTypes.REPLAY_MESSAGE_MAJOR_EVENT]:
-                                #  Why does this not work?!
-                                #  msgText = replayInfo.getReplayMessageText(i).decode('ascii', 'replace')
+                                # Why does this not work?!
+                                # msgText = replayInfo.getReplayMessageText(i).decode('ascii', 'replace')
                                     msgText = replayInfo.getReplayMessageText(
                                         i)
                                     msgText = ''.join(
@@ -537,8 +562,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                          msgText})
                                 i += 1
 
-                            #  Scores
-                            #  iEnd = replayInfo.getReplayMessageTurn(i)
+                            # Scores
+                            # iEnd = replayInfo.getReplayMessageTurn(i)
                             iEnd = replayInfo.getFinalTurn()
                             iStart = replayInfo.getInitialTurn()
                             playerScores = {}
@@ -660,8 +685,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                 {'return': 'ok', 'info': gamedata}) + "\n")
 
                     elif(action == "listSaves"):
-                        #  Print list of saves of the selected folder. This can be used for a dropdown list
-                        #  of available saves.
+                        # Print list of saves of the selected folder. This can be used for a dropdown list
+                        # of available saves.
                         folderpaths = getPossibleSaveFolders()
                         saveList = []
 
@@ -755,9 +780,9 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
                         for sign in signs:
                             caption = sign['caption']
-                            # caption = re.sub("[^A-z 0-9]","", caption) #  not enought
-                            #  caption = sign['caption'].encode('ascii',
-                            # 'ignore') #  does not help
+                            # caption = re.sub("[^A-z 0-9]","", caption) # not enought
+                            # caption = sign['caption'].encode('ascii',
+                            # 'ignore') # does not help
                             caption = caption[0:18]  # shortening required
                             caption = ''.join(
                                 i
@@ -810,8 +835,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 pass
         return
 
-    #  No get functionality
     def do_GET(self):
+        """Server has no get functionality."""
         if None != re.search('/api/v1/somepage/*', self.path):
             if True:
                 self.send_response(200)
@@ -837,15 +862,15 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     def shutdown(self):
         self.socket.close()
         self.server_close()
-        #  In Python 2.4 the method 'shutdown' does not exists.
-        #  But we set the Deamon flag to true, thus it should shutdown.
-        #  HTTPServer.shutdown(self)
+        # In Python 2.4 the method 'shutdown' does not exists.
+        # But we set the Deamon flag to true, thus it should shutdown.
+        # HTTPServer.shutdown(self)
 
     def setPbApp(self, adminApp):
         self.adminApp = adminApp
         self.adminWindow = adminApp.adminFrame
         self.lock = thread.allocate_lock()
-        #  Setup some extra Values in the DLL
+        # Setup some extra Values in the DLL
         if "shortnames" not in pbSettings:
             pbSettings["shortnames"] = {
                 "enable": True,
@@ -861,19 +886,19 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
             iMaxLenName,
             iMaxLenDesc)
 
-    #  Cache value because the evaluation is an expensive operation
+    # Cache value because the evaluation is an expensive operation
     wbsaveCache = None
 
     def createWBSave(self, bCache=True, bCompress=False):
         self.lock.acquire()
 
-        #  Reset cache for new rounds
+        # Reset cache for new rounds
         if self.wbsaveCache is not None and self.wbsaveCache.get("turn", -1) != PB.getGameturn():
             self.wbsaveCache = None
 
         if self.wbsaveCache is None or bCache == False:
             self.wbsaveCache = {"turn": PB.getGameturn()}
-            #  f = file("/dev/shm/Test.WBSave", "w")
+            # f = file("/dev/shm/Test.WBSave", "w")
             f = cStringIO.StringIO()
             version = 11
             f.write("Version=%d\n" % (version,))
@@ -886,7 +911,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
                 CvWBDesc.CvPlayerDesc().write(f, i)  # write player info
 
             CvWBDesc.CvMapDesc().write(f)
-            f.write("\n#  #  #  Plot Info #  #  #  \n")
+            f.write("\n# # # Plot Info # # # \n")
             iGridW = CyMap().getGridWidth()
             iGridH = CyMap().getGridHeight()
             for iX in range(iGridW):
@@ -895,9 +920,9 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
                     pDesc = CvWBDesc.CvPlotDesc()
                     if pDesc.needToWritePlot(plot):
                         pDesc.write(f, plot)
-            #  Signs should be private
+            # Signs should be private
             """
-            f.write("\n#  #  #  Sign Info #  #  #  \n")
+            f.write("\n# # # Sign Info # # # \n")
             iNumSigns = CyEngine().getNumSigns()
             for i in range(iNumSigns):
                 sign = CyEngine().getSignByIndex(i)
@@ -912,7 +937,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
             f.close()
 
         if bCompress and "zip" not in self.wbsaveCache:
-            #  self.wbsaveCache["zip"] = zlib.compress(self.wbsaveCache.get("raw","No WB data cached."))
+            # self.wbsaveCache["zip"] = zlib.compress(self.wbsaveCache.get("raw","No WB data cached."))
             """
             zf = cStringIO.StringIO()
             z = GzipFile(None, 'w', 9, zf)
@@ -975,7 +1000,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
                     ' failed.'}
                 self.lock.release()
             else:
-                #  Update last file name info and save json file
+                # Update last file name info and save json file
                 pbSettings["save"]["filename"] = filename
                 pbSettings["save"]["folderIndex"] = folderIndex
                 self.lock.release()
@@ -997,15 +1022,15 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
             return folderpaths[0][0]
 
     def createPlayerRecoverySave(self, playerId, playerName, bOnline):
-        #  1. Check which saves already exists for this player
-        #  and remove old recovery saves
+        # 1. Check which saves already exists for this player
+        # and remove old recovery saves
         folder = self.getSaveFolder(1)
         RecoverPrefix = 'Logoff_'
         if bOnline:
             RecoverPrefix = 'Login_'
 
-        #  Windows file names can not contain * characters. Replace the string "*Mod* ", which
-        #  can prepend the player name.
+        # Windows file names can not contain * characters. Replace the string "*Mod* ", which
+        # can prepend the player name.
         playerName = playerName.replace("*MOD* ", "MOD_").strip()
 
         existingRecoverySaves = glob.glob(
@@ -1014,20 +1039,20 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
             'P' +
             str(playerId) +
             '_*.CivBeyondSwordSave')
-        #  Add timestamp (as tuple)
+        # Add timestamp (as tuple)
         existingRecoverySavesWithTimestamps = map(
             lambda x: (
                 x,
                 os.path.getctime(x)),
             existingRecoverySaves)
-        #  Sort by timestamp
+        # Sort by timestamp
         existingRecoverySavesWithTimestamps.sort(key=lambda xx: xx[1])
-        #  Remove oldest
+        # Remove oldest
         while(len(existingRecoverySavesWithTimestamps) >= pbSettings.get("numRecoverySavesPerPlayer", 3)):
             old = existingRecoverySavesWithTimestamps.pop(0)
             os.remove(old[0])
 
-        #  2. Save new recovery save
+        # 2. Save new recovery save
         filename = (RecoverPrefix +
                     'P' +
                     str(playerId) +
@@ -1041,19 +1066,19 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     def compareGamedata(self, new, old=None):
         if old is None:
             old = self.oldGamestate
-        #  Remove volative keys
+        # Remove volative keys
         ttvOld = old.pop("turnTimerValue", None)
         ttvNew = new.pop("turnTimerValue", None)
         bSame = (old == new)
         if ttvNew is not None:
             new["turnTimerValue"] = ttvNew
 
-        #  cache new value
+        # cache new value
         self.oldGamestate = new
         return bSame
 
     def createGamedata(self):
-        #  Collect all available data
+        # Collect all available data
         gamedata = {'gameTurn': PB.getGameturn(),
                     'gameName': PB.getGamename(),
                     'gameDate': PB.getGamedate(False),
@@ -1099,16 +1124,18 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
     def savePbSettings(self):
         self.lock.acquire()
-        #  Call non-member function
+        # Call non-member function
         savePbSettings()
         self.lock.release()
 
 
-#  Class to invoke request from to the 'client' side of webinterface
-#  if reduceTraffic flag is set, only changed game states will be send
-#  Moreover, every self.reduceFactor times an alive message will be send
-#  to omit offline detection mechanisms of the webinterface.
 class PerpetualTimer:
+    """Class to invoke request from to the 'client' side of webinterface.
+
+    If reduceTraffic flag is set, only changed game states will be send.
+    Moreover, every self.reduceFactor times an alive message will be send
+    to respect some offline detection mechanism of the webinterface.
+    """
 
     def __init__(self, settings, webserver, reduceTraffic=False):
         self.settings = settings
@@ -1136,7 +1163,7 @@ class PerpetualTimer:
         gamedata = webserver.createGamedata()
         newState = not webserver.compareGamedata(gamedata)
 
-        #  Check if CvGame::doTurn is currently running.
+        # Check if CvGame::doTurn is currently running.
         inconsistentState = CvEventInterface.getEventManager(
             ).bGameTurnProcessing
 
@@ -1147,14 +1174,14 @@ class PerpetualTimer:
         self.requestCounter += 1
 
         if(not inconsistentState and (newState or not self.reduceTraffic
-                                      or self.requestCounter % self.reduceFactor == 0)):
+                                or self.requestCounter % self.reduceFactor == 0)):
             params = urllib.urlencode(
                 {'action': 'update', 'id': gameId,
                  'pwHash': pwHash, 'info':
                  simplejson.dumps(
                      {'return': 'ok', 'info': gamedata})})
         else:
-            #  Minimal alive message.
+            # Minimal alive message.
             gamedataMinimal = {"turnTimer": gamedata.get("turnTimer")}
             if gamedata["turnTimer"] == 1:
                 gamedataMinimal["turnTimerValue"] = gamedata.get(
@@ -1165,8 +1192,8 @@ class PerpetualTimer:
                      {'return': 'ok', 'info': gamedataMinimal})})
 
         try:
-            # f = urllib.urlopen("%s?%s" % (url,params) ) #  GET method
-            f = urllib.urlopen(url, params)  # POST method
+            # f = urllib.urlopen("%s?%s" % (url,params) ) # GET method
+            urllib.urlopen(url, params)  # POST method
 
         except:
             pass

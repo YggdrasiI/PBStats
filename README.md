@@ -18,16 +18,16 @@ Installation
 =======
 
 ##A) As Player/User 
-Just download this Mod package and place the folder **PB Mod_v4** in the mod folder of your Civ4:BTS installation ([Civ4 Installation Path]\Beyond the Sword\Mods ). 
+Just download this Mod package and place the folder **PB Mod_v5** in the mod folder of your Civ4:BTS installation ([Civ4 Installation Path]\Beyond the Sword\Mods ). 
 *Do not* place the folder into My Games\Beyond the Sword\Mods! Civ4 would interpret this as different version of the mod. 
 To start Civ4 with the modification create a new startup shortcut and extend the target with the mod-parameter. The result should look like  
-`[Your Civ 4 install folder]\Civ4\Beyond the Sword\Civ4BeyondSword.exe" mod= PB Mod_v4"\"`
+`[Your Civ 4 install folder]\Civ4\Beyond the Sword\Civ4BeyondSword.exe" mod= PB Mod_v5"\"`
 
 ##B) As Pitboss Server Administrator. 
 
-This Mod package contains three modules: **PB Mod\_v4**, **PBs** and **civdj** (or **web**). 
+This Mod package contains three modules: **PB Mod\_v5**, **PBs** and **civdj** (or **web**). 
 
-1. **PB Mod\_v4** is the common mod folder. Place it in the mod folder of your Civ4:BTS installation. 
+1. **PB Mod\_v5** is the common mod folder. Place it in the mod folder of your Civ4:BTS installation. 
 2. The Pitboss server **must be started** with the ALTROOT parameter. Otherwise, some Python files can not be found! If you host multiple games on one machine you probably know this parameter... 
 The **PBs**-folder contains a prepared example for the start of the Pitboss server 
 with ALTROOT parameter. We recommend the usage of the startup script, see below. 
@@ -40,7 +40,6 @@ familar with PHP. Place web/page on your webserver with PHP5 and MySQL or SQLite
 and read access for the other files. 
 Copy web/page/php/config.dist.php to web/page/php/config.php and adapt the default passwords and environment paths of this configuration file to your needs. 
 Finally, call web/page/install.php in your browser to initialize all database tables. 
-
 
 
 Configuration of the ALTROOT Folder
@@ -90,6 +89,9 @@ normally should be entered in the Pitboss wizard at game loading.)
     * webfrontent.gameId: Create a game entry in the webfrontend to generate this id. 
 
 4. Create a game entry in the web interface. Your PB server should run if you register a new game.
+
+5. (Optional) If you handle with different games or passwords you should edit the file PBs/pbPasswords.json and collect your passwords there. At startup, the server will find the correct one for the
+	given save, if possible. Nervertheless you can still use the adminpw-field in pbSettings.json.
 
 
 Extras

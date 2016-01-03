@@ -17,7 +17,7 @@
  }, 
  "save": {
   "filename": "Beispiel_v5.CivBeyondSwordSave",
-  "adminpw": "",
+  "adminpw": "optional; I recommed to put it into PBs/pbPasswords.json",
 	"savefolder" : "saves\\multi\\",
 	"readfolders" : []
  }

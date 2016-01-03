@@ -41,7 +41,7 @@ This mod try to reduce the size of this package and cut of leader names and civ 
 		Note that both strings will be replaced by the Id of the player if only one character is allowed.
 
 
-New in version 3 (PB Mod_v4): 
+New in version 3 (PB Mod_v3): 
   • Bugfix on scrollable player list
 	• Infoscreen (F9) fixes:
 			- It's possible to select a subset of all players to reduce the number of displayed graphs.
@@ -58,15 +58,23 @@ New in version 4 (PB Mod_v4):
   • Bugfixes in F4 Screen
 	• Add Wordbuilder-Save generation
 
-(Removed from master branch)
-- Admin password change in one special Game.
-	Some players ( http://univers-civilization.leforum.eu/f286-Pit2014.htm )
-	lost their admin password.
-	I transfer the save from normal BTS into a Save for this mod
-	and replace the admin password detection with an tiny fix to
-	set a new password.
-	Thus, it's theoretical possible to 'save' running games even if the 
-	admin password was lost. This patch wasn't published to prevent
-	cheating...
-
-
+New in version 5 (PB Mod_v5):
+	• More Bugfixes for F4 screen
+	• Replace solution for hanging diplomaticy screen. There is 
+	  now a button below of the diplo window to unpause the game.
+		Moreover, it works now reliable in MP.
+	• Better description for "Leave" option in main menu. Now,
+		it's more difficult to set the player on AI.
+	• Pause Button in PbAdmin window
+	• OOS-Fix for games with many cities. During the selection of
+	  available city names is a section which depends on the
+		language. This leads to different city names, but call
+		random() only at one machine.
+	• Fix hangup of server if the given password does not 
+		match. Application should now quit.
+	• Prepend loading of pitboss save with password check.
+		The PbWizard now selects the correct password from a
+		given list, pbPasswords.json. 
+		This made it easier to handle with different passwords/games.
+	•	Espionage bugfix: Do not show espionage popup with old timestamp (turn slice). This suppress the faulty espionage popups at next login on the pitboss server
+	• Spaceship launch does not chrash PB server anymore.
