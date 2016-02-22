@@ -1178,8 +1178,13 @@ class PerpetualTimer:
         newState = not webserver.compareGamedata(gamedata)
 
         # Check if CvGame::doTurn is currently running.
-        inconsistentState = CvEventInterface.getEventManager(
+        # Try ness for mods without the DLL changes for bGameTurnProcessing
+        inconsistentState = False
+        try:
+            inconsistentState = CvEventInterface.getEventManager(
             ).bGameTurnProcessing
+        except AttributeError:
+            pass
 
         url = self.settings["url"]
         gameId = self.settings["gameId"]
