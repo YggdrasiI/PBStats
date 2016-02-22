@@ -10,6 +10,8 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import django
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 DEBUG = False
@@ -53,9 +55,12 @@ WSGI_APPLICATION = 'civdj.wsgi.application'
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
-TIME_WITH_SECONDS_FORMAT = "H:i:s"
+TIME_WITH_SECONDS_FORMAT_STR = "H:i:s"
 #Django 1.9, formats.time_format() requires string with constant name :un:
-TIME_WITH_SECONDS_FORMAT_POINTER = "TIME_WITH_SECONDS_FORMAT"
+if django.VERSION >= (1,9):
+    TIME_WITH_SECONDS_FORMAT = "TIME_WITH_SECONDS_FORMAT_STR"
+else:
+    TIME_WITH_SECONDS_FORMAT = TIME_WITH_SECONDS_FORMAT_STR
 
 USE_I18N = True
 
