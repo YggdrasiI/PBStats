@@ -31,6 +31,15 @@
              </form>
         </div>
         <div class="game_management_section_imploded">
+          <h2>{% trans "send chat message" %}</h2>
+						 <span class="description">{% trans "Viewable for players in the game." %}</span>
+             <form method="post" action="{% url 'game_manage' game.id 'chat' %}">
+                 {% csrf_token %}
+                 <table>{{ chat_form }}</table>
+                 <span><input type="submit" value="{% trans "send message" %}" /></span>
+               </form>
+        </div>
+        <div class="game_management_section_imploded">
           <h2>{% trans "set turn timer" %}</h2>
 						 <span class="description">{% trans "Time for the next round. Note that the ingame clock runs slower as desired. A value of 20 correspond with 24 hours." %}</span>
              <form method="post" action="{% url 'game_manage' game.id 'set_turn_timer' %}">
@@ -71,13 +80,7 @@
 					<h2><a href="{% url 'game_manage' game.id 'color' %}">{% trans "change colorset of player" %}</a></h2>
         </div>
         <div class="game_management_section_imploded">
-          <h2>{% trans "send chat message" %}</h2>
-						 <span class="description">{% trans "Viewable for players in the game." %}</span>
-             <form method="post" action="{% url 'game_manage' game.id 'chat' %}">
-                 {% csrf_token %}
-                 <table>{{ chat_form }}</table>
-                 <span><input type="submit" value="{% trans "send message" %}" /></span>
-               </form>
+          <h2><a href="{% url 'game_manage' game.id 'kick' %}">{% trans "kick player" %}</a></h2>
         </div>
         <div class="game_management_section_imploded">
           <h2>{% trans "swap autostart of save games" %}</h2>

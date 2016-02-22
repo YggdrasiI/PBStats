@@ -120,6 +120,10 @@ $lang['game_wbsave'] = "Weltenbauer-Spielstand erzeugen";
 $lang['game_replay'] = "Replay anzeigen";
 $lang['game_advanced_settings'] = "Erweiterte Einstellungen";
 
+$lang['game_kick'] = "Kicke Spieler";
+$lang['game_kick_desc'] = "Setzt Status des Spieler-Slots auf KI.";
+$lang['game_kick_successful'] = "Spieler %d wurde gekickt.";
+
 // Log messages
 $lang['log_player_change_name'] = "Spieler umbenannt zu %s.";
 $lang['log_player_score_increased'] = "Punkte erhöht auf %s.";

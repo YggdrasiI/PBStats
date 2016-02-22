@@ -372,6 +372,68 @@ function gameFull($game,$online /* False for preview during creation of new game
 
 			}
 
+			if( $action === "kick" ){
+				$step = 0;
+				if( isset($_GET["step"] ) ){
+					$step = $_GET["step"];
+				}
+
+				$dHtml .= "<h3>{L_GAME_KICK}</h3>";
+				if( $step == 1 ){
+					$opid = isset($_GET["opid"])?intval($_GET["opid"]):-1;
+					if( false && operation_already_done( $opid ) ){
+						$dHtml .= print_operation_error_msg();
+					}else{
+						// Klick player by id
+						$playerId = intval($_GET["playerId"]);
+						$pbAction = array('action'=>'kickPlayer','password'=>$pw,'playerId'=>$playerId);
+						$infos = json_decode(handle_pitboss_action($gameData, $pbAction));
+
+						if( $infos->return === "ok" ){
+							$dHtml .= "<p>{L_GAME_KICK_SUCCESSFUL|$playerId}</p>";
+							operation_update_ids( $opid );
+						}else{
+							$dHtml .= "<p>{L_GAME_ERROR_MSG}".$infos->info ."</p>";
+						}
+					}
+				}else{
+					$opid = operation_new_val();
+
+					$action_info = array('action'=>'info');
+					$infos = json_decode(handle_pitboss_action($gameData, $action_info));
+          if( $infos->return === "ok" ){
+            //Gen list of players and their status.
+            global $status_strings;
+            $players = append_status($infos->info->players);
+
+						$dHtml .= "<p>{L_GAME_KICK_DESC}</p>\n";
+            $dHtml .= "<form action='$this_page' method='get'>\n<p>";
+            $dHtml .= "<select name='playerId'>";
+            foreach( $players as $player ){
+              $playerId = $player->id;
+              $playerName = $player->name;
+              $playerStatus = $status_strings[$player->statusId];
+              $dHtml .= "<option style='text-align:left;' value='$playerId'>$playerId - $playerName - $playerStatus</option>";
+            }
+            $dHtml .= "</select>";	
+
+            $dHtml .= "<input type='submit' />\n
+              <input type='hidden' name='action' value='kick' />\n
+              <input type='hidden' name='game' value='$gameId' />\n
+              <input type='hidden' name='step' value='1' />\n
+              <input type='hidden' name='opid' value='$opid' />\n
+              </p></form>\n";
+          }else{
+						$dHtml .= "<h3>{L_ERROR}</h3><p>{L_GAME_CONNECTION_ERROR0}</p>";
+						$dHtml .= "<h3 class=' '><a href='$this_page?game=$gameId&action=setWebserverpassword'>{L_GAME_WEBSERVERPASSWORD}</a></h3>";
+					}
+
+				}
+				$dHtml .= "<p><a href='$this_page?game=$gameId&action=admin'>{L_GAME_ADMIN_BACK}</a></p>";
+				$dHtml .= $mainpageLink;
+
+			}
+
 			if( $action === "replay" ){
 				$step = 0;
 				if( isset($_GET["step"] ) ){
@@ -752,16 +814,6 @@ function gameFull($game,$online /* False for preview during creation of new game
 							</p></form>
 							<p>{L_GAME_SHORT_NAMES_DESC}</p>\n";
 
-						$dHtml .= "<h3 class='hr pad'>{L_GAME_SET_AUTOSTART_FLAG}</h3>";
-						$dHtml .= "<p>{L_GAME_NOTES_AUTOSTART}</p>";
-						$dHtml .= "<a href='$this_page?game=$gameId&action=admin&opid=$opid&step=5&value=1'>{L_GAME_AUTOSTART_ENABLE}</a> ";
-						$dHtml .= "<a href='$this_page?game=$gameId&action=admin&opid=$opid&step=5&value=0'>{L_GAME_AUTOSTART_DISABLE}</a><br>";
-
-						$dHtml .= "<h3 class='hr pad'>{L_GAME_SET_HEADLESS_FLAG}</h3>";
-						$dHtml .= "<p>{L_GAME_NOTES_HEADLESS}</p>";
-						$dHtml .= "<a href='$this_page?game=$gameId&action=admin&opid=$opid&step=7&value=1'>{L_GAME_HEADLESS_ENABLE}</a> ";
-						$dHtml .= "<a href='$this_page?game=$gameId&action=admin&opid=$opid&step=7&value=0'>{L_GAME_HEADLESS_DISABLE}</a><br>";
-
 						$dHtml .= "<h3 class='hr pad'>{L_GAME_PLAYER_PASSWORD_CHANGE}</h3>";
 						$dHtml .= "<p>{L_GAME_NOTES_PLAYER_PASSWORD}</p>";
 						$dHtml .= "<form action='$this_page' method='get'>\n
@@ -781,6 +833,18 @@ function gameFull($game,$online /* False for preview during creation of new game
 							<input type='hidden' name='step' value='6' />\n
 							<input type='hidden' name='opid' value='$opid' />\n
 							</form>\n";
+
+						$dHtml .= "<h3 class=' '><a href='$this_page?game=$gameId&action=kick&opid=$opid'>{L_GAME_KICK}</a></h3>";
+
+						$dHtml .= "<h3 class='hr pad'>{L_GAME_SET_AUTOSTART_FLAG}</h3>";
+						$dHtml .= "<p>{L_GAME_NOTES_AUTOSTART}</p>";
+						$dHtml .= "<a href='$this_page?game=$gameId&action=admin&opid=$opid&step=5&value=1'>{L_GAME_AUTOSTART_ENABLE}</a> ";
+						$dHtml .= "<a href='$this_page?game=$gameId&action=admin&opid=$opid&step=5&value=0'>{L_GAME_AUTOSTART_DISABLE}</a><br>";
+
+						$dHtml .= "<h3 class='hr pad'>{L_GAME_SET_HEADLESS_FLAG}</h3>";
+						$dHtml .= "<p>{L_GAME_NOTES_HEADLESS}</p>";
+						$dHtml .= "<a href='$this_page?game=$gameId&action=admin&opid=$opid&step=7&value=1'>{L_GAME_HEADLESS_ENABLE}</a> ";
+						$dHtml .= "<a href='$this_page?game=$gameId&action=admin&opid=$opid&step=7&value=0'>{L_GAME_HEADLESS_DISABLE}</a><br>";
 
 						$dHtml .= "<h3 class='hr pad'>{L_GAME_ADVANCED_SETTINGS}</h3><div style='padding-left:2em'>";
 						$dHtml .= "<h3 class=''><a href='$this_page?game=$gameId&action=color'>{L_GAME_COLOR}</a></h3>";

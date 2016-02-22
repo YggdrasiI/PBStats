@@ -470,6 +470,16 @@ def game_manage(request, game_id, action=""):
                 context['set_color_message'] = form.cleaned_data['player'].name
                 return render_game_manage_color(request, game, context)
             context['set_player_color_form'] = form
+        elif action == 'kick':
+            playerId = int(request.POST.get("id", -1))
+            if playerId > -1:
+                try:
+                    game.pb_kick(playerId, request.user)
+                    return HttpResponse('player kicked.', status=200)
+                except InvalidPBResponse:
+                    return HttpResponseBadRequest('Kicking of player %d failed.' % (playerId,))
+
+            return HttpResponse('Cannot kick player. Wrong player id.', status=200)
         else:
             return HttpResponseBadRequest('bad request')
 
@@ -479,6 +489,8 @@ def game_manage(request, game_id, action=""):
         return render_game_manage_color(request, game, context)
     elif action == 'load':
         return render_game_manage_load(request, game, context)
+    elif action == 'kick':
+        return render_game_manage_kick(request, game, context)
     elif action == 'motd':
         return render_game_manage_motd(request, game, context)
 
@@ -507,6 +519,12 @@ def render_game_manage_load(request, game, context):
     context['load_form'] = GameManagementLoadForm(load_choices)
     context['players_online'] = game.get_online_players()
     return render(request, 'pbspy/game_manage_load.html', context)
+
+
+def render_game_manage_kick(request, game, context):
+    context['players'] = list(game.player_set.all().order_by('id'))
+    context['players_online'] = game.get_online_players()
+    return render(request, 'pbspy/game_manage_kick.html', context)
 
 
 def render_game_manage_motd(request, game, context):

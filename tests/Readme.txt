@@ -34,7 +34,7 @@ Civ4BeyondSword_Pitboss2014.exe:
 	civ4bts.natneg2.g.zulan.net
 	civ4bts.natneg3.g.zulan.net
 	civ4bts.available.g.zulan.net
-	motd.g.zulan.net ( For http lookup. Server replys '404' )
+	motd.g.zulan.net ( For http lookup. Server replies '404' )
 
 
 Civ4BeyondSword2014.exe.patch:

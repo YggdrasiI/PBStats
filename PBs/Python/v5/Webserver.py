@@ -485,6 +485,20 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                     {'return': 'fail', 'info':
                                      'Passwort change failed.'}) + "\n")
 
+                    elif(action == "kickPlayer" and inputdata.get("password") == pbSettings["webserver"]["password"]):
+                        playerId = int(inputdata.get("playerId", -1))
+                        if playerId > -1:
+                            PB.kick(playerId)
+                            self.wfile.write(simplejson.dumps(
+                                {'return': 'ok', 'info':
+                                 'Player ' + str(playerId) + ' was kicked."'})
+                                + "\n")
+                        else:
+                            self.wfile.write(
+                                simplejson.dumps(
+                                    {'return': 'fail', 'info':
+                                     'Wrong player id for kicking.'}) + "\n")
+
                     elif(action == "setPlayerColor" and inputdata.get("password") == pbSettings["webserver"]["password"]):
                         playerId = int(inputdata.get("playerId", -1))
                         colorId = int(inputdata.get("colorId", -1))

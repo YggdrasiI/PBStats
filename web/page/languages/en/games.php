@@ -112,6 +112,10 @@ $lang['game_wbsave'] = "Create Worldbuilder Savegame";
 $lang['game_replay'] = "Display Replay";
 $lang['game_advanced_settings'] = "Advanced Settings";
 
+$lang['game_kick'] = "Kick player";
+$lang['game_kick_desc'] = "Set slot status to AI.";
+$lang['game_kick_successful'] = "Player %d was kicked.";
+
 // Log messages
 $lang['log_player_change_name'] = "Changed name to %s.";
 $lang['log_player_score_increased'] = "Score increased to %s.";

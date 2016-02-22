@@ -366,6 +366,10 @@ class Game(models.Model):
                          filename=filename).save()
         return result
 
+    def pb_kick(self, playerId, user=None):
+        result = self.pb_action(action='kickPlayer', playerId=int(playerId))
+        return result
+
     def pb_set_current_turn_timer(self, hours, minutes, seconds, user=None):
         return self.pb_action(action='setCurrentTurnTimer', hours=int(hours),
                               minutes=int(minutes), seconds=int(seconds))

@@ -65,7 +65,7 @@ During the first startup the **seed** directory will be copied to the ALTROOT pa
 Now, the example save should load and the PB window pops up.
     * Note that the startup of the pitboss window is capsuled into a loop. Thus, the game will restart if you close the window. Use Ctrl+C to abort the script. 
     * Set the autostart flag in **pbSettings.json** to 0 to setup a new game in the wizzard dialog.
-Update the saved password in **pbSettings.json**, if you active auto starting!
+Update the saved password in **pbSettings.json**, if you activate auto starting!
 
 2. (Windows)
 For Windows users exists the script **startPitboss.bat**. The script contains two sample setups for the games 'PB1' and 'PB2'.
