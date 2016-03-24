@@ -187,6 +187,8 @@ HANDLE WINAPI MyCreateFileA(
 #ifdef SKIP_HOSTNAME_VERIFICATION
 					curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 #endif
+                    /* Timeout to give server more time to create the save file. */
+                    Sleep(2000);
 
 					/* Perform the request, res will get the return code */
 					res = curl_easy_perform(curl);
