@@ -13,7 +13,7 @@ fix_upload_bug/watchdog:
 SaveOverHttp:
 	Speed up the save game tranfer to lower the
 	login times. ( Without these changes is the
-	bandwidth limited to 1024kb/s! )
+	bandwidth limited to 1024b/s! )
 
 
 Civ4BeyondSword2015.exe:
