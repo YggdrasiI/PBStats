@@ -6,78 +6,87 @@
     <h1 id="game_name">{{ game.name }}</h1>
 
     <div id="game_summary">
-      {% if can_manage %}
-      (<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
-	  (<a href="{% url 'game_change' game.id %}">edit game</a>)
-      {% endif %}
-      <div id="game_metadata">
+    {% if can_manage %}
+        (<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
+        (<a href="{% url 'game_change' game.id %}">edit game</a>)
+    {% endif %}
+    <div id="game_metadata">
         <h2>{% trans "game status" %}</h2>
+
         <div class="game_metadata">
-          <p class="game_info">{% trans "Turn" %}: {{ game.turn|default_if_none:_("n/a") }}<br/>{% trans "Year" %}: {{ game.year_str|default:_("n/a") }}</p>
-          {% if not game.is_finished %}
-            <p class="game_info">
-              {% blocktrans with players=game.player_count finished=game.player_finished_count %}{{ finished }} of {{ players }} players have finished their turn.{% endblocktrans %}<br/>
-              {% if game.is_paused %}
-                  {% trans "The game is paused." %}
-              {% else %}
-                  {% trans "The game is not paused." %}
-			  {% endif %}
+            <p class="game_info">{% trans "Turn" %}: {{ game.turn|default_if_none:_("n/a") }}<br/>{% trans "Year" %}: {{ game.year_str|default:_("n/a") }}
             </p>
-              {% if game.timer %}
-                  <p class="game_info">
+            {% if not game.is_finished %}
+                <p class="game_info">
+                    {% blocktrans with players=game.player_count finished=game.player_finished_count %}{{ finished }} of
+                        {{ players }} players have finished their turn.{% endblocktrans %}<br/>
+                    {% if game.is_paused %}
+                        {% trans "The game is paused." %}
+                    {% else %}
+                        {% trans "The game is not paused." %}
+                    {% endif %}
+                </p>
+                {% if game.timer %}
+                    <p class="game_info">
                                 <span style="text-align:right;display:inline-block;">{% trans "Timer" %}:
-                    {% blocktrans with end=game.timer_end|timeuntil end_rt=game.timer_end_realtime|timeuntil %}Turn ends in {{ end }} (ingame), {{ end_rt }} (realtime).{% endblocktrans %}<br/>
+                                    {% blocktrans with end=game.timer_end|timeuntil end_rt=game.timer_end_realtime|timeuntil %}
+                                        Turn ends in {{ end }} (ingame), {{ end_rt }} (realtime).{% endblocktrans %}
+                                    <br/>
                                             </span><br/>
-                      {% trans "Turn timer" %}:
-                    {% blocktrans with hours=game.timer_max_h %}{{ hours }} hours per turn.{% endblocktrans %}
-                  </p>
-              {% else %}
-                  <p class="game_info">{% trans "No timer set." %}:</p>
-              {% endif %}
-          {% endif %}
-          <p class="game_info">
-              {% if game.mod_name %}
-							{% trans "Name of modification"%}: {{ game.mod_name }}
-              {% endif %}
-          </p>
-          <p class="game_info">
-              {% trans "Admins for this game" %}: {{ game.admins.all | join:", " }}
-          </p>
-          <p class="game_info">
-              {% if game.is_finished %}
-                  {% trans "The game is finished." %}
-              {% elif game.is_online %}
-                  {% trans "The game server is available." %}
-              {% else %}
-                  {% trans "The game server is offline." %}
-									<a href="{% url 'game_detail' game.id %}?refresh=1">Retry to connect</a>
-              {% endif %}
-							{% blocktrans with last_activity=game.get_last_activity %}
-							(Last connection attempt to PB Server: {{ last_activity }})
-							{% endblocktrans %}
-          </p>
-{% if user.is_authenticated %}
-          <p class="game_info">
-      {% if not user in game.subscribed_users.all %}
-             <form method="post" action="{% url 'game_subscribe' game.id %}">
-                 {% csrf_token %}
-                 <span><input type="submit" value="{% trans "subscribe to new turn emails for this game" %}" /></span>
-             </form>
-      {% else %}
-             <form method="post" action="{% url 'game_unsubscribe' game.id %}">
-                 {% csrf_token %}
-                 {% trans "You are currently receiving new turn emails for this." %}
-                 <span><input type="submit" value="{% trans "unsubscribe" %}" /></span>
-             </form>
-      {% endif %}
-          </p>
-{% endif %}
+                        {% trans "Turn timer" %}:
+                        {% blocktrans with hours=game.timer_max_h %}{{ hours }} hours per turn.{% endblocktrans %}
+                    </p>
+                {% else %}
+                    <p class="game_info">{% trans "No timer set." %}:</p>
+                {% endif %}
+            {% endif %}
+            <p class="game_info">
+                {% if game.mod_name %}
+                    {% trans "Name of modification" %}: {{ game.mod_name }}
+                {% endif %}
+            </p>
+
+            <p class="game_info">
+                {% trans "Admins for this game" %}: {{ game.admins.all | join:", " }}
+            </p>
+
+            <p class="game_info">
+                {% if game.is_finished %}
+                    {% trans "The game is finished." %}
+                {% elif game.is_online %}
+                    {% trans "The game server is available." %}
+                {% else %}
+                    {% trans "The game server is offline." %}
+                    <a href="{% url 'game_detail' game.id %}?refresh=1">Retry to connect</a>
+                {% endif %}
+                {% blocktrans with last_activity=game.get_last_activity %}
+                    (Last connection attempt to PB Server: {{ last_activity }})
+                {% endblocktrans %}
+            </p>
+            {% if user.is_authenticated %}
+                <p class="game_info">
+                    {% if not user in game.subscribed_users.all %}
+                        <form method="post" action="{% url 'game_subscribe' game.id %}">
+                            {% csrf_token %}
+                            <span><input type="submit"
+                                         value="{% trans "subscribe to new turn emails for this game" %}"/></span>
+                        </form>
+                    {% else %}
+                        <form method="post" action="{% url 'game_unsubscribe' game.id %}">
+                            {% csrf_token %}
+                            {% trans "You are currently receiving new turn emails for this." %}
+                            <span><input type="submit" value="{% trans "unsubscribe" %}"/></span>
+                        </form>
+                    {% endif %}
+                </p>
+            {% endif %}
         </div>
         <div class="game_url"><a href="{{ game.url }}">{{ game.url }}</a></div>
-      </div>
+    </div>
 
-      <div id="game_description">
+    <div id="game_description">
         <h2>{% trans "game description" %}</h2>
+
         <div class="game_description">
             <pre>
                 {{ game.description }}
@@ -90,42 +99,43 @@
         {% if players %}
             <table class='game_players'>
                 <tr>
-                  <th class="colFinish">
-                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.finished }}#game_players">⌛</a>
-                  </th>
-                  <th class="colId"  >
-                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.id }}#game_players">Id</a>
-                  </th>
-                  <th class="colName"    >
-                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.name}}#game_players">{% trans "Name" %}</a></th>
-                  <th class="colLeader"  >
-                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.leader}}#game_players">{% trans "Leader" %}</a>
-                  </th>
-                  <th class="colColor"> </th>
-                  <th class="colNation"  >
-                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.civ}}#game_players">{% trans "Nation" %}</a>
-                  </th>
-                  <th class="colScore"  >
-                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.score}}#game_players">{% trans "Score" %}</a>
-                  </th>
-                  <th class="colStatus"  >
-                    <a href="{% url 'game_detail' game.id %}?player_order={{ orders.status}}#game_players">{% trans "Status" %}</a>
-                  </th>
+                    <th class="colFinish">
+                        <a href="{% url 'game_detail' game.id %}?player_order={{ orders.finished }}#game_players">⌛</a>
+                    </th>
+                    <th class="colId">
+                        <a href="{% url 'game_detail' game.id %}?player_order={{ orders.id }}#game_players">Id</a>
+                    </th>
+                    <th class="colName">
+                        <a href="{% url 'game_detail' game.id %}?player_order={{ orders.name }}#game_players">{% trans "Name" %}</a>
+                    </th>
+                    <th class="colLeader">
+                        <a href="{% url 'game_detail' game.id %}?player_order={{ orders.leader }}#game_players">{% trans "Leader" %}</a>
+                    </th>
+                    <th class="colColor"></th>
+                    <th class="colNation">
+                        <a href="{% url 'game_detail' game.id %}?player_order={{ orders.civ }}#game_players">{% trans "Nation" %}</a>
+                    </th>
+                    <th class="colScore">
+                        <a href="{% url 'game_detail' game.id %}?player_order={{ orders.score }}#game_players">{% trans "Score" %}</a>
+                    </th>
+                    <th class="colStatus">
+                        <a href="{% url 'game_detail' game.id %}?player_order={{ orders.status }}#game_players">{% trans "Status" %}</a>
+                    </th>
                 </tr>
                 {% for player in players %}
-                <tr>
-                      <td class="colFinish"  >{% if player.finished_turn %}*{% endif %}</td>
-                      <td class="colId">
-                          {{ player.ingame_id }}</td>
-                      <td class="colName"    >
-                        <a href="{% url 'game_detail' game.id %}?player_id={{ player.ingame_id}}#game_log">
-                          {{ player.name }}</a>
-                      </td>
-                      <td class="colLeader"  >{{ player.leader }}</td>
-                      <td class="colColor" style="color:rgb({{ player.color_rgb }});" >✖</td>
-                      <td class="colNation"  >{{ player.civilization }}</td>
-                      <td class="colScore"  >{{ player.score }}</td>
-                      <td class="colStatus"  >{{ player.status }}</td>
+                    <tr>
+                        <td class="colFinish">{% if player.finished_turn %}*{% endif %}</td>
+                        <td class="colId">
+                            {{ player.ingame_id }}</td>
+                        <td class="colName">
+                            <a href="{% url 'game_detail' game.id %}?player_id={{ player.ingame_id }}#game_log">
+                                {{ player.name }}</a>
+                        </td>
+                        <td class="colLeader">{{ player.leader }}</td>
+                        <td class="colColor" style="color:rgb({{ player.color_rgb }});">✖</td>
+                        <td class="colNation">{{ player.civilization }}</td>
+                        <td class="colScore">{{ player.score }}</td>
+                        <td class="colStatus">{{ player.status }}</td>
                     </tr>
                 {% endfor %}
             </table>
@@ -136,57 +146,60 @@
 
     <h2>{% trans "game log" %}</h2>
     <div id="game_log">
-            <div id="game_log_filter">
-              <h3>Change game log filter</h3>
-							<form method="post" action="{% url 'game_detail' game.id %}?player_order={{ orders.current }}#game_log">
+        <div id="game_log_filter">
+            <h3>Change game log filter</h3>
+
+            <form method="post" action="{% url 'game_detail' game.id %}?player_order={{ orders.current }}#game_log">
                 {% csrf_token %}
                 {{ log_filter_form.as_p }}
-								<input type='submit' value='{% trans "Change filter" %}'>
-              </form>
-              <h3>Save current filter</h3>
-							<form method="post" action="{% url 'game_save_filter' game.id %}#game_log">
+                <input type='submit' value='{% trans "Change filter" %}'>
+            </form>
+            <h3>Save current filter</h3>
+
+            <form method="post" action="{% url 'game_save_filter' game.id %}#game_log">
                 {% csrf_token %}
                 {{ log_filter_save_form.as_p }}
-								<input type='submit' value='{% trans "Save" %}'>
-              </form>
-              <h3>Saved filters</h3>
-              <ul id="game_log_saved_filter_list">
-              {% for filter_name in log_filter_save_list %}
-              <li><a href="{% url 'game_load_filter' game.id filter_name %}#game_log">{{ filter_name }}</a>
-              <a href="{% url 'game_remove_filter' game.id filter_name %}#game_log">✘</a>
-              </li>
-              {% endfor %}
-              </ul>
-            </div>
-						<div id="timezone_selector">
-							<p><label>{% trans "Timezone" %}:</label>
-							<select onClick="getTimezoneList('{% url "set_timezone" %}', this,'{{ timezone }}');">
-								<option value="{{ timezone }}">{{ timezone }}</option>
-							</select>
-							</p>
-<p>{% trans "Actual timezone" %}: {{ timezone_actual }}</p>
-<p>{% trans "Server time" %}: {% now "TIME_FORMAT" %}</p>
-						</div>
+                <input type='submit' value='{% trans "Save" %}'>
+            </form>
+            <h3>Saved filters</h3>
+            <ul id="game_log_saved_filter_list">
+                {% for filter_name in log_filter_save_list %}
+                    <li><a href="{% url 'game_load_filter' game.id filter_name %}#game_log">{{ filter_name }}</a>
+                        <a href="{% url 'game_remove_filter' game.id filter_name %}#game_log">✘</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div id="timezone_selector">
+            <p><label>{% trans "Timezone" %}:</label>
+                <select onClick="getTimezoneList('{% url "set_timezone" %}', this,'{{ timezone }}');">
+                    <option value="{{ timezone }}">{{ timezone }}</option>
+                </select>
+            </p>
+            <p>{% trans "Actual timezone" %}: {{ timezone_actual }}</p>
+
+            <p>{% trans "Server time" %}: {% now "TIME_FORMAT" %}</p>
+        </div>
         {% if log %}
             <table class='game_log'>
-							<tr>
+                <tr>
                     <th class="colDate">{% trans "Time" %}</th>
                     <th class="colTurn">{% trans "Turn" %}</th>
                     <th class="colPlayer">{% trans "Player" %}</th>
                     <th class="colEvent">{% trans "Event" %}</th>
                 </tr>
-            {% for logentry in log %}
-              {% if can_manage or logentry.is_public %}
-                <tr class="log{{ logentry.get_log_name }}">
-                    <td class="colDate">{{ logentry.date | log_date_privacy:14 }}</td>
-                    <td class="colTurn">{{ logentry.turn }}</td>
-                    <td class="colPlayer">{{ logentry | log_player_privacy:14 }}</td>
-                    {% autoescape off %}
-                    <td class="colEvent">{{ logentry.message }}</td>
-                    {% endautoescape %}
-                </tr>
-              {% endif %}
-            {% endfor %}
+                {% for logentry in log %}
+                    {% if can_manage or logentry.is_public %}
+                        <tr class="log{{ logentry.get_log_name }}">
+                            <td class="colDate">{{ logentry.date | log_date_privacy:14 }}</td>
+                            <td class="colTurn">{{ logentry.turn }}</td>
+                            <td class="colPlayer">{{ logentry | log_player_privacy:14 }}</td>
+                            {% autoescape off %}
+                                <td class="colEvent">{{ logentry.message }}</td>
+                            {% endautoescape %}
+                        </tr>
+                    {% endif %}
+                {% endfor %}
             </table>
         {% else %}
             <p>{% trans "No game log entry available yet." %}</p>

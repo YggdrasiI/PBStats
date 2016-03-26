@@ -4,27 +4,29 @@
 {% block content %}
     <div id="game_management">
         <h1 id="game_name">Management for {{ game.name }}</h1>
-				(<a href="{% url 'game_detail' game.id %}">game overview</a>)
-				(<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
-				(<a href="{% url 'game_change' game.id %}">edit game</a>)
-				{% if players_online|length > 0  %}
+        (<a href="{% url 'game_detail' game.id %}">game overview</a>)
+        (<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
+        (<a href="{% url 'game_change' game.id %}">edit game</a>)
+        {% if players_online|length > 0 %}
+            <div class="game_management_section">
+                <h2>{% trans "Warning" %}</h2>
+
+                <p>
+                    {% blocktrans with num_players=players_online|length plural=players_online|length|pluralize:" is,s are" %}
+                        Currently, {{ num_players }} player{{ plural }} logged in.<br\>
+                    {% endblocktrans %}
+                </p>
+            </div>
+        {% endif %}
         <div class="game_management_section">
-					<h2>{% trans "Warning" %}</h2>
-					<p>
-					{% blocktrans with num_players=players_online|length plural=players_online|length|pluralize:" is,s are" %}
-					Currently, {{ num_players }} player{{ plural }} logged in.<br\>
-					{% endblocktrans %}
-					</p>
-				</div>
-				{% endif %}
-        <div class="game_management_section">
-          <h2>{% trans "load game" %}</h2>
-					<span class="description">{% trans "Mostly saves are protected by an admin password. The password is deposited in the configuration file 'pbSettings.json' and can not be modified over the webinterface. Thus, you should only load saves with same password." %}</span>
-             <form method="post" action="{% url 'game_manage' game.id 'load' %}">
-                 {% csrf_token %}
-                 <table>{{ load_form }}</table>
-                 <span><input type="submit" value="{% trans "load game" %}" /></span>
-             </form>
+            <h2>{% trans "load game" %}</h2>
+            <span class="description">{% trans "Mostly saves are protected by an admin password. The password is deposited in the configuration file 'pbSettings.json' and can not be modified over the webinterface. Thus, you should only load saves with same password." %}</span>
+
+            <form method="post" action="{% url 'game_manage' game.id 'load' %}">
+                {% csrf_token %}
+                <table>{{ load_form }}</table>
+                <span><input type="submit" value="{% trans "load game" %}"/></span>
+            </form>
         </div>
     </div>
 {% endblock %}

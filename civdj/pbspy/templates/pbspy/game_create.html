@@ -2,16 +2,18 @@
 {% load i18n %}
 
 {% block content %}
-<div class="game_management_section">
-<h1 id="game_name">Registration of new game</h1>
-<p>Please enter the following information to register a new PitBoss game.</p>
- <form method="post" action="">
-{% csrf_token %}
-<table>
-    {{ form.as_table }}
-</table>
-<input type="submit" value="{% trans "register" %}" />
-</form>
-</div>
+    <div class="game_management_section">
+        <h1 id="game_name">Registration of new game</h1>
+
+        <p>Please enter the following information to register a new PitBoss game.</p>
+
+        <form method="post" action="">
+            {% csrf_token %}
+            <table>
+                {{ form.as_table }}
+            </table>
+            <input type="submit" value="{% trans "register" %}"/>
+        </form>
+    </div>
 
 {% endblock %}
