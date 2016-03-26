@@ -1,5 +1,7 @@
 #include <windows.h>
 #include <iostream>
+#include <string.h>
+#include <string>
 
 
 #include "MinHook.h"
@@ -25,14 +27,18 @@ GETFILEATTRIBUTESA fpGetFileAttributesA = NULL;
 static const char EXTENSION[] = _T(".CivBeyondSwordSave");
 static const int EXTENSION_LEN = STRLEN(EXTENSION); //19; //with leading dot
 static const char PITBOSS[] = _T("\\pitboss\\");
-static const char URL[] = _T("_url_");
-static const char HTTPS[] = _T("https://");
-static const char HTTP[] = _T(" http");
 static const char TMP_NAME[] = _T("Pitboss.CivBeyondSwordSave");
+
+static std::string str_extension = std::string(".CivBeyondSwordSave");
+static std::string str_pitboss = std::string("\\pitboss\\");
+static std::string str_url_prefix1 = std::string("_http_");
+static std::string str_url_prefix2 = std::string("_https_");
+static std::string str_url_prefix3 = std::string("_url_"); //deprecated syntax. Will be handled like https case.
+//static std::string str_tmp_save_name = std::string("Pitboss.CivBeyondSwordSave");
 
 #define MAX_TMP_NAME_LEN 256
 char filePath[MAX_TMP_NAME_LEN];
-char* last_cached_file = NULL;
+static std::string str_last_cached_file = std::string();
 bool flush_last_cached_file = false;
 
 // for curl file handling
@@ -87,163 +93,144 @@ HANDLE WINAPI MyCreateFileA(
 	}
 
 
-	// Check if filename maps to pitboss savegame
-	// Try to download it.
+	// Check if filename maps to pitboss savegame.
+  // I've check the strings directly with strncmp to made it lightweight.
 	int fnLen = strlen(lpFileName);
 
 	if( fnLen > EXTENSION_LEN &&
 			strncmp( lpFileName+fnLen-EXTENSION_LEN, EXTENSION, EXTENSION_LEN) == 0 &&
 			strstr( lpFileName, PITBOSS) != NULL
-		){
+    )
+  {
+    // Check if this file was already cached to omit multiple downloads.
+    if( !str_last_cached_file.empty() &&
+        0 == strncmp( lpFileName, str_last_cached_file.c_str(), fnLen)
+      )
+    {
+      // This is the last reading call for the save. Remove cached path
+      // to force reloading of savegame with the same url (second login).
+      if( flush_last_cached_file == true ){
+        str_last_cached_file.clear();
+        flush_last_cached_file = false;
+      }
+      if( 0 == gen_temp_file_path( filePath ) ){
+        return fpCreateFileA( filePath,
+            dwDesiredAccess,
+            dwShareMode,
+            lpSecurityAttributes,
+            dwCreationDisposition,
+            dwFlagsAndAttributes,
+            hTemplateFile );
+      }
+    }
 
-		// Check if this file was already cached
-		if( last_cached_file != NULL && 0 == strncmp( lpFileName, last_cached_file, fnLen) ){
 
-			// This is the last reading call for the save. Remove cached path
-			// to force reloading of savegame with the same url (second login).
-			if( flush_last_cached_file == true ){
-				free(last_cached_file); last_cached_file = NULL;
-				flush_last_cached_file = false;
-			}
-			if( 0 == gen_temp_file_path( filePath ) ){
-				return fpCreateFileA( filePath,
-						dwDesiredAccess,
-						dwShareMode,
-						lpSecurityAttributes,
-						dwCreationDisposition,
-						dwFlagsAndAttributes,
-						hTemplateFile );
-			}
-		}
+    // Try to download it.
+    CURL *curl;
+    char *curl_filename_encoded = NULL; // convert special chars
+    CURLcode res;
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    curl = curl_easy_init();
 
+    // Extract url domain from {...}_http[s]_{server}\{...}
+    // and store result in str_url, i.e. "http://localhost".
+    std::string str_filename = std::string(lpFileName);
+    int protocol(-1);
+    size_t urlBegin(std::string::npos);
+    size_t urlEnd(std::string::npos);
+    std::string str_url = std::string();
+    if( std::string::npos != (urlBegin = str_filename.find(str_url_prefix1)) ){
+      // HTTP transfer
+      protocol = 0;
+      str_url.append("http://");
+      urlBegin += str_url_prefix1.size();
+      urlEnd = str_filename.find('\\', urlBegin);
+      str_url.append(str_filename, urlBegin, urlEnd-urlBegin);
+    }else if( std::string::npos != (urlBegin = str_filename.find(str_url_prefix2)) ){
+      // HTTPS transfer
+      protocol = 1;
+      str_url.append("https://");
+      urlBegin += str_url_prefix2.size();
+      urlEnd = str_filename.find('\\', urlBegin);
+      str_url.append(str_filename, urlBegin, urlEnd-urlBegin);
+    }else if( std::string::npos != (urlBegin = str_filename.find(str_url_prefix3)) ){
+      // HTTPS transfer
+      protocol = 1;
+      str_url.append("https://");
+      urlBegin += str_url_prefix3.size();
+      urlEnd = str_filename.find('\\', urlBegin);
+      str_url.append(str_filename, urlBegin, urlEnd-urlBegin);
+    }
 
-		CURL *curl;
-		char *filename_encoded = NULL; // convert special chars
-		CURLcode res;
-		curl_global_init(CURL_GLOBAL_DEFAULT);
-		curl = curl_easy_init();
+    if( curl != NULL && protocol > -1 ){
+      // Construct download url.
+      // Format: "http://{server}/PBx/Saves/pitboss/auto/Recovery_{nick}.CivBeyondSwordSave
 
-		// Extract url from filepath
-		const char* _url_substr = strstr( lpFileName, URL);
-		if( _url_substr != NULL && curl != NULL ){
-			const char* urlBegin = _url_substr + 5;
-			const char * urlEnd = strchr( urlBegin, '\\');
-			if( urlEnd != NULL ){
+      size_t backslash_pos(str_url.size());
+      str_url.append("/");
+      str_url.append(str_filename, urlEnd+1, str_filename.size()-urlEnd-1);
 
-				// Construct download url
-				//const char url[] = _T("http://{server}/PBx/Saves/pitboss/auto/Recovery_{nick}.CivBeyondSwordSave");
-				const unsigned int server_len = (urlEnd-urlBegin);
-				const unsigned int filename_len = ( fnLen - ( urlEnd - lpFileName ) - 1 );
+      //Replace backslashes by slashes
+      while( std::string::npos != (backslash_pos = str_url.find('\\', backslash_pos))){
+        str_url[backslash_pos] = '/';
+      }
 
-				const unsigned int url_len = STRLEN( HTTPS ) // ' http://' or 'https://'
-					+ server_len + 1 // '{server}', '/'
-					+ filename_len + 1; // 'PBx/Saves/pitboss/[auto/]filename', '\0'
+      // Use curl function to encode special chars and space in the filename.
+      // filename is the substring after the latest slash.
+      size_t slash_pos = str_url.rfind('/');
+      if( std::string::npos != slash_pos){
+        if( curl_filename_encoded != NULL){
+          free(curl_filename_encoded); curl_filename_encoded = NULL;
+        }
+        curl_filename_encoded = curl_easy_escape(curl, str_url.c_str()+slash_pos+1, 0);
+        str_url.replace( slash_pos+1,
+            str_url.size()-slash_pos-1,
+            curl_filename_encoded);
+      }
 
-				char* url = (char*) malloc( url_len * sizeof(char) );
-				memcpy( url, HTTPS, STRLEN(HTTPS) );
-				memcpy( url+STRLEN(HTTPS), urlBegin, server_len );
-				url[STRLEN(HTTPS)+server_len] = '/';
-				memcpy( url+STRLEN(HTTPS)+server_len+1, urlEnd+1, filename_len );
-				url[url_len-1] = '\0'; // redundant but save
+      // Temp. target path for download
+      if( 0 == gen_temp_file_path( filePath ) ){
 
-				//Replace backslashes by slashes
-				char* backslash = (char*) strchr( url+STRLEN(HTTPS)+server_len+2, '\\');
-				while( NULL != backslash ){
-					*backslash = '/';
-					backslash = (char*) strchr( backslash+1, '\\');
-				}
-
-				// encode special chars and space after last slash
-				char* slash = (char*) strrchr( url+STRLEN(HTTPS)+server_len+2, '/');
-				if( NULL != slash ){
-					filename_encoded = curl_easy_escape(curl, slash+1, 0);
-				}else{
-					slash = url + strlen(url) - 1;
-				}
-
-				const unsigned int filename_encoded_len = strlen(filename_encoded);
-				const unsigned int url_path_len = (slash-url) + 1;
-
-				// Well, not the whole url is encoded, but the filename...
-				// +1 for \0
-				char* url_encoded = (char*) malloc( (url_path_len+filename_encoded_len+1) * sizeof(char) );
-				memcpy( url_encoded, url, url_path_len);
-				memcpy( url_encoded+url_path_len, filename_encoded, filename_encoded_len);
-				*(url_encoded+url_path_len+filename_encoded_len) = '\0';
-				curl_free(filename_encoded);
-
-				// Target path for download
-				if( 0 == gen_temp_file_path( filePath ) ){
-
-					// Try https and http
-					struct DownloadFile downloadFile={ filePath, NULL };
-					curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, my_fwrite);
-					curl_easy_setopt(curl, CURLOPT_WRITEDATA, &downloadFile);
-					curl_easy_setopt(curl, CURLOPT_URL, url_encoded);
+        // Try https and http
+        struct DownloadFile downloadFile={ filePath, NULL };
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, my_fwrite);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &downloadFile);
+        curl_easy_setopt(curl, CURLOPT_URL, str_url.c_str());
 
 #ifdef SKIP_PEER_VERIFICATION
-					curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 #endif
 #ifdef SKIP_HOSTNAME_VERIFICATION
-					curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 #endif
 
-					/* Perform the request, res will get the return code */
-					res = curl_easy_perform(curl);
+        /* Perform the request, res will get the return code */
+        res = curl_easy_perform(curl);
 
-					/* Check for errors */
-					if(res != CURLE_OK){
-						// https failed
-						fprintf(stderr, "curl_easy_perform() failed: %s\n",
-								curl_easy_strerror(res));
+        /* always cleanup */
+        curl_easy_cleanup(curl);
+        if(downloadFile.stream){
+          fclose(downloadFile.stream);
+          downloadFile.stream = NULL;
+        }
 
-						/* always cleanup */
-						curl_easy_cleanup(curl);
-						if(downloadFile.stream){
-							fclose(downloadFile.stream);
-							downloadFile.stream = NULL;
-						}
+        if(res == CURLE_OK){
+          str_last_cached_file = str_filename;
+          curl_global_cleanup();
 
-						// Try http:// instead of https://
-						memcpy( url_encoded, HTTP, STRLEN(HTTP) );
+          return fpCreateFileA( filePath,
+              dwDesiredAccess,
+              dwShareMode,
+              lpSecurityAttributes,
+              dwCreationDisposition,
+              dwFlagsAndAttributes,
+              hTemplateFile );
 
-						curl_easy_setopt(curl, CURLOPT_URL, url_encoded+1);
-						res = curl_easy_perform(curl);
-					}
-
-					/* always cleanup */
-					curl_easy_cleanup(curl);
-					if(downloadFile.stream){
-						fclose(downloadFile.stream);
-						downloadFile.stream = NULL;
-					}
-
-					if(res == CURLE_OK){
-
-						free(last_cached_file);
-						last_cached_file = (char*) malloc( fnLen * sizeof(char) );
-						memcpy( last_cached_file, lpFileName, fnLen * sizeof(char) );
-
-						free(url_encoded); url_encoded = NULL;
-						free( url ); url = NULL;
-						curl_global_cleanup();
-
-						return fpCreateFileA( filePath,
-								dwDesiredAccess,
-								dwShareMode,
-								lpSecurityAttributes,
-								dwCreationDisposition,
-								dwFlagsAndAttributes,
-								hTemplateFile );
-
-					}
-				}
-				free(url_encoded); url_encoded = NULL;
-				free( url ); url = NULL;
-			}
-		}
-		curl_global_cleanup();
-	}
+        }
+      }
+    }
+    curl_global_cleanup();
+}
 
 	// Normal case
 	return fpCreateFileA( lpFileName,
@@ -259,8 +246,8 @@ HANDLE WINAPI MyCreateFileA(
 DWORD WINAPI MyGetFileAttributesA(
 		_In_ LPCTSTR lpFileName
 		){
-	if( last_cached_file != NULL &&
-			0 == strncmp( lpFileName, last_cached_file, strlen(lpFileName) ) ){
+	if( !str_last_cached_file.empty() &&
+			0 == strncmp( lpFileName, str_last_cached_file.c_str(), strlen(lpFileName) ) ){
 		if( 0 == gen_temp_file_path( filePath ) ){
 			flush_last_cached_file = true;
 			return fpGetFileAttributesA( filePath );
