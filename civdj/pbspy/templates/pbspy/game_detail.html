@@ -5,7 +5,7 @@
 {% block content %}
     <h1 id="game_name">{{ game.name }}</h1>
 
-    <div id="game_summary"><a name="game_summary" ></a>
+    <div id="game_summary">
       {% if can_manage %}
       (<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
 	  (<a href="{% url 'game_change' game.id %}">edit game</a>)
@@ -85,7 +85,7 @@
         </div>
     </div>
 
-    <h2>{% trans "player summary" %}</h2><a name="game_players" ></a>
+    <h2>{% trans "player summary" %}</h2>
     <div id="game_players">
         {% if players %}
             <table class='game_players'>
@@ -134,7 +134,7 @@
         {% endif %}
     </div>
 
-    <h2>{% trans "game log" %}</h2><a name="game_log"></a>
+    <h2>{% trans "game log" %}</h2>
     <div id="game_log">
             <div id="game_log_filter">
               <h3>Change game log filter</h3>
@@ -152,7 +152,7 @@
               <h3>Saved filters</h3>
               <ul id="game_log_saved_filter_list">
               {% for filter_name in log_filter_save_list %}
-              <li><a href="{% url 'game_load_filter' game.id filter_name %}#game_log">{{ filter_name }}</a> 
+              <li><a href="{% url 'game_load_filter' game.id filter_name %}#game_log">{{ filter_name }}</a>
               <a href="{% url 'game_remove_filter' game.id filter_name %}#game_log">✘</a>
               </li>
               {% endfor %}
