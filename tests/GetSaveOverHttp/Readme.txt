@@ -30,18 +30,19 @@ into matching pairs.
 • Setup a webserver and prepare a folder for your PB saves and allow symlinks.
 Example path: /var/www/PBs
 
-• Create a folder which encodes the IP/url of your server. The syntax is "_url_[ip|url]".
-Move the Altroot folder into this directory.
-Example path: $HOME/_url_1.2.3.4/PBs/PB1.
+• Create a folder which encodes the IP/url of your server. The syntax is "_http_[ip|url]" (or "_https_[ip|url]").
+Move the Pitboss Altroot folder into this directory.
+Example path: $HOME/_http_1.2.3.4/PBs/PB1.
 
 => At runtime Civ4 will stores the save games into 
-Z:\home\$USERNAME\_url_1.2.3.4\PBs\PB1\Saves\pitboss\auto.
+Z:\home\$USERNAME\_http_1.2.3.4\PBs\PB1\Saves\pitboss\auto.
 
 • Create the directory /var/www/PBs/PB1/Save/ and place a symbolic link into the above pitboss directory.
 
 Now, the save games are public available. If a modified client connects, it converts
-_url_1.2.3.4/ into http[s]//1.2.3.4/ and try to download the file. If the download fails
-the save will transfered normally.
+_http_1.2.3.4/ into http://1.2.3.4/ and try to download the file
+http://1.2.3.4/PBs/PB1/Saves/pitboss/auto/Recovery_{nickname}.CivBeyondSwordSave.
+If the download fails the save will transfered normally.
 
 If it does not work re-check the setup of your paths.
 
@@ -53,5 +54,19 @@ Moreover, you need the following libraries:
 • Curl, https://github.com/bagder/curl
 
 
-Olaf Schulz, 2015
+=== P.S. ===
+Less flexible, but without any modifcation of the Civ4 executable, you could also mount the http folder with the saves into your local filesystem. If the save path on the client equals the path on the server it will be loaded over this way.
+
+Example set of paths for BTS_Wrapper.exe and Webdav usage:
+
+Public http folder with Webdav support: http://{server}/{prefix}
+Altroot directory on Server: /home/$USERNAME/_http_{server}/{path}/PBs/PB1.
+Save folder (Wine Syntax): Z:\home\$USERNAME\_http_{server}\{prefix}\PBs\PB1\Saves\pitboss\auto.
+Url of saves: http://{server}/{prefix}/home/$USERNAME/_http_{server}/{path}/PBs/PB1/Saves/pitboss/auto
+
+=>
+1. A BTS_Wrapper.exe user profits from the '_http_'-syntax. Civ4 download the save over http.
+2. If the user maps Z: drive  to http://{server}/{prefix} server and client share the same path syntax. Civ4 reads the save from Z:.
+
+Olaf Schulz, 2015/16
 
