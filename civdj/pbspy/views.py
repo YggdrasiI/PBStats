@@ -14,7 +14,7 @@ from pbspy.models import GameLogTurn, GameLogReload, GameLogMetaChange, GameLogT
     GameLogPause, GameLogServerTimeout, GameLogPlayer, GameLogLogin, GameLogLogout,\
     GameLogFinish, GameLogScore, GameLogNameChange, GameLogEliminated, GameLogAI,\
     GameLogClaimed, GameLogAdminAction, GameLogAdminSave, GameLogAdminPause, GameLogAdminEndTurn,\
-    GameLogForceDisconnect, GameLogMissedTurn
+    GameLogForceDisconnect, GameLogMissedTurn, GameLogCurrentTimerChanged
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -42,7 +42,7 @@ class GameListView(generic.ListView):
     def get_queryset(self):
         games_queryset = self.model.objects.filter(
             Q(is_private=False) | Q(admins__id=self.request.user.id),
-            ~Q(year=None)  # Filter out (fake) enties without connecection
+            ~Q(year=None)  # Filter out (fake) entries without connection
                 ).annotate(
                 player_count=Count('player', distinct=True)).order_by('-id')
 

@@ -371,6 +371,19 @@ class Game(models.Model):
         return result
 
     def pb_set_current_turn_timer(self, hours, minutes, seconds, user=None):
+        from_4s = self.timer_remaining_4s
+        to_4s = 4*(int(hours)*3600 + int(minutes)*60 + int(seconds))
+
+        # Update saved timestamp of game to omit reload message in log.
+        self.timer_remaining_4s = to_4s
+        self.save()
+
+        # Push log message (optional)
+        logargs = {'game': self, 'date': timezone.now(),
+                   'year': self.year, 'turn': self.turn}
+        GameLogCurrentTimerChanged(from_4s=from_4s, to_4s=to_4s,
+                                   **logargs).save()
+
         return self.pb_action(action='setCurrentTurnTimer', hours=int(hours),
                               minutes=int(minutes), seconds=int(seconds))
 
@@ -664,6 +677,25 @@ class GameLogTimerChanged(GameLog):
                 format(timer=self.timer_max_h)
         return _("turn timer disabled.")
 
+class GameLogCurrentTimerChanged(GameLog):
+    # Store old and new value of game.timer_remaining_4s
+    from_4s = models.PositiveSmallIntegerField(blank=True, null=True)
+    to_4s = models.PositiveSmallIntegerField(blank=True, null=True)
+
+    def message(self):
+        if self.from_4s is not None and self.to_4s is not None:
+            remaining_time = datetime.timedelta(seconds=round(self.from_4s / 4))
+            delta_time = datetime.timedelta(seconds=round((self.to_4s - self.from_4s) / 4))
+            timeargs = {
+                "remaining_h": int(remaining_time.total_seconds()/3600),
+                "remaining_m": int((remaining_time.total_seconds() % 3600)/60),
+                "delta_h": int(delta_time.total_seconds()/3600),
+                "delta_m": int((delta_time.total_seconds() % 3600)/60),
+            }
+            return _("current turn timer changed by {delta_h}h {delta_m}m\
+                     to {remaining_h}h {remaining_m}m.").\
+                format(**timeargs)
+        return _("remaining time of current turn has changed.")
 
 class GameLogPause(GameLog):
     paused = models.BooleanField(default=None)

@@ -3,8 +3,6 @@
 
 {% block content %}
     <div id="game_management">
-        <h1 id="game_name">Management for {{ game.name }}</h1>
-        (<a href="{% url 'game_detail' game.id %}">game overview</a>)
     <h1 id="game_name">Management for {{ game.name }}</h1>
     (<a href="{% url 'game_detail' game.id %}">game overview</a>)
     (<a href="{% url 'game_change' game.id %}">edit game</a>)
