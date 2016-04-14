@@ -2,27 +2,28 @@
 {% load i18n %}
 
 {% block content %}
-<div id="game_management">
-	<h1 id="game_name">Edit connection details for {{ game.name }}</h1>
-	(<a href="{% url 'game_detail' game.id %}">game overview</a>)
-	(<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
-	{% if game_no_connection %}
-	<h2>{% trans "warning" %}</h2>
-	<p>{% trans "Warning, connection to PB Server can not be etablished for this values." %}</p>
-	{% endif %}
-	{% if game_data_not_valid %}
-	<h2>{% trans "warning" %}</h2>
-	<p>{% trans "Warning, form contains errors and can not be saved." %}</p>
-	{% endif %}
-	<div class="game_management_section">
-		<h2>{% trans "game" %}</h2>
-		<form method="post" action="">
-			{% csrf_token %}
-			<table>
-				{{ form.as_table }}
-			</table>
-			<input type="submit" value="{% trans "update" %}" />
-		</form>
-	</div>
-</div>
+    <div id="game_management">
+        <h1 id="game_name">Edit connection details for {{ game.name }}</h1>
+        (<a href="{% url 'game_detail' game.id %}">game overview</a>)
+        (<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
+        {% if game_no_connection %}
+            <h2>{% trans "warning" %}</h2>
+            <p>{% trans "Warning, connection to PB Server can not be etablished for this values." %}</p>
+        {% endif %}
+        {% if game_data_not_valid %}
+            <h2>{% trans "warning" %}</h2>
+            <p>{% trans "Warning, form contains errors and can not be saved." %}</p>
+        {% endif %}
+        <div class="game_management_section">
+            <h2>{% trans "game" %}</h2>
+
+            <form method="post" action="">
+                {% csrf_token %}
+                <table>
+                    {{ form.as_table }}
+                </table>
+                <input type="submit" value="{% trans "update" %}"/>
+            </form>
+        </div>
+    </div>
 {% endblock %}

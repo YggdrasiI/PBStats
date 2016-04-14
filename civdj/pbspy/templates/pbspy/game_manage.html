@@ -5,128 +5,135 @@
     <div id="game_management">
         <h1 id="game_name">Management for {{ game.name }}</h1>
         (<a href="{% url 'game_detail' game.id %}">game overview</a>)
-				(<a href="{% url 'game_change' game.id %}">edit game</a>)
-        <p>Performed action: {{ action }}</p>
-        <div class="game_management_section_imploded">
-          <h2>{% trans "pause game" %}</h2>
-						 <span class="description">{% trans "Toggles the ingame pause. Useful to free users in hanging diplomatic screens." %}</span>
-            {% if game.is_paused %}
-             <form method="post" action="{% url 'game_manage' game.id 'pause_disable' %}">
-                 {% csrf_token %}
-                 <span><input type="submit" value="{% trans "unpause game" %}" /></span>
-             </form>
-            {% else %}
-             <form method="post" action="{% url 'game_manage' game.id 'pause_enable' %}">
-                 {% csrf_token %}
-                 <span><input type="submit" value="{% trans "pause game" %}" /></span>
-             </form>
-            {% endif %}
+    <h1 id="game_name">Management for {{ game.name }}</h1>
+    (<a href="{% url 'game_detail' game.id %}">game overview</a>)
+    (<a href="{% url 'game_change' game.id %}">edit game</a>)
+    <p>Performed action: {{ action }}</p>
+    <div class="game_management_section_imploded">
+        <h2>{% trans "pause game" %}</h2>
+        <span class="description">{% trans "Toggles the ingame pause. Useful to free users in hanging diplomatic screens." %}</span>
+        {% if game.is_paused %}
+            <form method="post" action="{% url 'game_manage' game.id 'pause_disable' %}">
+                {% csrf_token %}
+                <span><input type="submit" value="{% trans "unpause game" %}"/></span>
+            </form>
+        {% else %}
+            <form method="post" action="{% url 'game_manage' game.id 'pause_enable' %}">
+                {% csrf_token %}
+                <span><input type="submit" value="{% trans "pause game" %}"/></span>
+            </form>
+        {% endif %}
+    </div>
+    <div class="game_management_section_imploded">
+        <h2><a name="">{% trans "force turn end" %}</a></h2>
+        <span class="description">{% trans "Sets timer on a few seconds." %}</span>
+
+        <form method="post" action="{% url 'game_manage' game.id 'end_turn' %}">
+            {% csrf_token %}
+            <span><input type="submit" value="{% trans "end turn" %}"/></span>
+        </form>
+    </div>
+    <div class="game_management_section_imploded">
+        <h2>{% trans "set turn timer" %}</h2>
+        <span class="description">{% trans "Time for the next round. Note that the ingame clock runs slower as desired. A value of 20 correspond with 24 hours." %}</span>
+
+        <form method="post" action="{% url 'game_manage' game.id 'set_turn_timer' %}">
+            {% csrf_token %}
+            <table>{{ timer_form }}</table>
+            <span><input type="submit" value="{% trans "set timer" %}"/></span>
+        </form>
+    </div>
+    <div class="game_management_section_imploded">
+        <h2>{% trans "set turn timer of current round" %}</h2>
+
+        <form method="post" action="{% url 'game_manage' game.id 'set_current_turn_timer' %}">
+            {% csrf_token %}
+            <table>{{ current_timer_form }}</table>
+            <span><input type="submit" value="{% trans "set timer" %}"/></span>
+        </form>
+    </div>
+    <div class="game_management_section_imploded">
+        <h2>{% trans "save game" %}</h2>
+        <span class="description">{% trans "Standard path: [Altroot]/Saves/multi. (Path is defined in pbSettings.json.). Overwrites existing files." %}</span>
+
+        <form method="post" action="{% url 'game_manage' game.id 'save' %}">
+            {% csrf_token %}
+            <table>{{ save_form }}</table>
+            <span><input type="submit" value="{% trans "save game" %}"/></span>
+        </form>
+    </div>
+    <div class="game_management_section_imploded">
+        <h2><a href="{% url 'game_manage' game.id 'load' %}">{% trans "load game" %}</a></h2>
+    </div>
+    <div class="game_management_section_imploded">
+        <h2>{% trans "change password of player" %}</h2>
+
+        <form method="post" action="{% url 'game_manage' game.id 'set_player_password' %}">
+            {% csrf_token %}
+            <table>{{ set_player_password_form }}</table>
+            <span><input type="submit" value="{% trans "change player password" %}"/></span>
+        </form>
+    </div>
+    <div class="game_management_section_imploded">
+        <h2><a href="{% url 'game_manage' game.id 'color' %}">{% trans "change colorset of player" %}</a></h2>
+    </div>
+    <div class="game_management_section_imploded">
+        <h2>{% trans "send chat message" %}</h2>
+        <span class="description">{% trans "Viewable for players in the game." %}</span>
+
+        <form method="post" action="{% url 'game_manage' game.id 'chat' %}">
+            {% csrf_token %}
+            <table>{{ chat_form }}</table>
+            <span><input type="submit" value="{% trans "send message" %}"/></span>
+        </form>
+    </div>
+    <div class="game_management_section_imploded">
+        <h2>{% trans "swap autostart of save games" %}</h2>
+        <span class="description">{% trans "If autostart is enabled the server skips the setup wizard and directly loads a save." %}<br>{% trans "Do not disable the autostart if you running the server headless." %}</span>
+        {% if game.is_autostart %}
+            <form method="post" action="{% url 'game_manage' game.id 'autostart_disable' %}">
+                {% csrf_token %}
+                <span><input type="submit" value="{% trans "disable autostart" %}"/></span>
+            </form>
+        {% else %}
+            <form method="post" action="{% url 'game_manage' game.id 'autostart_enable' %}">
+                {% csrf_token %}
+                <span><input type="submit" value="{% trans "enable autostart" %}"/></span>
+            </form>
+        {% endif %}
+    </div>
+    <div class="game_management_section_imploded">
+        <h2>{% trans "swap headless mode" %}</h2>
+        <span class="description">{% trans "Flag to disable the GUI. Reduces cpu usage." %}</span>
+        {% if game.is_headless %}
+            <form method="post" action="{% url 'game_manage' game.id 'headless_disable' %}">
+                {% csrf_token %}
+                <span><input type="submit" value="{% trans "disable headless" %}"/></span>
+            </form>
+        {% else %}
+            <form method="post" action="{% url 'game_manage' game.id 'headless_enable' %}">
+                {% csrf_token %}
+                <span><input type="submit" value="{% trans "enable headless" %}"/></span>
+            </form>
+        {% endif %}
+    </div>
+    <div class="game_management_section_imploded">
+        <h2>{% trans "change short names ranges" %}</h2>
+
+        <div class="description">
+            <p>{% trans "Shorten the leader names and civilization description in the login screen. It omits problems with strictly/badly configured network. Truncate both strings to reduce the size of a critical UDP packet." %}</p>
+
+            <p>{% trans "The sum of both values should not exceed 5 (for 52 players)." %}<br>
+                {% trans "The length of 0 (in the first field) disables this option." %}<br>
+                {% trans "The length of 1 enables an enummeration of all slots (A-z)" %}</p>
         </div>
+        <form method="post" action="{% url 'game_manage' game.id 'short_names' %}">
+            {% csrf_token %}
+            <table>{{ short_names_form }}</table>
+            <span><input type="submit" value="{% trans "set" %}"/></span>
+        </form>
         <div class="game_management_section_imploded">
-					<h2><a name="">{% trans "force turn end" %}</a></h2>
-						 <span class="description">{% trans "Sets timer on a few seconds." %}</span>
-             <form method="post" action="{% url 'game_manage' game.id 'end_turn' %}">
-                 {% csrf_token %}
-                 <span><input type="submit" value="{% trans "end turn" %}" /></span>
-             </form>
+            <h2><a href="{% url 'game_manage' game.id 'motd' %}">{% trans "set message of the day" %}</a></h2>
         </div>
-        <div class="game_management_section_imploded">
-          <h2>{% trans "send chat message" %}</h2>
-						 <span class="description">{% trans "Viewable for players in the game." %}</span>
-             <form method="post" action="{% url 'game_manage' game.id 'chat' %}">
-                 {% csrf_token %}
-                 <table>{{ chat_form }}</table>
-                 <span><input type="submit" value="{% trans "send message" %}" /></span>
-               </form>
-        </div>
-        <div class="game_management_section_imploded">
-          <h2>{% trans "set turn timer" %}</h2>
-						 <span class="description">{% trans "Time for the next round. Note that the ingame clock runs slower as desired. A value of 20 correspond with 24 hours." %}</span>
-             <form method="post" action="{% url 'game_manage' game.id 'set_turn_timer' %}">
-                 {% csrf_token %}
-                 <table>{{ timer_form }}</table>
-                 <span><input type="submit" value="{% trans "set timer" %}" /></span>
-             </form>
-        </div>
-        <div class="game_management_section_imploded">
-          <h2>{% trans "set turn timer of current round" %}</h2>
-             <form method="post" action="{% url 'game_manage' game.id 'set_current_turn_timer' %}">
-                 {% csrf_token %}
-                 <table>{{ current_timer_form }}</table>
-                 <span><input type="submit" value="{% trans "set timer" %}" /></span>
-             </form>
-        </div>
-        <div class="game_management_section_imploded">
-          <h2>{% trans "save game" %}</h2>
-						<span class="description">{% trans "Standard path: [Altroot]/Saves/multi. (Path is defined in pbSettings.json.). Overwrites existing files." %}</span>
-             <form method="post" action="{% url 'game_manage' game.id 'save' %}">
-                 {% csrf_token %}
-                 <table>{{ save_form }}</table>
-                 <span><input type="submit" value="{% trans "save game" %}" /></span>
-             </form>
-        </div>
-        <div class="game_management_section_imploded">
-          <h2><a href="{% url 'game_manage' game.id 'load' %}">{% trans "load game" %}</a></h2>
-        </div>
-        <div class="game_management_section_imploded">
-          <h2>{% trans "change password of player" %}</h2>
-             <form method="post" action="{% url 'game_manage' game.id 'set_player_password' %}">
-                 {% csrf_token %}
-                 <table>{{ set_player_password_form }}</table>
-                 <span><input type="submit" value="{% trans "change player password" %}" /></span>
-             </form>
-        </div>
-        <div class="game_management_section_imploded">
-					<h2><a href="{% url 'game_manage' game.id 'color' %}">{% trans "change colorset of player" %}</a></h2>
-        </div>
-        <div class="game_management_section_imploded">
-          <h2><a href="{% url 'game_manage' game.id 'kick' %}">{% trans "kick player" %}</a></h2>
-        </div>
-        <div class="game_management_section_imploded">
-          <h2>{% trans "swap autostart of save games" %}</h2>
-						<span class="description">{% trans "If autostart is enabled the server skips the setup wizard and directly loads a save." %}<br>{% trans "Do not disable the autostart if you running the server headless." %}</span>
-            {% if game.is_autostart %}
-             <form method="post" action="{% url 'game_manage' game.id 'autostart_disable' %}">
-                 {% csrf_token %}
-                 <span><input type="submit" value="{% trans "disable autostart" %}" /></span>
-             </form>
-            {% else %}
-             <form method="post" action="{% url 'game_manage' game.id 'autostart_enable' %}">
-                 {% csrf_token %}
-                 <span><input type="submit" value="{% trans "enable autostart" %}" /></span>
-             </form>
-            {% endif %}
-        </div>
-        <div class="game_management_section_imploded">
-          <h2>{% trans "swap headless mode" %}</h2>
-						<span class="description">{% trans "Flag to disable the GUI. Reduces cpu usage." %}</span>
-            {% if game.is_headless %}
-             <form method="post" action="{% url 'game_manage' game.id 'headless_disable' %}">
-                 {% csrf_token %}
-                 <span><input type="submit" value="{% trans "disable headless" %}" /></span>
-             </form>
-            {% else %}
-             <form method="post" action="{% url 'game_manage' game.id 'headless_enable' %}">
-                 {% csrf_token %}
-                 <span><input type="submit" value="{% trans "enable headless" %}" /></span>
-             </form>
-            {% endif %}
-        </div>
-        <div class="game_management_section_imploded">
-          <h2>{% trans "change short names ranges" %}</h2>
-						 <div class="description">
-						 <p>{% trans "Shorten the leader names and civilization description in the login screen. It omits problems with strictly/badly configured network. Truncate both strings to reduce the size of a critical UDP packet." %}</p>
-						 <p>{% trans "The sum of both values should not exceed 5 (for 52 players)." %}<br>
-						 {% trans "The length of 0 (in the first field) disables this option." %}<br>
-						 {% trans "The length of 1 enables an enummeration of all slots (A-z)" %}</p>
-						 </div>
-             <form method="post" action="{% url 'game_manage' game.id 'short_names' %}">
-                 {% csrf_token %}
-								 <table>{{ short_names_form }}</table>
-								 <span><input type="submit" value="{% trans "set" %}" /></span>
-							 </form>
-						 <div class="game_management_section_imploded">
-							 <h2><a href="{% url 'game_manage' game.id 'motd' %}">{% trans "set message of the day" %}</a></h2>
-						 </div>
-					 </div>
-					 {% endblock %}
+    </div>
+{% endblock %}

@@ -2,26 +2,26 @@
 {% load i18n %}
 
 {% block content %}
-{% if game_list %}
-    <table class='game_list'>
-        <tr>
-            <th class="colName">Name</th>
-            <th class="colNumPlayers">Players</th>
-            <th class="colYear">Current Year</th>
-            <th class="colTurn">Turn</th>
-            <th class="colStatus">Status</th>
-        </tr>
-    {% for game in game_list %}
-        <tr>
-            <td class="colName"><a href="{% url 'game_detail' game.id %}">{{ game.name }}</a></td>
-            <td class="colNumPlayers">{{ game.player_count }}</td>
-            <td class="colYear">{{ game.year_str }}</td>
-            <td class="colTurn">{{ game.turn }}</td>
-            <td class="colStatus game_{{ game.get_status }}">{{ game.get_status }}</td>
-        </tr>
-    {% endfor %}
-    </table>
-{% else %}
-    <p class='game_info'>No games are available.</p>
-{% endif %}
+    {% if game_list %}
+        <table class='game_list'>
+            <tr>
+                <th class="colName">Name</th>
+                <th class="colNumPlayers">Players</th>
+                <th class="colYear">Current Year</th>
+                <th class="colTurn">Turn</th>
+                <th class="colStatus">Status</th>
+            </tr>
+            {% for game in game_list %}
+                <tr>
+                    <td class="colName"><a href="{% url 'game_detail' game.id %}">{{ game.name }}</a></td>
+                    <td class="colNumPlayers">{{ game.player_count }}</td>
+                    <td class="colYear">{{ game.year_str }}</td>
+                    <td class="colTurn">{{ game.turn }}</td>
+                    <td class="colStatus game_{{ game.get_status }}">{{ game.get_status }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p class='game_info'>No games are available.</p>
+    {% endif %}
 {% endblock %}
