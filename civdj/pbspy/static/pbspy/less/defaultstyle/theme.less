@@ -115,6 +115,14 @@ table.game_players {
   }
   //.colLeader { border-right-style:none; }
   .colNation { border-left-style:none; }
+
+  // Coloring status label of players. Available status strings
+  // are definded by Player.status() in models.py.
+	.player_online { color: @fontColor2; }
+	//.player_offline {  }
+	//.player_eliminated {  }
+	//.player_unclaimed {  }
+	//.player_AI {  }
 }
 
 table.game_players tr:hover,
