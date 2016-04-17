@@ -1,3 +1,6 @@
 **.bak
 # Ignore all pyc files in the Django project
 **.pyc
+.*.swp
+.*.swo
+.ropeproject

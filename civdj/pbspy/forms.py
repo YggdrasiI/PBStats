@@ -2,7 +2,7 @@
 
 from django.forms import ModelForm, Form
 from django import forms
-from pbspy.models import Game
+from pbspy.models import Game, VictoryInfo
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext as _
 
@@ -61,10 +61,6 @@ class GameForm(ModelForm):
             a.initial = str(self.user.username)
 
     def save(self):
-        # Todo
-        #if self.fields['pb_remote_password']  == self.password_dummy:
-        #    self.fields['pb_remote_password'] = game.pb_remote_password
-
         if self.instance.id != None and self.user != None:
             adminsNew = self.cleaned_data.get('adminsAsStr', [])
             game = self.instance
@@ -165,3 +161,41 @@ class GameManagementSetPlayerColorForm(Form):
                 label=_('New color'),
                 required=False
                 )
+
+
+class GameManagementSetVictoryForm(ModelForm):
+    class Meta:
+        model = Game
+        fields = [ 'victory_type', 'victory_message', 'victory_image']
+        labels = {
+            'victory_type' : _("victory type"),
+            'victory_message' : _("victory message"),
+            'victory_image' : _("optional image"),
+        }
+        help_texts = {
+            'victory_message' : _("Overrides the default victory message."),
+            'victory_image' : _("Overrides the default (Civ4:BTS leader) image."),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(GameManagementSetVictoryForm, self).__init__(*args, **kwargs)
+        players = self.instance.player_set.all()
+        self.fields['player'] = forms.ModelChoiceField(players, label=_('Player'))
+
+        self.initial['player'] = self.instance.victory_player_id
+
+        victory_choises = [(i,VictoryInfo.victory_types[i]["name"])
+                          for i in VictoryInfo.victory_types]
+        self.fields['victory_type'] = forms.ChoiceField(
+            choices=victory_choises,
+            required=True
+        )
+
+        self.initial['victory_type'] = self.instance.victory_type
+
+    def save(self):
+        if self.instance.id != None:
+            game = self.instance
+            game.victory_player_id = self.cleaned_data.get('player', {'id':-1}).id
+            # game.is_finished  = (game.victory_type > -1)
+        return super(GameManagementSetVictoryForm, self).save()

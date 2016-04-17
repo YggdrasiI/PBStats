@@ -8,13 +8,14 @@ from pbspy.models import Game, GameLog, Player, InvalidPBResponse
 from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm,\
         GameManagementTimerForm, GameManagementCurrentTimerForm, GameManagementLoadForm, GameManagementSetPlayerPasswordForm,\
         GameManagementSaveForm, GameLogTypesForm, GameLogSaveFilterForm, GameManagementShortNamesForm,\
-        GameManagementSetPlayerColorForm
+        GameManagementSetPlayerColorForm, GameManagementSetVictoryForm
 
 from pbspy.models import GameLogTurn, GameLogReload, GameLogMetaChange, GameLogTimerChanged,\
     GameLogPause, GameLogServerTimeout, GameLogPlayer, GameLogLogin, GameLogLogout,\
     GameLogFinish, GameLogScore, GameLogNameChange, GameLogEliminated, GameLogAI,\
     GameLogClaimed, GameLogAdminAction, GameLogAdminSave, GameLogAdminPause, GameLogAdminEndTurn,\
-    GameLogForceDisconnect, GameLogMissedTurn, GameLogCurrentTimerChanged
+    GameLogForceDisconnect, GameLogMissedTurn, GameLogCurrentTimerChanged,\
+    VictoryInfo
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -247,6 +248,8 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
         context['timezone'] = self.request.session.get('django_timezone')
         context['timezone_actual'] = timezone.get_current_timezone_name();
+        if game.victory_type > -1:
+            context['victory_info'] = VictoryInfo(game)
         return context
 
     @staticmethod
@@ -466,7 +469,6 @@ def game_manage(request, game_id, action=""):
                 game.pb_set_player_color(
                     form.cleaned_data['player'].ingame_id,
                     form.cleaned_data['color'])
-                #return HttpResponse('color set.', status=200)
                 context['set_color_message'] = form.cleaned_data['player'].name
                 return render_game_manage_color(request, game, context)
             context['set_player_color_form'] = form
@@ -503,6 +505,14 @@ def render_game_manage_color(request, game, context):
         return HttpResponseBadRequest('Command not supported by PB Server.')
     context['set_player_color_form'] = GameManagementSetPlayerColorForm(game.player_set, len(context['colors']))
     return render(request, 'pbspy/game_manage_color.html', context)
+
+
+def render_game_manage_victory(request, game, context):
+    if 'set_game_victory_form' not in context:
+        context['set_game_victory_form'] = GameManagementSetVictoryForm(instance=game)
+        # Optional
+        context['victory_info'] = VictoryInfo(game, True)
+    return render(request, 'pbspy/game_manage_victory.html', context)
 
 
 def render_game_manage_load(request, game, context):
@@ -554,28 +564,41 @@ def game_update_manual(request, game_id):
 
 
 @login_required()
-def game_change(request, game_id):
+def game_change(request, game_id, action=""):
     game = Game.objects.get(id=game_id)
     context = {'game': game}
     form = None
 
     if request.method == 'POST':
-        form = GameForm(request.POST, instance=game, user=request.user)
-        if form.is_valid():
-            form.save()
-            try:
-                game.validate_connection()
-                game.update()
-                return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
-            except ValidationError:
-                # Form would still saved, but we will write a warning and display the form again.
-                context['game_no_connection'] = True
+        if action == 'set_game_victory':
+            form = GameManagementSetVictoryForm(request.POST, instance=game)
+            if form.is_valid():
+                form.save()
+                context['victory_message_changed'] = True
+                context['victory_info'] = VictoryInfo(game, True)
+            context['set_game_victory_form'] = form
+            return render_game_manage_victory(request, game, context)
         else:
-            context['game_data_not_valid'] = True
+            form = GameForm(request.POST, instance=game, user=request.user)
+            if form.is_valid():
+                form.save()
+                try:
+                    game.validate_connection()
+                    game.update()
+                    return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
+                except ValidationError:
+                    # Form would still saved, but we will write a warning and display the form again.
+                    context['game_no_connection'] = True
+            else:
+                context['game_data_not_valid'] = True
 
     if form is None:
         form = GameForm(instance=game, user=request.user)
 
+    context['action'] = action
+
+    if action == 'victory':
+        return render_game_manage_victory(request, game, context)
 
     # Todo
     #game.pb_remote_password = GameForm.password_dummy

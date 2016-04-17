@@ -9,7 +9,7 @@
         (<a href="{% url 'game_change' game.id %}">edit game</a>)
         {% if set_color_message %}
             <div class="game_management_section">
-                <h2>{% trans "Colorset changed" %}</h2>
+                <h2>{% trans "colorset changed" %}</h2>
 
                 <p>{% trans "The colorset was updated for " %}{{ set_color_message }}.</p>
             </div>

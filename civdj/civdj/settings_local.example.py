@@ -13,9 +13,18 @@ STATIC_URL = "/static/"
 
 # Permanent storage of static files
 if not DEBUG:
-    STATICFILES_DIRS = [
-        "/var/www/pbspy/static",
-    ]
+    STATIC_ROOT='/var/www/pbspy/static/'
+    STATIC_URL = 'http://localhost/pbspy/static/'
+
+    # Ugly workaround. Do not set STATICFILES_DIRS for 'collectstatic'
+    import sys
+    mode = "undefined"
+    if len(sys.argv) > 1:
+        mode = sys.argv[1]
+    if not mode == "collectstatic":
+        STATICFILES_DIRS = [
+            "/var/www/pbspy/static",
+        ]
 
 # Look into django docs for setup
 DATABASES = {

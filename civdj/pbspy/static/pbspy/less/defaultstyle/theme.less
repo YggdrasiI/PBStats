@@ -138,6 +138,20 @@ table.game_log tr:hover,
     }
 }
 
+table.game_victory {
+    .colVicHeadline {
+        text-align: center;
+        font-size:160%;
+    }
+    .colVicText {
+        padding-left: 1em;
+        max-width: 30em;
+        font-size:140%;
+    }
+}
+
+span.game_victory_type { color: @fontColor2; }
+
 .mixin_filter_form {
 	float: right;
   text-align:right;
@@ -267,7 +281,7 @@ table.game_log tr:hover,
       background-color: @BGColor;
       padding-bottom:2em;
   }
-  &:not(:hover) { 
+  &:not(:hover) {
       z-index:-100;
       > form {
         display:none;

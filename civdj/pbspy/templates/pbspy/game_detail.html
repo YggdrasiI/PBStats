@@ -11,12 +11,17 @@
         (<a href="{% url 'game_change' game.id %}">edit game</a>)
     {% endif %}
     <div id="game_metadata">
+        {% if victory_info.is_display %}
+        <h2>{% trans "winner" %}</h2>
+                {% include "pbspy/game_victory.html" %}
+        {% endif %}
         <h2>{% trans "game status" %}</h2>
 
         <div class="game_metadata">
             <p class="game_info">{% trans "Turn" %}: {{ game.turn|default_if_none:_("n/a") }}<br/>{% trans "Year" %}: {{ game.year_str|default:_("n/a") }}
             </p>
-            {% if not game.is_finished %}
+            {# {% if not game.is_finished %} #}
+            {% if not game.victory_type > -1 %}
                 <p class="game_info">
                     {% blocktrans with players=game.player_count finished=game.player_finished_count %}{{ finished }} of
                         {{ players }} players have finished their turn.{% endblocktrans %}<br/>
@@ -51,7 +56,8 @@
             </p>
 
             <p class="game_info">
-                {% if game.is_finished %}
+                {# {% if game.is_finished %} #}
+                {% if game.victory_type > -1 %}
                     {% trans "The game is finished." %}
                 {% elif game.is_online %}
                     {% trans "The game server is available." %}
@@ -135,7 +141,7 @@
                         <td class="colColor" style="color:rgb({{ player.color_rgb }});">✖</td>
                         <td class="colNation">{{ player.civilization }}</td>
                         <td class="colScore">{{ player.score }}</td>
-                        <td class="colStatus">{{ player.status }}</td>
+                        <td class="colStatus player_{{ player.status }}">{{ player.status }}</td>
                     </tr>
                 {% endfor %}
             </table>

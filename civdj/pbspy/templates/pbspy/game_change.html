@@ -26,4 +26,7 @@
             </form>
         </div>
     </div>
+    <div class="game_management_section_imploded">
+        <h2><a href="{% url 'game_change' game.id 'victory' %}">{% trans "edit victory information" %}</a></h2>
+    </div>
 {% endblock %}

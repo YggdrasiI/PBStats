@@ -125,10 +125,18 @@ class Game(models.Model):
     admins             = models.ManyToManyField(User, related_name='admin_games')
     is_private         = models.BooleanField(default=False)
     is_online          = models.BooleanField(default=True)
-    # This values has to set manually by Admins
-    is_finished        = models.BooleanField(default=False)
+
+    """ The followning values has to set manually by Admins. """
+    # This field is now redundand. All lines replaced by 'victory_type > -1'
+    # is_finished        = models.BooleanField(default=False)
+    # Player.id, not Player.ingame_id
     victory_player_id  = models.SmallIntegerField(default=-1)
     victory_type       = models.SmallIntegerField(default=-1)
+    # Empty values of message and image trigger usage of default values.
+    victory_message    = models.CharField(blank=True, null=True, max_length=2000)
+    victory_image    = models.CharField(max_length=200, blank=True, null=True,
+                                          validators=[URLValidator(
+                                              regex="^.*[.](png|jpg|jpeg|git)$")])
 
     subscribed_users   = models.ManyToManyField(User, related_name='subscribed_games', blank=True)
 
@@ -161,7 +169,8 @@ class Game(models.Model):
         return (not self.is_private) or (len(self.admins.filter(id=user.id)) == 1)
 
     def get_status(self):
-        if self.is_finished:
+        #  if self.is_finished:
+        if self.victory_type > -1:
             return "finished"
         else:
             if self.is_online:
@@ -184,7 +193,8 @@ class Game(models.Model):
         """
         if not ignore_game_state and not self.is_online:
             return
-        if not ignore_game_state and self.is_finished:
+        # if not ignore_game_state and self.is_finished:
+        if not ignore_game_state and self.victory_type > -1:
             return
         cur_date = timezone.now()
         delta = datetime.timedelta(seconds=min_time_diff)
@@ -503,6 +513,92 @@ class Color():
             self.web = "#FF00FF"
 
         self.is_dark = darkness > 380
+
+
+class VictoryInfo():
+    """ Data for game_victory template. """
+    img_folder =  "pbspy/images/leaders/"
+    # Key has to respect order defined by CIV4VictoryInfo.xml.
+    victory_types = {
+        -1: {"name": _("NONE"), "template_id": -1},
+        0: {"name": _("victory by score"), "template_id": 0},
+        1: {"name": _("victory by time"), "template_id": 1},
+        2: {"name": _("conquest victory"), "template_id": 1},
+        3: {"name": _("domination victory"), "template_id": 1},
+        4: {"name": _("cultural victory"), "template_id": 1},
+        5: {"name": _("space race victory"), "template_id": 1},
+        6: {"name": _("diplomatic victory"), "template_id": 1},
+        100: {"name": _("other victory type"), "template_id": 100},
+        101: {"name": _("no winner"), "template_id": 101},
+        101: {"name": _("game aborted"), "template_id": 102},
+    }
+    message_templates = {
+        -1: _("Game not determined."),
+        0: _("In the year {year}, {name} led the {civ} people "\
+                     "to a {victory_type}, and will be forever remembered "\
+                     "as the greatest ruler in all of human history!"),
+        1: _("In the year {year}, {name} led the {civ} people "\
+                     "to a {victory_type}, and will be forever remembered "\
+                     "as the greatest ruler in all of human history!"),
+        100: _("In the year {year}, {name} led the {civ} people "\
+                     "to a victory, and will be forever remembered "\
+                     "as the greatest ruler in all of human history!"),
+        101: _("This game finshed without a winner."),
+        102: _("This game was aborted."),
+    }
+
+    def __init__(self, game, display_always=False):
+        self.display_always = display_always
+        self.game = game
+        if self.game.victory_player_id > -1:
+            self.player = self.game.player_set.get(id=game.victory_player_id)
+        else:
+            self.player = None
+
+
+    def is_display(self):
+        # return self.display_always or self.game.is_finished
+        return self.display_always or (self.game.victory_type > -1)
+
+    def get_victory_image(self):
+        if len(str(self.game.victory_image)) > 0:
+            return str(self.game.victory_image)
+
+        # Default image
+        if self.player is None:
+            path = VictoryInfo.img_folder + "unknown.jpg"
+        else:
+            path = "{}{}{}".format( VictoryInfo.img_folder, self.player.leader, ".jpg")
+
+        from django.conf import settings
+        return settings.STATIC_URL + path
+
+    def get_victory_headline(self):
+        if self.player is None:
+            return "?"
+        return _("Congratulations to {} of the {}").format(
+            self.player.name,
+            self.player.civilization)
+
+    def get_victory_message(self):
+        if len(str(self.game.victory_message)) > 0:
+            return str(self.game.victory_message)
+
+        if self.player is None:
+            return "?"
+
+        # Default message
+        vt = VictoryInfo.victory_types.get(
+            int(self.game.victory_type),
+            VictoryInfo.victory_types[100])
+        vtemplate = VictoryInfo.message_templates.get(vt["template_id"])
+        return vtemplate.format(
+            name=self.player.name,
+            leader=self.player.leader,
+            civ=self.player.civilization,
+            year=format_year(self.game.year),
+            victory_type= "<span class='game_victory_type'>{}</span>".format(vt["name"])
+        )
 
 
 class Player(models.Model):
