@@ -13,18 +13,20 @@ mysql-connector-python pytz setuptools six sqlparse
 sudo pip install South
 
 == Configuaration ==
-Look into civdj/settings.py, create civdj/settings_local.py
+Copy civdj/settings.py to civdj/settings_local.py
 and adapt it to your environment. (See https://docs.djangoproject.com/en/dev/ref/settings/ for details.)
 A minimal example for your local settings is provided in civdj/settings_local.example.py
 
 
 == Setup (Debug mode, Release mode require more steps) ==
 
+python manage.py compilestatic
 python manage.py collectstatic
 python manage.py migrate
 python manage.py createsuperuser
 
-#Now, adapt civdj/settings.py to your environment.
+The first two commands are optional in debug mode.
+Adapt civdj/settings.py to your environment.
 
 == Start ==
 python manage.py runserver [your hostname/ip:8000]
