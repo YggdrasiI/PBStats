@@ -78,3 +78,10 @@ New in version 5 (PB Mod_v5):
 		This made it easier to handle with different passwords/games.
 	•	Espionage bugfix: Do not show espionage popup with old timestamp (turn slice). This suppress the faulty espionage popups at next login on the pitboss server
 	• Spaceship launch does not chrash PB server anymore.
+
+New in version 6 (PB Mod_v6):
+  • Allow start counter espionage mission at the last round of already running mission.
+    This removes the 'one round hole' for the second player in a espionage war.
+  • PBSpy webinterface allow kicking of players
+  • PBSpy webinterface contains now an option to declare a winner.
+  • BTS_Wrapper: Works now with https and http urls.
