@@ -42,10 +42,10 @@ class GameListView(generic.ListView):
 
     def get_queryset(self):
         games_queryset = self.model.objects.filter(
-            Q(is_private=False) | Q(admins__id=self.request.user.id),
-            ~Q(year=None)  # Filter out (fake) entries without connection
-                ).annotate(
-                player_count=Count('player', distinct=True)).order_by('-id')
+            Q(is_private=False) & ~Q(year=None)\
+            | Q(admins__id=self.request.user.id) # Filter out (fake) entries without connection
+        ).annotate(
+            player_count=Count('player', distinct=True)).order_by('-id')
 
         self.refresh_games(games_queryset)
         return games_queryset
