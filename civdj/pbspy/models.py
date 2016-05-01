@@ -130,7 +130,9 @@ class Game(models.Model):
     # This field is now redundand. All lines replaced by 'victory_type > -1'
     # is_finished        = models.BooleanField(default=False)
     # Player.id, not Player.ingame_id
-    victory_player_id  = models.SmallIntegerField(default=-1)
+    victory_player_id  = models.OneToOneField('Player', on_delete=models.CASCADE,
+                                           related_name='+',
+                                           blank=True, null=True)
     victory_type       = models.SmallIntegerField(default=-1)
     # Empty values of message and image trigger usage of default values.
     victory_message    = models.CharField(blank=True, null=True, max_length=2000)
@@ -550,14 +552,12 @@ class VictoryInfo():
     def __init__(self, game, display_always=False):
         self.display_always = display_always
         self.game = game
-        if self.game.victory_player_id > -1:
-            self.player = self.game.player_set.get(id=game.victory_player_id)
-        else:
-            self.player = None
-
+        self.player = game.victory_player_id
 
     def is_display(self):
-        # return self.display_always or self.game.is_finished
+        # It is bettor to check the victory type, but not if
+        # the player is None. This allow the definition of decided
+        # games with a unspecific winner (i.e. teams).
         return self.display_always or (self.game.victory_type > -1)
 
     def get_victory_image(self):
@@ -575,7 +575,7 @@ class VictoryInfo():
 
     def get_victory_headline(self):
         if self.player is None:
-            return "?"
+            return ""
         return _("Congratulations to {} of the {}").format(
             self.player.name,
             self.player.civilization)
@@ -585,7 +585,7 @@ class VictoryInfo():
             return str(self.game.victory_message)
 
         if self.player is None:
-            return "?"
+            return ""
 
         # Default message
         vt = VictoryInfo.victory_types.get(
@@ -607,7 +607,7 @@ class Player(models.Model):
     # https://github.com/simone/django-compositekey doesn't work with Django 1.7 / Python3
     # Id as a fieldname is not allowed except for primary keys
     ingame_id     = models.PositiveSmallIntegerField()
-    game          = models.ForeignKey(Game, db_index=True)
+    game          = models.ForeignKey(Game, on_delete=models.CASCADE, db_index=True)
 
     name          = models.TextField(max_length=200)
     score         = models.PositiveIntegerField()
@@ -702,7 +702,7 @@ class Player(models.Model):
 
 
 class GameLog(PolymorphicModel):
-    game = models.ForeignKey(Game)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
     date = models.DateTimeField(db_index=True)
     year = models.IntegerField()
     turn = models.PositiveSmallIntegerField()
@@ -810,7 +810,7 @@ class GameLogServerTimeout(GameLog):
 
 class GameLogPlayer(GameLog):
     player_name = models.CharField(max_length=200)
-    player      = models.ForeignKey(Player)
+    player      = models.ForeignKey(Player, on_delete=models.CASCADE)
 
     def __str__(self):
         return _("{date}/{year}/turn {turn}, {player}: ").\
@@ -864,7 +864,7 @@ class GameLogClaimed(GameLogPlayer):
 
 
 class GameLogAdminAction(GameLog):
-    user = models.ForeignKey(User, blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
     def get_username(self):
         try:
