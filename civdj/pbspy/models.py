@@ -35,7 +35,7 @@ def email_helper(user, tag, **context):
     subject = render_to_string('pbspy/email_{tag}_subject.txt'.format(tag=tag), context)
     # Email subject *must not* contain newlines
     subject = ''.join(subject.splitlines())
-    message  = render_to_string('pbspy/email_{tag}.txt'.format(tag=tag), context)
+    message = render_to_string('pbspy/email_{tag}.txt'.format(tag=tag), context)
     user.email_user(subject, message)
 
 
@@ -273,7 +273,7 @@ class Game(models.Model):
                      self.timer_remaining_4s is not None and
                      timer_remaining_4s > self.timer_remaining_4s + 1200 / 4)):
                 # TODO find a better way than to hardcode the value
-                #Note: Ignore small time difference because every combat increase
+                # Note: Ignore small time difference because every combat increase
                 # the timer by the combat animation time
                 GameLogReload(**logargs).save()
 
@@ -386,18 +386,21 @@ class Game(models.Model):
         from_4s = self.timer_remaining_4s
         to_4s = 4*(int(hours)*3600 + int(minutes)*60 + int(seconds))
 
-        # Update saved timestamp of game to omit reload message in log.
-        self.timer_remaining_4s = to_4s
-        self.save()
+        result = self.pb_action(action='setCurrentTurnTimer', hours=int(hours),
+                                minutes=int(minutes), seconds=int(seconds))
 
-        # Push log message (optional)
-        logargs = {'game': self, 'date': timezone.now(),
-                   'year': self.year, 'turn': self.turn}
-        GameLogCurrentTimerChanged(from_4s=from_4s, to_4s=to_4s,
-                                   **logargs).save()
+        if result['return'] == 'ok':
+            # Update saved timestamp of game to omit reload message in log.
+            self.timer_remaining_4s = to_4s
+            self.save()
 
-        return self.pb_action(action='setCurrentTurnTimer', hours=int(hours),
-                              minutes=int(minutes), seconds=int(seconds))
+            # Push log message (optional)
+            logargs = {'game': self, 'date': timezone.now(),
+                       'year': self.year, 'turn': self.turn}
+            GameLogCurrentTimerChanged(from_4s=from_4s, to_4s=to_4s,
+                                       **logargs).save()
+
+        return result
 
     def pb_set_turn_timer(self, value, user=None):
         return self.pb_action(action='setTurnTimer', value=int(value))
@@ -405,9 +408,9 @@ class Game(models.Model):
     def pb_set_pause(self, value, user=None):
         value = bool(value)
         result = self.pb_action(action='setPause', value=value)
-        GameLogAdminPause(game=self, user=user, date=timezone.now(), paused=value,
-                          year=self.year, turn=self.turn).save()
         if result['return'] == 'ok':
+            GameLogAdminPause(game=self, user=user, date=timezone.now(), paused=value,
+                              year=self.year, turn=self.turn).save()
             self.is_paused = True
             self.save()
         return result
@@ -780,7 +783,7 @@ class GameLogCurrentTimerChanged(GameLog):
 
     def message(self):
         if self.from_4s is not None and self.to_4s is not None:
-            remaining_time = datetime.timedelta(seconds=round(self.from_4s / 4))
+            remaining_time = datetime.timedelta(seconds=round(self.to_4s / 4))
             delta_time = datetime.timedelta(seconds=round((self.to_4s - self.from_4s) / 4))
             timeargs = {
                 "remaining_h": int(remaining_time.total_seconds()/3600),
