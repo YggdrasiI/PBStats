@@ -173,6 +173,7 @@ class GameManagementSetVictoryForm(ModelForm):
             'victory_image' : _("optional image"),
         }
         help_texts = {
+            'victory_type' : _("Set type to NONE to disable victory paragraph."),
             'victory_message' : _("Overrides the default victory message."),
             'victory_image' : _("Overrides the default (Civ4:BTS leader) image."),
         }
@@ -180,7 +181,8 @@ class GameManagementSetVictoryForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(GameManagementSetVictoryForm, self).__init__(*args, **kwargs)
         players = self.instance.player_set.all()
-        self.fields['player'] = forms.ModelChoiceField(players, label=_('Player'))
+        self.fields['player'] = forms.ModelChoiceField(
+            players, label=_('Player'), required=False)
 
         self.initial['player'] = self.instance.victory_player_id
 
@@ -196,6 +198,7 @@ class GameManagementSetVictoryForm(ModelForm):
     def save(self):
         if self.instance.id != None:
             game = self.instance
-            game.victory_player_id = self.cleaned_data.get('player', {'id':-1}).id
+            #game.victory_player_id = self.cleaned_data.get('player', {'id':-1}).id
+            game.victory_player_id = self.cleaned_data.get('player')
             # game.is_finished  = (game.victory_type > -1)
         return super(GameManagementSetVictoryForm, self).save()

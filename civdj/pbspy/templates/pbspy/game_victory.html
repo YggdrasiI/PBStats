@@ -3,13 +3,27 @@
 {% block content %}
 <table class='game_victory'>
     <tr>
-        <th class="colVicHeadline" colspan="2">{{ victory_info.get_victory_headline }}</th>
+        <th class="colVicHeadline" colspan="2">
+            {% if victory_info.get_victory_headline == "" and victory_info.display_always %}
+            Player not defined. Select one or headline will be empty.
+            {% else %}
+            {{ victory_info.get_victory_headline }}
+            {% endif %}
+        </th>
     </tr>
     <tr>
         <td class="colVicImage"><a href="{% url 'game_detail' game.id %}">
                 <img src="{{ victory_info.get_victory_image }}" alt="Image of winning player." />
         </a></td>
-        <td class="colVicText">{{ victory_info.get_victory_message|safe }}</td>
+        <td class="colVicText">
+            
+            {% if victory_info.get_victory_message == "" and victory_info.display_always %}
+        Player not defined. → No default victory message available.
+        Write one if this field should not be empty.
+            {% else %}
+            {{ victory_info.get_victory_message|safe }}
+            {% endif %}
+            </td>
     </tr>
 </table>
 {% endblock %}
