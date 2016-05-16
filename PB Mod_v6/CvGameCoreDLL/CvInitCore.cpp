@@ -10,8 +10,8 @@
 #include "CvGameAI.h"
 #include "CvGameCoreUtils.h"
 
-
 #define PBMOD_FRAME_POINTER_ENABLED 1
+#define DISALLOW_LOCAL_LOADING_OF_PB 1
 // Public Functions...
 
 //PB Mod, to fix crash in BASE use static variables instead of member variables in CvInitCore.
@@ -113,6 +113,9 @@ void CvInitCore::uninit()
 	clearCustomMapOptions();
 	clearVictories();
 	pbmod.bShortNames = false;
+#ifdef DISALLOW_LOCAL_LOADING_OF_PB
+	m_bPitbossSave = false;
+#endif
 }
 
 
@@ -611,6 +614,9 @@ void CvInitCore::resetGame(CvInitCore * pSource, bool bClear, bool bSaveGameType
 		setMaxCityElimination(pSource->getMaxCityElimination());
 
 		setNumAdvancedStartPoints(pSource->getNumAdvancedStartPoints());
+#ifdef DISALLOW_LOCAL_LOADING_OF_PB
+		m_bPitbossSave = pSource->m_bPitbossSave;
+#endif
 
 		setSyncRandSeed(pSource->getSyncRandSeed());
 		setMapRandSeed(pSource->getMapRandSeed());
@@ -1786,6 +1792,17 @@ bool CvInitCore::getReady(PlayerTypes eID) const
 
 void CvInitCore::setReady(PlayerTypes eID, bool bReady)
 {
+#ifdef DISALLOW_LOCAL_LOADING_OF_PB
+	/* PBMOD
+	 * Note/Bug: If multiplayer save is loaded by Main Menu>Direct IP>Load Game
+	 * mode is not GAMEMODE_PITBOSS as you might expect.
+	 * Thus, you can not use the mode to blockade loading of PB Saves.
+	 */
+	if( bReady && m_bPitbossSave && !gDLL->IsPitbossHost() ){
+		//Hey, the user try to load a PB game locally...
+		return;
+	}
+#endif
 	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setReady");
 	if ( checkBounds(eID, 0, MAX_PLAYERS) )
 	{
@@ -2018,6 +2035,18 @@ void CvInitCore::read(FDataStreamBase* pStream)
 
 	pStream->Read(&m_iMaxCityElimination);
 	pStream->Read(&m_iNumAdvancedStartPoints);
+#ifdef DISALLOW_LOCAL_LOADING_OF_PB
+	/* PBMod change */
+	if( m_iNumAdvancedStartPoints & (1<<30)){
+		m_iNumAdvancedStartPoints -= (1<<30);
+		// Store state in new variable,
+		m_bPitbossSave = true;
+		/* Note that the following won't work because mode
+		 * will be reset later by reset() call from EXE.
+		 */
+		//setMode(GAMEMODE_PITBOSS); This won't work because mode
+	}
+#endif
 
 	// PLAYER DATA
 	pStream->ReadString(MAX_PLAYERS, m_aszLeaderName);
@@ -2105,7 +2134,13 @@ void CvInitCore::write(FDataStreamBase* pStream)
 	pStream->Write(m_iTargetScore);
 
 	pStream->Write(m_iMaxCityElimination);
-	pStream->Write(m_iNumAdvancedStartPoints);
+	/* PBMod: Add flag into this variable. It was not implemented as own
+	 * variable to hold save game compatibility.
+	 */
+	pStream->Write(
+			( (getMode() == GAMEMODE_PITBOSS)?(1<<30):0 ) +
+			m_iNumAdvancedStartPoints
+			);
 
 	// PLAYER DATA
 	pStream->WriteString(MAX_PLAYERS, m_aszLeaderName);
