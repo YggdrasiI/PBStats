@@ -614,12 +614,19 @@ void CvInitCore::resetGame(CvInitCore * pSource, bool bClear, bool bSaveGameType
 		setMaxCityElimination(pSource->getMaxCityElimination());
 
 		setNumAdvancedStartPoints(pSource->getNumAdvancedStartPoints());
-#ifdef DISALLOW_LOCAL_LOADING_OF_PB
-		m_bPitbossSave = pSource->m_bPitbossSave;
-#endif
-
+		
 		setSyncRandSeed(pSource->getSyncRandSeed());
 		setMapRandSeed(pSource->getMapRandSeed());
+
+#ifdef DISALLOW_LOCAL_LOADING_OF_PB
+		m_bPitbossSave = pSource->m_bPitbossSave;
+		if( m_bPitbossSave ){
+			/* Made loading of pitboss saves in Hotseat and PBEM-Mode impossible. */
+			if( getHotseat() || getPbem() ){
+				resetGame();
+			}
+		}
+#endif
 	}
 }
 
