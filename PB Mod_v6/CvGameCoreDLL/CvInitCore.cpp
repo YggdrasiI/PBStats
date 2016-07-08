@@ -2148,7 +2148,6 @@ void CvInitCore::write(FDataStreamBase* pStream)
 	/* PBMod: Add flag to m_iNumAdvancedStartPoints and attach extra data. 
 	 * If no admin password is set the security fix will omitted, but the default mode used.   
 	 */
-	int pbmod_extra_flags = 0;
 	if( getAdminPassword().empty() ){
 		pStream->Write( m_iNumAdvancedStartPoints );
 	}else{

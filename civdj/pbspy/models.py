@@ -268,14 +268,25 @@ class Game(models.Model):
                     mt.save()
                 GameLogTurn(**logargs).save()
                 self.send_new_turn_info()
-            elif (turn < self.turn or
-                    (timer_remaining_4s is not None and
+            elif turn < self.turn:
+                GameLogReload(**logargs).save()
+            elif (timer_remaining_4s is not None and
                      self.timer_remaining_4s is not None and
                      timer_remaining_4s > self.timer_remaining_4s + 1200 / 4)):
                 # TODO find a better way than to hardcode the value
                 # Note: Ignore small time difference because every combat increase
                 # the timer by the combat animation time
-                GameLogReload(**logargs).save()
+
+                """ Sequenzial games have always one unfinshed player, but the
+                timer resets for each of them. This should not be marked as reload.
+                """
+                unfinished_new = [player_info["id"] for player_info
+                                  in info['players'] if not player_info['finishedTurn']]
+                if len(unfinished_new) == 1 and not self.player_set.filter(
+                    ingame_id == unfinished_new[0] - 1)[0].finished_turn:
+                    pass
+                else:
+                    GameLogReload(**logargs).save()
 
             if is_paused != self.is_paused:
                 GameLogPause(paused=is_paused, **logargs).save()
