@@ -691,14 +691,14 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                         str(e)}) +
                                 "\n")
 
-                    elif(action == "info"):
+                    elif(action == "info" and inputdata.get("password") == pbSettings["webserver"]["password"]):
                         gamedata = self.server.createGamedata()
 
                         self.wfile.write(
                             simplejson.dumps(
                                 {'return': 'ok', 'info': gamedata}) + "\n")
 
-                    elif(action == "listSaves"):
+                    elif(action == "listSaves" and inputdata.get("password") == pbSettings["webserver"]["password"]):
                         # Print list of saves of the selected folder. This can be used for a dropdown list
                         # of available saves.
                         folderpaths = getPossibleSaveFolders()
@@ -722,7 +722,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                             simplejson.dumps(
                                 {'return': 'ok', 'list': saveList}) + "\n")
 
-                    elif(action == "listPlayerColors"):
+                    elif(action == "listPlayerColors" and inputdata.get("password") == pbSettings["webserver"]["password"]):
                         colorList = []
                         for c in range(gc.getNumPlayerColorInfos()):
                             playerColors = gc.getPlayerColorInfo(c)

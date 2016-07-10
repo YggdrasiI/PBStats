@@ -44,6 +44,7 @@ class GameForm(ModelForm):
             'is_dynamic_ip': _("Dynamic hostname"),
         }
         help_texts = {
+            'pb_remote_password' : _("Different passwords omits accidental updates of the wrong PBSpy entry."),
             'is_private' : _("Exclude game from public list."),
             'is_dynamic_ip': _('Update stored hostname/ip if Pitboss server'
                                + 'sends an update with a new address.'),

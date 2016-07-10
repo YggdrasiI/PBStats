@@ -361,6 +361,8 @@ protected:
 	unsigned int m_uiMapRandSeed;
 	PlayerTypes m_eActivePlayer;
 	GameMode m_eMode;
+	bool m_bPitbossSave;
+	bool m_bPbemOrHotseatSave;
 
 	// Temp var so we don't return locally scoped var
 	mutable CvWString m_szTemp;

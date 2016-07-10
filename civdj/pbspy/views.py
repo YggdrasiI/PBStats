@@ -137,7 +137,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
         # 4. Attach ordered list of players
         context['players'] = list(
-            game.player_set.all().order_by(*player_order))
+            game.player_set.all().filter(ingame_stack=0).order_by(*player_order))
 
         # 5. Post-processed sorting over properties without
         # simple sql definitions.
@@ -255,8 +255,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
     @staticmethod
     def get_player_choices(game):
         # Generate list of (id,Name)-Tuples for formulars
-        #players_from_db = list( game.player_set.all().order_by('ingame_id'))
-        players_from_db = game.player_set.all().order_by('ingame_id')
+        players_from_db = game.player_set.all().filter(ingame_stack=0).order_by('ingame_id')
         choices = [(p.ingame_id, "{:2}".format(p.ingame_id) + r"—" + p.name) for p in players_from_db]
         choices.insert(0, (-1, "All"))
         return tuple(choices)
@@ -456,7 +455,7 @@ def game_manage(request, game_id, action=""):
                     game.pb_set_player_password(
                         form.cleaned_data['player'],
                         form.cleaned_data['password'])
-                    player = game.player_set.all().filter(id=form.cleaned_data['player'].id)[0]
+                    player = game.player_set.all().filter(ingame_stack=0).filter(id=form.cleaned_data['player'].id)[0]
                     return HttpResponse('Set password for player ' + str(player.ingame_id) + '/'
                                         + str(player.name) + '.', status=200)
                 except InvalidPBResponse:
@@ -532,7 +531,7 @@ def render_game_manage_load(request, game, context):
 
 
 def render_game_manage_kick(request, game, context):
-    context['players'] = list(game.player_set.all().order_by('id'))
+    context['players'] = list(game.player_set.filter(ingame_stack=0).order_by('ingame_id'))
     context['players_online'] = game.get_online_players()
     return render(request, 'pbspy/game_manage_kick.html', context)
 

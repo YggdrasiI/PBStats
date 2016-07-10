@@ -10,8 +10,8 @@
 #include "CvGameAI.h"
 #include "CvGameCoreUtils.h"
 
-
 #define PBMOD_FRAME_POINTER_ENABLED 1
+#define DISALLOW_LOCAL_LOADING_OF_PB 1
 // Public Functions...
 
 //PB Mod, to fix crash in BASE use static variables instead of member variables in CvInitCore.
@@ -113,6 +113,10 @@ void CvInitCore::uninit()
 	clearCustomMapOptions();
 	clearVictories();
 	pbmod.bShortNames = false;
+#ifdef DISALLOW_LOCAL_LOADING_OF_PB
+	m_bPitbossSave = false;
+	m_bPbemOrHotseatSave = false;
+#endif
 }
 
 
@@ -611,9 +615,20 @@ void CvInitCore::resetGame(CvInitCore * pSource, bool bClear, bool bSaveGameType
 		setMaxCityElimination(pSource->getMaxCityElimination());
 
 		setNumAdvancedStartPoints(pSource->getNumAdvancedStartPoints());
-
+		
 		setSyncRandSeed(pSource->getSyncRandSeed());
 		setMapRandSeed(pSource->getMapRandSeed());
+
+#ifdef DISALLOW_LOCAL_LOADING_OF_PB
+		m_bPitbossSave = pSource->m_bPitbossSave;
+		m_bPbemOrHotseatSave = pSource->m_bPbemOrHotseatSave;
+		if( m_bPitbossSave ){
+			/* Made loading of pitboss saves in Hotseat and PBEM-Mode impossible. */
+			if( getHotseat() || getPbem() ){
+				resetGame();
+			}
+		}
+#endif
 	}
 }
 
@@ -1786,6 +1801,21 @@ bool CvInitCore::getReady(PlayerTypes eID) const
 
 void CvInitCore::setReady(PlayerTypes eID, bool bReady)
 {
+#ifdef DISALLOW_LOCAL_LOADING_OF_PB
+	/* PBMOD
+	 * Note/Bug: If multiplayer save is loaded by Main Menu>Direct IP>Load Game
+	 * mode is not GAMEMODE_PITBOSS as you might expect.
+	 * Moreover, m_eType is GAME_MP_LOAD and get[Pbem|Hotseat] is false.
+	 * Thus, you can not use mode or type to blockade loading of PB/PBEM Saves.
+	 */
+	if( bReady && m_bPitbossSave && !gDLL->IsPitbossHost() ){
+		//Hey, the user try to load a PB game locally...
+		return;
+	}else if( bReady && m_bPbemOrHotseatSave ){
+		//Hey, the user try to load a PBEM/Hotseat game over Direct IP...
+		return;
+	}
+#endif
 	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setReady");
 	if ( checkBounds(eID, 0, MAX_PLAYERS) )
 	{
@@ -2019,6 +2049,15 @@ void CvInitCore::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iMaxCityElimination);
 	pStream->Read(&m_iNumAdvancedStartPoints);
 
+#ifdef DISALLOW_LOCAL_LOADING_OF_PB
+	/* PBMod change. Check if further data is given. */
+	if( m_iNumAdvancedStartPoints & (1<<30)){
+		m_iNumAdvancedStartPoints ^ (1<<30);
+		pStream->Read(&m_bPitbossSave);
+		pStream->Read(&m_bPbemOrHotseatSave);
+	}
+#endif
+
 	// PLAYER DATA
 	pStream->ReadString(MAX_PLAYERS, m_aszLeaderName);
 	pStream->ReadString(MAX_PLAYERS, m_aszCivDescription);
@@ -2105,7 +2144,17 @@ void CvInitCore::write(FDataStreamBase* pStream)
 	pStream->Write(m_iTargetScore);
 
 	pStream->Write(m_iMaxCityElimination);
-	pStream->Write(m_iNumAdvancedStartPoints);
+
+	/* PBMod: Add flag to m_iNumAdvancedStartPoints and attach extra data. 
+	 * If no admin password is set the security fix will omitted, but the default mode used.   
+	 */
+	if( getAdminPassword().empty() ){
+		pStream->Write( m_iNumAdvancedStartPoints );
+	}else{
+		pStream->Write( m_iNumAdvancedStartPoints | (1<<30) );
+		pStream->Write( (getMode() == GAMEMODE_PITBOSS) );
+		pStream->Write( (getPbem() || getHotseat) );
+	}
 
 	// PLAYER DATA
 	pStream->WriteString(MAX_PLAYERS, m_aszLeaderName);
