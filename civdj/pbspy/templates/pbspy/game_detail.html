@@ -50,7 +50,12 @@
                     {% trans "Name of modification" %}: {{ game.mod_name }}
                 {% endif %}
             </p>
-
+            <!--
+            <p class="game_info">
+                {% trans "Internal name" %}:
+                {{ game.pb_name }}
+            </p>
+            -->
             <p class="game_info">
                 {% trans "Admins for this game" %}: {{ game.admins.all | join:", " }}
             </p>
@@ -132,7 +137,8 @@
                     <tr>
                         <td class="colFinish">{% if player.finished_turn %}*{% endif %}</td>
                         <td class="colId">
-                            {{ player.ingame_id }}</td>
+                            {{ player.ingame_id }}
+                        </td>
                         <td class="colName">
                             <a href="{% url 'game_detail' game.id %}?player_id={{ player.ingame_id }}#game_log">
                                 {{ player.name }}</a>

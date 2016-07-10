@@ -3,7 +3,7 @@
 
 {% block content %}
     {% if game_list %}
-        <table class='game_list'>
+        <table class='game_list game_list_active'>
             <tr>
                 <th class="colName">Name</th>
                 <th class="colNumPlayers">Players</th>
@@ -12,6 +12,7 @@
                 <th class="colStatus">Status</th>
             </tr>
             {% for game in game_list %}
+                {% if not game.get_status = "finished" %}
                 <tr>
                     <td class="colName"><a href="{% url 'game_detail' game.id %}">{{ game.name }}</a></td>
                     <td class="colNumPlayers">{{ game.player_count }}</td>
@@ -19,6 +20,27 @@
                     <td class="colTurn">{{ game.turn }}</td>
                     <td class="colStatus game_{{ game.get_status }}">{{ game.get_status }}</td>
                 </tr>
+                {% endif %}
+            {% endfor %}
+        </table>
+        <table class='game_list game_list_finished'>
+            <tr>
+                <th class="colName">Name</th>
+                <th class="colNumPlayers">Players</th>
+                <th class="colYear">Current Year</th>
+                <th class="colTurn">Turn</th>
+                <th class="colStatus">Status</th>
+            </tr>
+            {% for game in game_list %}
+                {% if game.get_status = "finished" %}
+                <tr>
+                    <td class="colName"><a href="{% url 'game_detail' game.id %}">{{ game.name }}</a></td>
+                    <td class="colNumPlayers">{{ game.player_count }}</td>
+                    <td class="colYear">{{ game.year_str }}</td>
+                    <td class="colTurn">{{ game.turn }}</td>
+                    <td class="colStatus game_{{ game.get_status }}">{{ game.get_status }}</td>
+                </tr>
+                {% endif %}
             {% endfor %}
         </table>
     {% else %}

@@ -247,7 +247,7 @@ class Game(models.Model):
             logargs = {'game': self, 'date': date,
                        'year': year, 'turn': turn}
 
-            player_count_old = self.player_set.count()
+            player_count_old = self.player_set.filter(ingame_stack=0).count()
             player_count = len(info['players'])
             if (self.pb_name != info['gameName'] or
                     player_count_old != player_count):
@@ -257,13 +257,25 @@ class Game(models.Model):
                     player_count_old=player_count_old,
                     player_count=player_count,
                     **logargs).save()
-                #Remove player list of old game
+
+                """ (Ramk) Zulan notes, that this would be critical
+                    The players are used as keys in some GameLog classes
+                    and could not flat deleted.
+                # Remove player list of old game
                 if player_count_old > 0:
                     self.player_set.all().delete()
+                """
+                # Make players inactive. This forces creation of new player
+                # instance at the end of this method. Ordering required to
+                # preserve unique key.
+                for ingame_id in range(player_count_old):
+                    for player in self.player_set.all().filter(ingame_id=ingame_id).order_by('-ingame_stack'):
+                        player.ingame_stack += 1
+                        player.save()
 
             if turn > self.turn:
                 mt = GameLogMissedTurn(**logargs)
-                mt.set_missed_players(self.player_set.all())
+                mt.set_missed_players(self.player_set.filter(ingame_stack=0).all())
                 if mt.is_turn_incomplete():
                     mt.save()
                 GameLogTurn(**logargs).save()
@@ -272,7 +284,7 @@ class Game(models.Model):
                 GameLogReload(**logargs).save()
             elif (timer_remaining_4s is not None and
                      self.timer_remaining_4s is not None and
-                     timer_remaining_4s > self.timer_remaining_4s + 1200 / 4)):
+                     timer_remaining_4s > self.timer_remaining_4s + 1200 / 4):
                 # TODO find a better way than to hardcode the value
                 # Note: Ignore small time difference because every combat increase
                 # the timer by the combat animation time
@@ -282,7 +294,7 @@ class Game(models.Model):
                 """
                 unfinished_new = [player_info["id"] for player_info
                                   in info['players'] if not player_info['finishedTurn']]
-                if len(unfinished_new) == 1 and not self.player_set.filter(
+                if len(unfinished_new) == 1 and not self.player_set.filter(ingame_stack=0).filter(
                     ingame_id == unfinished_new[0] - 1)[0].finished_turn:
                     pass
                 else:
@@ -323,10 +335,12 @@ class Game(models.Model):
         if not is_minimal:
             for player_info in info['players']:
                 try:
-                    player = self.player_set.get(ingame_id=player_info['id'])
+                    player = self.player_set.filter(ingame_stack=0).get(ingame_id=player_info['id'])
                 except Player.DoesNotExist:
                     player = Player(ingame_id=player_info['id'], game=self)
-                player.set_from_dict(player_info, logargs)
+                    player.set_from_dict(player_info, logargs, False, False)
+                    player = self.search_old_matching_player(player_info['id'], player)
+                    player.save()
 
     def pb_action(self, **kwargs):
         url = "http://{}:{}/api/v1/".format(self.hostname, self.manage_port)
@@ -509,6 +523,44 @@ class Game(models.Model):
                          game_name=self.name, game_pb_name=self.pb_name, turn=(self.turn+1),
                          manage_url=reverse('game_detail', args=[self.id]))
 
+    def search_old_matching_player(self, ingame_id, new_player):
+        """ Search old, inactive player object with similar properties
+            as a new entry. Re-use the old one if possible.
+        """
+        existing_player = None
+        players = self.player_set.filter(ingame_stack__gt=0, ingame_id=ingame_id)
+
+        try:
+            existing_player = players.get(name=new_player.name)
+        except Player.MultipleObjectsReturned:
+            players = players.filter(name=new_player.name)
+        except Player.DoesNotExist:
+            pass
+
+        if existing_player == None:
+            try:
+                existing_player = players.get(leader=new_player.leader)
+            except Player.MultipleObjectsReturned:
+                players = players.filter(leader=new_player.leader)
+            except Player.DoesNotExist:
+                pass
+
+        if existing_player == None:
+            try:
+                existing_player = players.get(civilization=new_player.civilization)
+            except Player.MultipleObjectsReturned:
+                existing_player = players.filter(civilization=new_player.civilization)[0]
+            except Player.DoesNotExist:
+                pass
+
+        if existing_player != None:
+            # Make entry active. We assume here that none is active.
+            # Otherwise save() will throw an exception.
+            existing_player.ingame_stack = 0;
+            return existing_player
+
+        return new_player
+
     def __str__(self):
         return self.name
 
@@ -635,8 +687,13 @@ class Player(models.Model):
     leader        = models.TextField(max_length=200)
     # Formatted as "RRR,GGG,BBB" decimal
     color_rgb     = models.TextField(max_length=3 * 3 + 2)
+    # Blending out surplus players (i.e. if other pb game loaded)
+    # active is index 0, inactive get index 1, 2, ...
+    ingame_stack     = models.SmallIntegerField(default=0)
 
     def status(self):
+        if not self.ingame_stack == 0:
+            return _('Error. Inactive player should not be displayed.')
         if self.score == 0:
             return _('eliminated')
         if not self.is_claimed:
@@ -647,7 +704,7 @@ class Player(models.Model):
             return _('online')
         return _('offline')
 
-    def set_from_dict(self, info, logargs):
+    def set_from_dict(self, info, logargs, is_save=True, is_log=True):
         logargs['player'] = self
         logargs['player_name'] = self.name
 
@@ -656,7 +713,10 @@ class Player(models.Model):
         is_online = info['ping'][1] == '['
 
         # don't crate log entries for first entry
-        if self.id is not None:
+        if self.id is None:
+            is_log = False
+
+        if is_log:
             if info['bClaimed'] and not self.is_claimed:
                 GameLogClaimed(**logargs).save()
 
@@ -693,14 +753,16 @@ class Player(models.Model):
         self.civilization  = info['civilization']
         self.leader        = info['leader']
         self.color_rgb     = info['color']
-        self.save()
+
+        if is_save:
+            self.save()
 
     @property
     def color(self):
         return Color(self.color_rgb)
 
     class Meta:
-        unique_together = (('ingame_id', 'game'),)
+        unique_together = (('ingame_id', 'game','ingame_stack'),)
         index_together  = (('ingame_id', 'game'),)
 
     def __str__(self):
