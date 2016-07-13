@@ -101,6 +101,13 @@ function handle_pitboss_action($gameData, $arr_in) {
 		$host = "";
 		$url = "/api/v1/";
 
+    // Required for newer version of PB Mod. Now, every command needs a password
+    // Add one if none is given. Note: This will take the password known by the 
+    // webserver, not by the user.
+    if( ! isset($arr_in["password"]) ){
+      $arr_in["password"] = $gameData["managePasswordHash"];
+    }
+
 	/* gethostbyname return value sucks if hostname in gameData is ip
 		if( $address === "?" ){
 			$error = array( "return"=>"failed","info" => "Can not resolve hostname.");
