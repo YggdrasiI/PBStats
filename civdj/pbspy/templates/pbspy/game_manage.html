@@ -137,4 +137,12 @@
             <h2><a href="{% url 'game_manage' game.id 'motd' %}">{% trans "set message of the day" %}</a></h2>
         </div>
     </div>
+    <div class="game_management_section_imploded">
+        <h2>{% trans "Magellan bonus" %}</h2>
+        <span class="description">{% trans "Disable and revert Magellan bonus for all players." %}<br>{% trans "Attention, for simplicity this command decreases the number of extra moves for all players." %}</span>
+        <form method="post" action="{% url 'game_manage' game.id 'remove_magellan_bonus' %}">
+            {% csrf_token %}
+            <span><input type="submit" value="{% trans "remove Magellan bonus" %}"/></span>
+        </form>
+    </div>
 {% endblock %}

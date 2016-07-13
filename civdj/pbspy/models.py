@@ -394,6 +394,9 @@ class Game(models.Model):
     def pb_set_headless(self, value, user=None):
         return self.pb_action(action='setHeadless', value=bool(value))
 
+    def pb_remove_magellan_bonus(self, takebackBonus, user=None):
+        return self.pb_action(action='removeMagellanBonus', takebackBonus=int(takebackBonus))
+
     def pb_save(self, filename, user=None):
         if not savegame_allowed_name_re.match(filename):
             raise InvalidCharacterError()

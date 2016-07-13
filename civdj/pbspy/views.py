@@ -395,6 +395,10 @@ def game_manage(request, game_id, action=""):
         elif action == 'autostart_disable':
             game.pb_set_autostart(False)
             return HttpResponse('pb autostart disabled', status=200)
+        elif action == 'remove_magellan_bonus':
+            ret = game.pb_remove_magellan_bonus(1)
+            return HttpResponse('pb remove magellan. Server returns: '
+                                + ret['info'], status=200)
         elif action == 'end_turn':
             game.pb_end_turn()
             return HttpResponse('turn ended', status=200)
