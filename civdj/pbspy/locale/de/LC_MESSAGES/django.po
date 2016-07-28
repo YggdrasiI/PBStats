@@ -90,11 +90,11 @@ msgstr "Logeintrag-Filter"
 
 #: forms.py:133
 msgid "Maximal turn"
-msgstr ""
+msgstr "Maximale Runde"
 
 #: forms.py:135
 msgid "Minimal turn"
-msgstr ""
+msgstr "Minimale Runde"
 
 #: forms.py:138
 msgid "Players"
@@ -102,7 +102,7 @@ msgstr "Spieler"
 
 #: forms.py:147
 msgid "Filter name"
-msgstr "Filter Name"
+msgstr "Name des Filters"
 
 #: forms.py:165
 msgid "New color"
@@ -198,7 +198,7 @@ msgstr "Ein Spiel namens {name} wurde mit {num_players} Spielern gestartet."
 #: models.py:655
 #, python-brace-format
 msgid "turn timer changed to {timer} hours."
-msgstr "Der Rundentimeer wurde auf {timer} Stunden gesetzt."
+msgstr "Der Rundentimer wurde auf {timer} Stunden gesetzt."
 
 #: models.py:657
 msgid "turn timer disabled."
@@ -255,7 +255,7 @@ msgstr "Name geändert zu {new_name}"
 
 #: models.py:723
 msgid "converted to AI"
-msgstr "Spieler zu KI konerveriert"
+msgstr "Spieler zu KI konvertiert"
 
 #: models.py:727
 msgid "claimed"
@@ -312,6 +312,9 @@ msgid ""
 "                  Logged in as %(user)s.\n"
 "                  "
 msgstr ""
+"\n"
+"                  Eingeloggt als %(user)s.\n"
+"                  "
 
 #: templates/pbspy/base.html:33
 msgid "register new PitBoss"
@@ -347,6 +350,8 @@ msgid ""
 "\n"
 "[%(game_name)s] New turn %(turn)s\n"
 msgstr ""
+"\n"
+"[%(game_name)s] Neue Runde %(turn)s\n"
 
 #: templates/pbspy/email_subscribed.txt:2
 #, python-format
@@ -368,27 +373,27 @@ msgstr ""
 
 #: templates/pbspy/game_change.html:10 templates/pbspy/game_change.html:14
 msgid "warning"
-msgstr ""
+msgstr "Warnung"
 
 #: templates/pbspy/game_change.html:11
 msgid "Warning, connection to PB Server can not be etablished for this values."
-msgstr ""
+msgstr "Warnung, Verbindung kann für diese Werte nicht hergestellt werden."
 
 #: templates/pbspy/game_change.html:15
 msgid "Warning, form contains errors and can not be saved."
-msgstr ""
+msgstr "Warnung, Formulardaten enthalten Fehler und können nicht gespeichert werden."
 
 #: templates/pbspy/game_change.html:18
 msgid "game"
-msgstr ""
+msgstr "Spiel"
 
 #: templates/pbspy/game_change.html:24
 msgid "update"
-msgstr ""
+msgstr "Update"
 
 #: templates/pbspy/game_detail.html:14
 msgid "game status"
-msgstr ""
+msgstr "Spielstatus"
 
 #: templates/pbspy/game_detail.html:16 templates/pbspy/game_detail.html:177
 msgid "Turn"
@@ -457,15 +462,15 @@ msgstr ""
 
 #: templates/pbspy/game_detail.html:47
 msgid "Name of modification"
-msgstr ""
+msgstr "Modifikation"
 
 #: templates/pbspy/game_detail.html:55
 msgid "The game server is available."
-msgstr ""
+msgstr "PB-Server online"
 
 #: templates/pbspy/game_detail.html:57
 msgid "The game server is offline."
-msgstr ""
+msgstr "PB-Server offline"
 
 #: templates/pbspy/game_detail.html:60
 #, python-format
@@ -474,6 +479,9 @@ msgid ""
 "\t\t\t\t\t\t\t(Last connection attempt to PB Server: %(last_activity)s)\n"
 "\t\t\t\t\t\t\t"
 msgstr ""
+"\n"
+"\t\t\t\t\t\t\t(Letzter Verbindungsversuch zum PB-Server: %(last_activity)s)\n"
+"\t\t\t\t\t\t\t"
 
 #: templates/pbspy/game_detail.html:69
 msgid "subscribe to new turn emails for this game"
@@ -489,7 +497,7 @@ msgstr "abbestellen"
 
 #: templates/pbspy/game_detail.html:85
 msgid "game description"
-msgstr "Spielbeschreibung"
+msgstr "Beschreibung des Spiels"
 
 #: templates/pbspy/game_detail.html:93
 msgid "player summary"
@@ -517,7 +525,7 @@ msgstr "Status"
 
 #: templates/pbspy/game_detail.html:138
 msgid "No players available yet."
-msgstr ""
+msgstr "Bisher keine Spieler verfügbar."
 
 #: templates/pbspy/game_detail.html:142
 msgid "game log"
@@ -525,7 +533,7 @@ msgstr "Protokoll"
 
 #: templates/pbspy/game_detail.html:149
 msgid "Change filter"
-msgstr "Filter aendern"
+msgstr "Filter ändern"
 
 #: templates/pbspy/game_detail.html:155
 msgid "Save"
@@ -545,7 +553,7 @@ msgstr "Ereignis"
 
 #: templates/pbspy/game_detail.html:195
 msgid "No game log entry available yet."
-msgstr ""
+msgstr "Bisher kein Log-Eintrag verfügbar"
 
 #: templates/pbspy/game_manage.html:11 templates/pbspy/game_manage.html:21
 msgid "pause game"
@@ -554,7 +562,7 @@ msgstr "Spiel pausieren"
 #: templates/pbspy/game_manage.html:12
 msgid ""
 "Toggles the ingame pause. Useful to free users in hanging diplomatic screens."
-msgstr ""
+msgstr "Ändert den Pausestatus im Spiel. Nützlich um Spieler aus dem Diplomatie-Bildschirm zu befreien."
 
 #: templates/pbspy/game_manage.html:16
 msgid "unpause game"
@@ -566,7 +574,7 @@ msgstr "Ende der Runde erzwingen"
 
 #: templates/pbspy/game_manage.html:27
 msgid "Sets timer on a few seconds."
-msgstr "Setzte den Rundentimer auf wenige Sekunden."
+msgstr "Setzt den Rundentimer auf wenige Sekunden."
 
 #: templates/pbspy/game_manage.html:30
 msgid "end turn"
@@ -574,25 +582,25 @@ msgstr "Runde beenden"
 
 #: templates/pbspy/game_manage.html:34
 msgid "set turn timer"
-msgstr ""
+msgstr "Rundentimer ändern"
 
 #: templates/pbspy/game_manage.html:35
 msgid ""
 "Time for the next round. Note that the ingame clock runs slower as desired. "
 "A value of 20 correspond with 24 hours."
-msgstr ""
+msgstr "Zeit für die nächste Runde. Bitte beachten, dass die Uhr im Spiel langsamer vergeht als erwartet. 20 Stunden im Spiel entsprechen ungefähr 24 realen."
 
 #: templates/pbspy/game_manage.html:39 templates/pbspy/game_manage.html:47
 msgid "set timer"
-msgstr ""
+msgstr "Setze Timer für diese Runde"
 
 #: templates/pbspy/game_manage.html:43
 msgid "set turn timer of current round"
-msgstr ""
+msgstr "Setze Timer für die nächste Runde"
 
 #: templates/pbspy/game_manage.html:51 templates/pbspy/game_manage.html:56
 msgid "save game"
-msgstr ""
+msgstr "Spiel speichern"
 
 #: templates/pbspy/game_manage.html:52
 msgid ""
@@ -604,73 +612,73 @@ msgstr ""
 #: templates/pbspy/game_manage_load.html:21
 #: templates/pbspy/game_manage_load.html:26
 msgid "load game"
-msgstr ""
+msgstr "Spiel laden"
 
 #: templates/pbspy/game_manage.html:63
 msgid "change password of player"
-msgstr ""
+msgstr "Passwort eines Spielers ändern"
 
 #: templates/pbspy/game_manage.html:67
 msgid "change player password"
-msgstr ""
+msgstr "Spielerpasswort ändern"
 
 #: templates/pbspy/game_manage.html:71
 msgid "change colorset of player"
-msgstr ""
+msgstr "Farbkombination eines Spielers ändern"
 
 #: templates/pbspy/game_manage.html:74
 msgid "send chat message"
-msgstr ""
+msgstr "Chat-Nachricht senden"
 
 #: templates/pbspy/game_manage.html:75
 msgid "Viewable for players in the game."
-msgstr ""
+msgstr "Sichtbar für eingeloggte Spieler. Es ist nicht möglich den Chat im Webinterface mitzulesen."
 
 #: templates/pbspy/game_manage.html:79
 msgid "send message"
-msgstr ""
+msgstr "Nachricht senden"
 
 #: templates/pbspy/game_manage.html:83
 msgid "swap autostart of save games"
-msgstr ""
+msgstr "Autostart umstellen"
 
 #: templates/pbspy/game_manage.html:84
 msgid ""
 "If autostart is enabled the server skips the setup wizard and directly loads "
 "a save."
-msgstr ""
+msgstr "Ist der automatische Start aktiviert wird der in der Konfigurationsdatei angegebene Spielstand direkt geladen."
 
 #: templates/pbspy/game_manage.html:84
 msgid "Do not disable the autostart if you running the server headless."
-msgstr ""
+msgstr "Der Autostart sollte im Headless-Modus immer aktiviert sein."
 
 #: templates/pbspy/game_manage.html:88
 msgid "disable autostart"
-msgstr ""
+msgstr "Deaktiviere Autostart"
 
 #: templates/pbspy/game_manage.html:93
 msgid "enable autostart"
-msgstr ""
+msgstr "Aktiviere Autostart"
 
 #: templates/pbspy/game_manage.html:98
 msgid "swap headless mode"
-msgstr ""
+msgstr "Headless-Modus umstellen"
 
 #: templates/pbspy/game_manage.html:99
 msgid "Flag to disable the GUI. Reduces cpu usage."
-msgstr ""
+msgstr "Option um GUI zu deaktivieren. Reduziert CPU-Last stark!"
 
 #: templates/pbspy/game_manage.html:103
 msgid "disable headless"
-msgstr ""
+msgstr "GUI aktivieren (normal)"
 
 #: templates/pbspy/game_manage.html:108
 msgid "enable headless"
-msgstr ""
+msgstr "GUI deaktivieren (headless)"
 
 #: templates/pbspy/game_manage.html:113
 msgid "change short names ranges"
-msgstr ""
+msgstr "Ändere Länge der Kurzbeschreibungen"
 
 #: templates/pbspy/game_manage.html:115
 msgid ""
@@ -681,15 +689,15 @@ msgstr ""
 
 #: templates/pbspy/game_manage.html:116
 msgid "The sum of both values should not exceed 5 (for 52 players)."
-msgstr ""
+msgstr "Bei 52 Spielern sollte die Summe beider Werte 5 nicht überschreiten."
 
 #: templates/pbspy/game_manage.html:117
 msgid "The length of 0 (in the first field) disables this option."
-msgstr ""
+msgstr "Der Wert 0 (im ersten Feld) deaktiviert die Kürzung der Namen im PB-Loginscreen."
 
 #: templates/pbspy/game_manage.html:118
 msgid "The length of 1 enables an enummeration of all slots (A-z)"
-msgstr ""
+msgstr "Der Wert 1 aktiviert die Durchnummerierung aller Slots (A-z)"
 
 #: templates/pbspy/game_manage.html:123
 msgid "set"
@@ -702,37 +710,41 @@ msgstr ""
 
 #: templates/pbspy/game_manage_color.html:12
 msgid "Colorset changed"
-msgstr ""
+msgstr "Farbkombination geändert"
 
 #: templates/pbspy/game_manage_color.html:13
 msgid "The colorset was updated for "
-msgstr ""
+msgstr "Die Farbkombination wurde geändert für "
 
 #: templates/pbspy/game_manage_color.html:17
 msgid "Change colorset of player"
-msgstr ""
+msgstr "Ändere Farbkombination von Spieler"
 
 #: templates/pbspy/game_manage_color.html:18
 msgid ""
 "To repair bad color combinations of neigboured players after the game starts."
 msgstr ""
+"Option um schlechte Farbkombinationen benachbarter Spieler zu vermeiden."
 
 #: templates/pbspy/game_manage_color.html:19
 msgid ""
 "The colorsets are defined in Assets/XML/Interface/CIV4PlayerColorInfos.xml."
 msgstr ""
+"Die Farbkombinationen sind definiert in Assets/XML/Interface/CIV4PlayerColorInfos.xml."
+"Achtung, die Werte sollten nicht modifiziert werden, wenn das Spiel passwortgeschützt ist."
+"In dem Fall sollte man kurz das Admin-Passwort entfernen."
 
 #: templates/pbspy/game_manage_color.html:23
 msgid "change player colorset"
-msgstr ""
+msgstr "Farben ändern"
 
 #: templates/pbspy/game_manage_color.html:27
 msgid "Available colorsets"
-msgstr ""
+msgstr "Verfügbare Farbkombinationen"
 
 #: templates/pbspy/game_manage_load.html:12
 msgid "Warning"
-msgstr ""
+msgstr "Warnung"
 
 #: templates/pbspy/game_manage_load.html:14
 #, python-format
@@ -786,77 +798,84 @@ msgstr ""
 #: templates/registration/login.html:8
 #: templates/registration/password_reset_complete.html:6
 msgid "Log in"
-msgstr ""
+msgstr "Einloggen"
 
 #: templates/registration/login.html:11
 msgid "Forgot password"
-msgstr ""
+msgstr "Passwort vergessen"
 
 #: templates/registration/login.html:11
 msgid "Reset it"
-msgstr ""
+msgstr "Zurücksetzen"
 
 #: templates/registration/login.html:12
 msgid "Not member"
-msgstr ""
+msgstr "Kein Mitglied"
 
 #: templates/registration/login.html:12
 msgid "Register"
-msgstr ""
+msgstr "Registrieren"
 
 #: templates/registration/logout.html:5
 msgid "Logged out"
-msgstr ""
+msgstr "Ausloggen"
 
 #: templates/registration/password_change_done.html:5
 msgid "Password changed"
-msgstr ""
+msgstr "Passwort geändert"
 
 #: templates/registration/password_change_form.html:8
 #: templates/registration/password_reset_confirm.html:9
 #: templates/registration/password_reset_form.html:10
 msgid "Submit"
-msgstr ""
+msgstr "Absenden"
 
 #: templates/registration/password_reset_complete.html:5
 msgid "Password reset successfully"
-msgstr ""
+msgstr "Passwort erfolgreich zurückgesetzt"
 
 #: templates/registration/password_reset_confirm.html:12
 msgid "Password reset failed"
-msgstr ""
+msgstr "Passwort konnte nicht zurückgesetzt werden"
 
 #: templates/registration/password_reset_done.html:5
 msgid "An email with password reset instructions has been sent."
-msgstr ""
+msgstr "Eine EMail mit Instruktionen zum Zurücksetzen des Passwortes wurde versendet."
 
 #: templates/registration/password_reset_email.html:3
 #, python-format
 msgid "Reset password at %(site_name)s"
-msgstr ""
+msgstr "Passwort auf %(site_name)s zurücksetzen"
 
 #: templates/registration/password_reset_form.html:5
 msgid ""
 "Forgotten your password? Enter your email address below, and we'll email "
 "instructions for setting a new one."
 msgstr ""
+"Passwort vergessen? Gib deine EMail-Adresse ein und wir senden eine "
+"Anleitung, wie ein neues Passwort gesetzt werden kann."
 
 #: templates/registration/registration_closed.html:4
 msgid "Registration is currently closed."
-msgstr ""
+msgstr "Registrierung ist derzeit nicht möglich."
 
 #: templates/registration/registration_complete.html:4
 msgid ""
 "You are now registered. An activation email with instructions to activate "
 "your account was sent."
 msgstr ""
+"Du bist nun resistiert. Eine Aktivierungs-Mail zum freischalten deines Accounts "
+"wurde versendet."
 
 #: templates/registration/registration_form.html:7
 msgid ""
 "Registering to pbspy will allow you to create pitboss games, claim players "
 "in pitboss games and send notification emails for new turns."
 msgstr ""
+"Eine Registrierung erlaubt Dir eigene PB-Spiele über die Seite zu steuern, "
+"Spieler können den Status deiner Spiel einsehen und sich per EMail über neue "
+"Züge benachrichtigen lassen."
 
 #: templates/registration/registration_form.html:8
 msgid "Note: The full functionality is not implemented yet!"
-msgstr ""
+msgstr "Hinweis: Die volle Funktionalität ist bisher noch nicht implementiert."
