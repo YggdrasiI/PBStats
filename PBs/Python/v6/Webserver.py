@@ -1,3 +1,4 @@
+# vim: set fileencoding=utf-8
 from CvPythonExtensions import *
 import CvUtil
 import CvEventInterface

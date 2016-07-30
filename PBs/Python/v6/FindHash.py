@@ -1,3 +1,4 @@
+# vim: set fileencoding=utf-8
 """ Extract hash value of admin password of given save.
     This value could be used to decide if Civ4 will hang
     up if use PB.load(savepath, password)
