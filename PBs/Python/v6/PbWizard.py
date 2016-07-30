@@ -100,7 +100,6 @@ def loadSavegame(filename, folderIndex=0, adminPwd=""):
 	if folderIndex == -1:
 		if os.path.isfile( filename ):
 			filepath = filename
-		pass
 	else:
 		folderpaths = Webserver.getPossibleSaveFolders()
 		try:
@@ -123,6 +122,8 @@ def loadSavegame(filename, folderIndex=0, adminPwd=""):
 			iResult = -2
 		else:
 			iResult = PB.load(filepath, str(matchingPwd)) # should be 0
+			# Store matching password hash for later usage.
+			Webserver.pbTmpSettings["adminpw"] = matchingPwd
 
 	return (iResult,filepath)
 
@@ -693,8 +694,8 @@ else:
 								adminPwd = dlg.GetValue()
 
 								# We got a save file - try to load the setup info
-								iResult = PB.load(path, adminPwd)
-								# (iResult,filepath) = loadSavegame(path, -1, adminPwd)
+								# iResult = PB.load(path, adminPwd)
+								(iResult,filepath) = loadSavegame(path, -1, adminPwd)
 								if ( iResult != 0 ):
 									# Loading setup info failed.  Clean up and exit
 									if (iResult == 1):
@@ -1299,6 +1300,7 @@ else:
 				self.climateChoice.GetSelection(), self.seaLevelChoice.GetSelection(),
 				self.eraChoice.GetSelection(), self.speedChoice.GetSelection(), maxTurnsValue, cityEliminationValue,
 				advancedStartPointsValue, turnTimerValue, self.adminPasswordEdit.GetValue() )
+			Webserver.pbTmpSettings["adminpw"] = self.adminPasswordEdit.GetValue()
 
 		def OnCustomMapOptionChoice(self, event):
 			# Get the option ID

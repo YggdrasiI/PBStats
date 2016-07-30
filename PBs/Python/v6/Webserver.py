@@ -75,6 +75,7 @@ pbDefaultSettings = {
     "errorLogFile": None
 }
 pbSettings = None
+pbTmpSettings = dict()  # Unsaved settings
 
 # Try to load pbSettings file.
 # To get a different settings file for each pitboss we need
@@ -470,12 +471,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                     # and will not change the DLL in this version of the mod.
                                     # TODO: Move this line into the DLL for newer
                                     # versions of the mod.
-                                adminPW = str(
-                                    pbSettings.get(
-                                        "save",
-                                        {}).get(
-                                        "adminpw",
-                                        ""))
+                                adminPW = str(pbTmpSettings.get("adminpw",
+                                    pbSettings.get("save", {}).get("adminpw", "")))
                                 if len(adminPW) > 0:
                                     adminPWHash = md5.new(adminPW).hexdigest()
                                 else:
