@@ -2052,7 +2052,7 @@ void CvInitCore::read(FDataStreamBase* pStream)
 #ifdef DISALLOW_LOCAL_LOADING_OF_PB
 	/* PBMod change. Check if further data is given. */
 	if( m_iNumAdvancedStartPoints & (1<<30)){
-		m_iNumAdvancedStartPoints ^ (1<<30);
+		m_iNumAdvancedStartPoints &= ~(1<<30);
 		pStream->Read(&m_bPitbossSave);
 		pStream->Read(&m_bPbemOrHotseatSave);
 	}
