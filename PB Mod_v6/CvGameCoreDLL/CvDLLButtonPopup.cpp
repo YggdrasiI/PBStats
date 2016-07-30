@@ -1468,6 +1468,19 @@ bool CvDLLButtonPopup::launchDisbandCityPopup(CvPopup* pPopup, CvPopupInfo &info
 
 bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
+
+	/* PB Mod
+	 * Oracle double tech bugfix. If a player is logged in during the building
+	 * of the oracle in one of his cities, he get immediately the Tech selection
+	 * and again, at the next login.
+	 * 
+	 * Solution: Set a flag if the player was logged in during the oracle build
+	 *           and skip second popup.
+	 */
+	if(	info.getFlags() == 1 ){
+		return (false);
+	}
+
 	CyArgsList argsList;
 	argsList.add(GC.getGameINLINE().getActivePlayer());
 	long lResult=0;
@@ -1857,7 +1870,10 @@ bool CvDLLButtonPopup::launchDoEspionagePopup(CvPopup* pPopup, CvPopupInfo &info
 		return (false);
 	}
 
-	// espionage popup bugfix: Compare turn slice timestamp. This fails for all quequed messages in pitboss save.
+	/* PB Mod.
+	 * Espionage popup bugfix: Compare turn slice timestamp. 
+	 * This fails for all quequed messages in pitboss save.
+	 */
 	if(	GC.getGameINLINE().getTurnSlice() != info.getFlags() ){
 		return (false);
 	}

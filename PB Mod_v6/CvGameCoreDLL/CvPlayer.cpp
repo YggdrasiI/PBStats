@@ -1060,7 +1060,7 @@ int CvPlayer::startingPlotDistanceFactor(CvPlot* pPlot, PlayerTypes ePlayer, int
 		int iDistance = stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE());
 		if (pStartingPlot->getArea() != pPlot->getArea())
 		{
-			iDistance *= 4;            	
+			iDistance *= 4;
 			iDistance /= 3;
 		}
 
@@ -1068,7 +1068,7 @@ int CvPlayer::startingPlotDistanceFactor(CvPlot* pPlot, PlayerTypes ePlayer, int
 		iValue /= iRange ;
 
 	}
-    
+
 	return std::max(1, iValue);
 
 }
@@ -3024,8 +3024,8 @@ bool CvPlayer::hasBusyUnit() const
 		{
 		    if (pLoopSelectionGroup->getNumUnits() == 0)
 		    {
-		        pLoopSelectionGroup->kill();
-		        return false;
+					pLoopSelectionGroup->kill();
+					return false;
 		    }
 
 			return true;
@@ -3041,6 +3041,12 @@ void CvPlayer::chooseTech(int iDiscover, CvWString szText, bool bFront)
 	CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CHOOSETECH);
 	if (NULL != pInfo)
 	{
+		//PB Mod
+		//For Oracle double tech bugfix. Store if this player is logged in.
+		if ( gDLL->IsPitbossHost() && isConnected() ){
+			pInfo->setFlags(1);
+		}
+
 		pInfo->setData1(iDiscover);
 		pInfo->setText(szText);
 		gDLL->getInterfaceIFace()->addPopup(pInfo, getID(), false, bFront);
@@ -3230,13 +3236,13 @@ int CvPlayer::countTotalCulture() const
 int CvPlayer::countOwnedBonuses(BonusTypes eBonus) const
 {
 	PROFILE("CvPlayer::countOwnedBonuses");
-    CvCity* pLoopCity;
+	CvCity* pLoopCity;
 	CvPlot* pLoopPlot;
 	int iCount;
 	int iI;
-    int iLoop;
-    
-    bool bAdvancedStart = (getAdvancedStartPoints() >= 0) && (getCurrentEra() < 3);
+	int iLoop;
+
+	bool bAdvancedStart = (getAdvancedStartPoints() >= 0) && (getCurrentEra() < 3);
 
 	iCount = 0;
 
@@ -6714,7 +6720,7 @@ int CvPlayer::getResearchTurnsLeft(TechTypes eTech, bool bOverflow) const
 
 int CvPlayer::getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) const
 {
-    int iResearchRate;
+	int iResearchRate;
 	int iOverflow;
 	int iResearchLeft;
 	int iTurnsLeft;
@@ -6760,8 +6766,8 @@ int CvPlayer::getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) cons
 	}
 
 	return std::max(1, iTurnsLeft);
-    
-    
+
+
 }
 
 
@@ -13815,15 +13821,15 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 		if (NO_TEAM != eTargetTeam)
 		{
 			int iTurns = (kMission.getCounterespionageNumTurns() * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent()) / 100;
-      if( GET_TEAM(getTeam()).getCounterespionageTurnsLeftAgainstTeam(eTargetTeam) == 0 ){
-        // Do not increase twice for multiple counter espionage.
-        GET_TEAM(getTeam()).changeCounterespionageModAgainstTeam(eTargetTeam, kMission.getCounterespionageMod());
-      }
+			if( GET_TEAM(getTeam()).getCounterespionageTurnsLeftAgainstTeam(eTargetTeam) == 0 ){
+				// Do not increase twice for multiple counter espionage.
+				GET_TEAM(getTeam()).changeCounterespionageModAgainstTeam(eTargetTeam, kMission.getCounterespionageMod());
+			}
 			GET_TEAM(getTeam()).changeCounterespionageTurnsLeftAgainstTeam(eTargetTeam, iTurns);
-      if( GET_TEAM(getTeam()).getCounterespionageTurnsLeftAgainstTeam(eTargetTeam) == 0 ){
-        // Do not increase twice for multiple counter espionage.
-        GET_TEAM(getTeam()).changeCounterespionageModAgainstTeam(eTargetTeam, kMission.getCounterespionageMod());
-      }
+			if( GET_TEAM(getTeam()).getCounterespionageTurnsLeftAgainstTeam(eTargetTeam) == 0 ){
+				// Do not increase twice for multiple counter espionage.
+				GET_TEAM(getTeam()).changeCounterespionageModAgainstTeam(eTargetTeam, kMission.getCounterespionageMod());
+			}
 	
 			bSomethingHappened = true;
 
