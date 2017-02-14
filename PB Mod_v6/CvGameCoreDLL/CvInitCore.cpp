@@ -2051,7 +2051,12 @@ void CvInitCore::read(FDataStreamBase* pStream)
 
 #ifdef DISALLOW_LOCAL_LOADING_OF_PB
 	/* PBMod change. Check if further data is given. */
-	if( m_iNumAdvancedStartPoints & (1<<30)){
+	if( m_iNumAdvancedStartPoints & (1<<30)
+			&& !getAdminPassword().empty()  /* Not. ness. if (**)-Line
+																				 resets the above value, but
+																				 to be on the save side we check the
+																				 password, too. */
+		){
 		m_iNumAdvancedStartPoints &= ~(1<<30);
 		pStream->Read(&m_bPitbossSave);
 		pStream->Read(&m_bPbemOrHotseatSave);
@@ -2145,16 +2150,21 @@ void CvInitCore::write(FDataStreamBase* pStream)
 
 	pStream->Write(m_iMaxCityElimination);
 
+#ifdef DISALLOW_LOCAL_LOADING_OF_PB
 	/* PBMod: Add flag to m_iNumAdvancedStartPoints and attach extra data. 
 	 * If no admin password is set the security fix will omitted, but the default mode used.   
 	 */
 	if( getAdminPassword().empty() ){
+		m_iNumAdvancedStartPoints &= ~(1<<30);  //If pw removed during game.. (**)
 		pStream->Write( m_iNumAdvancedStartPoints );
 	}else{
 		pStream->Write( m_iNumAdvancedStartPoints | (1<<30) );
 		pStream->Write( (getMode() == GAMEMODE_PITBOSS) );
 		pStream->Write( (getPbem() || getHotseat) );
 	}
+#else
+		pStream->Write( m_iNumAdvancedStartPoints );
+#endif
 
 	// PLAYER DATA
 	pStream->WriteString(MAX_PLAYERS, m_aszLeaderName);
