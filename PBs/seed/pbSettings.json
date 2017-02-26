@@ -1,7 +1,7 @@
 {
  "comment" : "Look into Webserver.py for a commented version of this structure with all options.",
  "numRecoverySavesPerPlayer": 5, 
- "MotD": "Modified PitBoss Server, Version 6",
+ "MotD": "Modified PitBoss Server, Version 7",
  "noGui": 0, 
  "autostart": 1,
  "webserver": {
@@ -16,7 +16,7 @@
   "sendInterval": 10
  }, 
  "save": {
-  "filename": "Example_v6.CivBeyondSwordSave",
+  "filename": "Example_v7.CivBeyondSwordSave",
   "adminpw": "optional; I recommed to put it into PBs/pbPasswords.json",
 	"savefolder" : "saves\\multi\\",
 	"readfolders" : []
