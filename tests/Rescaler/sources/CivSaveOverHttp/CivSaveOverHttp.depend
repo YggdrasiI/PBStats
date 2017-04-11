@@ -1,0 +1,89 @@
+# depslib dependency file v1.0
+1464555936 source:i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\main.cpp
+	"MinHook.h"
+	"SaveTransfer.h"
+	"DrawingFunctions.h"
+	"DiploMenu.h"
+	"InfoHelpTexts.h"
+	"main.h"
+
+1463673120 i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\minhook\minhook.h
+	<Windows.h>
+
+1463673120 i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\curl\curl.h
+	"curlver.h"
+	"curlbuild.h"
+	"curlrules.h"
+	<stdio.h>
+	<limits.h>
+	<osreldate.h>
+	<sys/types.h>
+	<time.h>
+	<winsock2.h>
+	<ws2tcpip.h>
+	<sys/select.h>
+	<sys/socket.h>
+	<sys/time.h>
+	<support/SupportDefs.h>
+	"easy.h"
+	"multi.h"
+	"typecheck-gcc.h"
+
+1463673120 i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\curl\curlver.h
+
+1463673120 i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\curl\curlbuild.h
+	<sys/types.h>
+	<sys/socket.h>
+
+1463673120 i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\curl\curlrules.h
+
+1463673120 i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\curl\easy.h
+
+1463673120 i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\curl\multi.h
+	"curl.h"
+
+1463673120 i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\curl\typecheck-gcc.h
+
+1464523160 i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\main.h
+	<windows.h>
+
+1464542854 source:i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\diplomenu.cpp
+	"asm_templates.h"
+	"DiploMenu.h"
+
+1464523160 i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\asm_templates.h
+
+1464540350 i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\diplomenu.h
+	"MinHook.h"
+	"hook.h"
+
+1464523160 i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\hook.h
+
+1464556884 source:i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\drawingfunctions.cpp
+	"asm_templates.h"
+	"DrawingFunctions.h"
+	"DiploMenu.h"
+
+1464523160 i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\drawingfunctions.h
+	"MinHook.h"
+	"hook.h"
+
+1464523162 i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\savetransfer.h
+	"MinHook.h"
+
+1464525808 source:i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\savetransfer.cpp
+	<windows.h>
+	<iostream>
+	<string.h>
+	<string>
+	"curl/curl.h"
+	"SaveTransfer.h"
+
+1464613344 source:i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\infohelptexts.cpp
+	"asm_templates.h"
+	"InfoHelpTexts.h"
+
+1464543458 i:\civ4\pbstats\tests\rescaler\sources\civsaveoverhttp\infohelptexts.h
+	"MinHook.h"
+	"hook.h"
+
