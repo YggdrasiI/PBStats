@@ -219,7 +219,9 @@ int WINAPI MySendto(
       // Locate '\\Saves' substring
       std::string saves_substring("\\Saves");
       size_t pos_saves = path.find(saves_substring);
-      if( pos_saves != std::string::npos ){
+      if( pos_saves != std::string::npos
+          && (len < 1000 /* just to prevent overflows*/) ){
+
         std::string save_folder(path, 0, pos_saves+saves_substring.length());
         save_folder.append("\\");
         setRootFolder(save_folder);
@@ -231,29 +233,14 @@ int WINAPI MySendto(
         url_stream << path.substr(pos_saves+saves_substring.length());
         std::string url = url_stream.str();
 
-        /* Replace the file name in the buffer. */
+        /* Append '\0' + url.length() + url after file name in the buffer. */
         uint32_t l_old = path.length();
-        uint32_t l_new = url.length();
-        int l_diff = ((int) l_new - (int)l_old);
-        char *buf2 = (char *)malloc(len + l_diff + 1);
+        uint32_t l_url = url.length();
 
-        // Head
-        memcpy(buf2, buf, offset - 4);
-
-        // Changed body
-        memcpy(buf2 + offset - 4, &l_new, 4);
-        memcpy(buf2 + offset, url.c_str(), l_new);
-#if 0
-        // Tail (empty)
-        memcpy(buf2 + offset + l_new,
-            buf + offset + l_old,
-            recv_from_length - offset - l_old);
-#endif
-        // Copy back
-        len += l_diff;
-        //memset((char *)buf, 0, len+100);
-        memcpy((char *)buf, buf2, len);
-        free(buf2);
+        *((char *)buf + len) = '\0';
+        memcpy((char *)buf + len + 1, &l_url, 4);
+        memcpy((char *)buf + len + 5, url.c_str(), l_url);
+        len += l_url + 5;
       }
     }
   }
@@ -286,30 +273,53 @@ int WINAPI MyRecvfrom(
         id == 0x0806 /* DirectIP game (2, gesehen bei Test mit multiple-Argument) */ ||
         id == 0x0807 /* Pitboss game */) {
 
+
       // Extract file path from packet. Note that the path is not null terminated.
       const unsigned int offset = 0x21; // Start of string.
       const unsigned int path_len = *((unsigned int *)(buf + offset - 4)); // Length info of string
       const   unsigned int crc32 = *((unsigned int *)(buf + offset - 8)); // crc32 value of file
+      unsigned int url_offset;
+      unsigned int url_len;
 
-      if ((int)(path_len + offset) > recv_from_length) {// Buffer overflow check
+      // Check if packet contain data after path.
+      if ((int)(offset + path_len) > recv_from_length) {
+        // Malformed package
+        goto skip;
+      }else if((int)(offset + path_len) == recv_from_length){
+        // Unchanged server or old approach. Search in file path for _http(s)_ keywords.
+        url_offset = offset;
+        url_len = path_len;
+      }else if((int)(offset + path_len) < recv_from_length + 5){
+        // New approach with second argument.
+        url_offset = offset + path_len + 5; // Start of url string.
+        url_len = *((unsigned int *)(buf + url_offset - 4)); // Length info for url
+      }else{
+        // Malformed package
         goto skip;
       }
-      const char *begin = buf + offset;
-      std::string path(begin, path_len);
+
+      if ((int)(url_offset + url_len) != recv_from_length) {
+        goto skip;
+      }
+
+      // Extract url
+      std::string path(buf + offset, path_len);
+      std::string url(buf + url_offset, url_len);
       std::string extension(".CivBeyondSwordSave");
 
-      // Check if filename maps to pitboss savegame.
-      if (path.length() < extension.length()) {
+      // Check if filename maps to pitboss savegame. (Civ4:BTS only)
+      if (url.length() < extension.length()) {
         goto skip;
       }
-      std::string path_ext = path.substr(path.length() - extension.length(), extension.length());
-      if (0 != extension.compare(path_ext)) {
+
+      std::string url_ext = url.substr(url.length() - extension.length(), extension.length());
+      if (0 != extension.compare(url_ext)) {
         goto skip;
       }
 
       // Check if this file was already cached to omit multiple downloads.
       if (!last_cached_orig_path.empty() &&
-          0 == last_cached_orig_path.compare(path))
+          0 == last_cached_orig_path.compare(url))
       {
         // TODO: compare crc32 value of file to uncover old files.
       }
@@ -322,11 +332,12 @@ int WINAPI MyRecvfrom(
       }
 
 
-      /* Replace the file name in the buffer. */
-      uint32_t l_old = path.length();
+      /* Create second network packet.
+       * Copy header bytes from original packet and append path to temp file.
+       * This will overwrite the original packed if the download succeeds...
+       * */
       uint32_t l_new = tmp_path.length();
-      int l_diff = ((int) l_new - (int)l_old);
-      char *buf2 = (char *)malloc(recv_from_length + l_diff + 1);
+      char *buf2 = (char *)malloc(offset + l_new + 5);
 
       // Head
       memcpy(buf2, buf, offset - 4);
@@ -335,90 +346,79 @@ int WINAPI MyRecvfrom(
       memcpy(buf2 + offset - 4, &l_new, 4);
       memcpy(buf2 + offset, tmp_path.c_str(), l_new);
 
-#if 0
-      // Tail (empty)
-      memcpy(buf2 + offset + l_new,
-          buf + offset + l_old,
-          recv_from_length - offset - l_old);
-#endif
-
       /* Try to download into tmp_path.
        *
        */
       /* First, construct url
-       * Variant 1 (Pitboss server) path is [...]_http[s]_{server}[:{port}]\[...]
+       * Variant 1 (Pitboss server) url is [...]_http[s]_{server}[:{port}]\[...]
        *         Example:
        *        http://{server}/PB1/Saves/pitboss/auto/Recovery_{nick}.CivBeyondSwordSave
        *
-       * Variant 2 (Direct IP) path is [...]_http[s]_:{port}\[...]
+       * Variant 2 (Direct IP) url is [...]_http[s]_:{port}\[...]
        *         Example:
        *        http://{ip}:{port}/Saves/multi/VOTE_[...].CivBeyondSwordSave
        *
        * In case 2 (empty server string) the ip of recv should be used as server ip.
        */
-      std::string str_filename = std::string(path);
       int protocol(-1);
       size_t hostnameBegin(std::string::npos);
       size_t hostnameEnd(std::string::npos);
 
-      std::string url = std::string();
-      if (std::string::npos != (hostnameBegin = str_filename.find(Str_url_prefix1))) {
+      std::string url2 = std::string();
+      if (std::string::npos != (hostnameBegin = url.find(Str_url_prefix1))) {
         // HTTP transfer
-        protocol = 0;
-        url.append("http://");
         hostnameBegin += Str_url_prefix1.size();
+        protocol = 0;
+        url2.append("http://");
       }
-      else if (std::string::npos != (hostnameBegin = str_filename.find(Str_url_prefix2))) {
+      else if (std::string::npos != (hostnameBegin = url.find(Str_url_prefix2))) {
         // HTTPS transfer
-        protocol = 1;
-        url.append("https://");
         hostnameBegin += Str_url_prefix2.size();
-      }
-      else if (std::string::npos != (hostnameBegin = str_filename.find(Str_url_prefix3))) {
-        // HTTPS transfer
         protocol = 1;
-        url.append("https://");
+        url2.append("https://");
+      }
+      else if (std::string::npos != (hostnameBegin = url.find(Str_url_prefix3))) {
+        // HTTPS transfer
         hostnameBegin += Str_url_prefix3.size();
+        protocol = 1;
+        url2.append("https://");
       }
 
-      if (std::string::npos != hostnameBegin && str_filename[hostnameBegin + 0] == ':') {
+      if (std::string::npos != hostnameBegin && url[hostnameBegin + 0] == ':') {
         // Construct ip of server
         std::string server_ip = get_server_ip(from);
-        url.append(server_ip);
+        url2.append(server_ip);
       }
 
-      hostnameEnd = str_filename.find('\\', hostnameBegin); // The backslash after {server}.
+      hostnameEnd = url.find('\\', hostnameBegin); // The backslash after {server}.
       if( std::string::npos == hostnameEnd ){
         protocol = -1;
       }else{
-        url.append(str_filename, hostnameBegin, hostnameEnd - hostnameBegin);
+        url2.append(url, hostnameBegin, hostnameEnd - hostnameBegin);
 
         // Add '/' and uri part after port.
-        size_t backslash_pos(url.size());
-        url.append("/");
-        url.append(str_filename, hostnameEnd + 1, str_filename.size() - hostnameEnd - 1);
+        size_t backslash_pos(url2.size());
+        url2.append("/");
+        url2.append(url, hostnameEnd + 1, url.size() - hostnameEnd - 1);
 
         //Replace backslashes by slashes
-        while (std::string::npos != (backslash_pos = url.find('\\', backslash_pos))) {
-          url[backslash_pos] = '/';
+        while (std::string::npos != (backslash_pos = url2.find('\\', backslash_pos))) {
+          url2[backslash_pos] = '/';
         }
       }
 
       if (protocol > -1 &&
-          0 == curl_download(url, tmp_path))
+          0 == curl_download(url2, tmp_path))
       {
-        last_cached_orig_path = str_filename;
+        last_cached_orig_path = path;
 
         // Replace buffer with copy
-        recv_from_length += l_diff;
+        recv_from_length = offset + l_new + 4;
         memcpy(buf, buf2, recv_from_length);
-
       }else{
-        // Input wrong or download failed. The filename should still be upadated to local path...
-        recv_from_length += l_diff;
-        memcpy(buf, buf2, recv_from_length);
+        // Shrink packet to original length?! (offset+path_len)
+        recv_from_length = offset + path_len;
       }
-
       free(buf2);
     }
   }
