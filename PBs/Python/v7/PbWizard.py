@@ -16,7 +16,7 @@ import Webserver
 
 # Add Altroot python folder as import path
 import sys
-pythonDir = os.path.join(gc.getAltrootDir(),'..','Python','v6')
+pythonDir = os.path.join(gc.getAltrootDir(),'..','Python','v7')
 sys.path.append(pythonDir)
 import FindHash
 
@@ -72,7 +72,7 @@ def checkSavegame(filename, adminPwds):
 
 	return: Password ("" if save not password protected) or None
 	"""
-	hSave = FindHash.get_admin_hash(filename)
+	hSave = FindHash.get_admin_hash(filename, "")
 	if hSave == None:
 		sys.stderr.write("(checkSavegame) failed. Can not detect admin hash value. " +
 				"Filepath correct?")
