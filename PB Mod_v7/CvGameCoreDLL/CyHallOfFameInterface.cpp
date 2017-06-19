@@ -14,17 +14,17 @@ void CyHallOfFameInterface()
 	python::class_<CyReplayInfo>("CyReplayInfo")
 		.def("isNone", &CyReplayInfo::isNone, "bool () - Returns whether or not this is a valid object")
 
-		.def("createInfo", &CyReplayInfo::createInfo, "void ()")
+		.def("createInfo", &CyReplayInfo::createInfo, "void (int iPlayer)")
 
 		.def("getActivePlayer", &CyReplayInfo::getActivePlayer, "int ()")
 		.def("getLeader", &CyReplayInfo::getLeader, "int (int iPlayer)")
 		.def("getColor", &CyReplayInfo::getColor, "int (int iPlayer)")
 		.def("getDifficulty", &CyReplayInfo::getDifficulty, "int ()")
-		.def("getLeaderName", &CyReplayInfo::getLeaderName, "wstring ()")
-		.def("getCivDescription", &CyReplayInfo::getCivDescription, "wstring ()")
-		.def("getShortCivDescription", &CyReplayInfo::getShortCivDescription, "wstring ()")
-		.def("getCivAdjective", &CyReplayInfo::getCivAdjective, "wstring ()")
-		.def("getMapScriptName", &CyReplayInfo::getMapScriptName, "wstring ()")
+		.def("getLeaderName", &CyReplayInfo::getLeaderName, "wstring getLeaderName() const ()")
+		.def("getCivDescription", &CyReplayInfo::getCivDescription, "wstring getCivDescription() const ()")
+		.def("getShortCivDescription", &CyReplayInfo::getShortCivDescription, "wstring getShortCivDescription() const ()")
+		.def("getCivAdjective", &CyReplayInfo::getCivAdjective, "wstring getCivAdjective() const ()")
+		.def("getMapScriptName", &CyReplayInfo::getMapScriptName, "wstring getMapScriptName() const ()")
 		.def("getWorldSize", &CyReplayInfo::getWorldSize, "int ()")
 		.def("getClimate", &CyReplayInfo::getClimate, "int ()")
 		.def("getSeaLevel", &CyReplayInfo::getSeaLevel, "int ()")
@@ -48,14 +48,14 @@ void CyHallOfFameInterface()
 		.def("getReplayMessagePlotX", &CyReplayInfo::getReplayMessagePlotX, "int (int i)")
 		.def("getReplayMessagePlotY", &CyReplayInfo::getReplayMessagePlotY, "int (int i)")
 		.def("getReplayMessagePlayer", &CyReplayInfo::getReplayMessagePlayer, "int (int i)")
-		.def("getReplayMessageText", &CyReplayInfo::getReplayMessageText, "wstring (int i)")
+		.def("getReplayMessageText", &CyReplayInfo::getReplayMessageText, "const (int i)")
 		.def("getNumReplayMessages", &CyReplayInfo::getNumReplayMessages, "int ()")
 		.def("getReplayMessageColor", &CyReplayInfo::getReplayMessageColor, "int (int i)")
 
 		.def("getInitialTurn", &CyReplayInfo::getInitialTurn, "int ()")
 		.def("getStartYear", &CyReplayInfo::getStartYear, "int ()")
 		.def("getFinalTurn", &CyReplayInfo::getFinalTurn, "int ()")
-		.def("getFinalDate", &CyReplayInfo::getFinalDate, "wstring ()")
+		.def("getFinalDate", &CyReplayInfo::getFinalDate, "const ()")
 		.def("getCalendar", &CyReplayInfo::getCalendar, "int ()")
 
 		.def("getFinalScore", &CyReplayInfo::getFinalScore, "int ()")
@@ -66,7 +66,7 @@ void CyHallOfFameInterface()
 		.def("getMapWidth", &CyReplayInfo::getMapWidth, "int ()")
 		.def("getMapHeight", &CyReplayInfo::getMapHeight, "int ()")
 
-		.def("getModName", &CyReplayInfo::getModName, "std::wstring ()")
+		.def("getModName", &CyReplayInfo::getModName, "const char* ()")
 		;
 		
 	python::class_<CyHallOfFameInfo>("CyHallOfFameInfo")

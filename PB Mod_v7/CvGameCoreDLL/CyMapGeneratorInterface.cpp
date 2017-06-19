@@ -15,18 +15,18 @@ void CyMapGeneratorPythonInterface()
 	python::class_<CyMapGenerator>("CyMapGenerator")
 		.def("isNone", &CyMapGenerator::isNone, "bool () - valid CyMapGenerator() interface")
 
-		.def("canPlaceBonusAt", &CyMapGenerator::canPlaceBonusAt, "bool (int /*BonusTypes*/ eBonus, int iX, int iY, bool bIgnoreLatitude)")
-		.def("canPlaceGoodyAt", &CyMapGenerator::canPlaceGoodyAt, "bool (int /*ImprovementTypes*/ eImprovement, int iX, int iY)")
+		.def("canPlaceBonusAt", &CyMapGenerator::canPlaceBonusAt, "bool (int (BonusTypes) eBonus, int iX, int iY, bool bIgnoreLatitude)")
+		.def("canPlaceGoodyAt", &CyMapGenerator::canPlaceGoodyAt, "bool (int (ImprovementTypes) eImprovement, int iX, int iY)")
 
 		.def("addGameElements", &CyMapGenerator::addGameElements, "void ()")
 
 		.def("addLakes", &CyMapGenerator::addLakes, "void ()")
 		.def("addRivers", &CyMapGenerator::addRivers, "void ()")
-		.def("doRiver", &CyMapGenerator::doRiver, "void (CyPlot* pStartPlot, int /*CardinalDirectionTypes*/ eCardinalDirection)")
+		.def("doRiver", &CyMapGenerator::doRiver, "void (CyPlot* pStartPlot, CardinalDirectionTypes eCardinalDirection)")
 		.def("addFeatures", &CyMapGenerator::addFeatures, "void ()")
 		.def("addBonuses", &CyMapGenerator::addBonuses, "void ()")
-		.def("addUniqueBonusType", &CyMapGenerator::addUniqueBonusType, "void (int /*BonusTypes*/ eBonusType)")
-		.def("addNonUniqueBonusType", &CyMapGenerator::addNonUniqueBonusType, "void (int /*BonusTypes*/ eBonusType)")
+		.def("addUniqueBonusType", &CyMapGenerator::addUniqueBonusType, "void (int (BonusTypes) eBonusType)")
+		.def("addNonUniqueBonusType", &CyMapGenerator::addNonUniqueBonusType, "void (int (BonusTypes) eBonusType)")
 		.def("addGoodies", &CyMapGenerator::addGoodies, "void ()")
 
 		.def("eraseRivers", &CyMapGenerator::eraseRivers, "void ()")
@@ -41,6 +41,6 @@ void CyMapGeneratorPythonInterface()
 
 		.def("afterGeneration", &CyMapGenerator::afterGeneration, "void ()")
 
-		.def("setPlotTypes", &CyMapGenerator::setPlotTypes, "void (list lPlotTypes) - set plot types to the contents of the given list")
+		.def("setPlotTypes", &CyMapGenerator::setPlotTypes, "void (list listPlotTypes) - set plot types to the contents of the given list")
 		;
 }
