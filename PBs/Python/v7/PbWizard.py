@@ -5,6 +5,7 @@
 # Mustafa Thamer 2-15-05
 #
 from CvPythonExtensions import *
+import sys
 import wx
 import wx.wizard
 import wx.lib.scrolledpanel
@@ -13,13 +14,6 @@ import string
 import os.path
 
 import Webserver
-
-# Add Altroot python folder as import path
-import sys
-pythonDir = os.path.join(gc.getAltrootDir(),'..','Python','v7')
-sys.path.append(pythonDir)
-import FindHash
-
 
 bPublic = True
 bSaved = False
@@ -32,6 +26,12 @@ PB = CyPitboss()
 gc = CyGlobalContext()
 localText = CyTranslator()
 curPage = None
+
+# Add Altroot python folder as import path
+pythonDir = os.path.join(gc.getAltrootDir(),'..','Python','v7')
+sys.path.append(pythonDir)
+import FindHash
+
 
 pbSettings = Webserver.getPbSettings()
 pbPasswords = Webserver.getPbPasswords()

@@ -39,7 +39,10 @@ pbDefaultSettings = {
         # each game
         "port": 13373,
         # Password for admin commands on the webinterface
-        "password": "defaultpassword"
+        "password": "defaultpassword",
+        "allowWB": False,
+        "allowReplay": False,
+        "allowSigns": False,
     },
     "webfrontend": {
         # Url of the pbStats file on your http webserver
@@ -64,7 +67,14 @@ pbDefaultSettings = {
         "maxLenName": 1,
         # Maximal Nation name length. Length of 1 force replacement with player
         # Id, 0=A,1=B,...,51=z
-        "maxLenDesc": 4
+        "maxLenDesc": 4,
+    },
+    "shell": {  # Local Tcp shell for debugging, etc
+        "enable": False,
+        # Attention, use of non-local ip is an 
+        # security risk.
+        "ip": "127.0.0.1",  
+        "port": 3333,
     },
     # Each login and logoff produce a save. This option controls the length of
     # history
@@ -102,7 +112,8 @@ def getPbSettings():
 
     if os.path.isfile(pbFn):
         fp = file(pbFn, "r")
-        pbSettings = simplejson.load(fp)
+        pbSettings = dict(pbDefaultSettings)
+        pbSettings.update(simplejson.load(fp))
         fp.close()
         return pbSettings
     elif altrootDir != "":
@@ -127,7 +138,7 @@ def getPbPasswords():
     if os.path.isfile(pwdFile):
         try:
             fp = file(pwdFile, "r")
-            pbPasswords = simplejson.load(fp)
+            pbPasswords = dict(simplejson.load(fp))  # Wrap for Pylint
         finally:
             fp.close()
         return pbPasswords.get("adminPasswords", [])
@@ -237,7 +248,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     rawdata = self.rfile.read(length)
 
                     parseddata = cgi.parse_qs(rawdata, keep_blank_values=1)
-                    inputdata = simplejson.loads(parseddata.keys()[0])
+                    inputdata = dict(simplejson.loads(
+                        parseddata.keys()[0]))  # Wrap for Pylint
                     """
                     parseddata = rawdata.split("&")
                     inputdata = simplejson.loads( parseddata[0] )
@@ -1237,6 +1249,10 @@ class PerpetualTimer:
             ).bGameTurnProcessing
         except AttributeError:
             pass
+            """
+            for-Loop over ?!
+            inconsistentState = PB.isTurnActive(iPlayer)
+            """
 
         url = self.settings["url"]
         gameId = self.settings["gameId"]
