@@ -1,0 +1,4 @@
+#ifndef RESOURCE_RC_INCLUDED
+#define RESOURCE_RC_INCLUDED
+MAINICON  ICON  "Assets/res/Civ4BtS.ico"
+#endif // RESOURCE_RC_INCLUDED

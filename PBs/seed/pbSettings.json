@@ -4,6 +4,7 @@
  "MotD": "Modified PitBoss Server, Version 7",
  "noGui": 0, 
  "autostart": 1,
+ "errorLogFile": "Logs\\pitbossErr.log",
  "webserver": {
   "host": "", 
   "password": "pw", 
@@ -17,8 +18,13 @@
  }, 
  "save": {
   "filename": "Example_v7.CivBeyondSwordSave",
-  "adminpw": "optional; I recommed to put it into PBs/pbPasswords.json",
+  "adminpw": "optional; I recommend to collect them into PBs/pbPasswords.json",
 	"savefolder" : "saves\\multi\\",
 	"readfolders" : []
+ },
+ "shell": {
+     "enable": false,
+     "ip": "127.0.0.1",
+     "port": 3333
  }
 }

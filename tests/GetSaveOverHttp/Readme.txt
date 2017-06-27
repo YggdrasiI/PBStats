@@ -13,18 +13,22 @@ We wrote a wrapper executable which handle this for you!
 === How to use it ===
 It requires changes on both (client & server) sides.
 
-1. As Player:  
-• Copy BTS_Wrapper.exe and the three DLLs of this folder into your
+1) As Player:  
+• Copy BTS_Wrapper.exe, *.dll and *.lib files of this folder into your
 Civ4:BTS installation folder. Do not delete/move the normal executable. It's still required.
 • Start your game with the wrapper, i.e.
-'BTS_Wrapper.exe mod= "PB Mod_v4"\"'.
+'BTS_Wrapper.exe mod= "PB Mod_v7"\"'.
 
 • If MSVCP100.dll is missing, see http://answers.microsoft.com/en-us/windows/forum/windows_other-performance/msvcp100dll-missing/9a687c31-0619-4ee9-b511-020985e29b5f
 
+2a) As Direct IP host (new in version 3 of BTS_Wrapper.exe)
+• Add '-P [port number, i.e. 2055]' argument to the start arguments of BTS_Wrapper.exe.
+	This port will be used to transfer the save game.
+• Extend the port forwarding of Civ4 on the new port. This step depends on your network settings. 
 
-2. As Pitboss host ( with Linux in mind):
-Assume that your current Altroot folder for the server is $HOME/PBs/PB1
-and your server has the ip 1.2.3.4. The follwing steps try to fit some paths/urls
+2b) As Pitboss host (the old way / with Linux in mind):
+• Assume that your current Altroot folder for the server is $HOME/PBs/PB1
+	and your server has the ip 1.2.3.4. The follwing steps try to fit some paths/urls
 into matching pairs.
 
 • Setup a webserver and prepare a folder for your PB saves and allow symlinks.
@@ -48,10 +52,11 @@ If it does not work re-check the setup of your paths.
 
 
 === Sources ===
-The sources for two Code::Blocks projects can be found in ./sources.
-Moreover, you need the following libraries:
+The sources and project files for Visual Studio 2017 can be found in ./sources_v3.
+Used following libraries:
 • MinHook, https://github.com/TsudaKageyu/minhook/
 • Curl, https://github.com/bagder/curl
+• LibMicroHTTPD, http://www.gnu.org/software/libmicrohttpd/
 
 
 === P.S. ===
@@ -68,5 +73,5 @@ Url of saves: http://{server}/{prefix}/home/$USERNAME/_http_{server}/{path}/PBs/
 1. A BTS_Wrapper.exe user profits from the '_http_'-syntax. Civ4 download the save over http.
 2. If the user maps Z: drive  to http://{server}/{prefix} server and client share the same path syntax. Civ4 reads the save from Z:.
 
-Olaf Schulz, 2015/16
+Olaf Schulz, 2015-17
 

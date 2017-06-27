@@ -14,8 +14,8 @@ void CyInfoPythonInterface1()
 
 		.def("isGraphicalOnly", &CvInfoBase::isGraphicalOnly, "bool ()")
 
-		.def("getType", &CvInfoBase::getType, "string ()")
-		.def("getButton", &CvInfoBase::getButton, "string ()")
+		.def("getType", &CvInfoBase::getType, "const TCHAR* ()")
+		.def("getButton", &CvInfoBase::getButton, "const TCHAR* ()")
 
 		.def("getTextKey", &CvInfoBase::pyGetTextKey, "wstring ()")
 		.def("getText", &CvInfoBase::pyGetText, "wstring ()")
@@ -24,13 +24,13 @@ void CyInfoPythonInterface1()
 		.def("getCivilopedia", &CvInfoBase::pyGetCivilopedia, "wstring ()")
 		.def("getStrategy", &CvInfoBase::pyGetStrategy, "wstring ()")
 		.def("getHelp", &CvInfoBase::pyGetHelp, "wstring ()")
-		.def("isMatchForLink", &CvInfoBase::isMatchForLink, "bool (string)")
+		.def("isMatchForLink", &CvInfoBase::isMatchForLink, "bool (wstring szLink, bool bKeysOnly)")
 
 		;
 
 	python::class_<CvScalableInfo>("CvScalableInfo")
 		.def("setScale", &CvScalableInfo::setScale, "void (float fScale)")
-		.def("getScale", &CvScalableInfo::getScale, "float  ()")
+		.def("getScale", &CvScalableInfo::getScale, "float ()")
 		;
 
 	python::class_<CvSpecialistInfo, python::bases<CvInfoBase> >("CvSpecialistInfo")
@@ -45,7 +45,7 @@ void CyInfoPythonInterface1()
 		.def("getExperience", &CvSpecialistInfo::getExperience, "int ()")
 		.def("getFlavorValue", &CvSpecialistInfo::getFlavorValue, "int (int i)")
 
-		.def("getTexture", &CvSpecialistInfo::getTexture, "string ()")
+		.def("getTexture", &CvSpecialistInfo::getTexture, "const TCHAR* ()")
 		;
 
 	python::class_<CvTechInfo, python::bases<CvInfoBase> >("CvTechInfo")
@@ -87,9 +87,9 @@ void CyInfoPythonInterface1()
 		.def("isWaterWork", &CvTechInfo::isWaterWork, "bool ()")
 		.def("isRiverTrade", &CvTechInfo::isRiverTrade, "bool ()")
 
-		.def("getQuote", &CvTechInfo::getQuote, "wstring ()")
-		.def("getSound", &CvTechInfo::getSound, "string ()")
-		.def("getSoundMP", &CvTechInfo::getSoundMP, "string ()")
+		.def("getQuote", &CvTechInfo::getQuote, "wstring getQuote()	const ()")
+		.def("getSound", &CvTechInfo::getSound, "const TCHAR* ()")
+		.def("getSoundMP", &CvTechInfo::getSoundMP, "const TCHAR* ()")
 
 		.def("getDomainExtraMoves", &CvTechInfo::getDomainExtraMoves, "int (int i)")
 		.def("getFlavorValue", &CvTechInfo::getFlavorValue, "int (int i)")
@@ -148,7 +148,7 @@ void CyInfoPythonInterface1()
 		.def("isHillsDoubleMove", &CvPromotionInfo::isHillsDoubleMove, "bool ()")
 		.def("isImmuneToFirstStrikes", &CvPromotionInfo::isImmuneToFirstStrikes, "bool ()")
 
-		.def("getSound", &CvPromotionInfo::getSound, "string ()")
+		.def("getSound", &CvPromotionInfo::getSound, "const TCHAR* ()")
 
 		// Arrays
 
@@ -161,7 +161,7 @@ void CyInfoPythonInterface1()
 
 		.def("getTerrainDoubleMove", &CvPromotionInfo::getTerrainDoubleMove, "bool (int i)")
 		.def("getFeatureDoubleMove", &CvPromotionInfo::getFeatureDoubleMove, "bool (int i)")
-		.def("getUnitCombat", &CvPromotionInfo::getUnitCombat, "bool (int i)")
+		.def("getUnitCombat", &CvPromotionInfo::getUnitCombat, "int (int i)")
 		;
 
 	python::class_<CvMissionInfo, python::bases<CvInfoBase> >("CvMissionInfo")
@@ -172,7 +172,7 @@ void CyInfoPythonInterface1()
 		.def("isBuild", &CvMissionInfo::isBuild, "bool ()")
 		.def("getVisible", &CvMissionInfo::getVisible, "bool ()")
 
-		.def("getWaypoint", &CvMissionInfo::getWaypoint, "string ()")
+		.def("getWaypoint", &CvMissionInfo::getWaypoint, "const TCHAR* ()")
 		;
 
 	python::class_<CvActionInfo>("CvActionInfo")
@@ -188,8 +188,8 @@ void CyInfoPythonInterface1()
 		.def("isConfirmCommand", &CvActionInfo::isConfirmCommand, "bool ()")
 		.def("isVisible", &CvActionInfo::isVisible, "bool ()")
 
-		.def("getHotKey", &CvActionInfo::getHotKey, "string ()")
-		.def("getButton", &CvActionInfo::getButton, "string ()")
+		.def("getHotKey", &CvActionInfo::getHotKey, "int ()")
+		.def("getButton", &CvActionInfo::getButton, "const TCHAR* ()")
 		;
 
 	python::class_<CvUnitInfo, python::bases<CvInfoBase, CvScalableInfo> >("CvUnitInfo")
@@ -213,7 +213,7 @@ void CyInfoPythonInterface1()
 		.def("getGreatWorkCulture", &CvUnitInfo::getGreatWorkCulture, "int ()")
 		.def("getEspionagePoints", &CvUnitInfo::getEspionagePoints, "int ()")
 		.def("getCombat", &CvUnitInfo::getCombat, "int ()")
-		.def("setCombat", &CvUnitInfo::setCombat, "void (int)")
+		.def("setCombat", &CvUnitInfo::setCombat, "void (int iNum)")
 		.def("getCombatLimit", &CvUnitInfo::getCombatLimit, "int ()")
 		.def("getAirCombat", &CvUnitInfo::getAirCombat, "int ()")
 		.def("getAirCombatLimit", &CvUnitInfo::getAirCombatLimit, "int ()")
@@ -251,7 +251,7 @@ void CyInfoPythonInterface1()
 		.def("getDefaultUnitAIType", &CvUnitInfo::getDefaultUnitAIType, "int ()")
 		.def("getInvisibleType", &CvUnitInfo::getInvisibleType, "int ()")
 		.def("getNumSeeInvisibleTypes", &CvUnitInfo::getNumSeeInvisibleTypes, "int ()")
-		.def("getSeeInvisibleType", &CvUnitInfo::getSeeInvisibleType, "int (int)")
+		.def("getSeeInvisibleType", &CvUnitInfo::getSeeInvisibleType, "int (int i)")
 		.def("getAdvisorType", &CvUnitInfo::getAdvisorType, "int ()")
 		.def("getHolyCity", &CvUnitInfo::getHolyCity, "int ()")
 		.def("getReligionType", &CvUnitInfo::getReligionType, "int ()")
@@ -259,7 +259,7 @@ void CyInfoPythonInterface1()
 		.def("getPrereqReligion", &CvUnitInfo::getPrereqReligion, "int ()")
 		.def("getPrereqCorporation", &CvUnitInfo::getPrereqCorporation, "int ()")
 		.def("getPrereqBuilding", &CvUnitInfo::getPrereqBuilding, "int ()")
-		.def("getPrereqAndTech", &CvUnitInfo::getPrereqAndTech, "int ()")
+		.def("getPrereqAndTech", &CvUnitInfo::getPrereqAndTech, "int (int i)")
 		.def("getPrereqAndBonus", &CvUnitInfo::getPrereqAndBonus, "int ()")
 		.def("getGroupSize", &CvUnitInfo::getGroupSize, "int ()")
 		.def("getGroupDefinitions", &CvUnitInfo::getGroupDefinitions, "int ()")
@@ -348,11 +348,11 @@ void CyInfoPythonInterface1()
 		.def("getLeaderPromotion", &CvUnitInfo::getLeaderPromotion, "int ()")
 		.def("getLeaderExperience", &CvUnitInfo::getLeaderExperience, "int ()")
 
-		.def("getEarlyArtDefineTag", &CvUnitInfo::getEarlyArtDefineTag, "string (int i, UnitArtStyleTypes eStyle)")
-		.def("getLateArtDefineTag", &CvUnitInfo::getLateArtDefineTag, "string (int i, UnitArtStyleTypes eStyle)")
-		.def("getMiddleArtDefineTag", &CvUnitInfo::getMiddleArtDefineTag, "string (int i, UnitArtStyleTypes eStyle)")
-		.def("getUnitNames", &CvUnitInfo::getUnitNames, "string (int i)")
-		.def("getArtInfo", &CvUnitInfo::getArtInfo,  python::return_value_policy<python::reference_existing_object>(), "CvArtInfoUnit* (int i, bool bLate)")
+		.def("getEarlyArtDefineTag", &CvUnitInfo::getEarlyArtDefineTag, "const TCHAR* (int i, UnitArtStyleTypes eStyle)")
+		.def("getLateArtDefineTag", &CvUnitInfo::getLateArtDefineTag, "const TCHAR* (int i, UnitArtStyleTypes eStyle)")
+		.def("getMiddleArtDefineTag", &CvUnitInfo::getMiddleArtDefineTag, "const TCHAR* (int i, UnitArtStyleTypes eStyle)")
+		.def("getUnitNames", &CvUnitInfo::getUnitNames, "const TCHAR* (int i)")
+		.def("getArtInfo", &CvUnitInfo::getArtInfo,  python::return_value_policy<python::reference_existing_object>(), "const CvArtInfoUnit* (int i, EraTypes eEra, UnitArtStyleTypes eStyle)")
 		;
 
 	python::class_<CvSpecialUnitInfo, python::bases<CvInfoBase> >("CvSpecialUnitInfo")
@@ -404,7 +404,7 @@ void CyInfoPythonInterface1()
 		.def("getStateReligionUnitProductionModifier", &CvCivicInfo::getStateReligionUnitProductionModifier, "int ()")
 		.def("getStateReligionBuildingProductionModifier", &CvCivicInfo::getStateReligionBuildingProductionModifier, "int ()")
 		.def("getStateReligionFreeExperience", &CvCivicInfo::getStateReligionFreeExperience, "int ()")
-		.def("getExpInBorderModifier", &CvCivicInfo::getExpInBorderModifier, "bool ()")
+		.def("getExpInBorderModifier", &CvCivicInfo::getExpInBorderModifier, "int ()")
 
 		.def("isMilitaryFoodProduction", &CvCivicInfo::isMilitaryFoodProduction, "bool ()")
 		.def("isNoUnhealthyPopulation", &CvCivicInfo::isNoUnhealthyPopulation, "bool ()")
@@ -451,13 +451,13 @@ void CyInfoPythonInterface1()
 		.def("getFreeStartEra", &CvBuildingInfo::getFreeStartEra, "int ()")
 		.def("getMaxStartEra", &CvBuildingInfo::getMaxStartEra, "int ()")
 		.def("getObsoleteTech", &CvBuildingInfo::getObsoleteTech, "int ()")
-		.def("getPrereqAndTech", &CvBuildingInfo::getPrereqAndTech, "int ()")
+		.def("getPrereqAndTech", &CvBuildingInfo::getPrereqAndTech, "int (int i)")
 		.def("getNoBonus", &CvBuildingInfo::getNoBonus, "int ()")
 		.def("getPowerBonus", &CvBuildingInfo::getPowerBonus, "int ()")
 		.def("getFreeBonus", &CvBuildingInfo::getFreeBonus, "int ()")
 		.def("getNumFreeBonuses", &CvBuildingInfo::getNumFreeBonuses, "int ()")
 		.def("getFreeBuildingClass", &CvBuildingInfo::getFreeBuildingClass, "int ()")
-		.def("getFreePromotion", &CvBuildingInfo::getFreePromotion, "int ()")
+		.def("getFreePromotion", &CvBuildingInfo::getFreePromotion, "bool (int i)")
 		.def("getCivic", &CvBuildingInfo::getCivicOption, "int ()")
 		.def("getAIWeight", &CvBuildingInfo::getAIWeight, "int ()")
 		.def("getProductionCost", &CvBuildingInfo::getProductionCost, "int ()")
@@ -555,12 +555,12 @@ void CyInfoPythonInterface1()
 		.def("isStateReligion", &CvBuildingInfo::isStateReligion, "bool ()")
 		.def("isAllowsNukes", &CvBuildingInfo::isAllowsNukes, "bool ()")
 
-		.def("getConstructSound", &CvBuildingInfo::getConstructSound, "string ()")
-		.def("getHotKey", &CvBuildingInfo::getHotKey, "string ()")
-		.def("getHotKeyDescription", &CvBuildingInfo::getHotKeyDescription, "string ()")
-		.def("getArtDefineTag", &CvBuildingInfo::getArtDefineTag, "string ()")
-		.def("getMovie", &CvBuildingInfo::getMovie, "string ()")
-		.def("getMovieDefineTag", &CvBuildingInfo::getMovieDefineTag, "string ()")
+		.def("getConstructSound", &CvBuildingInfo::getConstructSound, "const TCHAR* ()")
+		.def("getHotKey", &CvBuildingInfo::getHotKey, "int ()")
+		.def("getHotKeyDescription", &CvBuildingInfo::getHotKeyDescription, "wstring getHotKeyDescription() const ()")
+		.def("getArtDefineTag", &CvBuildingInfo::getArtDefineTag, "const TCHAR* ()")
+		.def("getMovie", &CvBuildingInfo::getMovie, "const TCHAR* ()")
+		.def("getMovieDefineTag", &CvBuildingInfo::getMovieDefineTag, "const TCHAR* ()")
 
 
 		// Arrays
@@ -604,7 +604,7 @@ void CyInfoPythonInterface1()
 		.def("getSpecialistYieldChange", &CvBuildingInfo::getSpecialistYieldChange, "int (int i, int j)")
 		.def("getBonusYieldModifier", &CvBuildingInfo::getBonusYieldModifier, "int (int i, int j)")
 
-		.def("getArtInfo", &CvBuildingInfo::getArtInfo,  python::return_value_policy<python::reference_existing_object>())
+		.def("getArtInfo", &CvBuildingInfo::getArtInfo,"const CvArtInfoUnit* (int i, EraTypes eEra, UnitArtStyleTypes eStyle)" 
 		;
 
 	python::class_<CvSpecialBuildingInfo, python::bases<CvInfoBase> >("CvSpecialBuildingInfo")
