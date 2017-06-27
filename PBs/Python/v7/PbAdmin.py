@@ -1,11 +1,12 @@
-## Sid Meier's Civilization 4
-## Copyright Firaxis Games 2005
+# Sid Meier's Civilization 4
+# Copyright Firaxis Games 2005
 #
 # Pitboss admin framework
 # Dan McGarry 3-24-05
 #
 from CvPythonExtensions import *
 import sys
+import os
 import wx
 import wx.lib.scrolledpanel
 import time
@@ -21,39 +22,42 @@ localText = CyTranslator()
 pbSettings = Webserver.getPbSettings()
 
 # Pipe error messages into a file to avoid popup windows
-errorLogFile = pbSettings.get("errorLogFile",None)
-if errorLogFile != None :
-    logName = os.path.join(gc.getAltrootDir(), str(errorLogFile) )
+errorLogFile = pbSettings.get("errorLogFile", None)
+if errorLogFile is not None:
+    logName = os.path.join(gc.getAltrootDir(), str(errorLogFile))
     try:
-        os.rename(logName, logName+".old" )
+        os.rename(logName, logName+".old")
     except Exception, e:
         pass
 
-    sys.stderr = open( logName, 'w')
+    sys.stderr = open(logName, 'w')
 
 
-noGui =  pbSettings.get("noGui",False)
-playerWasOnline = [] # To track login and logout events
-for rowNum in range(gc.getMAX_CIV_PLAYERS()):
+noGui = pbSettings.get("noGui", False)
+playerWasOnline = []  # To track login and logout events
+for _ in range(gc.getMAX_CIV_PLAYERS()):
     playerWasOnline.append(False)
 
 #
 # resource IDs
 #
 ID_ABOUT = 101
-ID_SAVE  = 102
-ID_EXIT  = 103
+ID_SAVE = 102
+ID_EXIT = 103
 
 CIV4_SHELL = True
-        
-def start_shell():
-    if pbSettings.get("shell", {}).get("enable", 0):
-        pythonDir = os.path.join(gc.getAltrootDir(),'..','Python','v7')
+
+
+def start_shell(shell_settings, mode=""):
+    if shell_settings.get("enable", 0):
+        pythonDir = os.path.join(gc.getAltrootDir(), '..', 'Python', 'v7')
         sys.path.append(pythonDir)
         import Civ4ShellBackend
-        shell_ip = str(pbSettings.get("shell", {}).get("ip", "127.0.0.1"))
-        shell_port = int(pbSettings.get("shell", {}).get("port", 3333))
-        return Civ4ShellBackend.Server(shell_ip, shell_port)
+        shell_ip = str(shell_settings.get("ip", "127.0.0.1"))
+        shell_port = int(shell_settings.get("port", 3333))
+        shell = Civ4ShellBackend.Server(shell_ip, shell_port)
+        shell.set_mode(mode)
+        return shell
 
     else:
         global CIV4_SHELL
@@ -69,19 +73,20 @@ if noGui:
     # admin frame class
     #
     class AdminFrame:
-        #def __init__(self, parent, ID, title):
+        # def __init__(self, parent, ID, title):
+
         def __init__(self):
             "constructor"
 
             self.bFirstUpdate = True
-            #Webserver
-            self.webserver = Webserver.ThreadedHTTPServer((pbSettings['webserver']['host'],pbSettings['webserver']['port']), Webserver.HTTPRequestHandler)
+            # Webserver
+            self.webserver = Webserver.ThreadedHTTPServer((pbSettings['webserver']['host'], pbSettings['webserver']['port']), Webserver.HTTPRequestHandler)
             self.t = Thread(target=self.webserver.serve_forever)
             self.t.setDaemon(True)
             self.t.start()
 
-            #Periodical game data upload
-            if( pbSettings['webfrontend']['sendPeriodicalData'] != 0 ):
+            # Periodical game data upload
+            if(pbSettings['webfrontend']['sendPeriodicalData'] != 0):
                 self.webupload = Webserver.PerpetualTimer(pbSettings['webfrontend'], self.webserver, True)
                 self.t2 = Thread(target=self.webupload.start)
                 self.t2.setDaemon(True)
@@ -91,23 +96,34 @@ if noGui:
             # Create save on login and logout events
             for rowNum in range(gc.getMAX_CIV_PLAYERS()):
                 gcPlayer = gc.getPlayer(rowNum)
-                bOnline = (PB.getPlayerAdminData(rowNum).getPing()[1] == "[" )
-                if ( bOnline != playerWasOnline[rowNum] ):
+                bOnline = (PB.getPlayerAdminData(rowNum).getPing()[1] == "[")
+                if (bOnline != playerWasOnline[rowNum]):
                     playerName = PB.getPlayerAdminData(rowNum).getName()
-                    self.webserver.createPlayerRecoverySave( rowNum, playerName, bOnline )
+                    self.webserver.createPlayerRecoverySave(rowNum, playerName, bOnline)
                     playerWasOnline[rowNum] = bOnline
 
             if CIV4_SHELL:
                 if self.bFirstUpdate:
                     self.bFirstUpdate = False
-                    self.glob = globals()
-                    self.loc = locals()
-                    self.civ4Console = start_shell()
-                    self.civ4Console.init()
+                    if not "Civ4Shell" in globals():
+                        global Civ4Shell
+                        Civ4Shell = {
+                            "glob": globals(),
+                            "loc": locals(),
+                            "shell": start_shell(pbSettings.get("shell", {}))
+                        }
+                        Civ4Shell["shell"].set_mode("pb_admin")
+                        Civ4Shell["shell"].init()
+                    else:
+                        # Already initialized in PbWizard
+                        Civ4Shell["glob"] = globals()
+                        Civ4Shell["loc"] = locals()
                 else:
                     # self.glob.update(globals())
                     # self.loc.update(locals())
-                    self.civ4Console.update(self.glob, self.loc)
+                    Civ4Shell["shell"].update(
+                        Civ4Shell["glob"],
+                        Civ4Shell["loc"])
 
             try:
                 # This try-catch clause does not omit all python error windows
@@ -117,11 +133,10 @@ if noGui:
             except KeyboardInterrupt:
                 self.OnExit(None)
 
-
         def OnExit(self, event):
             "'exit' event handler"
             PB.quit()
-            if( pbSettings['webfrontend']['sendPeriodicalData'] != 0 ):
+            if(pbSettings['webfrontend']['sendPeriodicalData'] != 0):
                 self.webupload.cancel()
                 self.webserver.shutdown()
 
@@ -133,6 +148,7 @@ if noGui:
     # main app class
     #
     class AdminIFace:
+
         def __init__(self, arg1):
             self.OnInit()
 
@@ -148,7 +164,7 @@ if noGui:
             return True
 
         def getMotD(self):
-            return pbSettings.get('MotD','')
+            return pbSettings.get('MotD', '')
 
         def setMotD(self, msg):
             pass
@@ -166,11 +182,12 @@ else:
     # admin frame class
     #
     class AdminFrame(wx.Frame):
+
         def __init__(self, parent, ID, title):
             "constructor"
 
             wx.Frame.__init__(self, parent, ID, title,
-                            wx.DefaultPosition, wx.Size(675, 480))
+                              wx.DefaultPosition, wx.Size(675, 480))
 
             # Create the menu
             menu = wx.Menu()
@@ -181,7 +198,7 @@ else:
             menuBar = wx.MenuBar()
             strFile = localText.getText("TXT_KEY_PITBOSS_FILE", ())
             strFile = localText.stripHTML(strFile)
-            menuBar.Append(menu, strFile);
+            menuBar.Append(menu, strFile)
             self.SetMenuBar(menuBar)
 
             # Create our arrays of information and controls
@@ -228,7 +245,7 @@ else:
             infoSizer = wx.BoxSizer(wx.HORIZONTAL)
             leftSizer = wx.BoxSizer(wx.VERTICAL)
 
-            playerPanel = wx.lib.scrolledpanel.ScrolledPanel(self, -1, size=(370, 280), style = wx.DOUBLE_BORDER)
+            playerPanel = wx.lib.scrolledpanel.ScrolledPanel(self, -1, size=(370, 280), style=wx.DOUBLE_BORDER)
             playerSizer = wx.BoxSizer(wx.VERTICAL)
 
             # Create a row for each player in the game
@@ -236,14 +253,14 @@ else:
             for rowNum in range(gc.getMAX_CIV_PLAYERS()):
                 if (gc.getPlayer(rowNum).isEverAlive()):
                     # Create the border box
-                    border = wx.StaticBox(playerPanel, -1, (localText.getText("TXT_KEY_PITBOSS_PLAYER", (rowNum+1, ))), (0,(rowNum*30)))
+                    border = wx.StaticBox(playerPanel, -1, (localText.getText("TXT_KEY_PITBOSS_PLAYER", (rowNum+1, ))), (0, (rowNum*30)))
                     # Create the layout mgr
                     rowSizer = wx.StaticBoxSizer(border, wx.HORIZONTAL)
 
                     # Player name
                     itemSizer = wx.BoxSizer(wx.VERTICAL)
                     lbl = wx.StaticText(playerPanel, -1, (localText.getText("TXT_KEY_PITBOSS_WHO", ())))
-                    txtValue = wx.StaticText(playerPanel, rowNum, "", size = wx.Size(100, 13))
+                    txtValue = wx.StaticText(playerPanel, rowNum, "", size=wx.Size(100, 13))
                     itemSizer.Add(lbl)
                     itemSizer.Add(txtValue)
                     rowSizer.Add(itemSizer, 0, wx.ALL, 5)
@@ -252,7 +269,7 @@ else:
                     # Ping times
                     itemSizer = wx.BoxSizer(wx.VERTICAL)
                     lbl = wx.StaticText(playerPanel, -1, (localText.getText("TXT_KEY_PITBOSS_PING", ())))
-                    txtValue = wx.StaticText(playerPanel, rowNum, "", size = wx.Size(70, 13))
+                    txtValue = wx.StaticText(playerPanel, rowNum, "", size=wx.Size(70, 13))
                     itemSizer.Add(lbl)
                     itemSizer.Add(txtValue)
                     rowSizer.Add(itemSizer, 0, wx.ALL, 5)
@@ -261,7 +278,7 @@ else:
                     # Scores
                     itemSizer = wx.BoxSizer(wx.VERTICAL)
                     lbl = wx.StaticText(playerPanel, -1, (localText.getText("TXT_KEY_PITBOSS_SCORE", ())))
-                    txtValue = wx.StaticText(playerPanel, rowNum, "", size = wx.Size(30, 13))
+                    txtValue = wx.StaticText(playerPanel, rowNum, "", size=wx.Size(30, 13))
                     itemSizer.Add(lbl)
                     itemSizer.Add(txtValue)
                     rowSizer.Add(itemSizer, 0, wx.ALL, 5)
@@ -308,13 +325,13 @@ else:
 
             # Check box whether to use MotD or not
             self.motdCheckBox = wx.CheckBox(self, -1, localText.getText("TXT_KEY_PITBOSS_MOTD_TOGGLE", ()))
-            self.motdCheckBox.SetValue( len(pbSettings.get('MotD','')) > 0 )
+            self.motdCheckBox.SetValue(len(pbSettings.get('MotD', '')) > 0)
             motdSizer.Add(self.motdCheckBox, 0, wx.TOP, 5)
 
             # Add edit box displaying current MotD
-            self.motdDisplayBox = wx.TextCtrl(self, -1, "", size=(225,50), style=wx.TE_MULTILINE|wx.TE_READONLY)
+            self.motdDisplayBox = wx.TextCtrl(self, -1, "", size=(225, 50), style=wx.TE_MULTILINE | wx.TE_READONLY)
             self.motdDisplayBox.SetHelpText(localText.getText("TXT_KEY_PITBOSS_MOTD_HELP", ()))
-            self.motdDisplayBox.SetValue(pbSettings.get('MotD',''))
+            self.motdDisplayBox.SetValue(pbSettings.get('MotD', ''))
             motdSizer.Add(self.motdDisplayBox, 0, wx.ALL, 5)
             # Add a button to allow motd modification
             motdChangeButton = wx.Button(self, -1, localText.getText("TXT_KEY_PITBOSS_MOTD_CHANGE", ()))
@@ -330,12 +347,12 @@ else:
             dialogSizer = wx.StaticBoxSizer(dialogBorder, wx.VERTICAL)
 
             # Chat log
-            self.chatLog = wx.TextCtrl(self, -1, "", size=(225,100), style=wx.TE_MULTILINE|wx.TE_READONLY)
+            self.chatLog = wx.TextCtrl(self, -1, "", size=(225, 100), style=wx.TE_MULTILINE | wx.TE_READONLY)
             self.chatLog.SetHelpText(localText.getText("TXT_KEY_PITBOSS_CHAT_LOG_HELP", ()))
             dialogSizer.Add(self.chatLog, 0, wx.ALL, 5)
 
             # Chat edit
-            self.chatEdit = wx.TextCtrl(self, -1, "", size=(225,-1), style=wx.TE_PROCESS_ENTER)
+            self.chatEdit = wx.TextCtrl(self, -1, "", size=(225, -1), style=wx.TE_PROCESS_ENTER)
             self.chatEdit.SetHelpText(localText.getText("TXT_KEY_PITBOSS_CHAT_EDIT_HELP", ()))
             dialogSizer.Add(self.chatEdit, 0, wx.ALL, 5)
             self.Bind(wx.EVT_TEXT_ENTER, self.OnSendChat, self.chatEdit)
@@ -360,14 +377,14 @@ else:
             self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
             self.bFirstUpdate = True
-            #Webserver
-            self.webserver = Webserver.ThreadedHTTPServer((pbSettings['webserver']['host'],pbSettings['webserver']['port']), Webserver.HTTPRequestHandler)
+            # Webserver
+            self.webserver = Webserver.ThreadedHTTPServer((pbSettings['webserver']['host'], pbSettings['webserver']['port']), Webserver.HTTPRequestHandler)
             self.t = Thread(target=self.webserver.serve_forever)
             self.t.setDaemon(True)
             self.t.start()
 
-            #Periodical game data upload
-            if( pbSettings['webfrontend']['sendPeriodicalData'] != 0 ):
+            # Periodical game data upload
+            if(pbSettings['webfrontend']['sendPeriodicalData'] != 0):
                 self.webupload = Webserver.PerpetualTimer(pbSettings['webfrontend'], self.webserver, True)
                 self.t2 = Thread(target=self.webupload.start)
                 self.t2.setDaemon(True)
@@ -379,7 +396,7 @@ else:
 
             # Only update every second
             retVal = self.timerDisplay.GetLabel()
-            if (turnSlices%4 == 0):
+            if (turnSlices % 4 == 0):
                 if (turnSlices < 0):
                     retVal = "0:00:00"
                 else:
@@ -388,10 +405,10 @@ else:
                     numSeconds = turnSlices/4
                     if (numSeconds > 59):
                         numMinutes = numSeconds/60
-                        numSeconds = numSeconds%60
+                        numSeconds = numSeconds % 60
                         if (numMinutes > 59):
                             numHours = numMinutes/60
-                            numMinutes = numMinutes%60
+                            numMinutes = numMinutes % 60
 
                     retVal = ""
                     if (numHours > 0):
@@ -438,7 +455,7 @@ else:
                     nameDisplay = ""
                     if (not playerData.bTurnActive):
                         nameDisplay += "*"
-                    nameDisplay += playerData.getName() #Produce ascii decoding error?!
+                    nameDisplay += playerData.getName()  # Produce ascii decoding error?!
                     #nameDisplay += "Player %i" % (rowNum+1)
                     if (nameDisplay != self.nameArray[rowNum].GetLabel()):
                         self.nameArray[rowNum].SetLabel(nameDisplay)
@@ -460,29 +477,40 @@ else:
             # Create save on login and logout events
             for rowNum in range(gc.getMAX_CIV_PLAYERS()):
                 gcPlayer = gc.getPlayer(rowNum)
-                bOnline = (PB.getPlayerAdminData(rowNum).getPing()[1] == "[" )
-                if ( bOnline != playerWasOnline[rowNum] ):
+                bOnline = (PB.getPlayerAdminData(rowNum).getPing()[1] == "[")
+                if (bOnline != playerWasOnline[rowNum]):
                     playerName = PB.getPlayerAdminData(rowNum).getName()
-                    self.webserver.createPlayerRecoverySave( rowNum, playerName, bOnline )
+                    self.webserver.createPlayerRecoverySave(rowNum, playerName, bOnline)
                     playerWasOnline[rowNum] = bOnline
 
             if CIV4_SHELL:
                 if self.bFirstUpdate:
                     self.bFirstUpdate = False
-                    self.glob = globals()
-                    self.loc = locals()
-                    self.civ4Console = start_shell()
-                    self.civ4Console.init()
+                    if not "Civ4Shell" in globals():
+                        global Civ4Shell
+                        Civ4Shell = {
+                            "glob": globals(),
+                            "loc": locals(),
+                            "shell": start_shell(pbSettings.get("shell", {}),
+                                                 "pb_admin")
+                        }
+                        Civ4Shell["shell"].init()
+                    else:
+                        # Already initialized in PbWizard
+                        Civ4Shell["glob"] = globals()
+                        Civ4Shell["loc"] = locals()
                 else:
                     # self.glob.update(globals())
                     # self.loc.update(locals())
-                    self.civ4Console.update(self.glob, self.loc)
+                    Civ4Shell["shell"].update(
+                        Civ4Shell["glob"],
+                        Civ4Shell["loc"])
 
         def OnKick(self, event):
             "'kick' event handler"
             rowNum = event.GetId()
             dlg = wx.MessageDialog(self, (localText.getText("TXT_KEY_PITBOSS_KICK_VERIFY", (PB.getName(rowNum), ))),
-                    (localText.getText("TXT_KEY_PITBOSS_KICK_VERIFY_TITLE", ())), wx.YES_NO | wx.ICON_QUESTION)
+                                   (localText.getText("TXT_KEY_PITBOSS_KICK_VERIFY_TITLE", ())), wx.YES_NO | wx.ICON_QUESTION)
 
             if (dlg.ShowModal() == wx.ID_YES):
                 PB.kick(rowNum)
@@ -508,7 +536,7 @@ else:
                 path = dlg.GetPath()
                 if (path != ""):
                     # Got a file to save - try to save it
-                    if ( not PB.save(path) ):
+                    if (not PB.save(path)):
                         # Saving game failed!  Let the user know
                         msg = wx.MessageBox((localText.getText("TXT_KEY_PITBOSS_ERROR_SAVING", ())), (localText.getText("TXT_KEY_PITBOSS_SAVE_ERROR", ())), wx.ICON_ERROR)
                     else:
@@ -532,7 +560,7 @@ else:
         def OnChangePause(self, event):
             "Turn pause event handler"
             if gc.getGame().isPaused():
-                #gc.sendPause(-1)
+                # gc.sendPause(-1)
                 gc.sendChat("RemovePause", ChatTargetTypes.CHATTARGET_ALL)
             else:
                 gc.sendPause(0)
@@ -542,7 +570,7 @@ else:
                 lead to an c++ exception.
                 A test case for the bug follows...
                 """
-                #gc.sendPause(gc.getMAX_CIV_PLAYERS()-1)
+                # gc.sendPause(gc.getMAX_CIV_PLAYERS()-1)
 
                 """
                 gc.getGame().setPausePlayer(gc.getMAX_CIV_PLAYERS()-1)
@@ -568,7 +596,7 @@ else:
                     if not self.IsNumericString(szValue):
                         dlg2 = wx.MessageDialog(
                             self, localText.getText("TXT_KEY_PITBOSS_TURNTIMER_ERROR_DESC", ()),
-                            localText.getText("TXT_KEY_PITBOSS_TURNTIMER_ERROR_TITLE", ()), wx.OK|wx.ICON_EXCLAMATION)
+                            localText.getText("TXT_KEY_PITBOSS_TURNTIMER_ERROR_TITLE", ()), wx.OK | wx.ICON_EXCLAMATION)
 
                         if dlg2.ShowModal() == wx.ID_OK:
                             # Clear out the TurnTimer Edit box
@@ -581,13 +609,13 @@ else:
 
             # Verify we have text to send
 
-            if ( len(self.chatEdit.GetValue()) ):
+            if (len(self.chatEdit.GetValue())):
                 PB.sendChat(self.chatEdit.GetValue())
                 self.chatEdit.SetValue("")
 
         def OnExit(self, event):
             "'exit' event handler"
-            if( pbSettings['webfrontend']['sendPeriodicalData'] != 0 ):
+            if(pbSettings['webfrontend']['sendPeriodicalData'] != 0):
                 self.webupload.cancel()
                 self.webserver.shutdown()
             self.Close(True)
@@ -605,7 +633,9 @@ else:
     #
     # main app class
     #
+
     class AdminIFace(wx.App):
+
         def OnInit(self):
             "create the admin frame"
             self.adminFrame = AdminFrame(None, -1, (localText.getText("TXT_KEY_PITBOSS_SAVE_SUCCESS", (PB.getGamename(), ))))
@@ -649,7 +679,7 @@ else:
                 pbSettings["MotD"] = self.adminFrame.motdDisplayBox.GetValue()
                 return self.adminFrame.motdDisplayBox.GetValue()
             else:
-                return pbSettings.get('MotD','')
+                return pbSettings.get('MotD', '')
 
         def setMotD(self, msg):
             self.adminFrame.motdDisplayBox.SetValue(msg)
@@ -662,4 +692,3 @@ else:
         def displayMessageBox(self, title, desc):
             outMsg = title + ":\n" + desc
             PB.consoleOut(outMsg)
-

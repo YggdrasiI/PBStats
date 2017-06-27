@@ -27,6 +27,12 @@ import md5
 import simplejson
 import sys
 
+# Add Altroot python folder as import path
+pythonDir = os.path.join(gc.getAltrootDir(), '..', 'Python', 'v7')
+sys.path.append(pythonDir)
+import FindHash
+
+
 PB = CyPitboss()
 gc = CyGlobalContext()
 localText = CyTranslator()
@@ -40,24 +46,29 @@ pbDefaultSettings = {
         "port": 13373,
         # Password for admin commands on the webinterface
         "password": "defaultpassword",
+        # Enable generation of WB files over webinterface
         "allowWB": False,
+        # Enable generation of replay information over webinterface
         "allowReplay": False,
+        # To fetch list of all signs ofer webinterface
         "allowSigns": False,
     },
     "webfrontend": {
-        # Url of the pbStats file on your http webserver
-        "url": "http://localhost/civ/page/update.php",
+        # Url of the PBSpy/PBStats web interface to use
+        # Use "http:\/\/civ.zulan.net\/pbspy\/update" for our instance of PBSpy.
+        "url": r"http://localhost/civ/page/update.php",
         "gameId": 0,  # Id of game at above website
         # Set 0 to disable periodical sending of game data
         "sendPeriodicalData": 1,
         "sendInterval": 10,  # Seconds during automatic sending of game data
         },
     "save": {
-        # Filename (without path) of loaded game at startup (require autostart)
+        # File (without path) to load game startup (if autostart is enabled)
         "filename": "A.CivBeyondSwordSave",
         "adminpw": "",  # Admin password of above save
         "savefolder": "saves\\multi\\",  # First choice to save games.
         # List of relative paths which can be used to load games.
+        # Useful to load saves of game 1 in second PB instance.
         "readfolders": []
     },
     "shortnames": {  # Truncate names to fix login issue due packet drop
@@ -71,9 +82,9 @@ pbDefaultSettings = {
     },
     "shell": {  # Local Tcp shell for debugging, etc
         "enable": False,
-        # Attention, use of non-local ip is an 
+        # Attention, use of non-local ip is an
         # security risk.
-        "ip": "127.0.0.1",  
+        "ip": "127.0.0.1",
         "port": 3333,
     },
     # Each login and logoff produce a save. This option controls the length of
@@ -82,7 +93,7 @@ pbDefaultSettings = {
     "MotD": "Welcome on the modified PitBoss Server",
     "noGui": 0,  # Do not show admin window. (This option force the autostart.)
     "autostart": 0,  # Load savegame at startup
-    "errorLogFile": None
+    "errorLogFile": "Logs\\pitbossErr.log"  # Prevent mostly alert windows
 }
 pbSettings = None
 pbTmpSettings = dict()  # Unsaved settings
@@ -101,19 +112,44 @@ altrootDir = gc.getAltrootDir()
 pbFn = os.path.join(altrootDir, "pbSettings.json")
 
 
+def nested_dict_update(dBase, dUpdate, max_depth=-1):
+    """ Update dBase with values of dUpate. Join dicts,
+    if both values are dicts, too.
+
+    Note that this function alter both input dicts.
+    """
+
+    # 0. Lowest level is without recursion.
+    if max_depth == 0:
+        dBase.update(dUpdate)
+        return
+
+    # 1. Update existing keys
+    for k in dBase:
+        if k in dUpdate:
+            if(isinstance(dBase[k], dict)
+               and isinstance(dUpdate[k], dict)):
+                nested_dict_update(dBase[k], dUpdate[k], max_depth-1)
+            else:
+                dBase[k] = dUpdate[k]
+
+            dUpdate.pop(k)
+
+    # 2. Add new keys
+    dBase.update(dUpdate)
+
 def getPbSettings():
     """Loads settings file and use default settings as fallback."""
-    global altrootDir
     global pbFn
     global pbSettings
-    global pbDefaultSettings
     if pbSettings is not None:
         return pbSettings
 
     if os.path.isfile(pbFn):
         fp = file(pbFn, "r")
         pbSettings = dict(pbDefaultSettings)
-        pbSettings.update(simplejson.load(fp))
+        # pbSettings.update(simplejson.load(fp))
+        nested_dict_update(pbSettings, simplejson.load(fp), 1)
         fp.close()
         return pbSettings
     elif altrootDir != "":
@@ -121,9 +157,9 @@ def getPbSettings():
         savePbSettings()
         return pbSettings
     else:
-        pbSettings = pbDefaultSettings
+        pbSettings = dict(pbDefaultSettings)
         pbFn = None
-        return pbDefaultSettings
+        return pbSettings
 
 
 def getPbPasswords():
@@ -132,7 +168,6 @@ def getPbPasswords():
     as valid values before the game try to load the save.
     """
 
-    global altrootDir
     pwdFile = os.path.join(altrootDir, "..", "pbPasswords.json")
 
     if os.path.isfile(pwdFile):
@@ -155,8 +190,6 @@ def savePbSettings():
     wasn't started.
     """
 
-    global pbFn
-    global pbSettings
     if pbFn is None:
         return
 
@@ -165,7 +198,7 @@ def savePbSettings():
         # Note that it's ness. to use the old syntax (integer value) for indent
         # argument!
         simplejson.dump(pbSettings, fp, indent=1)
-    except Exception, e:
+    except Exception, e:  # Old 2.4 syntax required(!)
         pass
 
 
@@ -173,12 +206,11 @@ def getPossibleSaveFolders():
     """Use two default values and the value(s) from the setting file
     to generate possible source paths of saves.
 
-    The return value dos not contain duplicates. There are two reasons
+    The return value does not contain duplicates. There are two reasons
     why this was constructed by hand:
     A hashmap construction would destroy the ordering and OrderedDict requires
     at least Python 2.7.
     """
-    global altrootDir
     if "save" not in pbSettings:
         pbSettings["save"] = {}
 
@@ -219,7 +251,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
     of the webinterface
     """
 
-    def log_message(self, format, *args):
+    def log_message(self, _format, *args):
         "Redefine is ness. to omit python error popups!!"
         return
 
@@ -255,7 +287,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     inputdata = simplejson.loads( parseddata[0] )
                     """
 
-                    if self.check_password(inputdata.get("password","")):
+                    if self.check_password(inputdata.get("password", "")):
                         action = inputdata.get("action")
 
                         if action == "chat":
@@ -507,36 +539,36 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                         'Passwort change failed.'}) + "\n")
 
                         elif action == "removeMagellanBonus":
-                                gc.getGame().makeCircumnavigated()
-                                if int(inputdata.get("takebackBonus", 0)) > 0:
-                                    """ We can not directly detect if extra moves was
-                                    provided by magellan. Assume simpliest case should
-                                    be good enought in practice.
-                                    """
-                                    players_with_bonus = []
-                                    for iPlayer in range(gc.getMAX_CIV_PLAYERS()):
-                                        gcPlayer = gc.getPlayer(iPlayer)
-                                        iTeam = gcPlayer.getTeam()
-                                        gcTeam = gc.getTeam(iTeam)
-                                        if( gcTeam.getExtraMoves(DomainTypes.DOMAIN_SEA) > 0):
-                                            gcTeam.changeExtraMoves(DomainTypes.DOMAIN_SEA, -1)
-                                            players_with_bonus.append( gcPlayer.getName() )
+                            gc.getGame().makeCircumnavigated()
+                            if int(inputdata.get("takebackBonus", 0)) > 0:
+                                """ We can not directly detect if extra moves was
+                                provided by magellan. Assume simpliest case should
+                                be good enought in practice.
+                                """
+                                players_with_bonus = []
+                                for iPlayer in range(gc.getMAX_CIV_PLAYERS()):
+                                    gcPlayer = gc.getPlayer(iPlayer)
+                                    iTeam = gcPlayer.getTeam()
+                                    gcTeam = gc.getTeam(iTeam)
+                                    if(gcTeam.getExtraMoves(DomainTypes.DOMAIN_SEA) > 0):
+                                        gcTeam.changeExtraMoves(DomainTypes.DOMAIN_SEA, -1)
+                                        players_with_bonus.append(gcPlayer.getName())
 
-                                    if len(players_with_bonus) > 0:
-                                        self.wfile.write(simplejson.dumps(
-                                            {'return': 'ok', 'info':
-                                            'Remove magellan bonus for: '+", ".join(players_with_bonus)})
-                                            + "\n")
-                                    else:
-                                        self.wfile.write(simplejson.dumps(
-                                            {'return': 'ok', 'info':
-                                            'Disable future achievement of circumnavigagation bonus. No player had already an extra move.'})
-                                            + "\n")
+                                if len(players_with_bonus) > 0:
+                                    self.wfile.write(simplejson.dumps(
+                                        {'return': 'ok', 'info':
+                                        'Remove magellan bonus for: '+", ".join(players_with_bonus)})
+                                        + "\n")
                                 else:
                                     self.wfile.write(simplejson.dumps(
                                         {'return': 'ok', 'info':
-                                        'Disable future achievement of circumnavigagation bonus.'})
+                                        'Disable future achievement of circumnavigagation bonus. No player had already an extra move.'})
                                         + "\n")
+                            else:
+                                self.wfile.write(simplejson.dumps(
+                                    {'return': 'ok', 'info':
+                                    'Disable future achievement of circumnavigagation bonus.'})
+                                    + "\n")
 
                         elif action == "kickPlayer":
                             playerId = int(inputdata.get("playerId", -1))
@@ -745,7 +777,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                     "\n")
 
                         elif action == "info":
-                            gamedata = self.server.createGamedata()
+                            gamedata = createGameData()
 
                             self.wfile.write(
                                 simplejson.dumps(
@@ -754,6 +786,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                         elif action == "listSaves":
                             # Print list of saves of the selected folder. This can be used for a dropdown list
                             # of available saves.
+                            """
                             folderpaths = getPossibleSaveFolders()
                             saveList = []
 
@@ -770,6 +803,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                             'date': time.ctime(timestamp),
                                             'timestamp': timestamp
                                             })
+                            """
+                            saveList = getListOfSaves()
 
                             self.wfile.write(
                                 simplejson.dumps(
@@ -860,11 +895,11 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                     sign['id'],
                                     caption.__str__())
 
-                            self.wfile.write( simplejson.dumps(
+                            self.wfile.write(simplejson.dumps(
                                     {'return': 'ok', 'info': signs}) + "\n")
                         else:
-                            self.wfile.write( simplejson.dumps(
-                                { 'return': 'fail',
+                            self.wfile.write(simplejson.dumps(
+                                {'return': 'fail',
                                  'info': 'Unknown action.' +
                                  'Available actions are info, chat, save, restart, ' +
                                  'listSaves, setAutostart, setHeadless, getMotD, ' +
@@ -1041,7 +1076,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         return ret
 
     def createWBSaveDoNotWork(self, filename, folderIndex=0):
-        filepath = os.path.join(self.getSaveFolder(folderIndex), filename)
+        filepath = os.path.join(getSaveFolder(folderIndex), filename)
         if (filepath != ""):
             self.lock.acquire()
             WBDesc = CvWBDesc.CvWBDesc()
@@ -1066,7 +1101,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         return ret
 
     def createSave(self, filename, folderIndex=0):
-        filepath = os.path.join(self.getSaveFolder(folderIndex), filename)
+        filepath = os.path.join(getSaveFolder(folderIndex), filename)
 
         if (filename != ""):
             self.lock.acquire()
@@ -1091,18 +1126,10 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
         return ret
 
-    def getSaveFolder(self, folderIndex=0):
-        global altrootDir
-        folderpaths = getPossibleSaveFolders()
-        try:
-            return folderpaths[folderIndex][0]
-        except IndexError:
-            return folderpaths[0][0]
-
     def createPlayerRecoverySave(self, playerId, playerName, bOnline):
         # 1. Check which saves already exists for this player
         # and remove old recovery saves
-        folder = self.getSaveFolder(1)
+        folder = getSaveFolder(1)
         RecoverPrefix = 'Logoff_'
         if bOnline:
             RecoverPrefix = 'Login_'
@@ -1145,60 +1172,16 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         if old is None:
             old = self.oldGamestate
         # Remove volative keys
-        ttvOld = old.pop("turnTimerValue", None)
-        ttvNew = new.pop("turnTimerValue", None)
+        old.pop("turnTimerValue", None)
+        new.pop("turnTimerValue", None)
         bSame = (old == new)
+        ttvNew = new.pop("turnTimerValue", None)
         if ttvNew is not None:
             new["turnTimerValue"] = ttvNew
 
         # cache new value
         self.oldGamestate = new
         return bSame
-
-    def createGamedata(self):
-        # Collect all available data
-        gamedata = {'gameTurn': PB.getGameturn(),
-                    'gameName': PB.getGamename(),
-                    'gameDate': PB.getGamedate(False),
-                    'bPaused': gc.getGame().isPaused(),
-                    'modName': PB.getModName(),
-                    }
-
-        if(PB.getTurnTimer()):
-            gamedata["turnTimer"] = 1
-            gamedata['turnTimerMax'] = gc.getGame().getPitbossTurnTime()
-            gamedata['turnTimerValue'] = PB.getTurnTimeLeft()
-        else:
-            gamedata["turnTimer"] = 0
-
-        players = []
-        for rowNum in range(gc.getMAX_CIV_PLAYERS()):
-            gcPlayer = gc.getPlayer(rowNum)
-            if (gcPlayer.isEverAlive()):
-                playerData = PB.getPlayerAdminData(rowNum)
-                player = {'id': rowNum}
-                player['finishedTurn'] = not playerData.bTurnActive
-                player['name'] = gcPlayer.getName()
-                player['score'] = playerData.getScore()
-                player['ping'] = playerData.getPing()
-                player['bHuman'] = playerData.bHuman
-                player['bClaimed'] = playerData.bClaimed
-                player['civilization'] = gcPlayer.getCivilizationDescription(0)
-                player['leader'] = gc.getLeaderHeadInfo(
-                    gcPlayer.getLeaderType()).getDescription()
-                player['color'] = u"%d,%d,%d" % (
-                    gcPlayer.getPlayerTextColorR(),
-                    gcPlayer.getPlayerTextColorG(),
-                    gcPlayer.getPlayerTextColorB())
-
-                players.append(player)
-
-        gamedata['players'] = players
-
-        gamedata['bHeadless'] = pbSettings.get("noGui", 0)
-        gamedata['bAutostart'] = pbSettings.get("autostart", 0)
-
-        return gamedata
 
     def savePbSettings(self):
         self.lock.acquire()
@@ -1238,7 +1221,7 @@ class PerpetualTimer:
         self.thread.cancel()
 
     def request(self, webserver):
-        gamedata = webserver.createGamedata()
+        gamedata = createGameData()
         newState = not webserver.compareGamedata(gamedata)
 
         # Check if CvGame::doTurn is currently running.
@@ -1284,3 +1267,161 @@ class PerpetualTimer:
 
         except:
             pass
+
+
+# =====================================================
+
+def createGameData():
+    # Collect all available data
+    gamedata = {'gameTurn': PB.getGameturn(),
+                'gameName': PB.getGamename(),
+                'gameDate': PB.getGamedate(False),
+                'bPaused': gc.getGame().isPaused(),
+                'modName': PB.getModName(),
+                }
+
+    if(PB.getTurnTimer()):
+        gamedata["turnTimer"] = 1
+        gamedata['turnTimerMax'] = gc.getGame().getPitbossTurnTime()
+        gamedata['turnTimerValue'] = PB.getTurnTimeLeft()
+    else:
+        gamedata["turnTimer"] = 0
+
+    players = []
+    for rowNum in range(gc.getMAX_CIV_PLAYERS()):
+        gcPlayer = gc.getPlayer(rowNum)
+        if (gcPlayer.isEverAlive()):
+            playerData = PB.getPlayerAdminData(rowNum)
+            player = {'id': rowNum}
+            player['finishedTurn'] = not playerData.bTurnActive
+            player['name'] = gcPlayer.getName()
+            player['score'] = playerData.getScore()
+            player['ping'] = playerData.getPing()
+            player['bHuman'] = playerData.bHuman
+            player['bClaimed'] = playerData.bClaimed
+            player['civilization'] = gcPlayer.getCivilizationDescription(0)
+            player['leader'] = gc.getLeaderHeadInfo(
+                gcPlayer.getLeaderType()).getDescription()
+            player['color'] = u"%d,%d,%d" % (
+                gcPlayer.getPlayerTextColorR(),
+                gcPlayer.getPlayerTextColorG(),
+                gcPlayer.getPlayerTextColorB())
+
+            players.append(player)
+
+    gamedata['players'] = players
+
+    gamedata['bHeadless'] = pbSettings.get("noGui", 0)
+    gamedata['bAutostart'] = pbSettings.get("autostart", 0)
+
+    return gamedata
+
+def getSaveFolder(folderIndex=0):
+    folderpaths = getPossibleSaveFolders()
+    try:
+        return folderpaths[folderIndex][0]
+    except IndexError:
+        return folderpaths[0][0]
+
+def getListOfSaves(pattern="*", regPattern=None, num=-1):
+    folderpaths = getPossibleSaveFolders()
+    saveList = []
+    fileList = []
+    if regPattern:
+        reg = re.compile(regPattern)
+
+    for fp in folderpaths:
+        folderpath = os.path.join(fp[0], pattern)
+        for f in glob.glob(folderpath):
+            fileList.append((f, fp[1]))
+
+    # Add timestamp (as tuple)
+    existingWithTimestamps = map(
+        lambda x: (x[0], x[1], os.path.getctime(x[0])),
+        fileList)
+
+    # Sort by timestamp
+    existingWithTimestamps.sort(key=lambda xx: xx[2])
+
+    # Remove oldest and non-saves
+    existingWithTimestamps = [x for x in existingWithTimestamps if
+                                   x[0].endswith(".CivBeyondSwordSave")]
+    if regPattern:
+        existingWithTimestamps = [x for x in existingWithTimestamps if
+                                  reg.search(x[0])]
+
+    while len(existingWithTimestamps) > num and num >= 0:
+        existingWithTimestamps.pop(0)
+
+    for savefile in existingWithTimestamps:
+        saveList.append({
+            'name': os.path.basename(savefile[0]),
+            'folder': os.path.dirname(savefile[0]),
+            'folderIndex': savefile[1],
+            'date': time.ctime(savefile[2]),
+            'timestamp': savefile[2]
+            })
+
+    return saveList
+
+
+def searchMatchingPassword(filename, adminPwds):
+    """ Return correct password of given list for a savegame.
+    filename - The save
+    adminPwds - List of passwords which md5 sum should compared
+
+    return: Password ("" if save not password protected) or None
+    """
+    hSave = FindHash.get_admin_hash(filename, "")
+    if hSave is None:
+        sys.stderr.write("(searchMatchingPassword) failed. Can not detect admin hash value. " +
+                         "Filepath correct?")
+        return None
+    if hSave == "":
+        return ""
+
+    import md5
+    for adminPwd in adminPwds:
+        if hSave == md5.new(adminPwd).hexdigest():
+            return adminPwd
+
+    return None
+
+def isLoadableSave(filename, folderIndex=0, pwdCandidates=[]):
+    """Check if filename can be resolved into loadable 
+    path and test if one of the given passwords match.
+
+    If filename already contains the full path use
+    folderIndex = -1.
+
+    Return 0 on succes, -1 if file not be found,
+      and -2 if no password match.
+    """
+    filepath = None
+
+    if folderIndex == -1:
+        if os.path.isfile(filename):
+            filepath = filename
+    else:
+        folderpaths = getPossibleSaveFolders()
+        try:
+            folderpaths.insert(0, folderpaths[folderIndex])
+        except IndexError:
+            pass
+
+        for fp in folderpaths:
+            tmpFilePath = os.path.join(fp[0], filename)
+            if os.path.isfile(tmpFilePath):
+                filepath = tmpFilePath
+                break
+
+    if filepath is None:
+        iResult = -1
+    else:
+        matchingPwd = searchMatchingPassword(filepath, pwdCandidates)
+        if matchingPwd is None:
+            iResult = -2
+        else:
+            iResult = 0
+
+    return iResult
