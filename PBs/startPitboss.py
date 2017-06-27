@@ -37,7 +37,9 @@ import time
 # Begin of configuration
 
 # Path to Civ4:BTS folder (without executable name)
-CIV4BTS_PATH = "$HOME/Civ4/Beyond the Sword"
+# CIV4BTS_PATH = "$HOME/Civ4/Beyond the Sword"
+CIV4BTS_PATH = r"C:\Program Files (x86)\2K Games\Firaxis Games\\"\
+        r"Sid Meiers Civilization 4 Complete\Beyond the Sword"
 
 # Folder which will be used as container for all ALTROOT directories.
 # It should contains the configuration seed folder (seed)
@@ -54,7 +56,7 @@ MOD = "PB Mod_v7"
 RESTART_TIMEOUT = 3
 
 # Start command templates
-START_WINDOWS = '"{CIV4BTS_EXE}" mod= "{MOD}"\" /ALTROOT={ALTROOT}'
+START_WINDOWS = '""{CIV4BTS_EXE}" mod= "{MOD}"\" /ALTROOT={ALTROOT}"'
 START_LINUX = 'wine "{CIV4BTS_EXE}" mod= "{MOD}"\" /ALTROOT="{ALTROOT_W}"'
 
 # Variant with cleaned output
@@ -194,14 +196,14 @@ ID - Description
     for g in GAMES:
         print("  %10.10s - %s" % (g, GAMES[g]["name"]))
 
-    print("  %10.10s - %s" % ("list [game id] [save pattern]",
+    print("  %10.10s %s - %s" % ("list", "[id] [save pattern]"
                               "Print out names of 20 youngest saves."))
     print("  %10.10s - %s" % ("help",
                               "Print help and exit"))
 
 
 def printHelp():
-    print("""Syntax: python {0} gameid [savegame] [password]
+    print("""Syntax: python [-u] {0} gameid [savegame] [password]
 
  gameid: Selects the game. Edit the GAMES-variable to define more games.
          Use the 'seed' director as template and define a different
@@ -215,6 +217,7 @@ def printHelp():
  password: Overrides the stored password. Be careful, a wrong password traps
           the PB server in an infinite loop. The server had to be killed
           manually...
+       -u: Force unbuffered output. I.e. Required in Mingw32 bash shell
           """.format(sys.argv[0]))
 
 
