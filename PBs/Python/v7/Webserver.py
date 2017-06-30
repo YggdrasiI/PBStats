@@ -27,18 +27,18 @@ import md5
 import simplejson
 import sys
 
+PB = CyPitboss()
+gc = CyGlobalContext()
+localText = CyTranslator()
+
 # Add Altroot python folder as import path
 pythonDir = os.path.join(gc.getAltrootDir(), '..', 'Python', 'v7')
 sys.path.append(pythonDir)
 import FindHash
 
 
-PB = CyPitboss()
-gc = CyGlobalContext()
-localText = CyTranslator()
-
 # Default settings. Does not work for multiple PB instances due port collision.
-pbDefaultSettings = {
+PbDefaultSettings = {
     "webserver": {
         "host": "",  # Leave string empty
         # Port of the python web interface of this mod. Use different port for
@@ -93,23 +93,21 @@ pbDefaultSettings = {
     "MotD": "Welcome on the modified PitBoss Server",
     "noGui": 0,  # Do not show admin window. (This option force the autostart.)
     "autostart": 0,  # Load savegame at startup
-    "errorLogFile": "Logs\\pitbossErr.log"  # Prevent mostly alert windows
+    "errorLogFile": "Logs\\pitbossErr.log",  # Prevent mostly alert windows
+    "tmpToRestart": False,  # To break restart loop in startPitboss.py
 }
-pbSettings = None
-pbTmpSettings = dict()  # Unsaved settings
+PbSettings = None
+PbTmpSettings = dict()  # Unsaved settings
 
 # Try to load pbSettings file.
 # To get a different settings file for each pitboss we need
 # access to a variable in the ini file
 # We reuse a widely unused variable of the standard BTS ini file
-altrootDir = gc.getAltrootDir()
-
-# Cut of badly formated beginning of String [...]@ (If EMail Ini variable used)
-# altrootDir = altrootDir[altrootDir.rfind("@")+1:len(altrootDir)]
+AltrootDir = gc.getAltrootDir()
 
 # If the loading of the setting file failed the path will be set no None
 # in getPbSettings()
-pbFn = os.path.join(altrootDir, "pbSettings.json")
+PbFn = os.path.join(AltrootDir, "pbSettings.json")
 
 
 def nested_dict_update(dBase, dUpdate, max_depth=-1):
@@ -138,37 +136,39 @@ def nested_dict_update(dBase, dUpdate, max_depth=-1):
     # 2. Add new keys
     dBase.update(dUpdate)
 
-def getPbSettings():
-    """Loads settings file and use default settings as fallback."""
-    global pbFn
-    global pbSettings
-    if pbSettings is not None:
-        return pbSettings
-
-    if os.path.isfile(pbFn):
-        fp = file(pbFn, "r")
-        pbSettings = dict(pbDefaultSettings)
-        # pbSettings.update(simplejson.load(fp))
+def loadPbSettings(bFallbackToDefaults=False):
+    if os.path.isfile(PbFn):
+        fp = file(PbFn, "r")
+        pbSettings = dict(PbDefaultSettings)
         nested_dict_update(pbSettings, simplejson.load(fp), 1)
         fp.close()
-        return pbSettings
-    elif altrootDir != "":
-        pbSettings = pbDefaultSettings
-        savePbSettings()
-        return pbSettings
-    else:
-        pbSettings = dict(pbDefaultSettings)
-        pbFn = None
-        return pbSettings
+    elif bFallbackToDefaults:
+        pbSettings = dict(PbDefaultSettings)
+        if AltrootDir != "":
+            savePbSettings()
+        else:
+            globals()["PbFn"] = None
+
+    globals()["PbSettings"] = pbSettings
+
+
+def getPbSettings():
+    """Loads settings file and use default settings as fallback."""
+    if PbSettings is not None:
+        return PbSettings
+
+    loadPbSettings(True)
+    return PbSettings
+
 
 
 def getPbPasswords():
     """Loads list of alternative passwords for your games.
-    pbSettings['save']['adminpw'] and this list will be tested
+    PbSettings['save']['adminpw'] and this list will be tested
     as valid values before the game try to load the save.
     """
 
-    pwdFile = os.path.join(altrootDir, "..", "pbPasswords.json")
+    pwdFile = os.path.join(AltrootDir, "..", "pbPasswords.json")
 
     if os.path.isfile(pwdFile):
         try:
@@ -190,15 +190,15 @@ def savePbSettings():
     wasn't started.
     """
 
-    if pbFn is None:
+    if PbFn is None:
         return
 
     try:
-        fp = file(pbFn, "w")
+        fp = file(PbFn, "w")
         # Note that it's ness. to use the old syntax (integer value) for indent
         # argument!
-        simplejson.dump(pbSettings, fp, indent=1)
-    except Exception, e:  # Old 2.4 syntax required(!)
+        simplejson.dump(PbSettings, fp, indent=1)
+    except Exception:  # Old 2.4 syntax required(!)
         pass
 
 
@@ -211,29 +211,29 @@ def getPossibleSaveFolders():
     A hashmap construction would destroy the ordering and OrderedDict requires
     at least Python 2.7.
     """
-    if "save" not in pbSettings:
-        pbSettings["save"] = {}
+    if "save" not in PbSettings:
+        PbSettings["save"] = {}
 
     # Note: "path" is the deprecated name of "savefolder"
     userPath = str(
-        pbSettings["save"].get(
+        PbSettings["save"].get(
             "savefolder",
-            pbSettings["save"].get(
+            PbSettings["save"].get(
                 "path",
                 "saves\\multi\\")))
     folders = [
-        altrootDir + "\\" + userPath,
-        altrootDir + "\\" + userPath + "auto\\",
-        altrootDir + "\\" + "saves\\multi\\",
-        altrootDir + "\\" + "saves\\multi\\auto\\",
-        altrootDir + "\\" + "saves\\pitboss\\",
-        altrootDir + "\\" + "saves\\pitboss\\auto\\"
+        AltrootDir + "\\" + userPath,
+        AltrootDir + "\\" + userPath + "auto\\",
+        AltrootDir + "\\" + "saves\\multi\\",
+        AltrootDir + "\\" + "saves\\multi\\auto\\",
+        AltrootDir + "\\" + "saves\\pitboss\\",
+        AltrootDir + "\\" + "saves\\pitboss\\auto\\"
         ]
 
     # Add extra folders
-    for extraUserPath in pbSettings["save"].get("readfolders", []):
-        folders.append(altrootDir + "\\" + str(extraUserPath))
-        folders.append(altrootDir + "\\" + str(extraUserPath) + "auto\\")
+    for extraUserPath in PbSettings["save"].get("readfolders", []):
+        folders.append(AltrootDir + "\\" + str(extraUserPath))
+        folders.append(AltrootDir + "\\" + str(extraUserPath) + "auto\\")
 
     def remove_duplicates(li):
         my_set = set()
@@ -256,12 +256,12 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         return
 
     def check_password(self, input_pw):
-        if input_pw == pbSettings['webserver']['password']:
+        if input_pw == PbSettings['webserver']['password']:
             return True
 
         # The old webinterface does not store the original password
         # and could only send it's hashed value.
-        hashed_pw = md5.new(pbSettings['webserver']['password']).hexdigest()
+        hashed_pw = md5.new(PbSettings['webserver']['password']).hexdigest()
         if input_pw == hashed_pw:
             return True
         return False
@@ -314,7 +314,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
                         elif action == "setAutostart":
                             self.server.lock.acquire()
-                            pbSettings["autostart"] = int(
+                            loadPbSettings(False)
+                            PbSettings["autostart"] = int(
                                 inputdata.get(
                                     "value",
                                     0))
@@ -323,17 +324,18 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                             self.wfile.write(
                                 simplejson.dumps(
                                     {'return': 'ok', 'info': 'Autostart flag: ' +
-                                    str(pbSettings["autostart"])}) + "\n")
+                                    str(PbSettings["autostart"])}) + "\n")
 
                         elif action == "setHeadless":
                             self.server.lock.acquire()
-                            pbSettings["noGui"] = int(inputdata.get("value", 0))
+                            loadPbSettings(False)
+                            PbSettings["noGui"] = int(inputdata.get("value", 0))
                             self.server.lock.release()
                             self.server.savePbSettings()
                             self.wfile.write(
                                 simplejson.dumps(
                                     {'return': 'ok', 'info': 'Headless/noGui flag: ' +
-                                    str(pbSettings["noGui"])}) + "\n")
+                                    str(PbSettings["noGui"])}) + "\n")
 
                         elif action == "save":
                             defaultFile = "Pitboss_" + PB.getGamedate(True)
@@ -470,17 +472,20 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                         "\n")
                                 else:
                                     self.server.lock.acquire()
-                                    pbSettings["save"]["filename"] = filename
-                                    pbSettings["save"][
+                                    loadPbSettings(False)
+                                    PbSettings["save"]["filename"] = filename
+                                    PbSettings["save"][
                                         "folderIndex"] = folderIndexFound
-                                    pbSettings["save"]["oneOffAutostart"] = 1
+                                    PbSettings["save"]["oneOffAutostart"] = 1
                                     self.server.lock.release()
                                     self.server.savePbSettings()
 
                             else:
                                 self.server.lock.acquire()
-                                pbSettings["save"]["oneOffAutostart"] = 1
+                                loadPbSettings(False)
+                                PbSettings["save"]["oneOffAutostart"] = 1
                                 self.server.lock.release()
+                                self.server.savePbSettings()
                                 filename = "Reload.CivBeyondSwordSave"
                                 ret = self.server.createSave(filename)
                                 if ret["return"] != "ok":
@@ -515,8 +520,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                     # and will not change the DLL in this version of the mod.
                                     # TODO: Move this line into the DLL for newer
                                     # versions of the mod.
-                                adminPW = str(pbTmpSettings.get("adminpw",
-                                    pbSettings.get("save", {}).get("adminpw", "")))
+                                adminPW = str(PbTmpSettings.get("adminpw",
+                                    PbSettings.get("save", {}).get("adminpw", "")))
                                 if len(adminPW) > 0:
                                     adminPWHash = md5.new(adminPW).hexdigest()
                                 else:
@@ -619,14 +624,14 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                             str(e)}) +
                                     "\n")
                         elif(action == "getWBSave" and
-                             pbSettings["webserver"].get("allowWB", False)):
+                             PbSettings["webserver"].get("allowWB", False)):
                             bCache = (inputdata.get("noCache", "0") == "0")
                             bCompress = (inputdata.get("compress", "0") == "1")
                             ret = self.server.createWBSave(bCache, bCompress)
                             self.wfile.write(simplejson.dumps(ret) + "\n")
 
                         elif(action == "getReplay" and
-                             pbSettings["webserver"].get("allowReplay", False)):
+                             PbSettings["webserver"].get("allowReplay", False)):
                             try:
                                 replayInfo = gc.getGame().getReplayInfo()
                                 if replayInfo.isNone():
@@ -722,7 +727,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                 msg = msg.replace('<', '&lt;')
                                 msg = msg.replace('>', '&gt;')
                                 self.server.lock.acquire()
-                                pbSettings["MotD"] = msg
+                                loadPbSettings(False)
+                                PbSettings["MotD"] = msg
                                 self.server.lock.release()
                                 self.server.savePbSettings()
 
@@ -748,7 +754,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                 iMaxLenName = int(inputdata.get("maxLenName", 1))
                                 iMaxLenDesc = int(inputdata.get("maxLenDesc", 4))
                                 self.server.lock.acquire()
-                                pbSettings["shortnames"] = {
+                                loadPbSettings(False)
+                                PbSettings["shortnames"] = {
                                     "enable": bShortNames,
                                     "maxLenName": iMaxLenName,
                                     "maxLenDesc": iMaxLenDesc}
@@ -844,7 +851,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                     {'return': 'ok', 'colors': colorList}) + "\n")
 
                         elif(action == "listSigns" and
-                             pbSettings["webserver"].get("allowSigns", False)):
+                             PbSettings["webserver"].get("allowSigns", False)):
                             engine = CyEngine()
                             signs = []
                             for i in range(engine.getNumSigns()-1, -1, -1):
@@ -861,7 +868,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                     {'return': 'ok', 'info': signs}) + "\n")
 
                         elif(action == "cleanupSigns" and
-                             pbSettings["webserver"].get("allowSigns", False)):
+                             PbSettings["webserver"].get("allowSigns", False)):
                             # Debugging: Reset all Signs. Remove some special chars
                             engine = CyEngine()
                             signs = []
@@ -936,7 +943,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     self.send_response(200)
                     self.end_headers()
                     self.wfile.write(simplejson.dumps(data) + "\n")
-                except Exception, e:
+                except Exception:
                     pass
 
         else:
@@ -944,7 +951,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 self.send_response(403)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
-            except Exception, e:
+            except Exception:
                 pass
         return
 
@@ -983,17 +990,17 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         self.adminApp = adminApp
         self.adminWindow = adminApp.adminFrame
         self.lock = thread.allocate_lock()
-        # Setup some extra Values in the DLL
-        if "shortnames" not in pbSettings:
-            pbSettings["shortnames"] = {
-                "enable": True,
-                "maxLenName": 1,
-                "maxLenDesc": 4}
-        shortnames = pbSettings.get("shortnames", {})
 
-        bShortNames = bool(shortnames.get("enable", True))
-        iMaxLenName = int(shortnames.get("maxLenName", 1))
-        iMaxLenDesc = int(shortnames.get("maxLenDesc", 4))
+        # Setup some extra Values in the DLL
+        shortnames = PbSettings.setdefault(
+            "shortnames",
+            {"enable": True,
+             "maxLenName": 1,
+             "maxLenDesc": 4})
+
+        bShortNames = bool(shortnames["enable"])
+        iMaxLenName = int(shortnames["maxLenName"])
+        iMaxLenDesc = int(shortnames["maxLenDesc"])
         gc.getGame().setPitbossShortNames(
             bShortNames,
             iMaxLenName,
@@ -1114,8 +1121,9 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
                 self.lock.release()
             else:
                 # Update last file name info and save json file
-                pbSettings["save"]["filename"] = filename
-                pbSettings["save"]["folderIndex"] = folderIndex
+                loadPbSettings(False)
+                PbSettings["save"]["filename"] = filename
+                PbSettings["save"]["folderIndex"] = folderIndex
                 self.lock.release()
                 self.savePbSettings()
                 ret = {
@@ -1130,56 +1138,45 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         # 1. Check which saves already exists for this player
         # and remove old recovery saves
         folder = getSaveFolder(1)
-        RecoverPrefix = 'Logoff_'
+        recoverPrefix = 'Logoff_'
         if bOnline:
-            RecoverPrefix = 'Login_'
+            recoverPrefix = 'Login_'
 
         # Windows file names can not contain * characters. Replace the string "*Mod* ", which
         # can prepend the player name.
         playerName = playerName.replace("*MOD* ", "MOD_").strip()
 
         existingRecoverySaves = glob.glob(
-            folder +
-            RecoverPrefix +
-            'P' +
-            str(playerId) +
-            '_*.CivBeyondSwordSave')
+            "%s%sP%i_*.CivBeyondSwordSave" % (folder, recoverPrefix, playerId))
         # Add timestamp (as tuple)
-        existingRecoverySavesWithTimestamps = map(
-            lambda x: (
-                x,
-                os.path.getctime(x)),
-            existingRecoverySaves)
+        existingRecoverySavesWithTimestamps = [
+           (x, os.path.getctime(x)) for x in existingRecoverySaves]
         # Sort by timestamp
         existingRecoverySavesWithTimestamps.sort(key=lambda xx: xx[1])
         # Remove oldest
-        while(len(existingRecoverySavesWithTimestamps) >= pbSettings.get("numRecoverySavesPerPlayer", 3)):
+        while(len(existingRecoverySavesWithTimestamps) >= PbSettings.get("numRecoverySavesPerPlayer", 3)):
             old = existingRecoverySavesWithTimestamps.pop(0)
             os.remove(old[0])
 
         # 2. Save new recovery save
-        filename = (RecoverPrefix +
-                    'P' +
-                    str(playerId) +
-                    '_' +
-                    playerName +
-                    '_T' +
-                    str(int(time.time())) +
-                    '.CivBeyondSwordSave')
+        filename = "%sP%i_%s_T%i.CivBeyondSwordSave" % (recoverPrefix,
+                                                        playerId, playerName,
+                                                        int(time.time()))
         self.createSave(str(filename), 1)
 
     def compareGamedata(self, new, old=None):
         if old is None:
             old = self.oldGamestate
-        # Remove volative keys
+        # Remove volatile keys
         old.pop("turnTimerValue", None)
-        new.pop("turnTimerValue", None)
-        bSame = (old == new)
         ttvNew = new.pop("turnTimerValue", None)
+
+        # Compare dicts without volatile keys
+        bSame = (old == new)
         if ttvNew is not None:
             new["turnTimerValue"] = ttvNew
 
-        # cache new value
+        # Cache new value as old for next call
         self.oldGamestate = new
         return bSame
 
@@ -1231,15 +1228,15 @@ class PerpetualTimer:
             inconsistentState = CvEventInterface.getEventManager(
             ).bGameTurnProcessing
         except AttributeError:
-            pass
             """
             for-Loop over ?!
             inconsistentState = PB.isTurnActive(iPlayer)
             """
+            pass
 
         url = self.settings["url"]
         gameId = self.settings["gameId"]
-        pwHash = md5.new(pbSettings['webserver']['password']).hexdigest()
+        pwHash = md5.new(PbSettings['webserver']['password']).hexdigest()
 
         self.requestCounter += 1
 
@@ -1311,8 +1308,8 @@ def createGameData():
 
     gamedata['players'] = players
 
-    gamedata['bHeadless'] = pbSettings.get("noGui", 0)
-    gamedata['bAutostart'] = pbSettings.get("autostart", 0)
+    gamedata['bHeadless'] = PbSettings.get("noGui", 0)
+    gamedata['bAutostart'] = PbSettings.get("autostart", 0)
 
     return gamedata
 
@@ -1336,9 +1333,8 @@ def getListOfSaves(pattern="*", regPattern=None, num=-1):
             fileList.append((f, fp[1]))
 
     # Add timestamp (as tuple)
-    existingWithTimestamps = map(
-        lambda x: (x[0], x[1], os.path.getctime(x[0])),
-        fileList)
+    existingWithTimestamps = [
+        (x[0], x[1], os.path.getctime(x[0])) for x in fileList]
 
     # Sort by timestamp
     existingWithTimestamps.sort(key=lambda xx: xx[2])
@@ -1380,7 +1376,6 @@ def searchMatchingPassword(filename, adminPwds):
     if hSave == "":
         return ""
 
-    import md5
     for adminPwd in adminPwds:
         if hSave == md5.new(adminPwd).hexdigest():
             return adminPwd
@@ -1388,7 +1383,7 @@ def searchMatchingPassword(filename, adminPwds):
     return None
 
 def isLoadableSave(filename, folderIndex=0, pwdCandidates=[]):
-    """Check if filename can be resolved into loadable 
+    """Check if filename can be resolved into loadable
     path and test if one of the given passwords match.
 
     If filename already contains the full path use

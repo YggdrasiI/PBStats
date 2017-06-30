@@ -19,10 +19,10 @@ PB = CyPitboss()
 gc = CyGlobalContext()
 localText = CyTranslator()
 
-pbSettings = Webserver.getPbSettings()
+PbSettings = Webserver.getPbSettings()
 
 # Pipe error messages into a file to avoid popup windows
-errorLogFile = pbSettings.get("errorLogFile", None)
+errorLogFile = PbSettings.get("errorLogFile", None)
 if errorLogFile is not None:
     logName = os.path.join(gc.getAltrootDir(), str(errorLogFile))
     try:
@@ -33,7 +33,7 @@ if errorLogFile is not None:
     sys.stderr = open(logName, 'w')
 
 
-noGui = pbSettings.get("noGui", False)
+noGui = PbSettings.get("noGui", False)
 playerWasOnline = []  # To track login and logout events
 for _ in range(gc.getMAX_CIV_PLAYERS()):
     playerWasOnline.append(False)
@@ -45,7 +45,7 @@ ID_ABOUT = 101
 ID_SAVE = 102
 ID_EXIT = 103
 
-CIV4_SHELL = True
+CIV4_SHELL = PbSettings.get("shell", {}).get("enable", 0)
 
 
 def start_shell(shell_settings, mode=""):
@@ -57,11 +57,13 @@ def start_shell(shell_settings, mode=""):
         shell_port = int(shell_settings.get("port", 3333))
         shell = Civ4ShellBackend.Server(shell_ip, shell_port)
         shell.set_mode(mode)
+
+        # from remote_pdb import RemotePdb
+        # RemotePdb('127.0.0.1', 4444).set_trace()
         return shell
 
     else:
-        global CIV4_SHELL
-        CIV4_SHELL = False
+        globals()["CIV4_SHELL"] = False
 
 
 """
@@ -80,14 +82,14 @@ if noGui:
 
             self.bFirstUpdate = True
             # Webserver
-            self.webserver = Webserver.ThreadedHTTPServer((pbSettings['webserver']['host'], pbSettings['webserver']['port']), Webserver.HTTPRequestHandler)
+            self.webserver = Webserver.ThreadedHTTPServer((PbSettings['webserver']['host'], PbSettings['webserver']['port']), Webserver.HTTPRequestHandler)
             self.t = Thread(target=self.webserver.serve_forever)
             self.t.setDaemon(True)
             self.t.start()
 
             # Periodical game data upload
-            if(pbSettings['webfrontend']['sendPeriodicalData'] != 0):
-                self.webupload = Webserver.PerpetualTimer(pbSettings['webfrontend'], self.webserver, True)
+            if(PbSettings['webfrontend']['sendPeriodicalData'] != 0):
+                self.webupload = Webserver.PerpetualTimer(PbSettings['webfrontend'], self.webserver, True)
                 self.t2 = Thread(target=self.webupload.start)
                 self.t2.setDaemon(True)
                 self.t2.start()
@@ -110,7 +112,7 @@ if noGui:
                         Civ4Shell = {
                             "glob": globals(),
                             "loc": locals(),
-                            "shell": start_shell(pbSettings.get("shell", {}))
+                            "shell": start_shell(PbSettings.get("shell", {}))
                         }
                         Civ4Shell["shell"].set_mode("pb_admin")
                         Civ4Shell["shell"].init()
@@ -136,7 +138,7 @@ if noGui:
         def OnExit(self, event):
             "'exit' event handler"
             PB.quit()
-            if(pbSettings['webfrontend']['sendPeriodicalData'] != 0):
+            if(PbSettings['webfrontend']['sendPeriodicalData'] != 0):
                 self.webupload.cancel()
                 self.webserver.shutdown()
 
@@ -164,7 +166,7 @@ if noGui:
             return True
 
         def getMotD(self):
-            return pbSettings.get('MotD', '')
+            return PbSettings.get('MotD', '')
 
         def setMotD(self, msg):
             pass
@@ -325,13 +327,13 @@ else:
 
             # Check box whether to use MotD or not
             self.motdCheckBox = wx.CheckBox(self, -1, localText.getText("TXT_KEY_PITBOSS_MOTD_TOGGLE", ()))
-            self.motdCheckBox.SetValue(len(pbSettings.get('MotD', '')) > 0)
+            self.motdCheckBox.SetValue(len(PbSettings.get('MotD', '')) > 0)
             motdSizer.Add(self.motdCheckBox, 0, wx.TOP, 5)
 
             # Add edit box displaying current MotD
             self.motdDisplayBox = wx.TextCtrl(self, -1, "", size=(225, 50), style=wx.TE_MULTILINE | wx.TE_READONLY)
             self.motdDisplayBox.SetHelpText(localText.getText("TXT_KEY_PITBOSS_MOTD_HELP", ()))
-            self.motdDisplayBox.SetValue(pbSettings.get('MotD', ''))
+            self.motdDisplayBox.SetValue(PbSettings.get('MotD', ''))
             motdSizer.Add(self.motdDisplayBox, 0, wx.ALL, 5)
             # Add a button to allow motd modification
             motdChangeButton = wx.Button(self, -1, localText.getText("TXT_KEY_PITBOSS_MOTD_CHANGE", ()))
@@ -378,14 +380,14 @@ else:
 
             self.bFirstUpdate = True
             # Webserver
-            self.webserver = Webserver.ThreadedHTTPServer((pbSettings['webserver']['host'], pbSettings['webserver']['port']), Webserver.HTTPRequestHandler)
+            self.webserver = Webserver.ThreadedHTTPServer((PbSettings['webserver']['host'], PbSettings['webserver']['port']), Webserver.HTTPRequestHandler)
             self.t = Thread(target=self.webserver.serve_forever)
             self.t.setDaemon(True)
             self.t.start()
 
             # Periodical game data upload
-            if(pbSettings['webfrontend']['sendPeriodicalData'] != 0):
-                self.webupload = Webserver.PerpetualTimer(pbSettings['webfrontend'], self.webserver, True)
+            if(PbSettings['webfrontend']['sendPeriodicalData'] != 0):
+                self.webupload = Webserver.PerpetualTimer(PbSettings['webfrontend'], self.webserver, True)
                 self.t2 = Thread(target=self.webupload.start)
                 self.t2.setDaemon(True)
                 self.t2.start()
@@ -491,9 +493,10 @@ else:
                         Civ4Shell = {
                             "glob": globals(),
                             "loc": locals(),
-                            "shell": start_shell(pbSettings.get("shell", {}),
+                            "shell": start_shell(PbSettings.get("shell", {}),
                                                  "pb_admin")
                         }
+                        CyPitboss().consoleOut("Init SHELL interface")
                         Civ4Shell["shell"].init()
                     else:
                         # Already initialized in PbWizard
@@ -615,7 +618,7 @@ else:
 
         def OnExit(self, event):
             "'exit' event handler"
-            if(pbSettings['webfrontend']['sendPeriodicalData'] != 0):
+            if(PbSettings['webfrontend']['sendPeriodicalData'] != 0):
                 self.webupload.cancel()
                 self.webserver.shutdown()
             self.Close(True)
@@ -676,10 +679,10 @@ else:
         def getMotD(self):
             "Message of the day retrieval"
             if (self.adminFrame.motdCheckBox.GetValue()):
-                pbSettings["MotD"] = self.adminFrame.motdDisplayBox.GetValue()
+                PbSettings["MotD"] = self.adminFrame.motdDisplayBox.GetValue()
                 return self.adminFrame.motdDisplayBox.GetValue()
             else:
-                return pbSettings.get('MotD', '')
+                return PbSettings.get('MotD', '')
 
         def setMotD(self, msg):
             self.adminFrame.motdDisplayBox.SetValue(msg)

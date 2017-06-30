@@ -6,7 +6,7 @@
 #   them into a new file called 'startPitbossEnv.py'.
 # 1. CIV4BTS_PATH : Your Civ4:BTS installation directory
 #    i.e "$HOME/Civ4/Beyond the Sword"
-# 2. ALTROOT_BASEDIR: As default the absolute path on this folder. 
+# 2. ALTROOT_BASEDIR: As default the absolute path on this folder.
 #    Edit this if you place your games at an other position, i.e.
 #    $HOME/PBs.
 # 3. GAMES: Hold list of games. Expand it, if you host multiple games.
@@ -52,6 +52,8 @@ ALTROOT_BASEDIR = os.path.abspath(".")
 # if the save to load contains an other mod name.
 MOD = "PB Mod_v7"
 
+# Allow restart if PB server quits
+RESTART = True
 # Timeout to wait a few seconds before the pitboss server restarts.
 RESTART_TIMEOUT = 3
 
@@ -69,7 +71,7 @@ START_LINUX_UNBUFFER = r'unbuffer wine "{CIV4BTS_EXE}" mod= "{MOD}"\"\
 XVFB = False
 XVFB_DIR = "/run/shm/{GAMEID}"
 XVFB_MCOOKIE = "/tmp/{GAMEID}"
-XVFB_CMD = 'xvfb-run -a -e /dev/shm/xvfb.err --auth-file={COOKIE} '\
+XVFB_CMD = 'xvfb-run -a -e /dev/shm/xvfb.{GAMEID}.err --auth-file={COOKIE} '\
     '-s "-fbdir {DIR} -screen 0 640x480x24"'\
     'wine "{CIV4BTS_EXE}" mod= "{MOD}"\" /ALTROOT="{ALTROOT_WIN}" &'
 XVFB_PRE_CMD = '$(sleep 3; xauth merge {COOKIE}) &'  #; fg'
@@ -196,8 +198,8 @@ ID - Description
     for g in GAMES:
         print("  %10.10s - %s" % (g, GAMES[g]["name"]))
 
-    print("  %10.10s %s - %s" % ("list", "[id] [save pattern]"
-                              "Print out names of 20 youngest saves."))
+    print("  %10.10s %s - %s" % ("list", "[id] [save pattern]",
+                                 "Print out names of 20 youngest saves."))
     print("  %10.10s - %s" % ("help",
                               "Print help and exit"))
 
@@ -226,9 +228,22 @@ def findSaves(gameid, pbSettings, reg_pattern=None, pattern="*"):
     print("Youngest saves for {0}:".format(reg_pattern))
     altroot = GAMES[gameid]["altroot"]
 
-    subfolders = [pbSettings.get(
+    subfolders = [pbSettings.get("save", {}).get(
         "writefolder", os.path.join("Saves", "multi"))]
-    subfolders.extend(pbSettings.get("readfolders", []))
+    subfolders.extend(pbSettings.get("save", {}).get("readfolders", []))
+    subfolders.append(os.path.join("Saves", "pitboss"))
+    
+    # Extend by auto subfolders...
+    # and convert path separators...
+    subfolder_with_auto = []
+    for s in subfolders:
+        if os.path.sep == "/":
+            s = s.replace("\\\\","/").replace("\\","/")
+        subfolder_with_auto.append(s)
+        subfolder_with_auto.append(os.path.join(s,"auto"))
+    subfolders = subfolder_with_auto
+    # print(str(subfolders))
+
     if not pattern.lower().endswith(".civbeyondswordsave"):
         pattern += ".CivBeyondSwordSave"
 
@@ -244,7 +259,7 @@ def findSaves(gameid, pbSettings, reg_pattern=None, pattern="*"):
         reg = re.compile(reg_pattern)
         saves = [x for x in saves if reg.search(x)]
 
-    savesWithTimestamps = map(lambda x: (x, os.path.getctime(x)), saves)
+    savesWithTimestamps = [(x, os.path.getctime(x)) for x in saves]
     # Sort by timestamp
     savesWithTimestamps.sort(key=lambda xx: xx[1])
     # Remove oldest
@@ -267,6 +282,15 @@ def isAutostartEnabled(pbSettings):
 
     return autostart
 
+def isRestartDisabled(gameid, pbSettings):
+    noRestart = bool(pbSettings.get("tmpNoRestart", False))
+    if noRestart:
+        # Reset trigger
+        # pbSettings["tmpNoRestart"] = False
+        saveSettings(gameid, pbSettings)
+
+    return noRestart
+
 
 def getAutostartSave(pbSettings):
     # Read current save name from pbSettings.json
@@ -274,6 +298,8 @@ def getAutostartSave(pbSettings):
 
 
 def replaceSave(gameid, pbSettings, save, adminpw=None):
+    # Shorten path
+    save = os.path.basename(save)
     # Replace filename and optionally the password in pbSettings.json
     pbSettings.setdefault("save", {})["filename"] = save
     if adminpw:
@@ -388,7 +414,8 @@ def setupGame(gameid, save_pat=None, password=None):
     if XVFB:
         xvfb_dir = XVFB_DIR.format(GAMEID=gameid)
         xvfb_mcookie = XVFB_MCOOKIE.format(GAMEID=gameid)
-        xvfb_cmd = XVFB_CMD.format(COOKIE=xvfb_mcookie,
+        xvfb_cmd = XVFB_CMD.format(GAMEID=gameid,
+                                   COOKIE=xvfb_mcookie,
                                    DIR=xvfb_dir, MOD=mod_name,
                                    CIV4BTS_EXE=civ4bts_exe,
                                    ALTROOT_WIN=altroot_w)
@@ -432,6 +459,11 @@ def setupGame(gameid, save_pat=None, password=None):
 
             os.system(start_cmd)
 
+            if isRestartDisabled(gameid, pbSettings):
+                break
+            if not RESTART:
+                break
+
             sys.stdout.write("\nRestart server in %i seconds." % RESTART_TIMEOUT)
             sys.stdout.flush()
             for _ in range(RESTART_TIMEOUT):
@@ -440,7 +472,6 @@ def setupGame(gameid, save_pat=None, password=None):
                 sys.stdout.flush()
 
             sys.stdout.write("\n")
-            break
     except KeyboardInterrupt:
         print("\nQuit script")
 

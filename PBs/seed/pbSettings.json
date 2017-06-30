@@ -12,7 +12,7 @@
  }, 
  "webfrontend": {
   "url": "http:\/\/civ.zulan.net\/pb\/update.php", 
-  "sendPeriodicalData": 1, 
+  "sendPeriodicalData": 0, 
   "gameId": -1, 
   "sendInterval": 10
  }, 

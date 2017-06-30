@@ -62,7 +62,7 @@ def loadSavegame(filename, folderIndex=0, adminPwd=""):
         else:
             iResult = PB.load(filepath, str(matchingPwd))  # should be 0
             # Store matching password hash for later usage.
-            Webserver.pbTmpSettings["adminpw"] = matchingPwd
+            Webserver.PbTmpSettings["adminpw"] = matchingPwd
 
     return (iResult, filepath)
 
@@ -76,6 +76,7 @@ def start_shell(shell_settings, mode=""):
         shell_port = int(shell_settings.get("port", 3333))
         shell = Civ4ShellBackend.Server(shell_ip, shell_port)
         shell.set_mode(mode)
+
         return shell
 
     else:
@@ -83,31 +84,31 @@ def start_shell(shell_settings, mode=""):
         CIV4_SHELL = False
 
 
-pbSettings = Webserver.getPbSettings()
+PbSettings = Webserver.getPbSettings()
 pbPasswords = Webserver.getPbPasswords()
-noGui = pbSettings.get("noGui", False)
+noGui = PbSettings.get("noGui", False)
 
 autostart = False
-if(pbSettings.get("save", {}).get("oneOffAutostart")):
+if(PbSettings.get("save", {}).get("oneOffAutostart")):
     autostart = True
-    del pbSettings["save"]["oneOffAutostart"]
+    del PbSettings["save"]["oneOffAutostart"]
     # The oneOffAutostart-Key was removed. Save this status
     Webserver.savePbSettings()
 
-if pbSettings.get("autostart"):
+if PbSettings.get("autostart"):
     autostart = True
 
 # Check deprecated node position of 'autostart'
-if pbSettings.get("save", {}).get("autostart"):
+if PbSettings.get("save", {}).get("autostart"):
     autostart = True
-    pbSettings["autostart"] = True
-    del pbSettings["save"]["autostart"]
+    PbSettings["autostart"] = True
+    del PbSettings["save"]["autostart"]
     Webserver.savePbSettings()
 
 # Check deprecated node name
-if pbSettings.get("save", {}).get("path"):
-    pbSettings["save"]["writefolder"] = pbSettings["save"]["path"]
-    del pbSettings["save"]["path"]
+if PbSettings.get("save", {}).get("path"):
+    PbSettings["save"]["writefolder"] = PbSettings["save"]["path"]
+    del PbSettings["save"]["path"]
     Webserver.savePbSettings()
 
 
@@ -116,7 +117,7 @@ Attention: The different (gui, nogui, shell) leads
 to totally different defined classes...
 """
 
-CIV4_SHELL = pbSettings.get("shell", {}).get("enable", 0)
+CIV4_SHELL = PbSettings.get("shell", {}).get("enable", 0) and False
 
 if noGui and not CIV4_SHELL:
     # Above flags require autostart of server.
@@ -135,7 +136,7 @@ if CIV4_SHELL and not autostart:
             self.civ4Shell = {
                 "glob": globals(),
                 "loc": locals(),
-                "shell": start_shell(pbSettings.get("shell", {}), "pb_wizard")
+                "shell": start_shell(PbSettings.get("shell", {}), "pb_wizard")
             }
             self.civ4Shell["shell"].init()
 
@@ -170,9 +171,9 @@ if CIV4_SHELL and not autostart:
                 global bPublic
                 global bScenario
 
-                adminPwd = str(pbSettings.get("save", {}).get("adminpw", ""))
-                folderIndex = int(pbSettings.get("save", {}).get("folderIndex", 0))
-                filename = str(pbSettings["save"]["filename"])
+                adminPwd = str(PbSettings.get("save", {}).get("adminpw", ""))
+                folderIndex = int(PbSettings.get("save", {}).get("folderIndex", 0))
+                filename = str(PbSettings["save"]["filename"])
 
                 (iResult, filepath) = loadSavegame(filename, folderIndex, adminPwd)
 
@@ -217,9 +218,9 @@ elif noGui or autostart:
                 global bPublic
                 global bScenario
 
-                adminPwd = str(pbSettings.get("save", {}).get("adminpw", ""))
-                folderIndex = int(pbSettings.get("save", {}).get("folderIndex", 0))
-                filename = str(pbSettings["save"]["filename"])
+                adminPwd = str(PbSettings.get("save", {}).get("adminpw", ""))
+                folderIndex = int(PbSettings.get("save", {}).get("folderIndex", 0))
+                filename = str(PbSettings["save"]["filename"])
 
                 (iResult, filepath) = loadSavegame(filename, folderIndex, adminPwd)
 
@@ -1367,7 +1368,7 @@ else:
                                 self.climateChoice.GetSelection(), self.seaLevelChoice.GetSelection(),
                                 self.eraChoice.GetSelection(), self.speedChoice.GetSelection(), maxTurnsValue, cityEliminationValue,
                                 advancedStartPointsValue, turnTimerValue, self.adminPasswordEdit.GetValue())
-            Webserver.pbTmpSettings["adminpw"] = self.adminPasswordEdit.GetValue()
+            Webserver.PbTmpSettings["adminpw"] = self.adminPasswordEdit.GetValue()
 
         def OnCustomMapOptionChoice(self, event):
             # Get the option ID
@@ -1883,9 +1884,9 @@ else:
                 global bPublic
                 global bScenario
 
-                adminPwd = str(pbSettings.get("save", {}).get("adminpw", ""))
-                folderIndex = int(pbSettings.get("save", {}).get("folderIndex", 0))
-                filename = str(pbSettings["save"]["filename"])
+                adminPwd = str(PbSettings.get("save", {}).get("adminpw", ""))
+                folderIndex = int(PbSettings.get("save", {}).get("folderIndex", 0))
+                filename = str(PbSettings["save"]["filename"])
 
                 (iResult, filepath) = loadSavegame(filename, folderIndex, adminPwd)
 
