@@ -11,7 +11,8 @@
   "port": 13373
  }, 
  "webfrontend": {
-  "url": "http:\/\/civ.zulan.net\/pb\/update.php", 
+  "url": "http:\/\/civ.zulan.net\/pbspy\/update", 
+  "url_deprecated_php": "http:\/\/civ.zulan.net\/pb\/update.php", 
   "sendPeriodicalData": 0, 
   "gameId": -1, 
   "sendInterval": 10
