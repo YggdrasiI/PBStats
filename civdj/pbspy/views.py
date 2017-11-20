@@ -606,6 +606,27 @@ def game_change(request, game_id, action=""):
     # Todo
     #game.pb_remote_password = GameForm.password_dummy
 
+    # Add suggestion for valid json settings at Pitboss side
+    context['json_settings'] = """
+ [...]
+ "webserver": {{
+   "host": "",
+   "password": "{pb_remote_password}",
+   "port": {pb_manage_port}
+  }},
+ "webfrontend": {{
+   "url": "{pbspy_url}",
+   "sendPeriodicalData": 1,
+   "gameId": {gameid},
+   "sendInterval": 10
+  }},
+ [...]
+ """.format(gameid=game.id,
+            pbspy_url=request.get_host()+"/update",
+            pb_remote_password=game.pb_remote_password,
+            pb_manage_port=game.manage_port
+           )
+
     context['form'] = form
     return render(request, 'pbspy/game_change.html', context)
 

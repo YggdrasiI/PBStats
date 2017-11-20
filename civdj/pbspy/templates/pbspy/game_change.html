@@ -25,6 +25,10 @@
                 <input type="submit" value="{% trans "update" %}"/>
             </form>
         </div>
+        <div class="game_management_section">
+            <h3>{% trans "Matching config in pbSettings.json" %}</h3>
+            <textarea style="width:40em;height:20em">{{ json_settings }}</textarea>
+        </div>
     </div>
     <div class="game_management_section_imploded">
         <h2><a href="{% url 'game_change' game.id 'victory' %}">{% trans "edit victory information" %}</a></h2>

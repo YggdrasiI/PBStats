@@ -1,3 +1,19 @@
+=== PBSpy — A Civ4 Pitboss webinterface based on Django ===
+
+This software communicates with the PB Mod component of PBStats and provides
+functions to show the game status, a game log and to administrate the game.
+
+== Usage ==
+1. Visit civ.zulan.net/pbspy or install this software on your own server.
+2. Create an account on the new page and login.
+3. Start/load a PitBoss-game which implements the PB Mod and click on "Register new PitBoss".
+4. Enter the host name, port and password (defined in pbSettings.json), of the PB game and click on "Register".
+5. As admin, you had now access on three pages:
+   • 'Game overview': Available for everyone.
+   • 'Edit game' page: To change connection details and the data shown in the overview.
+   • 'Manage game': Administration site of the Pitboss server. Save/Load your games here.
+
+
 === Installation of Django + Django packages with pip ===
 
 == Dependencies ==
@@ -12,7 +28,7 @@ mysql-connector-python pytz setuptools six sqlparse
 # For python2.7 or older Django versions
 sudo pip install South
 
-== Configuaration ==
+== Configuration ==
 Copy civdj/settings.py to civdj/settings_local.py
 and adapt it to your environment. (See https://docs.djangoproject.com/en/dev/ref/settings/ for details.)
 A minimal example for your local settings is provided in civdj/settings_local.example.py
