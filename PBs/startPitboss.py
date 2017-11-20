@@ -59,12 +59,12 @@ RESTART_TIMEOUT = 3
 
 # Start command templates
 START_WINDOWS = '""{CIV4BTS_EXE}" mod= "{MOD}"\" /ALTROOT={ALTROOT}"'
-START_LINUX = 'wine "{CIV4BTS_EXE}" mod= "{MOD}"\" /ALTROOT="{ALTROOT_W}"'
+START_LINUX = 'wine "{CIV4BTS_EXE}" mod= "{MOD}"\\\" /ALTROOT="{ALTROOT_W}"'
 
 # Variant with cleaned output
 UNBUFFER = False
-START_LINUX_UNBUFFER = r'unbuffer wine "{CIV4BTS_EXE}" mod= "{MOD}"\"\
-/ALTROOT="{ALTROOT_W} | grep -v "^FTranslator::AddText\|^fixme:"'
+START_LINUX_UNBUFFER = r'unbuffer wine "{CIV4BTS_EXE}" mod= "{MOD}"\\\" '\
+'/ALTROOT="{ALTROOT_W}" | grep -v "^FTranslator::AddText\|^fixme:"'
 
 # (Linux only)Path for xvfb-run framebuffer.
 # Screenshot available via 'xwud --id $XVFB_DIR'
@@ -73,7 +73,7 @@ XVFB_DIR = "/run/shm/{GAMEID}"
 XVFB_MCOOKIE = "/tmp/{GAMEID}"
 XVFB_CMD = 'xvfb-run -a -e /dev/shm/xvfb.{GAMEID}.err --auth-file={COOKIE} '\
     '-s "-fbdir {DIR} -screen 0 640x480x24"'\
-    'wine "{CIV4BTS_EXE}" mod= "{MOD}"\" /ALTROOT="{ALTROOT_WIN}" &'
+    'wine "{CIV4BTS_EXE}" mod= "{MOD}"\\\" /ALTROOT="{ALTROOT_WIN}" &'
 XVFB_PRE_CMD = '$(sleep 3; xauth merge {COOKIE}) &'  #; fg'
 
 # Seed directory
@@ -334,6 +334,10 @@ def parseModName(filename):
         _ = f.read(4)
         mod_nameLen = get_int(f)
         mod_name = str(f.read(mod_nameLen))
+
+        if len(mod_name) > 0 and mod_name[-1] == "\\":
+            mod_name = mod_name[:-1]
+
         return mod_name
 
     finally:

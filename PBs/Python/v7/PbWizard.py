@@ -162,7 +162,7 @@ if CIV4_SHELL and not autostart:
             # self.civ4Shell["shell"].run = False
             # time.sleep(1)
             self.civ4Shell = {}  # Force invoke of deconstructors?!
-            time.sleep(5)
+            # time.sleep(5)
 
             if True:
 

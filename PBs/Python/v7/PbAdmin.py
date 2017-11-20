@@ -58,8 +58,6 @@ def start_shell(shell_settings, mode=""):
         shell = Civ4ShellBackend.Server(shell_ip, shell_port)
         shell.set_mode(mode)
 
-        # from remote_pdb import RemotePdb
-        # RemotePdb('127.0.0.1', 4444).set_trace()
         return shell
 
     else:
@@ -121,6 +119,9 @@ if noGui:
                         Civ4Shell["glob"] = globals()
                         Civ4Shell["loc"] = locals()
                 else:
+                    #from remote_pdb import RemotePdb
+                    #RemotePdb('127.0.0.1', 4444).set_trace()
+
                     # self.glob.update(globals())
                     # self.loc.update(locals())
                     Civ4Shell["shell"].update(
@@ -503,8 +504,6 @@ else:
                         Civ4Shell["glob"] = globals()
                         Civ4Shell["loc"] = locals()
                 else:
-                    # self.glob.update(globals())
-                    # self.loc.update(locals())
                     Civ4Shell["shell"].update(
                         Civ4Shell["glob"],
                         Civ4Shell["loc"])
