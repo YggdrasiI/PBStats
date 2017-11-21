@@ -357,11 +357,11 @@ class Game(models.Model):
             for player_info in info['players']:
                 try:
                     player = self.player_set.filter(ingame_stack=0).get(ingame_id=player_info['id'])
+                    player.set_from_dict(player_info, logargs)
                 except Player.DoesNotExist:
                     player = Player(ingame_id=player_info['id'], game=self)
-                    player.set_from_dict(player_info, logargs, False, False)
                     player = self.search_old_matching_player(player_info['id'], player)
-                    player.save()
+                    player.set_from_dict(player_info, logargs, is_log=False)
 
     def pb_action(self, **kwargs):
         url = "http://{}:{}/api/v1/".format(self.hostname, self.manage_port)
