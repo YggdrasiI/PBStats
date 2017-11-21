@@ -265,13 +265,34 @@ class Game(models.Model):
                 if player_count_old > 0:
                     self.player_set.all().delete()
                 """
+
                 # Make players inactive. This forces creation of new player
                 # instance at the end of this method. Ordering required to
                 # preserve unique key.
+
                 for ingame_id in range(player_count_old):
-                    for player in self.player_set.all().filter(ingame_id=ingame_id).order_by('-ingame_stack'):
-                        player.ingame_stack += 1
-                        player.save()
+                    used_stack_vals = [0]  # Help variable to resolve following issue
+                    # UNIQUE constraint failed:
+                    # pbspy_player.ingame_id, pbspy_player.game_id, pbspy_player.ingame_stack
+                    # Zero added for (*)
+
+                    for player in self.player_set.all().filter(
+                        ingame_id=ingame_id).order_by('-ingame_stack'):
+                        # Order required to begin with highest stack value.
+
+                        if player.ingame_stack in used_stack_vals:
+                            # => Zero is mapped on Max+1 (*)
+                            #    and used stack value remapped on Max+1
+                            used_stack_vals.append(max(used_stack_vals) + 1)
+                        else:
+                            used_stack_vals.append(player.ingame_stack)
+
+                        # print("Change player %s %i (%i) %i -> %i" % (
+                        #     player.name, player.id, player.ingame_id,
+                        #     player.ingame_stack, used_stack_vals[-1]))
+                        if player.ingame_stack != used_stack_vals[-1]:
+                            player.ingame_stack = used_stack_vals[-1]
+                            player.save()
 
             if turn > self.turn:
                 mt = GameLogMissedTurn(**logargs)
@@ -560,8 +581,11 @@ class Game(models.Model):
             # Make entry active. We assume here that none is active.
             # Otherwise save() will throw an exception.
             existing_player.ingame_stack = 0;
+            # print("Update existing player {0}".format(existing_player.name))
+            existing_player.save()
             return existing_player
 
+        # print("No matching player found")
         return new_player
 
     def __str__(self):
