@@ -43,6 +43,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'pbspy.middleware.timezone.TimezoneMiddleware',
 )
 
@@ -57,7 +58,7 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 TIME_WITH_SECONDS_FORMAT_STR = "H:i:s"
 # Django 1.9 (and 1.8?), formats.time_format() requires string with constant name :un:
-if django.VERSION >= (1,8):
+if django.VERSION >= (1,9):
     TIME_WITH_SECONDS_FORMAT = "TIME_WITH_SECONDS_FORMAT_STR"
 else:
     TIME_WITH_SECONDS_FORMAT = TIME_WITH_SECONDS_FORMAT_STR

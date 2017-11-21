@@ -6,7 +6,7 @@ from django.utils.translation import ugettext as _
 from django.utils.translation import ugettext_noop
 from django.db import models, transaction
 from django.core.validators import MaxValueValidator, MinValueValidator, URLValidator
-from polymorphic import PolymorphicModel
+from polymorphic.models import PolymorphicModel
 from django.utils import timezone, html
 from django.contrib.auth.models import User
 from django.template.loader import render_to_string
