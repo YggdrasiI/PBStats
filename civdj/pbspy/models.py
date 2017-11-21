@@ -295,7 +295,7 @@ class Game(models.Model):
                 unfinished_new = [player_info["id"] for player_info
                                   in info['players'] if not player_info['finishedTurn']]
                 if len(unfinished_new) == 1 and not self.player_set.filter(ingame_stack=0).filter(
-                    ingame_id == unfinished_new[0] - 1)[0].finished_turn:
+                        ingame_id=(unfinished_new[0]-1))[0].finished_turn:
                     pass
                 else:
                     GameLogReload(**logargs).save()
