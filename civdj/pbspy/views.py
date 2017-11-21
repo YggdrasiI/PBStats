@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
+# from django import forms
 from django.http import HttpResponseBadRequest, HttpResponse
-from django.views import generic
+from django.views.generic import View, DetailView, ListView
+from django.views.generic.edit import FormMixin
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
 from pbspy.models import Game, GameLog, Player, InvalidPBResponse
 from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm,\
@@ -37,7 +39,7 @@ import operator
 import functools
 
 
-class GameListView(generic.ListView):
+class GameListView(ListView):
     model = Game
 
     def get_queryset(self):
@@ -58,8 +60,9 @@ class GameListView(generic.ListView):
 game_list = GameListView.as_view()
 
 
-class GameDetailView(generic.edit.FormMixin, generic.DetailView):
+class GameDetailView(FormMixin, DetailView):
     model = Game
+    form_class = GameLogTypesForm
 
     # List of possible orderings
 
@@ -137,7 +140,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 
         # 4. Attach ordered list of players
         context['players'] = list(
-            game.player_set.all().filter(ingame_stack=0).order_by(*player_order))
+            game.player_set.filter(ingame_stack=0).order_by(*player_order))
 
         # 5. Post-processed sorting over properties without
         # simple sql definitions.
@@ -255,7 +258,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
     @staticmethod
     def get_player_choices(game):
         # Generate list of (id,Name)-Tuples for formulars
-        players_from_db = game.player_set.all().filter(ingame_stack=0).order_by('ingame_id')
+        players_from_db = game.player_set.filter(ingame_stack=0).order_by('ingame_id')
         choices = [(p.ingame_id, "{:2}".format(p.ingame_id) + r"—" + p.name) for p in players_from_db]
         choices.insert(0, (-1, "All"))
         return tuple(choices)
@@ -301,7 +304,7 @@ class GameDetailView(generic.edit.FormMixin, generic.DetailView):
 game_detail = GameDetailView.as_view()
 
 
-class GameLogView(generic.View,
+class GameLogView(View,
                   MultipleObjectMixin,
                   MultipleObjectTemplateResponseMixin):
     model = GameLog
@@ -374,7 +377,7 @@ def game_manage(request, game_id, action=""):
 
     context['load_form'] = GameManagementLoadForm(load_choices)
     context['set_player_password_form'] = GameManagementSetPlayerPasswordForm(
-        game.player_set)
+        game.player_set.filter(ingame_stack=0))
 
     if request.method == 'POST':
         if action == 'pause_enable':
@@ -453,13 +456,13 @@ def game_manage(request, game_id, action=""):
             context['load_form'] = form
         elif action == 'set_player_password':
             form = GameManagementSetPlayerPasswordForm(
-                game.player_set, request.POST)
+                game.player_set.filter(ingame_stack=0), request.POST)
             if form.is_valid():
                 try:
                     game.pb_set_player_password(
                         form.cleaned_data['player'],
                         form.cleaned_data['password'])
-                    player = game.player_set.all().filter(ingame_stack=0).filter(id=form.cleaned_data['player'].id)[0]
+                    player = game.player_set.filter(ingame_stack=0).filter(id=form.cleaned_data['player'].id)[0]
                     return HttpResponse('Set password for player ' + str(player.ingame_id) + '/'
                                         + str(player.name) + '.', status=200)
                 except InvalidPBResponse:
@@ -467,7 +470,7 @@ def game_manage(request, game_id, action=""):
             context['set_player_password_form'] = form
         elif action == 'set_player_color':
             form = GameManagementSetPlayerColorForm(
-                game.player_set, int(request.POST['num_colors']), request.POST)
+                game.player_set.filter(ingame_stack=0), int(request.POST['num_colors']), request.POST)
             if form.is_valid():
                 game.pb_set_player_color(
                     form.cleaned_data['player'].ingame_id,
@@ -506,7 +509,8 @@ def render_game_manage_color(request, game, context):
     context['colors'] = game.pb_list_colors()
     if len(context['colors']) == 0:
         return HttpResponseBadRequest('Command not supported by PB Server.')
-    context['set_player_color_form'] = GameManagementSetPlayerColorForm(game.player_set, len(context['colors']))
+    context['set_player_color_form'] = GameManagementSetPlayerColorForm(
+        game.player_set.filter(ingame_stack=0), len(context['colors']))
     return render(request, 'pbspy/game_manage_color.html', context)
 
 

@@ -16,11 +16,14 @@ functions to show the game status, a game log and to administrate the game.
 
 === Installation of Django + Django packages with pip ===
 
+Note: This readme assume that you use Python 3.x.
+      Use pip3 if your pip command is still connected to Python 2.x
+
 == Dependencies ==
 
 sudo apt-get install python-pip node-less
-sudo pip install Django==1.8
-sudo pip install django-polymorphic django-debug-toolbar django-erroneous \
+sudo pip install Django==1.11
+sudo pip install --upgrade django-polymorphic django-debug-toolbar django-erroneous \
 django-registration-redux django-crispy-forms \
 django-floppyforms django-sendmail-backend django-static-precompiler \
 mysql-connector-python pytz setuptools six sqlparse
@@ -36,16 +39,17 @@ A minimal example for your local settings is provided in civdj/settings_local.ex
 
 == Setup (Debug mode, Release mode require more steps) ==
 
-python manage.py compilestatic
-python manage.py collectstatic
-python manage.py migrate
-python manage.py createsuperuser
+python3 manage.py migrate
+python3 manage.py migrate static_precompiler
+python3 manage.py compilestatic
+python3 manage.py collectstatic
+python3 manage.py createsuperuser
 
-The first two commands are optional in debug mode.
+The commands compilestatic and collectstatic are optional in debug mode.
 Adapt civdj/settings.py to your environment.
 
 == Start ==
-python manage.py runserver [your hostname/ip:8000]
+python3 manage.py runserver 0.0.0.0:8000
 
 
 == Known issues ==

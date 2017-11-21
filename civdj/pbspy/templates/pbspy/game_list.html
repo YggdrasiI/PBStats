@@ -12,7 +12,7 @@
                 <th class="colStatus">Status</th>
             </tr>
             {% for game in game_list %}
-                {% if not game.get_status = "finished" %}
+                {% if not game.get_status == "finished" %}
                 <tr>
                     <td class="colName"><a href="{% url 'game_detail' game.id %}">{{ game.name }}</a></td>
                     <td class="colNumPlayers">{{ game.player_count }}</td>
@@ -32,7 +32,7 @@
                 <th class="colStatus">Status</th>
             </tr>
             {% for game in game_list %}
-                {% if game.get_status = "finished" %}
+                {% if game.get_status == "finished" %}
                 <tr>
                     <td class="colName"><a href="{% url 'game_detail' game.id %}">{{ game.name }}</a></td>
                     <td class="colNumPlayers">{{ game.player_count }}</td>

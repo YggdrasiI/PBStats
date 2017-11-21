@@ -1,9 +1,10 @@
-from django.conf.urls import include, patterns, url
+from django.conf import settings
+from django.conf.urls import include, url
 from django.contrib.auth import views as auth_views
 
 from pbspy import views
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^$', views.game_list, name='game_list'),
     url(r'^game/(?P<pk>\d+)/$', views.game_detail, name='game_detail'),
     url(r'^game/(?P<game_id>\d+)/log/$', views.game_log, name='game_log'),
@@ -19,9 +20,22 @@ urlpatterns = patterns('',
     url(r'^update$', views.game_update),
     url(r'^game/create/$', views.game_create, name='game_create'),
     url(r'^set_timezone$', views.set_timezone, name='set_timezone'),
-    (r'^accounts/', include('registration.backends.default.urls')),
+    url(r'^accounts/', include('registration.backends.simple.urls')),
+    #url(r'^accounts/', include('registration.backends.hmac.urls')),
+    #url(r'^accounts/', include('registration.backends.default.urls')),
     # url(r'^login$', 'django.contrib.auth.views.login', name='login'),
     # url(r'^logout$', 'django.contrib.auth.views.logout', name='logout'),
     # url(r'', include('registration.backends.default.urls')),
     # url(r'', include('django.contrib.auth.urls')),
-)
+]
+
+if settings.DEBUG and False:
+    import debug_toolbar
+    urlpatterns = [
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns
+
+    #from django.conf.urls.static import static
+    #urlpatterns = urlpatterns + static(
+    #    settings.STATIC_URL,
+    #    document_root=settings.STATIC_ROOT)

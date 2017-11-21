@@ -92,7 +92,9 @@
                 </p>
             {% endif %}
         </div>
+        {% if game.url %}
         <div class="game_url"><a href="{{ game.url }}">{{ game.url }}</a></div>
+        {% endif %}
     </div>
 
     <div id="game_description">
