@@ -19,7 +19,7 @@ class ModelCommaSeparatedChoiceField(forms.ModelMultipleChoiceField):
                     users.append(user)
                 except User.DoesNotExist:
                     pass
-            value = [ user.pk for user in users]
+            value = [user.pk for user in users]
             return value
         else:
             return []
@@ -28,10 +28,10 @@ class ModelCommaSeparatedChoiceField(forms.ModelMultipleChoiceField):
 class GameForm(ModelForm):
     password_dummy = "*****"
     adminsAsStr = ModelCommaSeparatedChoiceField(
-        required = False,
-        queryset = User.objects.filter().all(),
-        label =  _("Admins"),
-        help_text = _("Comma separated list. You can not remove yourself."),
+        required=False,
+        queryset=User.objects.filter().all(),
+        label=_("Admins"),
+        help_text=_("Comma separated list. You can not remove yourself."),
     )
     class Meta:
         model = Game
@@ -46,7 +46,7 @@ class GameForm(ModelForm):
         help_texts = {
             'pb_remote_password' : _("Different passwords omits accidental updates of the wrong PBSpy entry."),
             'is_private' : _("Exclude game from public list."),
-            'is_dynamic_ip': _('Update stored hostname/ip if Pitboss server'
+            'is_dynamic_ip': _('Update stored hostname/ip if Pitboss server '
                                + 'sends an update with a new address.'),
         }
 
@@ -57,7 +57,7 @@ class GameForm(ModelForm):
         # Fill list of admins into adminsAsStr field if game already exists.
         a = self.fields["adminsAsStr"]
         if self.instance.id != None:
-            a.initial =  ",".join([str(u) for u in self.instance.admins.all()])
+            a.initial = ",".join([str(u) for u in self.instance.admins.all()])
         else:
             a.initial = str(self.user.username)
 
@@ -97,9 +97,9 @@ class GameManagementMotDForm(Form):
 
 class GameManagementShortNamesForm(Form):
     iShortNameLen = forms.IntegerField(label=_('New max. length of leader name'),
-            min_value=0, max_value=9999, initial=2 )
+            min_value=0, max_value=9999, initial=2)
     iShortDescLen = forms.IntegerField(label=_('New max. length of civ description'),
-            min_value=0, max_value=9999, initial=3 )
+            min_value=0, max_value=9999, initial=3)
 
 
 class GameManagementSaveForm(Form):
@@ -130,7 +130,7 @@ class GameLogTypesForm(forms.Form):
         self.fields['log_turn_max'] = forms.IntegerField(label=_('Maximal turn'),
                 min_value=0, max_value=9999)
         self.fields['log_turn_min'] = forms.IntegerField(label=_('Minimal turn'),
-                min_value=0, max_value=9999)
+                min_value=-1, max_value=9999)
         self.fields['log_player_ids'] = forms.MultipleChoiceField(
           label=_('Players'),
           required=False,
@@ -156,7 +156,7 @@ class GameManagementSetPlayerColorForm(Form):
         self.fields['num_colors'].initial = num_colors
         col_choices = []
         for col_id in range(num_colors):
-            col_choices.append( (col_id,"Colorset "+str(col_id)) )
+            col_choices.append((col_id, "Colorset "+str(col_id)))
         self.fields['color'] = forms.ChoiceField(
                 choices=col_choices,
                 label=_('New color'),
@@ -167,7 +167,7 @@ class GameManagementSetPlayerColorForm(Form):
 class GameManagementSetVictoryForm(ModelForm):
     class Meta:
         model = Game
-        fields = [ 'victory_type', 'victory_message', 'victory_image']
+        fields = ['victory_type', 'victory_message', 'victory_image']
         labels = {
             'victory_type' : _("victory type"),
             'victory_message' : _("victory message"),
@@ -181,13 +181,13 @@ class GameManagementSetVictoryForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(GameManagementSetVictoryForm, self).__init__(*args, **kwargs)
-        players = self.instance.player_set.all()
+        players = self.instance.player_set.filter(ingame_stack=0)
         self.fields['player'] = forms.ModelChoiceField(
             players, label=_('Player'), required=False)
 
         self.initial['player'] = self.instance.victory_player_id
 
-        victory_choises = [(i,VictoryInfo.victory_types[i]["name"])
+        victory_choises = [(i, VictoryInfo.victory_types[i]["name"])
                           for i in VictoryInfo.victory_types]
         self.fields['victory_type'] = forms.ChoiceField(
             choices=victory_choises,

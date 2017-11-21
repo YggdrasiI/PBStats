@@ -138,7 +138,7 @@ class Game(models.Model):
     victory_message    = models.CharField(blank=True, null=True, max_length=2000)
     victory_image    = models.CharField(max_length=200, blank=True, null=True,
                                           validators=[URLValidator(
-                                              regex="^.*[.](png|jpg|jpeg|git)$")])
+                                              regex="^.*[.](png|jpg|jpeg|git|php[?].*)$")])
 
     subscribed_users   = models.ManyToManyField(User, related_name='subscribed_games', blank=True)
 
@@ -186,7 +186,7 @@ class Game(models.Model):
     def get_online_players(self):
         if not self.is_online:
             return []
-        return self.player_set.all().filter(is_online=True)
+        return self.player_set.filter(is_online=True)
 
     def refresh(self, min_time_diff=60, ignore_game_state=False):
         """
@@ -276,7 +276,7 @@ class Game(models.Model):
                     # pbspy_player.ingame_id, pbspy_player.game_id, pbspy_player.ingame_stack
                     # Zero added for (*)
 
-                    for player in self.player_set.all().filter(
+                    for player in self.player_set.filter(
                         ingame_id=ingame_id).order_by('-ingame_stack'):
                         # Order required to begin with highest stack value.
 
@@ -612,7 +612,7 @@ class Color():
 
 class VictoryInfo():
     """ Data for game_victory template. """
-    img_folder =  "pbspy/images/leaders/"
+    img_folder = "pbspy/images/leaders/"
     # Key has to respect order defined by CIV4VictoryInfo.xml.
     victory_types = {
         -1: {"name": _("NONE"), "template_id": -1},
@@ -625,7 +625,7 @@ class VictoryInfo():
         6: {"name": _("diplomatic victory"), "template_id": 1},
         100: {"name": _("other victory type"), "template_id": 100},
         101: {"name": _("no winner"), "template_id": 101},
-        101: {"name": _("game aborted"), "template_id": 102},
+        102: {"name": _("game aborted"), "template_id": 102},
     }
     message_templates = {
         -1: _("Game not determined."),
@@ -648,13 +648,13 @@ class VictoryInfo():
         self.player = game.victory_player_id
 
     def is_display(self):
-        # It is bettor to check the victory type, but not if
+        # It is better to check the victory type, but not if
         # the player is None. This allow the definition of decided
         # games with a unspecific winner (i.e. teams).
         return self.display_always or (self.game.victory_type > -1)
 
     def get_victory_image(self):
-        if len(str(self.game.victory_image)) > 0:
+        if self.game.victory_image and len(str(self.game.victory_image)) > 0:
             return str(self.game.victory_image)
 
         # Default image
@@ -674,7 +674,7 @@ class VictoryInfo():
             self.player.civilization)
 
     def get_victory_message(self):
-        if len(str(self.game.victory_message)) > 0:
+        if self.game.victory_message and len(str(self.game.victory_message)) > 0:
             return str(self.game.victory_message)
 
         if self.player is None:
