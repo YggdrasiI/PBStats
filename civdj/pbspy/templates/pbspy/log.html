@@ -1,0 +1,32 @@
+{% load i18n %}
+    <h2>{% trans "game log" %}</h2><a name="game_log"></a>
+    <div id="game_log">
+            <div id="game_log_filter">
+              <form method="post" action="{% url 'game_detail' game.id %}?player_order={{ orders.current }}#game_log">
+                {% csrf_token %}
+                {{ logFilterForm.as_p }}
+                <input type='submit' value='{% trans "Change filter" %}'>
+              </form>
+            </div>
+        {% if log %}
+            <table class='game_log'>
+							<tr>
+                    <th class="colDate">{% trans "Time" %}</th>
+                    <th class="colTurn">{% trans "Turn" %}</th>
+                    <th class="colPlayer">{% trans "Player" %}</th>
+                    <th class="colEvent">{% trans "Event" %}</th>
+                    <th class="colType">{% trans "Type" %}</th>
+                </tr>
+            {% for logentry in log %}
+                <tr class="log{{ logentry.getLogName }}">
+                    <td class="colDate">{{ logentry.date }}</td>
+                    <td class="colTurn">{{ logentry.turn }}</td>
+                    <td class="colPlayer">{{ logentry.player_name|default:"-" }}</td>
+                    <td class="colEvent">{{ logentry.message }}</td>
+                    <td class="colType">{{ logentry.getLogName }}</td>
+                </tr>
+            {% endfor %}
+            </table>
+        {% else %}
+            <p>{% trans "No game log entry available yet." %}</p>
+        {% endif %}
