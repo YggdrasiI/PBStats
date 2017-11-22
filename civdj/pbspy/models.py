@@ -315,8 +315,11 @@ class Game(models.Model):
                 """
                 unfinished_new = [player_info["id"] for player_info
                                   in info['players'] if not player_info['finishedTurn']]
-                if len(unfinished_new) == 1 and not self.player_set.filter(ingame_stack=0).filter(
-                        ingame_id=(unfinished_new[0]-1))[0].finished_turn:
+                if (len(unfinished_new) == 1 and unfinished_new[0] > 0
+                    and not self.player_set.filter(
+                        ingame_stack=0).filter(
+                            ingame_id=(unfinished_new[0]-1)
+                        )[0].finished_turn):
                     pass
                 else:
                     GameLogReload(**logargs).save()
@@ -362,6 +365,8 @@ class Game(models.Model):
                     player = Player(ingame_id=player_info['id'], game=self)
                     player = self.search_old_matching_player(player_info['id'], player)
                     player.set_from_dict(player_info, logargs, is_log=False)
+
+                player.save()
 
     def pb_action(self, **kwargs):
         url = "http://{}:{}/api/v1/".format(self.hostname, self.manage_port)
@@ -582,7 +587,6 @@ class Game(models.Model):
             # Otherwise save() will throw an exception.
             existing_player.ingame_stack = 0;
             # print("Update existing player {0}".format(existing_player.name))
-            existing_player.save()
             return existing_player
 
         # print("No matching player found")
