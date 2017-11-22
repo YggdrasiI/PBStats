@@ -297,7 +297,7 @@ class Game(models.Model):
 
             if turn > self.turn:
                 mt = GameLogMissedTurn(**logargs)
-                mt.set_missed_players(self.player_set.filter(ingame_stack=0).all())
+                mt.set_missed_players(self.player_set.filter(ingame_stack=0))
                 if mt.is_turn_incomplete():
                     mt.save()
                 GameLogTurn(**logargs).save()
