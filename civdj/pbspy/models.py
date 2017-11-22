@@ -250,6 +250,7 @@ class Game(models.Model):
 
             player_count_old = self.player_set.filter(ingame_stack=0).count()
             player_count = len(info['players'])
+            reloadLogMessageDone = False  # To prevent multiple log entries on same event
             if (self.pb_name != info['gameName'] or
                     player_count_old != player_count):
                 GameLogMetaChange(
@@ -258,6 +259,7 @@ class Game(models.Model):
                     player_count_old=player_count_old,
                     player_count=player_count,
                     **logargs).save()
+                reloadLogMessageDone = True
 
                 """ (Ramk) Zulan notes, that this would be critical
                     The players are used as keys in some GameLog classes
@@ -296,14 +298,20 @@ class Game(models.Model):
                             player.save()
 
             if turn > self.turn:
-                mt = GameLogMissedTurn(**logargs)
-                mt.set_missed_players(self.player_set.filter(ingame_stack=0))
-                if mt.is_turn_incomplete():
-                    mt.save()
+                if not reloadLogMessageDone:
+                    mt = GameLogMissedTurn(**logargs)
+                    mt.set_missed_players(self.player_set.filter(ingame_stack=0))
+                    if mt.is_turn_incomplete():
+                        mt.save()
+
                 GameLogTurn(**logargs).save()
                 self.send_new_turn_info()
+
             elif turn < self.turn:
-                GameLogReload(**logargs).save()
+                if not reloadLogMessageDone:
+                    GameLogReload(**logargs).save()
+                    reloadLogMessageDone = True
+
             elif (timer_remaining_4s is not None and
                      self.timer_remaining_4s is not None and
                      timer_remaining_4s > self.timer_remaining_4s + 1200 / 4):
@@ -324,6 +332,7 @@ class Game(models.Model):
                     pass
                 else:
                     GameLogReload(**logargs).save()
+                    reloadLogMessageDone = True
 
             if is_paused != self.is_paused:
                 GameLogPause(paused=is_paused, **logargs).save()
@@ -338,7 +347,8 @@ class Game(models.Model):
                 pass
 
             if timer_max_h != self.timer_max_h:
-                GameLogTimerChanged(timer_max_h=timer_max_h, **logargs).save()
+                if not reloadLogMessageDone:
+                    GameLogTimerChanged(timer_max_h=timer_max_h, **logargs).save()
 
             # FIXME Where does this belong?
             self.timer_max_h        = timer_max_h
