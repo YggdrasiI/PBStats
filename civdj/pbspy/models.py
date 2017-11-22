@@ -6,6 +6,7 @@ from django.utils.translation import ugettext as _
 from django.utils.translation import ugettext_noop
 from django.db import models, transaction
 from django.core.validators import MaxValueValidator, MinValueValidator, URLValidator
+from django.core.validators import validate_comma_separated_integer_list
 from polymorphic.models import PolymorphicModel
 from django.utils import timezone, html
 from django.contrib.auth.models import User
@@ -1012,7 +1013,8 @@ class GameLogForceDisconnect(GameLog):
 
 class GameLogMissedTurn(GameLog):
     missed_turn_names = models.CharField(max_length=2000)
-    missed_turn_ids = models.CommaSeparatedIntegerField(max_length=200)
+    missed_turn_ids = models.CharField(
+        max_length=200, validators=[validate_comma_separated_integer_list])
     is_public = True
 
     # The integration of set_missed_players into the constructor
