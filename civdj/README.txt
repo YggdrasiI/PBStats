@@ -16,43 +16,42 @@ functions to show the game status, a game log and to administrate the game.
 
 === Installation of Django + Django packages with pip ===
 
-Note: This readme assume that you use Python 3.x.
-      Use pip3 if your pip command is still connected to Python 2.x
-
 == Dependencies ==
 
-sudo apt-get install python-pip node-less
-sudo pip install Django==1.11
-sudo pip install --upgrade django-polymorphic django-debug-toolbar django-erroneous \
+sudo apt-get install python3-pip node-less
+sudo pip3 install Django==1.11
+sudo pip3 install --upgrade django-polymorphic django-debug-toolbar django-erroneous \
 django-registration-redux django-crispy-forms \
 django-floppyforms django-sendmail-backend django-static-precompiler \
 mysql-connector-python pytz setuptools six sqlparse
 
-# For python2.7 or older Django versions
-sudo pip install South
 
 == Configuration ==
-Copy civdj/settings.py to civdj/settings_local.py
+Copy civdj/settings_local.example.py to civdj/settings_local.py
 and adapt it to your environment. (See https://docs.djangoproject.com/en/dev/ref/settings/ for details.)
-A minimal example for your local settings is provided in civdj/settings_local.example.py
+
+Without changes PBSpy will use Sqlite 3 as database backend. Look into the Django docs
+for other setups.
 
 
-== Setup (Debug mode, Release mode require more steps) ==
+== First run (Debug mode, Release mode require more steps) ==
 
 python3 manage.py migrate
 python3 manage.py migrate static_precompiler
 python3 manage.py compilestatic
-python3 manage.py collectstatic
 python3 manage.py createsuperuser
 
-The commands compilestatic and collectstatic are optional in debug mode.
-Adapt civdj/settings.py to your environment.
 
 == Start ==
 python3 manage.py runserver 0.0.0.0:8000
 
 
 == Known issues ==
+
+•  Error: ENOENT: no such file or directory, mkdir '[...]/static/COMPILED/pbspy/less/defaultstyle'
+  while running 'python3 manage.py compilestatic'
+  Solution: Create above folder manually (simply use 'mkdir -p' instead of 'mkdir')
+
 • Error during migrate: 
   "There is no South database module 'south.db.sqlite3' for your database. Please either choose a supported database, check for SOUTH_DATABASE_ADAPTER[S] settings, or remove South from INSTALLED_APPS."
   => Could be solved by uninstalling south, i.e.

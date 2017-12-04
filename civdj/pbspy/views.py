@@ -22,6 +22,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count, Q
+from django.db.models import Case, When
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
@@ -47,7 +48,9 @@ class GameListView(ListView):
             Q(is_private=False) & ~Q(year=None)\
             | Q(admins__id=self.request.user.id) # Filter out (fake) entries without connection
         ).annotate(
-            player_count=Count('player', distinct=True)).order_by('-id')
+            # player_count=Count('player', distinct=True)
+            player_count=Count(Case(When(player__ingame_stack=0, then=1)))
+        ).order_by('-id')
 
         self.refresh_games(games_queryset)
         return games_queryset
