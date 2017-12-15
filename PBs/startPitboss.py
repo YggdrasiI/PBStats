@@ -82,13 +82,17 @@ XVFB_PRE_CMD = '$(sleep 3; xauth merge {COOKIE}) &'  #; fg'
 INI = "CivilizationIV.ini"
 INI_OPT = "PitbossSMTPLogin"
 
+EXTENSION= ".CivBeyondSwordSave"
 # End of configuration
 
 # Put your overrides of aboves values into following file
 if os.path.exists("startPitbossEnv.py"):
     print("Load local environment")
     sys.path.append(".")
-    execfile(os.path.join('startPitbossEnv.py'))
+    if int(sys.version[0]) < 3:
+        execfile(os.path.join('startPitbossEnv.py'))
+    else:
+        exec(open(os.path.join('startPitbossEnv.py')).read())
 
 ####################
 # List of games. Insert the names of your games here or define
@@ -126,7 +130,7 @@ def checkIniFile(gameid):
     iniFn = os.path.join(altroot, INI)
     opt = INI_OPT+"="
     if os.path.isfile(iniFn):
-        fp = file(iniFn, "r")
+        fp = open(iniFn, mode="r")
         ini = fp.readlines()
         fp.close()
     else:
@@ -169,7 +173,7 @@ def loadSettings(gameid):
     altroot = GAMES[gameid]["altroot"]
     pbFn = os.path.join(altroot, "pbSettings.json")
     if os.path.isfile(pbFn):
-        fp = file(pbFn, "r")
+        fp = open(pbFn, mode="r")
         pbSettings = json.load(fp)
         fp.close()
     else:
@@ -182,7 +186,7 @@ def saveSettings(gameid, pbSettings):
     altroot = GAMES[gameid]["altroot"]
     pbFn = os.path.join(altroot, "pbSettings.json")
     try:
-        fp = file(pbFn, "w")
+        fp = open(pbFn, mode="w")
         # Note that it's necessary to use the old syntax (integer value) for indent
         # argument!
         json.dump(pbSettings, fp, indent=1)
@@ -225,14 +229,13 @@ def printHelp():
 
 def findSaves(gameid, pbSettings, reg_pattern=None, pattern="*"):
     """ Return list of tuples (path, creation_date) of given pattern. """
-    print("Youngest saves for {0}:".format(reg_pattern))
     altroot = GAMES[gameid]["altroot"]
 
     subfolders = [pbSettings.get("save", {}).get(
         "writefolder", os.path.join("Saves", "multi"))]
     subfolders.extend(pbSettings.get("save", {}).get("readfolders", []))
     subfolders.append(os.path.join("Saves", "pitboss"))
-    
+
     # Extend by auto subfolders...
     # and convert path separators...
     subfolder_with_auto = []
@@ -244,8 +247,8 @@ def findSaves(gameid, pbSettings, reg_pattern=None, pattern="*"):
     subfolders = subfolder_with_auto
     # print(str(subfolders))
 
-    if not pattern.lower().endswith(".civbeyondswordsave"):
-        pattern += ".CivBeyondSwordSave"
+    if not pattern.lower().endswith(EXTENSION.lower()):
+        pattern += EXTENSION
 
     saves = []
     for x in subfolders:
@@ -311,13 +314,21 @@ def replaceSave(gameid, pbSettings, save, adminpw=None):
 def listSaves(gameid, reg_pattern=None):
     """ Print newest saves. """
     pbSettings = loadSettings(gameid)
+    print("Youngest saves for pattern '{0}':".format(reg_pattern))
     lSaves = findSaves(gameid, pbSettings, reg_pattern)
     i = 0
     for tS in lSaves:
         i += 1
         ts = time.ctime(tS[1])
         name = tS[0]
-        print("%2i %23.23s %s" % (i, ts, name))
+
+        mod_name = parseModName(lSaves[0][0])
+        if name[-len(EXTENSION):].lower() == EXTENSION.lower():
+            name_without_ext = name[:-len(EXTENSION)]
+        else:
+            name_without_ext = name
+
+        print("%2i %23.23s %15s %s" % (i, ts, mod_name, name))
 
 
 def parseModName(filename):
@@ -329,7 +340,7 @@ def parseModName(filename):
         ret = ix[0] + (ix[1] << 8) + (ix[2] << 16) + (ix[3] << 24)
         return ret
 
-    f = open(filename, "rb")
+    f = open(filename, mode="rb")
     try:
         _ = f.read(4)
         mod_nameLen = get_int(f)
@@ -389,11 +400,16 @@ def setupGame(gameid, save_pat=None, password=None):
     if autostart:
         mod_name = parseModName(lSaves[0][0])
     else:
-        mod_name = GAMES[gameid]["mod"]
+        mod_name = select_mod_manually(GAMES[gameid]["mod"])
+        #mod_name = GAMES[gameid]["mod"]
 
-    print "Mod name: %s" % (mod_name)
+    print("Mod name: %s" % (mod_name))
 
     # Check if patched executable is available
+    if os.path.exists(os.path.join(CIV4BTS_PATH,
+                                   "Civ4BeyondSword_PitBoss_Zulan.exe")):
+        civ4bts_exe = os.path.join(CIV4BTS_PATH,
+                                   "Civ4BeyondSword_PitBoss_Zulan.exe")
     if os.path.exists(os.path.join(CIV4BTS_PATH,
                                    "Civ4BeyondSword_PitBoss2014.exe")):
         civ4bts_exe = os.path.join(CIV4BTS_PATH,
@@ -479,6 +495,48 @@ def setupGame(gameid, save_pat=None, password=None):
     except KeyboardInterrupt:
         print("\nQuit script")
 
+def select_mod_manually(default):
+    """ Show list of directories of 'BTS/Mods' """
+
+    def prompt(t):
+        try:
+            user_in = default
+            if int(sys.version[0]) < 3:
+                user_in = raw_input(t)
+            else:
+                user_in = input(prompt=t)
+        except EOFError:
+            return default
+        finally:
+            return user_in
+
+    def get_list(folder):
+        ret = {}
+        ret[0] = "None"
+        mod_names = [os.path.basename(x) for x in glob.glob(folder) \
+                     if os.path.isdir(x)]
+        mod_names.sort()
+        for x in mod_names:
+            ret[str(len(ret))] = x
+
+        return ret
+
+    mod_list = get_list(os.path.join(CIV4BTS_PATH, "Mods", "*"))
+    for m in mod_list:
+        print("  {id}: {name}".format(id=m, name=mod_list[m]))
+
+    user_in = prompt("Select mod (Enter loads '%s': ")
+    if user_in in [0, mod_list[0]]:
+        return None
+    if user_in in mod_list:
+        return mod_list[user_in]
+    elif user_in in mod_list.values():
+        return user_in
+    else:
+        print("Unknown mod '{user_in}'. Use default '{mod}'.". format(
+            mod=default, user_in=user_in))
+        return default
+
 if __name__ == "__main__":
     args = list(sys.argv[1:])
 
@@ -496,6 +554,8 @@ if __name__ == "__main__":
         printHelp()
     elif args[0] == "list":
         listSaves(args[1], args[2])
+    elif args[1] == "list":  # Avoid common mistake and check swap args
+        listSaves(args[0], args[2])
     else:
         if not fixIniFile(args[0]):
             print("Error: The option '%s' in '%s' contain not the altroot path "
