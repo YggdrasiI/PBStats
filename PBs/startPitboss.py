@@ -543,7 +543,10 @@ if __name__ == "__main__":
     init()
     if len(args) == 0:
         printSelectionMenu()
-        args.extend(raw_input().split(" "))
+        if int(sys.version[0]) < 3:
+            args.extend(raw_input().split(" "))
+        else:
+            args.extend(input().split(" "))
 
     # Add dummies for optional arguments
     args.append(None)

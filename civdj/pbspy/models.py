@@ -447,6 +447,10 @@ class Game(models.Model):
         result = self.pb_action(action='kickPlayer', playerId=int(playerId))
         return result
 
+    def pb_end_player_turn(self, playerId, user=None):
+        result = self.pb_action(action='endPlayerTurn', playerId=int(playerId))
+        return result
+
     def pb_set_current_turn_timer(self, hours, minutes, seconds, user=None):
         from_4s = self.timer_remaining_4s
         to_4s = 4*(int(hours)*3600 + int(minutes)*60 + int(seconds))

@@ -17,6 +17,37 @@
 					</p>
 				</div>
 				{% endif %}
+				{% if show_end_turn_table %}
+        <div class="game_management_section">
+          <h2>{% trans "end turn of player" %}</h2>
+					<span class="description">{% trans "Call sendTurnComplete() for given player." %}</span>
+					<table class='game_list' border="3">
+						<tr>
+							<th class="colId">Id</th>
+							<th class="colName">Player</th>
+              <th class="colStatus"  >{% trans "Status" %}</th>
+							<th class="colFinish"></th>
+						</tr>
+						{% for player in players %}
+						<tr>
+							<td class="colId">{{ player.ingame_id }}</td>
+							<td class="colName">{{ player.name }}</td>
+              <td class="colStatus"  >{{ player.status }}</td>
+							<td class="colFinish">
+                  <form method="post" action="{% url 'game_manage' game.id 'end_player_turn' %}">
+                      {% csrf_token %}
+                      <span>
+                          <input type="hidden" value="{{ player.ingame_id }}" name="id" />
+                          <input type="submit" value="{% trans "finish" %}" />
+                      </span>
+                  </form>
+							</td>
+						</tr>
+						{% endfor %}
+					</table>
+        </div>
+				{% endif %}
+				{% if show_kick_table %}
         <div class="game_management_section">
           <h2>{% trans "kick player" %}</h2>
 					<span class="description">{% trans "Convert slot status to AI." %}</span>
@@ -45,5 +76,6 @@
 						{% endfor %}
 					</table>
         </div>
+				{% endif %}
     </div>
 {% endblock %}

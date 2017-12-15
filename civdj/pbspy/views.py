@@ -491,6 +491,16 @@ def game_manage(request, game_id, action=""):
                     return HttpResponseBadRequest('Kicking of player %d failed.' % (playerId,))
 
             return HttpResponse('Cannot kick player. Wrong player id.', status=200)
+        elif action == 'end_player_turn':
+            playerId = int(request.POST.get("id", -1))
+            if playerId > -1:
+                try:
+                    game.end_player_turn(playerId, request.user)
+                    return HttpResponse('player turn finished.', status=200)
+                except InvalidPBResponse:
+                    return HttpResponseBadRequest('Finishing turn of player %d failed.' % (playerId,))
+
+            return HttpResponse('Cannot finish player turn. Wrong player id.', status=200)
         else:
             return HttpResponseBadRequest('bad request')
 
@@ -501,6 +511,8 @@ def game_manage(request, game_id, action=""):
     elif action == 'load':
         return render_game_manage_load(request, game, context)
     elif action == 'kick':
+        return render_game_manage_kick(request, game, context)
+    elif action == 'end_player_turn':
         return render_game_manage_kick(request, game, context)
     elif action == 'motd':
         return render_game_manage_motd(request, game, context)
@@ -542,9 +554,17 @@ def render_game_manage_load(request, game, context):
 
 
 def render_game_manage_kick(request, game, context):
+    context['show_kick_table'] = True
     context['players'] = list(game.player_set.filter(ingame_stack=0).order_by('ingame_id'))
     context['players_online'] = game.get_online_players()
-    return render(request, 'pbspy/game_manage_kick.html', context)
+    return render(request, 'pbspy/game_manage_player_states.html', context)
+
+
+def render_game_manage_end_player_turn(request, game, context):
+    context['show_end_turn_table'] = True
+    context['players'] = list(game.player_set.filter(ingame_stack=0).order_by('ingame_id'))
+    context['players_online'] = game.get_online_players()
+    return render(request, 'pbspy/game_manage_player_states.html', context)
 
 
 def render_game_manage_motd(request, game, context):

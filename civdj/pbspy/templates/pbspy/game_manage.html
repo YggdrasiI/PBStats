@@ -76,6 +76,9 @@
         <h2><a href="{% url 'game_manage' game.id 'color' %}">{% trans "change colorset of player" %}</a></h2>
     </div>
     <div class="game_management_section_imploded">
+        <h2><a href="{% url 'game_manage' game.id 'end_player_turn' %}">{% trans "end turn of player" %}</a></h2>
+    </div>
+    <div class="game_management_section_imploded">
         <h2><a href="{% url 'game_manage' game.id 'kick' %}">{% trans "kick player" %}</a></h2>
     </div>
     <div class="game_management_section_imploded">
