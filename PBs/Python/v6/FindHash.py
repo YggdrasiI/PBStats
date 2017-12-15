@@ -87,7 +87,7 @@ class WriteDummy:
         pass
 
 
-def get_admin_hash(filename, filename_out):
+def get_admin_hash(filename, filename_out=""):
     " Return string hash of admin value. "
     f = open(filename, "rb")
     fnull = WriteDummy()

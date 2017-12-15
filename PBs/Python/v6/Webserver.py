@@ -541,6 +541,22 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                                         {'return': 'fail', 'info':
                                         'Wrong player id for kicking.'}) + "\n")
 
+                        elif action == "endPlayerTurn":
+                            playerId = int(inputdata.get("playerId", -1))
+                            if playerId > -1 and playerId < gc.getMAX_CIV_PLAYERS():
+                                gc.getGame().setActivePlayer(playerId, False)
+                                CyMessageControl().sendTurnComplete()
+                                gc.getGame().setActivePlayer(-1, False)
+                                self.wfile.write(simplejson.dumps(
+                                    {'return': 'ok', 'info':
+                                    'Turn of player ' + str(playerId) + ' finished.'})
+                                    + "\n")
+                            else:
+                                self.wfile.write(
+                                    simplejson.dumps(
+                                        {'return': 'fail', 'info':
+                                        'Invalid player id.'}) + "\n")
+
                         elif action == "setPlayerColor":
                             playerId = int(inputdata.get("playerId", -1))
                             colorId = int(inputdata.get("colorId", -1))

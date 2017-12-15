@@ -222,11 +222,11 @@ class Civ4Shell(cmd.Cmd):
         """Show, save, reload or edit Pitboss configuration (requires PB Mod).
 
         Assumed maximal nesting depth of the json structure: 2.
-        Examples to edit key:
+        Examples to edit a value:
             'config edit noGui=1'
             'config edit adminpw=the_password'
             'config edit shell/port=3334'
-          Note that in example the prefix 'shell/' is required because
+          Note that the prefix 'shell/' in the last example is required because
             the key 'port' is globally not unique.
         """
 
@@ -355,7 +355,14 @@ else:
         self.do_pbstart(arg)
 
     def do_pb_start(self, arg):
-        """ Send command to PbWizard to start game and load PbAdmin window.
+        """ The Pitposs startup ist two staged.
+        At first, a config wizard is shown.
+        Later, the PbAdmin window will be drawn.
+
+        This command quits the first stage and uses the current settings
+        to start/load a game.
+
+        The usage of this command is only useful if autostart is disabled.
         """
 
         mode = str(self.send("M:"))

@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 #
 # Installation/Setup:
-#   Edit the following variables directly in this script or put
-#   them into a new file called 'startPitbossEnv.py'.
+#   Edit the following variables directly in this script or
+#   copy 'startPitbossEnv.py.example' into 'startPitbossEnv.py' and
+#   edit the values it the environment file.
+#
 # 1. CIV4BTS_PATH : Your Civ4:BTS installation directory
 #    i.e "$HOME/Civ4/Beyond the Sword"
 # 2. ALTROOT_BASEDIR: As default the absolute path on this folder.
@@ -64,7 +66,7 @@ START_LINUX = 'wine "{CIV4BTS_EXE}" mod= "{MOD}"\\\" /ALTROOT="{ALTROOT_W}"'
 # Variant with cleaned output
 UNBUFFER = False
 START_LINUX_UNBUFFER = r'unbuffer wine "{CIV4BTS_EXE}" mod= "{MOD}"\\\" '\
-'/ALTROOT="{ALTROOT_W}" | grep -v "^FTranslator::AddText\|^fixme:"'
+        r'/ALTROOT="{ALTROOT_W}" | grep -v "^FTranslator::AddText\|^fixme:"'
 
 # (Linux only)Path for xvfb-run framebuffer.
 # Screenshot available via 'xwud --id $XVFB_DIR'
@@ -82,7 +84,7 @@ XVFB_PRE_CMD = '$(sleep 3; xauth merge {COOKIE}) &'  #; fg'
 INI = "CivilizationIV.ini"
 INI_OPT = "PitbossSMTPLogin"
 
-EXTENSION= ".CivBeyondSwordSave"
+EXTENSION = ".CivBeyondSwordSave"
 # End of configuration
 
 # Put your overrides of aboves values into following file
@@ -103,6 +105,8 @@ if "GAMES" not in globals():
               "altroot": os.path.join(ALTROOT_BASEDIR, "PB1")},
         "2": {"name": "Pitboss 2", "mod": MOD,
               "altroot": os.path.join(ALTROOT_BASEDIR, "PB2")},
+        "seed": {"name": "Example", "mod": MOD,
+              "altroot": os.path.join(ALTROOT_BASEDIR, "seed")},
     }
 ###################
 
@@ -199,7 +203,7 @@ def printSelectionMenu():
 ==== Select Game/Altroot ====
 ID - Description
           """)
-    for g in GAMES:
+    for g in sorted(GAMES.keys()):
         print("  %10.10s - %s" % (g, GAMES[g]["name"]))
 
     print("  %10.10s %s - %s" % ("list", "[id] [save pattern]",
@@ -210,6 +214,7 @@ ID - Description
 
 def printHelp():
     print("""Syntax: python [-u] {0} gameid [savegame] [password]
+    or  python [-u] {0} gameid list [pattern]
 
  gameid: Selects the game. Edit the GAMES-variable to define more games.
          Use the 'seed' director as template and define a different
@@ -223,7 +228,10 @@ def printHelp():
  password: Overrides the stored password. Be careful, a wrong password traps
           the PB server in an infinite loop. The server had to be killed
           manually...
+     list: Show latest saves matching a given pattern
        -u: Force unbuffered output. I.e. Required in Mingw32 bash shell
+
+Without args: Show list of games and wait for further user input.
           """.format(sys.argv[0]))
 
 
@@ -241,9 +249,9 @@ def findSaves(gameid, pbSettings, reg_pattern=None, pattern="*"):
     subfolder_with_auto = []
     for s in subfolders:
         if os.path.sep == "/":
-            s = s.replace("\\\\","/").replace("\\","/")
+            s = s.replace("\\\\", "/").replace("\\", "/")
         subfolder_with_auto.append(s)
-        subfolder_with_auto.append(os.path.join(s,"auto"))
+        subfolder_with_auto.append(os.path.join(s, "auto"))
     subfolders = subfolder_with_auto
     # print(str(subfolders))
 
@@ -269,6 +277,22 @@ def findSaves(gameid, pbSettings, reg_pattern=None, pattern="*"):
     while len(savesWithTimestamps) >= 20:
         savesWithTimestamps.pop(0)
 
+
+    # Shift current selected save of pbSettings.json on top, but
+    # warn if save was not found.
+    currenty_selected = pbSettings.get("save", {}).get("filename", "undefined")
+    bMissing = True
+    for st in savesWithTimestamps:
+        if currenty_selected == os.path.basename(st[0]):
+            bMissing = False
+            savesWithTimestamps.remove(st)
+            savesWithTimestamps.append(st)
+            break
+
+    if bMissing and reg_pattern is None:
+        print("\nWarning: Currently selected save '{0}' "\
+              "can not be found!\n".format(currenty_selected))
+
     savesWithTimestamps.reverse()
     return savesWithTimestamps
 
@@ -278,7 +302,7 @@ def isAutostartEnabled(pbSettings):
     autostart = bool(pbSettings.get("autostart", False))
     noGui = bool(pbSettings.get("noGui", False))
     shell = bool(pbSettings.get("shell", {}).get("enable"))
-    if not autostart and (noGui and not shell):
+    if not autostart and noGui and not shell:
         print("Warning: Autostart flag is disabled, but noGui and shell "
               "flag overrides the setting.")
         autostart = True
@@ -317,18 +341,29 @@ def listSaves(gameid, reg_pattern=None):
     print("Youngest saves for pattern '{0}':".format(reg_pattern))
     lSaves = findSaves(gameid, pbSettings, reg_pattern)
     i = 0
+    print("Nb %24.24s %-15s %s" % ("Timestamp", "Mod name",
+                                   "Path (without extension)"))
     for tS in lSaves:
         i += 1
         ts = time.ctime(tS[1])
-        name = tS[0]
+        path = tS[0]
+        # name = os.path.basename(path)
 
-        mod_name = parseModName(lSaves[0][0])
+        # Shrink path for trivial paths, but show non-trivial paths
+        # Useful if saves with equal names but different paths exists.
+        name = path
+
+        normal_prefix = os.path.join(GAMES[gameid]["altroot"], "Saves", "")
+        if name[:len(normal_prefix)] == normal_prefix:
+            name = name[len(normal_prefix):]
+
+        mod_name = parseModName(tS[0])
         if name[-len(EXTENSION):].lower() == EXTENSION.lower():
             name_without_ext = name[:-len(EXTENSION)]
         else:
             name_without_ext = name
 
-        print("%2i %23.23s %15s %s" % (i, ts, mod_name, name))
+        print("%2i %24.24s %-15s %s" % (i, ts, mod_name, name_without_ext))
 
 
 def parseModName(filename):
@@ -344,7 +379,12 @@ def parseModName(filename):
     try:
         _ = f.read(4)
         mod_nameLen = get_int(f)
-        mod_name = str(f.read(mod_nameLen))
+        b_mod_name = f.read(mod_nameLen)  # type is bytes
+        mod_name = b_mod_name.decode('ascii')
+
+        prefix = "Mods\\"
+        if mod_name[:len(prefix)] == prefix:
+            mod_name = mod_name[len(prefix):]
 
         if len(mod_name) > 0 and mod_name[-1] == "\\":
             mod_name = mod_name[:-1]
@@ -405,18 +445,16 @@ def setupGame(gameid, save_pat=None, password=None):
 
     print("Mod name: %s" % (mod_name))
 
+    civ4bts_exe = os.path.join(CIV4BTS_PATH,
+                               "Civ4BeyondSword_PitBoss.exe")
+
     # Check if patched executable is available
-    if os.path.exists(os.path.join(CIV4BTS_PATH,
-                                   "Civ4BeyondSword_PitBoss_Zulan.exe")):
-        civ4bts_exe = os.path.join(CIV4BTS_PATH,
-                                   "Civ4BeyondSword_PitBoss_Zulan.exe")
-    if os.path.exists(os.path.join(CIV4BTS_PATH,
-                                   "Civ4BeyondSword_PitBoss2014.exe")):
-        civ4bts_exe = os.path.join(CIV4BTS_PATH,
-                                   "Civ4BeyondSword_PitBoss2014.exe")
-    else:
-        civ4bts_exe = os.path.join(CIV4BTS_PATH,
-                                   "Civ4BeyondSword_PitBoss.exe")
+    better_executables = ["Civ4BeyondSword_PitBoss_Zulan.exe",
+                          "Civ4BeyondSword_PitBoss2014.exe"]
+    for e in better_executables:
+        if os.path.exists(os.path.join(CIV4BTS_PATH, e)):
+            civ4bts_exe = os.path.join(CIV4BTS_PATH, e)
+            break
 
     altroot = GAMES[gameid]["altroot"]
     altroot_w = getAltrootWin(altroot)
@@ -504,11 +542,11 @@ def select_mod_manually(default):
             if int(sys.version[0]) < 3:
                 user_in = raw_input(t)
             else:
-                user_in = input(prompt=t)
+                user_in = input(t)
         except EOFError:
             return default
-        finally:
-            return user_in
+
+        return user_in
 
     def get_list(folder):
         ret = {}
@@ -517,21 +555,29 @@ def select_mod_manually(default):
                      if os.path.isdir(x)]
         mod_names.sort()
         for x in mod_names:
-            ret[str(len(ret))] = x
+            ret[len(ret)] = x
 
         return ret
 
     mod_list = get_list(os.path.join(CIV4BTS_PATH, "Mods", "*"))
-    for m in mod_list:
-        print("  {id}: {name}".format(id=m, name=mod_list[m]))
+    for m, name in sorted(mod_list.items()):
+        print("  {id: 2}: {name}".format(id=m, name=name))
 
-    user_in = prompt("Select mod (Enter loads '%s': ")
+    user_in = prompt("Select mod ([Return] loads '{0}'): ".format(default))
+    try:
+        # Dict keys are integer. Convert input if possible
+        user_in = int(user_in)
+    except:
+        pass
+
     if user_in in [0, mod_list[0]]:
         return None
     if user_in in mod_list:
         return mod_list[user_in]
     elif user_in in mod_list.values():
         return user_in
+    elif user_in.strip() == "":
+        return default
     else:
         print("Unknown mod '{user_in}'. Use default '{mod}'.". format(
             mod=default, user_in=user_in))
@@ -557,7 +603,7 @@ if __name__ == "__main__":
         printHelp()
     elif args[0] == "list":
         listSaves(args[1], args[2])
-    elif args[1] == "list":  # Avoid common mistake and check swap args
+    elif args[1] == "list":  # Avoid common mistake and check swaped order
         listSaves(args[0], args[2])
     else:
         if not fixIniFile(args[0]):

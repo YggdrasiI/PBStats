@@ -495,7 +495,7 @@ def game_manage(request, game_id, action=""):
             playerId = int(request.POST.get("id", -1))
             if playerId > -1:
                 try:
-                    game.end_player_turn(playerId, request.user)
+                    game.pb_end_player_turn(playerId, request.user)
                     return HttpResponse('player turn finished.', status=200)
                 except InvalidPBResponse:
                     return HttpResponseBadRequest('Finishing turn of player %d failed.' % (playerId,))
@@ -513,7 +513,7 @@ def game_manage(request, game_id, action=""):
     elif action == 'kick':
         return render_game_manage_kick(request, game, context)
     elif action == 'end_player_turn':
-        return render_game_manage_kick(request, game, context)
+        return render_game_manage_end_player_turn(request, game, context)
     elif action == 'motd':
         return render_game_manage_motd(request, game, context)
 
