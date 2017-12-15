@@ -338,7 +338,7 @@ try:
 except AttributeError:
   abs_path = ""
 
-fpath = \"%s%s\" % (abs_path, \"{0}\") 
+fpath = \"%s%s\" % (abs_path, \"{0}\")
 if CyPitboss().save(fpath):
   print(\"Game saved as %s\" % (fpath,))
 else:
@@ -434,7 +434,7 @@ else:
     def do_status(self, arg):
         """ Return some status information.
 
-        Should return list of player (points/gold/num units/num cities) 
+        Should return list of player (points/gold/num units/num cities)
         Uptime, Mode, etc
         TODO """
         result = str(self.send("s:"))
@@ -582,9 +582,49 @@ else:
         result = str(self.send("p:"+d))
         feedback(result)
 
+    def do_pb_end_turn(self, arg):
+        """ Set turn complete flag of player. Use 'status' to get player id.
+
+            Format: pb_end_turn {iPlayer}
+        """
+
+        d = None
+        if len(arg) > 0:
+            # Interpret arg as number or pattern
+            try:
+                iPlayer = int(arg.split(" ")[0])
+                d = """\
+if( gc.getMAX_CIV_PLAYERS() > {iPlayer} and {iPlayer} > -1):
+    if not CyPitboss().getPlayerAdminData({iPlayer}).bTurnActive:
+        print(-1)
+    else:
+        gc.getGame().setActivePlayer({iPlayer}, False)
+        CyMessageControl().sendTurnComplete()
+        gc.getGame().setActivePlayer(-1, False)
+        print(0)
+else:
+    print(-2)
+""".format(iPlayer=iPlayer)
+                # Note that setActivePlayer(...) could crash the game if
+                # the player id is to big.
+            except ValueError:
+                warn("Input argument no integer.")
+        else:
+            warn("Argument for Player id missing.")
+
+        if d:
+            result = str(self.send("p:"+d))
+            if result.strip() == "0":
+                feedback("End turn of player {0} successful.".format(iPlayer))
+            elif result.strip() == "-1":
+                warn("Turn of player {0} is already finished.".format(iPlayer))
+            else:
+                warn("End turn of player {0} failed. Server returns '{1}'".format(iPlayer, result))
+
+
     def do_pb_set_timer(self, arg):
         """ Set timer for next round(s).
-        
+
             Format: pb_set_timer {iHours}
         """
         try:
