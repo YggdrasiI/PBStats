@@ -113,6 +113,7 @@ if noGui:
                             "shell": start_shell(PbSettings.get("shell", {}))
                         }
                         Civ4Shell["shell"].set_mode("pb_admin")
+                        Civ4Shell["shell"].set_admin_frame(self)
                         Civ4Shell["shell"].init()
                     else:
                         # Already initialized in PbWizard
@@ -145,7 +146,9 @@ if noGui:
 
         def OnCloseWindow(self, event):
             "'close window' event handler"
-            pass
+            if "Civ4Shell" in globals():
+                Civ4Shell["shell"].run = False
+                Civ4Shell["shell"].close()
 
     #
     # main app class
@@ -497,7 +500,8 @@ else:
                             "shell": start_shell(PbSettings.get("shell", {}),
                                                  "pb_admin")
                         }
-                        CyPitboss().consoleOut("Init SHELL interface")
+                        Civ4Shell["shell"].set_admin_frame(self)
+                        # CyPitboss().consoleOut("Init SHELL interface")
                         Civ4Shell["shell"].init()
                     else:
                         # Already initialized in PbWizard
@@ -617,6 +621,7 @@ else:
 
         def OnExit(self, event):
             "'exit' event handler"
+            PB.quit()
             if(PbSettings['webfrontend']['sendPeriodicalData'] != 0):
                 self.webupload.cancel()
                 self.webserver.shutdown()
@@ -624,8 +629,11 @@ else:
 
         def OnCloseWindow(self, event):
             "'close window' event handler"
-            PB.quit()
+            # PB.quit()
             self.Destroy()
+            if "Civ4Shell" in globals():
+                Civ4Shell["shell"].run = False
+                Civ4Shell["shell"].close()
 
         def IsNumericString(self, myStr):
             for myChar in myStr:

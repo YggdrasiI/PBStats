@@ -352,17 +352,17 @@ else:
 
     def do_start(self, arg):
         """ Synonym for 'pb_start'. """
-        self.do_pbstart(arg)
+        self.do_pb_start(arg)
 
     def do_pb_start(self, arg):
-        """ The Pitposs startup ist two staged.
+        """ The Pitboss startup is two staged.
         At first, a config wizard is shown.
         Later, the PbAdmin window will be drawn.
 
-        This command quits the first stage and uses the current settings
-        to start/load a game.
+        If the game is at stage 1, this command continues with stage 2, based
+        on the current settings. (Use 'config show' to list them.)
 
-        The usage of this command is only useful if autostart is disabled.
+        If the game is at stage 2, it trigger a restart of the server.
         """
 
         mode = str(self.send("M:"))
@@ -412,7 +412,7 @@ else:
 
         # TODO: re-open of socket fails...
         # Exit as workaround...
-        return True
+#        return True
 
         print("Wait a few seconds...")
         sleep(2)
@@ -437,6 +437,9 @@ else:
         """
         # self.send("p:PB.quit()")
         self.send("Q:")
+
+        # End shell, too
+        return True
 
     def do_status(self, arg):
         """ Return some status information.
@@ -594,6 +597,9 @@ else:
 
             Format: pb_end_turn {iPlayer}
         """
+        # Bug: setActivePlayer blockades player slot until game is reloaded
+        # This could only be fixed by an extra DLL function.
+        warn("Attention, player slot blockades till game is reloaded.")
 
         d = None
         if len(arg) > 0:

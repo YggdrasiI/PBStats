@@ -16,10 +16,13 @@ SaveOverHttp:
 	bandwidth limited to 10kb/s! )
 
 
-Civ4BeyondSword2015.exe:
-  Bugfix of a wrong written url. The Civ4:BTS multiplayer lobby should work now.
+Pyconsole:
+	Allow remote access by a Python shell to a running PB game with the PB Mod.
 
-Civ4BeyondSword2014.exe:
+	See ../PBs/Pyconsole
+
+
+Civ4BeyondSword2015.exe:
 Civ4BeyondSword_Pitboss2014.exe:
 	Modified executable where almost all gamespy domain names was replaced
 	by a new domain. The new domain refers to Zulan's server which host
@@ -50,3 +53,6 @@ Civ4BeyondSword2014.exe.patch:
 	The default softwarerepository of your distrubution should
 	contain the tool bspatch.
 
+Civ4BeyondSword_Pitboss_Zulan.exe:
+	Based on Civ4BeyondSword_Pitboss2014.exe, but fix save loading issue under Wine.
+	If some of your saves not load, give this a try.

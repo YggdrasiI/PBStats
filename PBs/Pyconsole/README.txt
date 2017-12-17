@@ -1,18 +1,44 @@
-== Short description for PBStats ==
-
-If shell is enabled in pbSettings.json type
-         'python [-u] Pyconsole [port]'
-into a terminal to connect you to the running game instance.
-
-
-
 == Shell for Civ4 ==
 
 This extensions expands the Civ4 application by
 a local TCP interface. You can send arbitary 
 python commands to the running instance.
 
-Setup:
+
+== Short description for PBStats ==
+
+If shell is enabled in pbSettings.json type
+         'python [-u] Pyconsole [port]'
+into a terminal to connect you to the running game instance.
+
+== Example usage ==
+
+a) Call Python code directly to finish turn for Playerid X .
+
+> python Pyconsole 3333
+>       print(gc.getPlayer(X).getName())
+>       gc.getGame().setActivePlayer(X, False)
+>       CyMessageControl().sendTurnComplete()
+>       gc.getGame().setActivePlayer(-1, False)  # Default for PB Host is -1
+>       bye
+
+b) Use predifined macro for above task. (Type 'help' to get a list of all commands)
+> python Pyconsole 3333
+>       pb_end_turn X
+>       bye
+
+c) List saves, edit config and restart server with new save.
+> python Pyconsole 3333
+>       list Playername
+>       list Logoff.*P0
+>       config edit save/filename=Logoff_P0_UserXY_T1507924088.CivBeyondSwordSave
+>       config show
+>       
+Reload.CivBeyondSwordSave
+
+
+== Setup  ==
+
 1. Place Civ4ShellBackend.py into [Your mod]\Assets\Python
 
 2. Add the following lines into your CvEventManager.py:

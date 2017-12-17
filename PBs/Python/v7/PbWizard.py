@@ -117,7 +117,7 @@ Attention: The different (gui, nogui, shell) leads
 to totally different defined classes...
 """
 
-CIV4_SHELL = PbSettings.get("shell", {}).get("enable", 0) and False
+CIV4_SHELL = PbSettings.get("shell", {}).get("enable", 0)
 
 if noGui and not CIV4_SHELL:
     # Above flags require autostart of server.
@@ -138,6 +138,7 @@ if CIV4_SHELL and not autostart:
                 "loc": locals(),
                 "shell": start_shell(PbSettings.get("shell", {}), "pb_wizard")
             }
+            self.civ4Shell["shell"].set_startup_iface(self)
             self.civ4Shell["shell"].init()
 
             self.OnInit()
@@ -552,11 +553,11 @@ else:
                     # if (False):
                     # Patching failed - tell the user
                     msg = wx.MessageBox(localText.getText("TXT_KEY_PITBOSS_PATCH_DOWNLOAD_ERROR_DESC", ()), localText.getText("TXT_KEY_PITBOSS_PATCH_DOWNLOAD_ERROR_TITLE", ()), wx.ICON_ERROR)
-                    bPatchConfirmed = true
+                    bPatchConfirmed = True
                     szPatchName = patchName
                     self.enableButtons()
             else:
-                bPatchConfirmed = true
+                bPatchConfirmed = True
                 self.enableButtons()
 
         def patchComplete(self):
@@ -577,8 +578,8 @@ else:
                 # pass
             else:
                 # Not sure if this can actually happen, but handle it anyway
-                bPatchConfirmed = true
-                bPatchOK = false
+                bPatchConfirmed = True
+                bPatchOK = False
 
         def OnTextEntered(self, event):
             # Determine what buttons should be enabled
@@ -606,7 +607,7 @@ else:
                 if (False):
                     # Error in checking for a patch
                     msg = wx.MessageBox(localText.getText("TXT_KEY_PITBOSS_PATCH_CHECK_ERROR_DESC", ()), localText.getText("TXT_KEY_PITBOSS_PATCH_DOWNLOAD_ERROR_TITLE", ()), wx.ICON_ERROR)
-                    bPatchConfirmed = true
+                    bPatchConfirmed = True
 
             # Determine what buttons should be enabled
             self.enableButtons()
@@ -664,11 +665,11 @@ else:
                 if (not PB.downloadPatch(patchName, patchUrl)):
                     # Patching failed - tell the user
                     msg = wx.MessageBox(localText.getText("TXT_KEY_PITBOSS_PATCH_DOWNLOAD_ERROR_DESC", ()), localText.getText("TXT_KEY_PITBOSS_PATCH_DOWNLOAD_ERROR_TITLE", ()), wx.ICON_ERROR)
-                    bPatchConfirmed = true
+                    bPatchConfirmed = True
                     self.enableButtons()
             else:
                 # They didn't want to download it, which is ok for LAN games
-                bPatchConfirmed = true
+                bPatchConfirmed = True
                 self.enableButtons()
 
         def patchComplete(self):
@@ -687,8 +688,8 @@ else:
                 PB.installPatch(szPatchName)
             else:
                 # This is ok for LAN games
-                bPatchConfirmed = true
-                bPatchOK = false
+                bPatchConfirmed = True
+                bPatchOK = False
 
         def OnPageChanged(self, event):
             global curPage
@@ -701,7 +702,7 @@ else:
                 if (False):
                     # Error in checking for a patch
                     msg = wx.MessageBox(localText.getText("TXT_KEY_PITBOSS_PATCH_CHECK_ERROR_DESC", ()), localText.getText("TXT_KEY_PITBOSS_PATCH_CHECK_ERROR_TITLE", ()), wx.ICON_ERROR)
-                    bPatchConfirmed = true
+                    bPatchConfirmed = True
 
             # Determine what buttons should be enabled
             self.enableButtons()
@@ -741,7 +742,7 @@ else:
                 # We are trying to move forward - are we trying to init'ing or loading game?
                 if (self.rb.GetSelection() == 2):
                     # Loading a game - popup the file browser
-                    bScenario = false
+                    bScenario = False
                     dlg = wx.FileDialog(
                         self, message=(localText.getText("TXT_KEY_PITBOSS_CHOOSE_SAVE", ())), defaultDir=".\saves\multi",
                         defaultFile="", wildcard=localText.getText("TXT_KEY_PITBOSS_SAVE_FILES", ("(*.CivBeyondSwordSave)|*.CivBeyondSwordSave", )), style=wx.OPEN
@@ -799,7 +800,7 @@ else:
                     dlg.Destroy()
 
                 else:
-                    bSaved = false
+                    bSaved = False
 
                     # Check to make sure this is a valid option
                     if (self.rb.GetSelection() == 0):
@@ -837,13 +838,13 @@ else:
                                     localText.getText("TXT_KEY_PITBOSS_PWD_GAME_TITLE", ()))
 
                                 if (dlg.ShowModal() == wx.ID_OK):
-                                    bOK = true
+                                    bOK = True
                                     PB.setGamePassword(dlg.GetValue())
 
                             if bOK:
                                 # If we are starting a new game, host
                                 if (self.rb.GetSelection() == 0):
-                                    bScenario = false
+                                    bScenario = False
                                     if (not PB.host(bPublic, bScenario)):
                                         # Hosting failed for some reason.  Clean up and exit
                                         msg = wx.MessageBox((localText.getText("TXT_KEY_PITBOSS_ERROR_HOSTING", ())), (localText.getText("TXT_KEY_PITBOSS_HOST_ERROR", ())), wx.ICON_ERROR)
@@ -940,7 +941,7 @@ else:
 
                 # We are trying to move forward - Set the selected scenario
                 if (PB.loadScenarioInfo(PB.getScenarioAt(iSelection))):
-                    bScenario = true
+                    bScenario = True
                     if (not PB.host(bPublic, bScenario)):
                         # Hosting failed for some reason.  Clean up and exit
                         msg = wx.MessageBox((localText.getText("TXT_KEY_PITBOSS_ERROR_HOSTING", ())), (localText.getText("TXT_KEY_PITBOSS_HOST_ERROR", ())), wx.ICON_ERROR)
@@ -1821,7 +1822,7 @@ else:
             if (self.IsModal()):
                 self.EndModal(wx.ID_CANCEL)
             else:
-                self.Show(false)
+                self.Show(False)
                 return wx.ID_CANCEL
 
     #
@@ -1954,18 +1955,18 @@ else:
                 if (self.progressDlg is None):
                     # Need to create the dialog
                     self.progressDlg = ProgressDialog(self)
-                    self.progressDlg.Show(true)
+                    self.progressDlg.Show(True)
 
                 self.progressDlg.setTotal(bytesTotal)
                 self.progressDlg.setValue(bytesRecvd)
 
         def cancelDownload(self):
             global bPatchConfirmed
-            bPatchConfirmed = true
+            bPatchConfirmed = True
 
             # get rid of the dialog
             if (self.progressDlg is not None):
-                self.progressDlg.Show(false)
+                self.progressDlg.Show(False)
                 self.progressDlg = None
 
             # Tell the application
@@ -1979,16 +1980,16 @@ else:
 
             # get rid of the dialog
             if (self.progressDlg is not None):
-                self.progressDlg.Show(false)
+                self.progressDlg.Show(False)
                 self.progressDlg = None
 
             if (bSuccess):
                 curPage.patchComplete()
             else:
-                bPatchOK = false
+                bPatchOK = False
                 msg = wx.MessageBox(localText.getText("TXT_KEY_PITBOSS_PATCH_DOWNLOAD_ERROR_DESC", ()), localText.getText("TXT_KEY_PITBOSS_PATCH_DOWNLOAD_ERROR_TITLE", ()), wx.ICON_ERROR)
 
-            bPatchConfirmed = true
+            bPatchConfirmed = True
 
             curPage.enableButtons()
 
@@ -1997,8 +1998,8 @@ else:
 
             global bPatchConfirmed
             global bPatchOK
-            bPatchConfirmed = true
-            bPatchOK = true
+            bPatchConfirmed = True
+            bPatchOK = True
 
             if ((curPage == self.login) or (curPage == self.loadSelect)):
                 curPage.enableButtons()

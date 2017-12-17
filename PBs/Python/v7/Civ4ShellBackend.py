@@ -26,6 +26,8 @@ class Server:
         self.run = False
         self.tcp_ip = tcp_ip
         self.tcp_port = tcp_port
+        self.pbStartupIFace = None  # PbWizard.py
+        self.pbAdminFrame = None    # PbAdmin.py
 
     def __del__(self):
         # Stop server
@@ -106,8 +108,14 @@ class Server:
             elif data[0:2] == "Q:":  # Quit PB_Server
                 gc = glob.get("gc")
                 PB = glob.get("PB")
-                if gc and PB and gc.getGame().isPitbossHost():
+                if self.pbAdminFrame:
+                    self.pbAdminFrame.OnExit(None)
+                elif self.pbStartupIFace:
+                    # Should not be reached. (see 'q:' branch)
                     PB.quit()
+                else:
+                    CyPitboss().consoleOut("Quit not possible. Unable to quit all app threads.")
+
                 self.run = False
                 return False
             elif data[0:2] == "M:":
@@ -164,6 +172,14 @@ class Server:
 
     def get_mode(self):
         return str(self.mode_desc)
+
+    def set_startup_iface(self, wiz):
+        self.pbStartupIFace = wiz
+        self.pbAdminFrame = None
+
+    def set_admin_frame(self, admin):
+        self.pbStartupIFace = None
+        self.pbAdminFrame = admin
 
     def gen_status_infos(self, glob):
         ws = glob.get("Webserver")
