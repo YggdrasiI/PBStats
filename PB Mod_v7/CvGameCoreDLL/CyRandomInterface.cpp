@@ -13,7 +13,7 @@ void CyRandomPythonInterface()
 	OutputDebugString("Python Extension Module - CyRandomPythonInterface\n");
 
 	python::class_<CvRandom>("CyRandom")
-		.def("get", &CvRandom::get, CvRandom_get_overloads( args("usNum", "pszLog"), "unsigned short (unsigned short usNum, const TCHAR* pszLog)")
+		.def("get", &CvRandom::get, CvRandom_get_overloads( args("usNum", "pszLog"), "unsigned short (unsigned short usNum, const TCHAR* pszLog)"))
 		.def("init", &CvRandom::init, "void (unsigned long ulSeed)")
 		;
 }

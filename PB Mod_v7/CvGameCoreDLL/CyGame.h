@@ -279,7 +279,7 @@ public:
 
 	int setCivPassword(int ePlayer, const char *ssNewPw, const char *szAdminPw);
 	bool isDiploScreenUp() const;
-	void CyGame::sendTurnCompletePB(int iPlayer);
+	void sendTurnCompletePB(int iPlayer);
 
 protected:
 	CvGame* m_pGame;

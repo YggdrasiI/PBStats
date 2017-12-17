@@ -70,7 +70,7 @@ void CyInfoPythonInterface2()
 		.def("isCivilizationFreeTechs", &CvCivilizationInfo::isCivilizationFreeTechs, "bool (int i)")
 		.def("isCivilizationDisableTechs", &CvCivilizationInfo::isCivilizationDisableTechs, "bool (int i)")
 
-		.def("getCityNames", &CvCivilizationInfo::getCityNames, "string getCityNames(int i) const (int i)")
+		.def("getCityNames", &CvCivilizationInfo::getCityNames, "string (int i)")
 		;
 
 	python::class_<CvVictoryInfo, python::bases<CvInfoBase> >("CvVictoryInfo")

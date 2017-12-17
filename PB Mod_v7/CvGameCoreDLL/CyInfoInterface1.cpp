@@ -87,7 +87,7 @@ void CyInfoPythonInterface1()
 		.def("isWaterWork", &CvTechInfo::isWaterWork, "bool ()")
 		.def("isRiverTrade", &CvTechInfo::isRiverTrade, "bool ()")
 
-		.def("getQuote", &CvTechInfo::getQuote, "wstring getQuote()	const ()")
+		.def("getQuote", &CvTechInfo::getQuote, "wstring getQuote()")
 		.def("getSound", &CvTechInfo::getSound, "const TCHAR* ()")
 		.def("getSoundMP", &CvTechInfo::getSoundMP, "const TCHAR* ()")
 
@@ -193,7 +193,6 @@ void CyInfoPythonInterface1()
 		;
 
 	python::class_<CvUnitInfo, python::bases<CvInfoBase, CvScalableInfo> >("CvUnitInfo")
-
 		.def("getAIWeight", &CvUnitInfo::getAIWeight, "int ()")
 		.def("getProductionCost", &CvUnitInfo::getProductionCost, "int ()")
 		.def("getHurryCostModifier", &CvUnitInfo::getHurryCostModifier, "int ()")
@@ -352,7 +351,7 @@ void CyInfoPythonInterface1()
 		.def("getLateArtDefineTag", &CvUnitInfo::getLateArtDefineTag, "const TCHAR* (int i, UnitArtStyleTypes eStyle)")
 		.def("getMiddleArtDefineTag", &CvUnitInfo::getMiddleArtDefineTag, "const TCHAR* (int i, UnitArtStyleTypes eStyle)")
 		.def("getUnitNames", &CvUnitInfo::getUnitNames, "const TCHAR* (int i)")
-		.def("getArtInfo", &CvUnitInfo::getArtInfo,  python::return_value_policy<python::reference_existing_object>(), "const CvArtInfoUnit* (int i, EraTypes eEra, UnitArtStyleTypes eStyle)")
+		.def("getArtInfo", &CvUnitInfo::getArtInfo, python::return_value_policy<python::reference_existing_object>(), "const CvArtInfoUnit* (int i, EraTypes eEra, UnitArtStyleTypes eStyle)")
 		;
 
 	python::class_<CvSpecialUnitInfo, python::bases<CvInfoBase> >("CvSpecialUnitInfo")
@@ -445,7 +444,6 @@ void CyInfoPythonInterface1()
 		;
 
 	python::class_<CvBuildingInfo, python::bases<CvInfoBase, CvScalableInfo> >("CvBuildingInfo")
-
 		.def("getBuildingClassType", &CvBuildingInfo::getBuildingClassType, "int ()")
 		.def("getVictoryPrereq", &CvBuildingInfo::getVictoryPrereq, "int ()")
 		.def("getFreeStartEra", &CvBuildingInfo::getFreeStartEra, "int ()")
@@ -557,7 +555,7 @@ void CyInfoPythonInterface1()
 
 		.def("getConstructSound", &CvBuildingInfo::getConstructSound, "const TCHAR* ()")
 		.def("getHotKey", &CvBuildingInfo::getHotKey, "int ()")
-		.def("getHotKeyDescription", &CvBuildingInfo::getHotKeyDescription, "wstring getHotKeyDescription() const ()")
+		.def("getHotKeyDescription", &CvBuildingInfo::getHotKeyDescription, "wstring getHotKeyDescription()")
 		.def("getArtDefineTag", &CvBuildingInfo::getArtDefineTag, "const TCHAR* ()")
 		.def("getMovie", &CvBuildingInfo::getMovie, "const TCHAR* ()")
 		.def("getMovieDefineTag", &CvBuildingInfo::getMovieDefineTag, "const TCHAR* ()")
@@ -604,7 +602,7 @@ void CyInfoPythonInterface1()
 		.def("getSpecialistYieldChange", &CvBuildingInfo::getSpecialistYieldChange, "int (int i, int j)")
 		.def("getBonusYieldModifier", &CvBuildingInfo::getBonusYieldModifier, "int (int i, int j)")
 
-		.def("getArtInfo", &CvBuildingInfo::getArtInfo,"const CvArtInfoUnit* (int i, EraTypes eEra, UnitArtStyleTypes eStyle)" 
+		.def("getArtInfo", &CvBuildingInfo::getArtInfo, python::return_value_policy<python::reference_existing_object>(), "const CvArtInfoUnit* (int i, EraTypes eEra, UnitArtStyleTypes eStyle)")
 		;
 
 	python::class_<CvSpecialBuildingInfo, python::bases<CvInfoBase> >("CvSpecialBuildingInfo")

@@ -9,6 +9,7 @@
 #include "CvDLLUtilityIFaceBase.h"
 #include "CvGameAI.h"
 #include "CvGameCoreUtils.h"
+#include "CvMessageControl.h"
 
 #define PBMOD_FRAME_POINTER_ENABLED 1
 #define DISALLOW_LOCAL_LOADING_OF_PB 1

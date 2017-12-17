@@ -67,7 +67,7 @@ void CyTeamPythonInterface()
 		.def("getLeaderID", &CyTeam::getLeaderID, "int (PlayerTypes*/ ()")
 		.def("getSecretaryID", &CyTeam::getSecretaryID, "int (PlayerTypes*/ ()")
 		.def("getHandicapType", &CyTeam::getHandicapType, "int (HandicapTypes*/ ()")
-		.def("getName", &CyTeam::getName, "wstring getName() ()")
+		.def("getName", &CyTeam::getName, "wstring ()")
 
 		.def("getNumMembers", &CyTeam::getNumMembers, "int ()")
 		.def("isAlive", &CyTeam::isAlive, "bool ()")
@@ -157,7 +157,7 @@ void CyTeamPythonInterface()
 		.def("assignVassal", &CyTeam::assignVassal, "void (int (TeamTypes) eIndex, bool bSurrender)")
 		.def("freeVassal", &CyTeam::freeVassal, "void (int (TeamTypes) eIndex)")
 		.def("isDefensivePact", &CyTeam::isDefensivePact, "bool ()")
-		.def("getRouteChange", &CyTeam::getRouteChange,"int (int (RouteTypes) eIndex)"	
+		.def("getRouteChange", &CyTeam::getRouteChange, "int (int (RouteTypes) eIndex) - Route Change caused by RouteType")	
 		.def("changeRouteChange", &CyTeam::changeRouteChange, "void (int (RouteTypes) eIndex, int iChange)")
 		.def("getProjectCount", &CyTeam::getProjectCount, "int (int (ProjectTypes) eIndex)")
 		.def("getProjectDefaultArtType", &CyTeam::getProjectDefaultArtType, "int (int (ProjectTypes) eIndex)")
@@ -187,7 +187,7 @@ void CyTeamPythonInterface()
 		.def("isNoTradeTech", &CyTeam::isNoTradeTech, "bool (int ( TechTypes ) iIndex)")
 		.def("setNoTradeTech", &CyTeam::setNoTradeTech, "void (int (TechTypes) eIndex, bool bNewValue)")
 
-		.def("getImprovementYieldChange", &CyTeam::getImprovementYieldChange,"int (int (ImprovementTypes) eIndex1, int (YieldTypes) eIndex2)"	
+		.def("getImprovementYieldChange", &CyTeam::getImprovementYieldChange, "int (int (ImprovementTypes) eIndex1, int (YieldTypes) eIndex2)")
 		.def("changeImprovementYieldChange", &CyTeam::changeImprovementYieldChange, "void (int (ImprovementTypes) eIndex1, int (YieldTypes) eIndex2, int iChange)")
 
 		.def("getVictoryCountdown", &CyTeam::getVictoryCountdown, "int (int (VictoryTypes) eVictory)")

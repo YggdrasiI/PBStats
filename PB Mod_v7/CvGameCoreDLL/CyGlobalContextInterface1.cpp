@@ -49,8 +49,7 @@ void CyGlobalContextPythonInterface1(python::class_<CyGlobalContext>& x)
 		.def("getCultureLevelInfo", &CyGlobalContext::getCultureLevelInfo, python::return_value_policy<python::reference_existing_object>(), "CvCultureLevelInfo* (int i) - CvInfo for CultureLevelID")
 
 		.def("getNumEraInfos", &CyGlobalContext::getNumEraInfos, "int () - Number of era infos")
-		.def("getEraInfo", &CyGlobalContext::getEraInfo,"CvEraInfo* (int i)" 
-
+		.def("getEraInfo", &CyGlobalContext::getEraInfo, python::return_value_policy<python::reference_existing_object>(), "CvEraInfo* (int i)")
 		.def("getNumWorldInfos", &CyGlobalContext::getNumWorldInfos, "int () - Number of world infos")
 		.def("getWorldInfo", &CyGlobalContext::getWorldInfo, python::return_value_policy<python::reference_existing_object>(), "CvWorldInfo* (int i) - (WorldTypeID)")
 

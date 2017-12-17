@@ -395,7 +395,7 @@ void CyInfoPythonInterface3()
 	python::class_<CvArtInfoFeature, python::bases<CvArtInfoScalableAsset> >("CvArtInfoFeature")
 		.def("isAnimated", &CvArtInfoFeature::isAnimated, "bool ()")
 		.def("isRiverArt", &CvArtInfoFeature::isRiverArt, "bool ()")
-		.def("getFeatureDummyNodeName", &CvArtInfoFeature::getFeatureDummyNodeName, "string getFeatureDummyNodeName(int variety, string tagName) (int variety, string tagName)")
+		.def("getFeatureDummyNodeName", &CvArtInfoFeature::getFeatureDummyNodeName, "string (int variety, string tagName)")
 		;
 
 	python::class_<CvEmphasizeInfo, python::bases<CvInfoBase> >("CvEmphasizeInfo")
@@ -455,7 +455,7 @@ void CyInfoPythonInterface3()
 		;
 
 	python::class_<CvColorInfo, python::bases<CvInfoBase> >("CvColorInfo")
-		.def("getColor", &CvColorInfo::getColor,"int ()" 
+		.def("getColor", &CvColorInfo::getColor, python::return_value_policy<python::reference_existing_object>(), "int ()")
 		;
 
 	python::class_<CvPlayerColorInfo, python::bases<CvInfoBase> >("CvPlayerColorInfo")
@@ -763,11 +763,11 @@ void CyInfoPythonInterface3()
 		;
 
 	python::class_<CvMainMenuInfo, python::bases<CvInfoBase> >("CvMainMenuInfo")
-		.def("getScene", &CvMainMenuInfo::getScene, "string getScene() const ()")
-		.def("getSceneNoShader", &CvMainMenuInfo::getSceneNoShader, "string getSceneNoShader() const ()")
+		.def("getScene", &CvMainMenuInfo::getScene, "string ()")
+		.def("getSceneNoShader", &CvMainMenuInfo::getSceneNoShader, "string ()")
 		.def("getSoundtrack", &CvMainMenuInfo::getSoundtrack, "int ()")
-		.def("getLoading", &CvMainMenuInfo::getLoading, "string getLoading() const ()")
-		.def("getLoadingSlideshow", &CvMainMenuInfo::getLoadingSlideshow, "string getLoadingSlideshow() const ()")
+		.def("getLoading", &CvMainMenuInfo::getLoading, "string ()")
+		.def("getLoadingSlideshow", &CvMainMenuInfo::getLoadingSlideshow, "string ()")
 		;
 
 }

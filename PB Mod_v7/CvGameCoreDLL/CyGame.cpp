@@ -1206,6 +1206,6 @@ bool CyGame::isDiploScreenUp() const
 
 void CyGame::sendTurnCompletePB(int iPlayer){
 	if( m_pGame != NULL ){
-		CvInitCore::sendTurnCompletePB(iPlayer);
+    GC.getInitCore().sendTurnCompletePB((PlayerTypes) iPlayer);
 	}
 }

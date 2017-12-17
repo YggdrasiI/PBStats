@@ -66,7 +66,7 @@ void CyGamePythonInterface()
 		.def("getCurrentEra", &CyGame::getCurrentEra, "int ()")
 
 		.def("getActiveTeam", &CyGame::getActiveTeam, "int () - returns ID for the group")
-		.def("getActiveCivilizationType", &CyGame::getActiveCivilizationType, "int ( CivilizationTypes */ () - returns CivilizationID" 
+		.def("getActiveCivilizationType", &CyGame::getActiveCivilizationType, "int () - returns CivilizationID")
 		.def("isNetworkMultiPlayer", &CyGame::isNetworkMultiPlayer, "bool () - NetworkMultiplayer()? ")
 		.def("isGameMultiPlayer", &CyGame::isGameMultiPlayer, "bool () - GameMultiplayer()? ")
 		.def("isTeamGame", &CyGame::isTeamGame, "bool ()")
@@ -95,7 +95,7 @@ void CyGamePythonInterface()
 		.def("getEstimateEndTurn", &CyGame::getEstimateEndTurn, "int ()")
 		.def("setEstimateEndTurn", &CyGame::setEstimateEndTurn, "void (int iNewValue)")
 		.def("getTurnSlice", &CyGame::getTurnSlice, "int ()")
-		.def("incrementTurnTimer", &CyGame::incrementTurnTimer,"void (int iNumTurnSlices)""
+		.def("incrementTurnTimer", &CyGame::incrementTurnTimer, "void (int iNumTurnSlices)")
 		.def("getMinutesPlayed", &CyGame::getMinutesPlayed, "int ()")
 		.def("getTargetScore", &CyGame::getTargetScore, "int ()")
 		.def("setTargetScore", &CyGame::setTargetScore, "void (int iNewValue)")
@@ -220,18 +220,18 @@ void CyGamePythonInterface()
 
 		.def("getPlayerVote", &CyGame::getPlayerVote, "int (int (PlayerTypes) eOwnerIndex, int iVoteId)")
 
-		.def("getScriptData", &CyGame::getScriptData, "string getScriptData() const () - Returns ScriptData member (used to store custom data)")
+		.def("getScriptData", &CyGame::getScriptData, "string getScriptData() - Returns ScriptData member (used to store custom data)")
 		.def("setScriptData", &CyGame::setScriptData, "void (string szNewValue) - Sets ScriptData member (used to store custom data)")
 
 		.def("setName", &CyGame::setName, "void (TCHAR* szNewValue)")
-		.def("getName", &CyGame::getName, "wstring getName() ()")
+		.def("getName", &CyGame::getName, "wstring ()")
 		.def("getIndexAfterLastDeal", &CyGame::getIndexAfterLastDeal, "int ()")
 		.def("getNumDeals", &CyGame::getNumDeals, "int ()")
-		.def("getDeal", &CyGame::getDeal,"CyDeal* (int iID)" 
-		.def("addDeal", &CyGame::addDeal,"CyDeal* ()" 
-		.def("getMapRand", &CyGame::getMapRand,"CvRandom ()" 
+		.def("getDeal", &CyGame::getDeal, python::return_value_policy<python::manage_new_object> (), "CyDeal* (int iID)")
+		.def("addDeal", &CyGame::addDeal, python::return_value_policy<python::manage_new_object> (), "CyDeal* ()")
+		.def("getMapRand", &CyGame::getMapRand, python::return_value_policy<python::reference_existing_object>(), "CvRandom ()")
 		.def("getMapRandNum", &CyGame::getMapRandNum, "int (int iNum, TCHAR* pszLog)")
-		.def("getSorenRand", &CyGame::getSorenRand,"CvRandom ()" 
+		.def("getSorenRand", &CyGame::getSorenRand, python::return_value_policy<python::reference_existing_object>(), "CvRandom ()")
 		.def("getSorenRandNum", &CyGame::getSorenRandNum, "int (int iNum, TCHAR* pszLog)")
 		.def("calculateSyncChecksum", &CyGame::calculateSyncChecksum, "int ()")
 		.def("calculateOptionsChecksum", &CyGame::calculateOptionsChecksum, "int ()")
@@ -247,9 +247,10 @@ void CyGamePythonInterface()
 		.def("getReplayMessagePlotY", &CyGame::getReplayMessagePlotY, "int (int i)")
 		.def("getReplayMessagePlayer", &CyGame::getReplayMessagePlayer, "int (int i)")
 		.def("getReplayMessageColor", &CyGame::getReplayMessageColor, "ColorTypes (int i)")
-		.def("getReplayMessageText", &CyGame::getReplayMessageText, "wstring getReplayMessageText(int i) const (int i)")
+		.def("getReplayMessageText", &CyGame::getReplayMessageText, "wstring getReplayMessageText(int i) (int i)")
 		.def("getNumReplayMessages", &CyGame::getNumReplayMessages, "uint ()")
-		.def("getReplayInfo", &CyGame::getReplayInfo,"CyReplayInfo* ()" 
+		.def("getReplayInfo", &CyGame::getReplayInfo, python::return_value_policy<python::manage_new_object> (), "CyReplayInfo* ()")
+
 		.def("hasSkippedSaveChecksum", &CyGame::hasSkippedSaveChecksum, "bool ()")
 		.def("saveReplay", &CyGame::saveReplay, "void (int iPlayer)")
 		.def("addPlayer", &CyGame::addPlayer, "void (int eNewPlayer, int eLeader, int eCiv)")
@@ -278,8 +279,8 @@ void CyGamePythonInterface()
 		.def("getSecondPlayer", &CyDeal::getSecondPlayer, "int ()")
 		.def("getLengthFirstTrades", &CyDeal::getLengthFirstTrades, "int ()")
 		.def("getLengthSecondTrades", &CyDeal::getLengthSecondTrades, "int ()")
-		.def("getFirstTrade", &CyDeal::getFirstTrade,"TradeData* (int i)" 
-		.def("getSecondTrade", &CyDeal::getSecondTrade,"TradeData* (int i)" 
+		.def("getFirstTrade", &CyDeal::getFirstTrade, python::return_value_policy<python::reference_existing_object>(), "TradeData* (int i)")
+		.def("getSecondTrade", &CyDeal::getSecondTrade, python::return_value_policy<python::reference_existing_object>(), "TradeData* (int i)")
 		.def("kill", &CyDeal::kill, "void ()")
 		;
 }

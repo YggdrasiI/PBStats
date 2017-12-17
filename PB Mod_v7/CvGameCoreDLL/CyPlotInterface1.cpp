@@ -181,7 +181,7 @@ void CyPlotPythonInterface1(python::class_<CyPlot>& x)
 		.def("setFeatureDummyVisibility", &CyPlot::setFeatureDummyVisibility, "void (string dummyTag, bool show)")
 		.def("addFeatureDummyModel", &CyPlot::addFeatureDummyModel, "void (string dummyTag, string modelTag)")
 		.def("setFeatureDummyTexture", &CyPlot::setFeatureDummyTexture, "void (string dummyTag, string textureTag)")
-		.def("pickFeatureDummyTag", &CyPlot::pickFeatureDummyTag, "string pickFeatureDummyTag(int mouseX, int mouseY) (int mouseX, int mouseY)")
+		.def("pickFeatureDummyTag", &CyPlot::pickFeatureDummyTag, "string (int mouseX, int mouseY)")
 		.def("resetFeatureModel", &CyPlot::resetFeatureModel, "void ()")
 		.def("getBonusType", &CyPlot::getBonusType, "int ( BonusTypes */ (int (TeamTypes) eTeam)")
 		.def("getNonObsoleteBonusType", &CyPlot::getNonObsoleteBonusType, "int ( BonusTypes */ (int (TeamTypes) eTeam)")
@@ -251,7 +251,7 @@ void CyPlotPythonInterface1(python::class_<CyPlot>& x)
 		.def("getNumUnits", &CyPlot::getNumUnits, "int ()")
 		.def("getUnit", &CyPlot::getUnit, python::return_value_policy<python::manage_new_object>(), "int (int ( PlayerTypes ) eOwner)")
 
-		.def("getScriptData", &CyPlot::getScriptData, "string getScriptData() const () - Get stored custom data")
+		.def("getScriptData", &CyPlot::getScriptData, "string getScriptData() - Get stored custom data")
 		.def("setScriptData", &CyPlot::setScriptData, "void (string szNewValue) - Set stored custom data")
 	;
 }

@@ -357,12 +357,12 @@ void CyUnitPythonInterface1(python::class_<CyUnit>& x)
 
 		.def("getExtraDomainModifier", &CyUnit::getExtraDomainModifier, "int (int (DomainTypes) eIndex)")
 
-		.def("getName", &CyUnit::getName, "wstring getName() () - Returns the name of a unit along with its type description in parens if using a custom name")
-		.def("getNameForm", &CyUnit::getNameForm, "wstring getNameForm(int iForm) (int iForm)")
-		.def("getNameKey", &CyUnit::getNameKey, "wstring getNameKey() ()")
-		.def("getNameNoDesc", &CyUnit::getNameNoDesc, "wstring getNameNoDesc() () - Returns the name of a unit without any description afterwards")
+		.def("getName", &CyUnit::getName, "wstring () - Returns the name of a unit along with its type description in parens if using a custom name")
+		.def("getNameForm", &CyUnit::getNameForm, "wstring (int iForm)")
+		.def("getNameKey", &CyUnit::getNameKey, "wstring ()")
+		.def("getNameNoDesc", &CyUnit::getNameNoDesc, "wstring () - Returns the name of a unit without any description afterwards")
 		.def("setName", &CyUnit::setName, "void (wstring szNewValue)")
-		.def("getScriptData", &CyUnit::getScriptData, "string getScriptData() const ()")
+		.def("getScriptData", &CyUnit::getScriptData, "string getScriptData()")
 		.def("setScriptData", &CyUnit::setScriptData, "void (string szNewValue)")
 
 		.def("isTerrainDoubleMove", &CyUnit::isTerrainDoubleMove, "bool (TerrainType)")
@@ -390,6 +390,6 @@ void CyUnitPythonInterface1(python::class_<CyUnit>& x)
 		.def("rangeStrike", &CyUnit::rangeStrike, "void (int iX, int iY)")
 
 		.def("getArtInfo", &CyUnit::getArtInfo,  python::return_value_policy<python::reference_existing_object>(), "const CvArtInfoUnit* (int i, EraTypes eEra)")
-		.def("getButton", &CyUnit::getButton, "string getButton() const ()")
+		.def("getButton", &CyUnit::getButton, "string getButton()")
 		;
 }

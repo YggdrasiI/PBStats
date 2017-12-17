@@ -47,7 +47,7 @@ void CyPlayerPythonInterface2(python::class_<CyPlayer>& x)
 		.def("getCultureHistory", &CyPlayer::getCultureHistory, "int (int iTurn)")
 		.def("getEspionageHistory", &CyPlayer::getEspionageHistory, "int (int iTurn)")
 
-		.def("getScriptData", &CyPlayer::getScriptData, "string getScriptData() const () - Get stored custom data (via pickle)")
+		.def("getScriptData", &CyPlayer::getScriptData, "string getScriptData() - Get stored custom data (via pickle)")
 		.def("setScriptData", &CyPlayer::setScriptData, "void (string szNewValue) - Set stored custom data (via pickle)")
 
 		.def("chooseTech", &CyPlayer::chooseTech, "void (int iDiscover, wstring szText, bool bFront)")

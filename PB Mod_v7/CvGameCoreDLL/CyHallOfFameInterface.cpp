@@ -20,11 +20,11 @@ void CyHallOfFameInterface()
 		.def("getLeader", &CyReplayInfo::getLeader, "int (int iPlayer)")
 		.def("getColor", &CyReplayInfo::getColor, "int (int iPlayer)")
 		.def("getDifficulty", &CyReplayInfo::getDifficulty, "int ()")
-		.def("getLeaderName", &CyReplayInfo::getLeaderName, "wstring getLeaderName() const ()")
-		.def("getCivDescription", &CyReplayInfo::getCivDescription, "wstring getCivDescription() const ()")
-		.def("getShortCivDescription", &CyReplayInfo::getShortCivDescription, "wstring getShortCivDescription() const ()")
-		.def("getCivAdjective", &CyReplayInfo::getCivAdjective, "wstring getCivAdjective() const ()")
-		.def("getMapScriptName", &CyReplayInfo::getMapScriptName, "wstring getMapScriptName() const ()")
+		.def("getLeaderName", &CyReplayInfo::getLeaderName, "wstring getLeaderName()")
+		.def("getCivDescription", &CyReplayInfo::getCivDescription, "wstring getCivDescription()")
+		.def("getShortCivDescription", &CyReplayInfo::getShortCivDescription, "wstring getShortCivDescription()")
+		.def("getCivAdjective", &CyReplayInfo::getCivAdjective, "wstring getCivAdjective()")
+		.def("getMapScriptName", &CyReplayInfo::getMapScriptName, "wstring getMapScriptName()")
 		.def("getWorldSize", &CyReplayInfo::getWorldSize, "int ()")
 		.def("getClimate", &CyReplayInfo::getClimate, "int ()")
 		.def("getSeaLevel", &CyReplayInfo::getSeaLevel, "int ()")
