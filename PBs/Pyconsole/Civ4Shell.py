@@ -611,9 +611,7 @@ if( gc.getMAX_CIV_PLAYERS() > {iPlayer} and {iPlayer} > -1):
     if not CyPitboss().getPlayerAdminData({iPlayer}).bTurnActive:
         print(-1)
     else:
-        gc.getGame().setActivePlayer({iPlayer}, False)
-        CyMessageControl().sendTurnComplete()
-        gc.getGame().setActivePlayer(-1, False)
+        gc.getGame().sendTurnCompletePB({iPlayer})
         print(0)
 else:
     print(-2)

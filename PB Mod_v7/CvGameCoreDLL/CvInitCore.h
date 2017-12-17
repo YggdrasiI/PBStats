@@ -297,6 +297,8 @@ public:
 	static bool isPitbossShortNames();
 	static void setPitbossShortNames( bool bShort, int maxLenName = 2, int maxLenDesc = 3  ); // Limit: 52*2*3 = MAX_PLAYERS*maxLenName*maxLenDesc
 
+	DllExport sendTurnCompletePB(PlayerTypes eActivePlayer);
+
 protected:
 
 	void clearCustomMapOptions();

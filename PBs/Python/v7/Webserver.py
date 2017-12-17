@@ -592,9 +592,10 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                         elif action == "endPlayerTurn":
                             playerId = int(inputdata.get("playerId", -1))
                             if playerId > -1 and playerId < gc.getMAX_CIV_PLAYERS():
-                                gc.getGame().setActivePlayer(playerId, False)
-                                CyMessageControl().sendTurnComplete()
-                                gc.getGame().setActivePlayer(-1, False)
+                                # gc.getGame().setActivePlayer(playerId, False)
+                                # CyMessageControl().sendTurnComplete()
+                                # gc.getGame().setActivePlayer(-1, False)
+                                gc.getGame().sendTurnCompletePB(playerId)
                                 self.wfile.write(simplejson.dumps(
                                     {'return': 'ok', 'info':
                                     'Turn of player ' + str(playerId) + ' finished.'})

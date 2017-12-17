@@ -267,6 +267,7 @@ void CyGamePythonInterface()
 		.def("doControl", &CyGame::doControl, "void (int iControl)")
 		.def("setCivPassword", &CyGame::setCivPassword, "int (int ePlayer, const char *szNewPw, const char *szAdminPw) - Allows change of passwords over webinterface")
 		.def("isDiploScreenUp", &CyGame::isDiploScreenUp, "bool ()")
+		.def("sendTurnCompletePB", &CyGame::sendTurnCompletePB, "void (int iPlayer)")
 		;
 
 	python::class_<CyDeal>("CyDeal")

@@ -1203,3 +1203,9 @@ bool CyGame::isDiploScreenUp() const
 {
 	return (NULL != m_pGame ? m_pGame->isDiploScreenUp() : false);
 }
+
+void CyGame::sendTurnCompletePB(int iPlayer){
+	if( m_pGame != NULL ){
+		CvInitCore::sendTurnCompletePB(iPlayer);
+	}
+}
