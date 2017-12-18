@@ -457,6 +457,11 @@ else:
         except ValueError:
             status = {"error" : "Can not decode status."}
 
+        # Truncate mod name
+        if "modName" in status:
+            m = status["modName"]
+            status["modName"] = m.replace("Mods", "").strip("\\")
+
         keys = ["error", "gameName", "gameTurn", "gameYear",
                 "modName", "bAutostart", "bPaused", "mode"]
         for k in keys:
