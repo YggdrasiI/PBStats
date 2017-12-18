@@ -139,17 +139,17 @@ def nested_dict_update(dBase, dUpdate, max_depth=-1):
 def loadPbSettings(bFallbackToDefaults=False):
     if os.path.isfile(PbFn):
         fp = file(PbFn, "r")
-        pbSettings = dict(PbDefaultSettings)
-        nested_dict_update(pbSettings, simplejson.load(fp), 1)
+        _PbSettings = dict(PbDefaultSettings)
+        nested_dict_update(_PbSettings, simplejson.load(fp), 1)
         fp.close()
     elif bFallbackToDefaults:
-        pbSettings = dict(PbDefaultSettings)
+        _PbSettings = dict(PbDefaultSettings)
         if AltrootDir != "":
             savePbSettings()
         else:
             globals()["PbFn"] = None
 
-    globals()["PbSettings"] = pbSettings
+    globals()["PbSettings"] = _PbSettings
 
 
 def getPbSettings():

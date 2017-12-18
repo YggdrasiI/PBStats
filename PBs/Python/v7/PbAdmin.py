@@ -143,12 +143,13 @@ if noGui:
             if(PbSettings['webfrontend']['sendPeriodicalData'] != 0):
                 self.webupload.cancel()
                 self.webserver.shutdown()
-
-        def OnCloseWindow(self, event):
-            "'close window' event handler"
             if "Civ4Shell" in globals():
                 Civ4Shell["shell"].run = False
                 Civ4Shell["shell"].close()
+
+        #def OnCloseWindow(self, event):
+        #    "'close window' event handler"
+        #    self.OnExit(None)
 
     #
     # main app class
@@ -630,6 +631,7 @@ else:
         def OnCloseWindow(self, event):
             "'close window' event handler"
             # PB.quit()
+            self.OnExit(None)
             self.Destroy()
             if "Civ4Shell" in globals():
                 Civ4Shell["shell"].run = False
@@ -665,7 +667,8 @@ else:
             wx.EventLoop.SetActive(evtloop)
 
             # Update our view
-            self.adminFrame.update()
+            if self.adminFrame:  # Check avoids PyDeadObjectError
+                self.adminFrame.update()
 
             # This inner loop will process any GUI events
             # until there are no more waiting.

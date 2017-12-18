@@ -66,7 +66,7 @@ class Server:
             data = data.rstrip(EOF)
             self.code_store.append(data)
 
-            # Wait until other thread had handled one slice (everya. 0.25s)
+            # Wait until other thread had handled one slice (every 0.25s)
             sleep(0.35)
 
             # Fetch output

@@ -124,6 +124,8 @@ class Civ4Shell(cmd.Cmd):
 
     prompt = ''
 
+    short_config_usage = "Usage: config [show|reload|save|edit [key]=[value]]"
+
     def __init__(self, *args, **kwargs):
         cmd.Cmd.__init__(self, *args)
         self.client = None
@@ -149,16 +151,8 @@ class Civ4Shell(cmd.Cmd):
             self.client.connect(self.remote_server_adr)
         except ValueError:
             warn("Connecting failed. Invalid port?")
-
-        """
-        # Server
-            if self.server is not None:
-                self.server.stop()
-                self.server_thread.join()
-            self.server = Server(self.local_server_adr)
-            self.server_thread = Thread(target=self.server.start)
-            self.server_thread.start()
-        """
+        except socket.error:
+            warn("Connecting failed. Invalid port?")
 
     def emptyline(self):
         """Do nothing on empty input line"""
@@ -228,6 +222,8 @@ class Civ4Shell(cmd.Cmd):
             'config edit shell/port=3334'
           Note that the prefix 'shell/' in the last example is required because
             the key 'port' is globally not unique.
+
+            %s
         """
 
         args = args.strip().split(" ")
@@ -259,7 +255,7 @@ class Civ4Shell(cmd.Cmd):
             self.default(d)
         elif len(args) > 0 and args[0] == "reload":
             # Nullify settings dict to force reload of file.
-            d = "Webserver.pbSettings = None; Webserver.getPbSettings()"
+            d = "Webserver.PbSettings = None; Webserver.getPbSettings()"
             self.default(d)
         elif(len(args) > 1 and args[0] == "edit"
              and "=" in args[1]):
@@ -304,8 +300,9 @@ class Civ4Shell(cmd.Cmd):
                 print("No editable key: %s" % ("/".join(conf_key)))
 
         else:
-            print("Usage: config [show|reload|save|edit [key]=[value]]")
+            print(short_config_usage)
 
+    do_config.__doc__ %= (short_config_usage,)
 
     def do_save(self, arg):
         """Create CivBeyondSwordSave.
@@ -402,8 +399,9 @@ else:
             # An other game is already loaded. Update settings file
             # and quit PB server. At next startup, the new file should be
             # loaded.
-            self.send("p:Webserver.pbSettings[\"save\"][\"oneOffAutostart\"] = 1; Webserver.savePbSettings()")
+            self.send("p:Webserver.getPbSettings()[\"save\"][\"oneOffAutostart\"] = 1; Webserver.savePbSettings()")
             print("Restart PB server")
+            sleep(1)
             self.send("Q:")
 
         # The backend will re-create the socket and we had to
@@ -415,7 +413,7 @@ else:
 #        return True
 
         print("Wait a few seconds...")
-        sleep(2)
+        sleep(10)
         for _ in xrange(60):
             sleep(2)
             sys.stdout.write(".")
@@ -426,7 +424,12 @@ else:
                 return
             except socket.error:  # IOError:
                 # self.close()
-                pass
+                print("Socket error on re-opening")
+            except:
+                print("Error due re-opening of socket")
+
+            try:
+                self.close()
             except:
                 pass
 
@@ -575,6 +578,8 @@ else:
             name = dSel.get("name", "name?")
             print("Select %s" % (name,))
             self.do_config("edit save/filename=%s" % (name,))
+            #self.do_config("save")
+            print("Type 'pb_start' to trigger restart with above file.")
 
     def do_pause(self, arg):
         """ Toggle pause. """
@@ -597,9 +602,6 @@ else:
 
             Format: pb_end_turn {iPlayer}
         """
-        # Bug: setActivePlayer blockades player slot until game is reloaded
-        # This could only be fixed by an extra DLL function.
-        warn("Attention, player slot blockades till game is reloaded.")
 
         d = None
         if len(arg) > 0:
@@ -786,16 +788,19 @@ print(json.dumps({0}'saves':Webserver.getListOfSaves('{2}','{3}', {4}){1}))
         # print(d)
         result = str(self.send("p:"+d))
         if result:
-            result = result[result.find("{"):result.rfind("}")+1]
+            json_str = result[result.find("{"):result.rfind("}")+1]
 
-        try:
-            import json
-            saves = json.loads(result)
-        except ValueError:
-            print("Can not decode list of saves.")
-            saves = {}
+            try:
+                import json
+                saves = json.loads(json_str)
+                return saves.get("saves", [])
+            except ValueError:
+                warn("Can not decode list of saves.")
+                warn(result)
+                #TODO: List of saves will return in multiple package. Sometimes,
+                # the ordering flips.
 
-        return saves.get("saves", [])
+        return []
 
 # -----------------------------------------
 

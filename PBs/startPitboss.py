@@ -161,11 +161,12 @@ def fixIniFile(gameid):
     iniFn = os.path.join(altroot, INI)
     opt = INI_OPT+"="
     if os.path.isfile(iniFn):
-        for line in fileinput.input(iniFn, inplace=True):
+        for line in fileinput.input(iniFn, inplace=True, backup=".pybak"):
             if line.startswith(opt):
                 print("%s%s" % (opt, altroot_w))
             else:
-                print(line)
+                print(line.strip())
+
     else:
         print("%s not found." % (iniFn[iniFn.rfind(os.path.sep)+1:]))
         return False
@@ -391,6 +392,8 @@ def parseModName(filename):
 
         return mod_name
 
+    except MemoryError:
+        print("Error while reading {0}").format(filename)
     finally:
         f.close()
 

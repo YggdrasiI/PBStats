@@ -29,12 +29,20 @@ b) Use predifined macro for above task. (Type 'help' to get a list of all comman
 
 c) List saves, edit config and restart server with new save.
 > python Pyconsole 3333
->       list Playername
+>       list PlayerX
 >       list Logoff.*P0
->       config edit save/filename=Logoff_P0_UserXY_T1507924088.CivBeyondSwordSave
+>       config edit save/filename=Logoff_P0_PlayerX_T1507924088.CivBeyondSwordSave
 >       config show
->       
-Reload.CivBeyondSwordSave
+>       pb_start
+>       bye
+
+d) List 10 saves, and restart with second save of list
+> python Pyconsole 3333
+>       list 10
+>       load 2
+>       pb_start
+>       bye
+
 
 
 == Setup  ==
