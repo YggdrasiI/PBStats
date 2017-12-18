@@ -21,6 +21,9 @@ Pyconsole:
 
 	See ../PBs/Pyconsole
 
+Pylint_for_Civ4:
+  Provides helpful list of classes/function stubs for Pylint. This gives Pylint
+  or your text editor the capability to detect existing Civ4:SDK functions, etc.
 
 Civ4BeyondSword2015.exe:
 Civ4BeyondSword_Pitboss2014.exe:
