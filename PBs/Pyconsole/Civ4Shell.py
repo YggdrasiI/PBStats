@@ -300,7 +300,7 @@ class Civ4Shell(cmd.Cmd):
                 print("No editable key: %s" % ("/".join(conf_key)))
 
         else:
-            print(short_config_usage)
+            print(self.short_config_usage)
 
     do_config.__doc__ %= (short_config_usage,)
 
