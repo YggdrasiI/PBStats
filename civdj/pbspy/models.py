@@ -11,7 +11,7 @@ from polymorphic.models import PolymorphicModel
 from django.utils import timezone, html
 from django.contrib.auth.models import User
 from django.template.loader import render_to_string
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 import socket
 import datetime

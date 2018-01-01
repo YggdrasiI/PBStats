@@ -25,7 +25,7 @@ from django.db.models import Count, Q
 from django.db.models import Case, When
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from django.core.exceptions import ValidationError
 from django.utils.html import escape, strip_tags
