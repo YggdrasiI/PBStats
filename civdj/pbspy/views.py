@@ -44,12 +44,17 @@ class GameListView(ListView):
     model = Game
 
     def get_queryset(self):
+        # The year check filters out fake entries with have no connection
+        # For public games, 'wrong_player_count' is duplicated for each admin due to the
+        # necessary resulting left join with the game_admins table.
+        # We can fix this by correcting after the fact even though it's really ugly
         games_queryset = self.model.objects.filter(
-            Q(is_private=False) & ~Q(year=None)\
-            | Q(admins__id=self.request.user.id) # Filter out (fake) entries without connection
+            Q(is_private=False) & ~Q(year=None) | Q(admins__id=self.request.user.id)
         ).annotate(
-            # player_count=Count('player', distinct=True)
-            player_count=Count(Case(When(player__ingame_stack=0, then=1)))
+            wrong_player_count=Count(Case(When(player__ingame_stack=0, then=1))),
+            admin_count=Count('admins__id', distinct=True)
+        ).annotate(
+            player_count=F('wrong_player_count')/F('admin_count')
         ).order_by('-id')
 
         self.refresh_games(games_queryset)
