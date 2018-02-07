@@ -21,7 +21,7 @@ from pbspy.models import GameLogTurn, GameLogReload, GameLogMetaChange, GameLogT
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Count, Q
+from django.db.models import Count, Q, F
 from django.db.models import Case, When
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
