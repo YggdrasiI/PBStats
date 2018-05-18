@@ -85,3 +85,9 @@ New in version 6 (PB Mod_v6):
   • PBSpy webinterface allow kicking of players
   • PBSpy webinterface contains now an option to declare a winner.
   • BTS_Wrapper: Works now with https and http urls.
+
+New in version 7 (PB Mod_v7):
+  • Add gc.sendTurnCompletePB(iPlayer) funktion.
+  • Add optional Civ4Shell-Callback in Gameloop of PB Server
+  • Extend PB startup modes to allow control over Civ4Shell, only (without GUI or Webfrontend).
+  • BTS_Wrapper: Fast transfer of Saves in normal MP-Games, too

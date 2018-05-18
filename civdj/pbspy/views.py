@@ -522,6 +522,19 @@ def game_manage(request, game_id, action=""):
 
 def render_game_manage_color(request, game, context):
     context['colors'] = game.pb_list_colors()
+
+    # Add RGB-Values as own list. (How to convert RGBA-Values in templates?!)
+    def _rgb(rgba):
+        rgb = [int(c) for c in rgba.split(",")][:3]
+        #return ",".join([str(c) for c in rgb])
+        return "#{0:02X}{1:02X}{2:02X}".format(*rgb)
+
+    context['colorsRGB'] = [ {"id": rgba["id"],
+                              "primary":_rgb(rgba["primary"]),
+                              "secondary": _rgb(rgba["secondary"]),
+                              "text": _rgb(rgba["text"])}
+                            for rgba in context['colors']]
+
     if len(context['colors']) == 0:
         return HttpResponseBadRequest('Command not supported by PB Server.')
     context['set_player_color_form'] = GameManagementSetPlayerColorForm(

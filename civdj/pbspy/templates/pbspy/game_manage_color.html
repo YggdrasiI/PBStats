@@ -51,6 +51,25 @@
                     </tr>
                 {% endfor %}
             </table>
+            <h2>{% trans "Available colorsets" %} {% trans "as BB-Code" %}</h2>
+            <textarea style="width:50%; height:400px;">
+[table="width: 500"]
+  [tr]
+    [td]Primary[/td]
+    [td]Secondary[/td]
+    [td]Textcolor[/td]
+    [td]ID[/td]
+  [/tr]
+{% for color in colorsRGB %}
+  [tr]
+    [td][color="{{color.primary}}"]█████[/COLOR][/td]
+    [td][color="{{color.secondary}}"]█████[/COLOR][/td]
+    [td][color="{{color.text}}"]█████[/COLOR][/td]
+    [td]{{color.id}}[/td]
+  [/tr]
+  {% endfor %}
+[/table]
+            </textarea>
         </div>
     </div>
 {% endblock %}
