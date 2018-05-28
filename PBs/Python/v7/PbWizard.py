@@ -86,21 +86,21 @@ def start_shell(shell_settings, mode=""):
 
 PbSettings = Webserver.getPbSettings()
 pbPasswords = Webserver.getPbPasswords()
-noGui = PbSettings.get("noGui", False)
+PBMOD_NOGUI = PbSettings.get("noGui", False)
 
-autostart = False
+PBMOD_AUTOSTART = False
 if(PbSettings.get("save", {}).get("oneOffAutostart")):
-    autostart = True
+    PBMOD_AUTOSTART = True
     del PbSettings["save"]["oneOffAutostart"]
     # The oneOffAutostart-Key was removed. Save this status
     Webserver.savePbSettings()
 
 if PbSettings.get("autostart"):
-    autostart = True
+    PBMOD_AUTOSTART = True
 
 # Check deprecated node position of 'autostart'
 if PbSettings.get("save", {}).get("autostart"):
-    autostart = True
+    PBMOD_AUTOSTART = True
     PbSettings["autostart"] = True
     del PbSettings["save"]["autostart"]
     Webserver.savePbSettings()
@@ -119,12 +119,19 @@ to totally different defined classes...
 
 CIV4_SHELL = PbSettings.get("shell", {}).get("enable", 0)
 
-if noGui and not CIV4_SHELL:
+if PBMOD_NOGUI and not CIV4_SHELL:
     # Above flags require autostart of server.
-    autostart = True
+    PBMOD_AUTOSTART = True
 
+CyPitboss().consoleOut(
+    "PB Mod Start Options:\n\tAutostart: %i\n\tNo Gui:d %i\n\tShell: %i" % (
+        PBMOD_AUTOSTART, PBMOD_NOGUI, CIV4_SHELL)
+)
+if CIV4_SHELL and not PBMOD_AUTOSTART:
+    CyPitboss().consoleOut("Warning, application waits for commands on shell (see Pyconsole).")
+    CyPitboss().consoleOut("Disable shell or enable autostart if this is not desired.")
 
-if CIV4_SHELL and not autostart:
+if CIV4_SHELL and not PBMOD_AUTOSTART:
     """ New approach with interactive shell. """
     #
     # main app class
@@ -198,7 +205,7 @@ if CIV4_SHELL and not autostart:
         def refreshRow(self, iRow):
             return
 
-elif noGui or autostart:
+elif PBMOD_NOGUI or PBMOD_AUTOSTART:
     # Reduced GUI classes
 
     #
@@ -211,8 +218,8 @@ elif noGui or autostart:
 
         def OnInit(self):
 
-            # Currently, autostart is always true for noGui variant
-            if autostart:
+            # Currently, PBMOD_AUTOSTART is always true for PBMOD_NOGUI variant
+            if PBMOD_AUTOSTART:
 
                 # Use predefined values to start up server
                 # without wizard pages
@@ -890,9 +897,9 @@ else:
             self.rbs = []
             index = 0
 
-            global autostart
+            global PBMOD_AUTOSTART
 
-            if not autostart:
+            if not PBMOD_AUTOSTART:
                 for index in range(PB.getNumScenarios()):
                     # We need to start a group on the first one
                     if (index == 0):
@@ -1833,7 +1840,7 @@ else:
         def OnInit(self):
             global curPage
 
-            global autostart
+            global PBMOD_AUTOSTART
 
             "Create the Pitboss Setup Wizard"
             self.wizard = wx.wizard.Wizard(None, -1, (localText.getText("TXT_KEY_PITBOSS_TITLE", ())))
@@ -1862,7 +1869,7 @@ else:
 
             self.progressDlg = None
 
-            if not autostart:
+            if not PBMOD_AUTOSTART:
                 curPage = self.modSelect
                 #curPage = self.staging
                 self.wizard.FitToPage(curPage)
@@ -1874,7 +1881,7 @@ else:
             self.updateTimer.Start(250)
 
             # Force automatic start
-            if autostart:
+            if PBMOD_AUTOSTART:
 
                 # This prevent the wizard page creation in the startup method
                 curPage = None
@@ -1903,7 +1910,7 @@ else:
                             self.updateTimer.Stop()
                             PB.launch()
                 else:
-                    # Loading of savegame failed. Thus, autostart was not possible
+                    # Loading of savegame failed. Thus, PBMOD_AUTOSTART was not possible
                     # Missing error message for user here...
                     self.updateTimer.Stop()
                     PB.quit()

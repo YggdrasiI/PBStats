@@ -33,7 +33,7 @@ if errorLogFile is not None:
     sys.stderr = open(logName, 'w')
 
 
-noGui = PbSettings.get("noGui", False)
+PBMOD_NOGUI = PbSettings.get("noGui", False)
 playerWasOnline = []  # To track login and logout events
 for _ in range(gc.getMAX_CIV_PLAYERS()):
     playerWasOnline.append(False)
@@ -65,10 +65,10 @@ def start_shell(shell_settings, mode=""):
 
 
 """
-Attention: noGui flag forces the usage
+Attention: PBMOD_NOGUI flag forces the usage
 of complete different classes
 """
-if noGui:
+if PBMOD_NOGUI:
     #
     # admin frame class
     #
