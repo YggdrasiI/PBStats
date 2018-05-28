@@ -533,7 +533,7 @@ else:
         def OnSave(self, event):
             "'save' event handler"
             dlg = wx.FileDialog(
-                self, message=(localText.getText("TXT_KEY_PITBOSS_SAVE_AS", ())), defaultDir=".\saves\multi",
+                self, message=(localText.getText("TXT_KEY_PITBOSS_SAVE_AS", ())), defaultDir=".\Saves\multi",
                 defaultFile="Pitboss_"+PB.getGamedate(True)+".CivBeyondSwordSave",
                 wildcard=(localText.getText("TXT_KEY_PITBOSS_SAVE_AS_TEXT", ())) + " (*.CivBeyondSwordSave)|*.CivBeyondSwordSave", style=wx.SAVE | wx.OVERWRITE_PROMPT
                 )

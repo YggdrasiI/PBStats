@@ -66,7 +66,7 @@ PbDefaultSettings = {
         # File (without path) to load game startup (if autostart is enabled)
         "filename": "A.CivBeyondSwordSave",
         "adminpw": "",  # Admin password of above save
-        "savefolder": "saves\\multi\\",  # First choice to save games.
+        "writefolder": "Saves\\multi\\",  # First choice to save games.
         # List of relative paths which can be used to load games.
         # Useful to load saves of game 1 in second PB instance.
         "readfolders": []
@@ -214,20 +214,20 @@ def getPossibleSaveFolders():
     if "save" not in PbSettings:
         PbSettings["save"] = {}
 
-    # Note: "path" is the deprecated name of "savefolder"
+    # Note: "path" is the deprecated name of "writefolder"
     userPath = str(
         PbSettings["save"].get(
-            "savefolder",
+            "writefolder",
             PbSettings["save"].get(
                 "path",
-                "saves\\multi\\")))
+                "Saves\\multi\\")))
     folders = [
         AltrootDir + "\\" + userPath,
         AltrootDir + "\\" + userPath + "auto\\",
-        AltrootDir + "\\" + "saves\\multi\\",
-        AltrootDir + "\\" + "saves\\multi\\auto\\",
-        AltrootDir + "\\" + "saves\\pitboss\\",
-        AltrootDir + "\\" + "saves\\pitboss\\auto\\"
+        AltrootDir + "\\" + "Saves\\multi\\",
+        AltrootDir + "\\" + "Saves\\multi\\auto\\",
+        AltrootDir + "\\" + "Saves\\pitboss\\",
+        AltrootDir + "\\" + "Saves\\pitboss\\auto\\"
         ]
 
     # Add extra folders

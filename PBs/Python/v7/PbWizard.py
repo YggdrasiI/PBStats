@@ -744,7 +744,7 @@ else:
                     # Loading a game - popup the file browser
                     bScenario = False
                     dlg = wx.FileDialog(
-                        self, message=(localText.getText("TXT_KEY_PITBOSS_CHOOSE_SAVE", ())), defaultDir=".\saves\multi",
+                        self, message=(localText.getText("TXT_KEY_PITBOSS_CHOOSE_SAVE", ())), defaultDir=".\Saves\multi",
                         defaultFile="", wildcard=localText.getText("TXT_KEY_PITBOSS_SAVE_FILES", ("(*.CivBeyondSwordSave)|*.CivBeyondSwordSave", )), style=wx.OPEN
                         )
 
