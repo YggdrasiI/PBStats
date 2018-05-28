@@ -662,7 +662,7 @@ def game_change(request, game_id, action=""):
   }},
  [...]
  """.format(gameid=game.id,
-            pbspy_url=request.get_host()+"/update",
+            pbspy_url=r"http:\/\/"+request.get_host()+r"\/update",
             pb_remote_password=game.pb_remote_password,
             pb_manage_port=game.manage_port
            )
