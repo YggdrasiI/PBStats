@@ -2,6 +2,15 @@
 #ifndef CVPOPUPINFO_H
 #define CVPOPUPINFO_H
 
+// PB Mod
+// Mark value of flag variable as popup flag (set highest signed bit 1)
+#define PBMOD_ADD_POPUP_FLAG(FLAGS) ((FLAGS) | (1<<30))
+// Check if flag variabe has popup flag
+#define PBMOD_IS_POPUP_FLAG(FLAGS)  ((FLAGS) & (1<<30))
+// Strip flag varible by above flag
+#define PBMOD_GET_POPUP_FLAG(FLAGS) ((FLAGS) & ~(1<<30))
+// PB Mod END
+
 //#include "CvEnums.h"
 
 struct CvPopupButtonPython

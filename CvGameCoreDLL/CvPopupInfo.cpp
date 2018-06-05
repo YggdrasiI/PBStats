@@ -11,6 +11,15 @@ CvPopupInfo::CvPopupInfo(ButtonPopupTypes eButtonPopupType, int iData1, int iDat
 	m_eButtonPopupType(eButtonPopupType),
 	m_bPendingDelete(false)
 {
+  /* PB Mod
+   * Enrich with turnslice info to avoid second popup at next login.
+   * Note that this flag will be overriden if .setFlag will be called later.
+   */
+  if( eButtonPopupType == BUTTONPOPUP_PYTHON ){
+    if( m_iFlags == 0 /* Default value */){
+      m_iFlags = PBMOD_ADD_POPUP_FLAG(GC.getGameINLINE().getTurnSlice());
+    }
+  }
 }
 
 CvPopupInfo::~CvPopupInfo()

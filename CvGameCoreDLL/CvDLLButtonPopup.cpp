@@ -1477,7 +1477,7 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 	 * Solution: Set a flag if the player was logged in during the oracle build
 	 *           and skip second popup.
 	 */
-	if(	info.getFlags() == 1 ){
+	if( PBMOD_IS_POPUP_FLAG(info.getFlags()) && PBMOD_GET_POPUP_FLAG(info.getFlags()) == 1 ){
 		return (false);
 	}
 
@@ -1874,9 +1874,11 @@ bool CvDLLButtonPopup::launchDoEspionagePopup(CvPopup* pPopup, CvPopupInfo &info
 	 * Espionage popup bugfix: Compare turn slice timestamp. 
 	 * This fails for all quequed messages in pitboss save.
 	 */
-	if(	GC.getGameINLINE().getTurnSlice() != info.getFlags() ){
-		return (false);
-	}
+  if( PBMOD_IS_POPUP_FLAG(info.getFlags()) &&
+      PBMOD_GET_POPUP_FLAG(info.getFlags()) != GC.getGameINLINE().getTurnSlice()
+    ){
+    return (false);
+  }
 
 	gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, gDLL->getText("TXT_KEY_CHOOSE_ESPIONAGE_MISSION"));
 
@@ -1919,10 +1921,15 @@ bool CvDLLButtonPopup::launchDoEspionageTargetPopup(CvPopup* pPopup, CvPopupInfo
 		return false;
 	}
 
-	// espionage popup bugfix: Compare turn slice timestamp. This fails for all quequed messages in pitboss save.
-	if(	GC.getGameINLINE().getTurnSlice() != info.getFlags() ){
-		return (false);
-	}
+	/* PB Mod.
+	 * Espionage popup bugfix: Compare turn slice timestamp. 
+	 * This fails for all quequed messages in pitboss save.
+	 */
+  if( PBMOD_IS_POPUP_FLAG(info.getFlags()) &&
+      PBMOD_GET_POPUP_FLAG(info.getFlags()) != GC.getGameINLINE().getTurnSlice()
+    ){
+    return (false);
+  }
 
 	CvPlot* pPlot = pUnit->plot();
 	CvCity* pCity = pPlot->getPlotCity();
@@ -2186,6 +2193,16 @@ bool CvDLLButtonPopup::launchCancelDeal(CvPopup* pPopup, CvPopupInfo &info)
 
 bool CvDLLButtonPopup::launchPythonPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
+	/* PB Mod.
+	 * Python popup bugfix: Compare turn slice timestamp. 
+	 * This fails for all quequed messages in pitboss save.
+	 */
+  if( PBMOD_IS_POPUP_FLAG(info.getFlags()) &&
+      PBMOD_GET_POPUP_FLAG(info.getFlags()) != GC.getGameINLINE().getTurnSlice()
+    ){
+    return (false);
+  }
+
 	gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, info.getText());
 	for (int i = 0; i < info.getNumPythonButtons(); i++)
 	{

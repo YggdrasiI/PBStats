@@ -2051,7 +2051,7 @@ void CvInitCore::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iNumAdvancedStartPoints);
 
 #ifdef DISALLOW_LOCAL_LOADING_OF_PB
-	/* PBMod change. Check if further data is given. */
+	/* PB Mod change. Check if further data is given. */
 	if( m_iNumAdvancedStartPoints & (1<<30)
 			&& !getAdminPassword().empty()  /* Not. ness. if (**)-Line
 																				 resets the above value, but
@@ -2152,7 +2152,7 @@ void CvInitCore::write(FDataStreamBase* pStream)
 	pStream->Write(m_iMaxCityElimination);
 
 #ifdef DISALLOW_LOCAL_LOADING_OF_PB
-	/* PBMod: Add flag to m_iNumAdvancedStartPoints and attach extra data. 
+	/* PB Mod: Add flag to m_iNumAdvancedStartPoints and attach extra data. 
 	 * If no admin password is set the security fix will omitted, but the default mode used.   
 	 */
 	if( getAdminPassword().empty() ){
