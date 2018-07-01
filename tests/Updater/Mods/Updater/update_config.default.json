@@ -1,0 +1,8 @@
+{
+    "update_urls": [
+        "http://localhost:8000/[MODNAME]",
+        "https://raw.githubusercontent.com/YggdrasiI/PBStats/master/tests/Updater/server/Updater/updates.html"],
+    "visit_url": "http://Your_Mod_homepage",
+    "current_version": "__vanilla__",
+    "check_at_startup": 0
+}
