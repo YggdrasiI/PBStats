@@ -117,6 +117,9 @@ class Civ4Shell(cmd.Cmd):
     Welcome to the Civ4 shell. Type help or ? to list commands.
     Connect to local Civ4 server with 'connect port'.
     Exit shell with 'bye'.
+
+    MODDING-NOTE: Predifined commands was desined for pitboss servers and
+    had no effect on normal Civ4 instances.
     """
 
     remote_server_adr = (PYCONSOLE_HOSTNAME, PYCONSOLE_PORT)

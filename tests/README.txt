@@ -18,12 +18,21 @@ SaveOverHttp:
 
 Pyconsole:
 	Allow remote access by a Python shell to a running PB game with the PB Mod.
+  tests/Pyconsole contain a minimal standalone mod of this feature, but it
+  is also integrated into the PB Mod_v7
 
-	See ../PBs/Pyconsole
 
 Pylint_for_Civ4:
   Provides helpful list of classes/function stubs for Pylint. This gives Pylint
   or your text editor the capability to detect existing Civ4:SDK functions, etc.
+
+
+Updater:
+  Ingame mod updater component. A minimal working mod, Updater/Mods/Updater,
+  and example server layout, Updater/server shows how automatic mod updating
+  could be implemented.
+  This feature is also integrated in PB Mod_v8.
+
 
 Civ4BeyondSword2015.exe:
 Civ4BeyondSword_Pitboss2014.exe:
