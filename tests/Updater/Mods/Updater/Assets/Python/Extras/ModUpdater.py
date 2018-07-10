@@ -250,7 +250,7 @@ class ModUpdater:
         dll_path = os.path.join(self.get_mod_path(), "Assets", "CvGameCoreDLL.dll")
         if os.path.isfile(dll_path):
             dll_path_tmp = dll_path.replace(
-                "CvGameCoreDLL", "CvGameCoreDLL.old")
+                "CvGameCoreDLL.dll", "CvGameCoreDLL.dll.old")
             if os.path.isfile(dll_path_tmp):
                 try:
                     os.unlink(dll_path_tmp)
@@ -371,6 +371,8 @@ class ModUpdater:
                     # Old Python 2.4 variant.
                     # Did not work for compressed zip's because
                     # Civ4 lib is compiled without zlib support!!
+                    # An alternative way would be the replacement of
+                    # ../Warlords/Assets/Python/System with an other version.
                     try:
                         fp = file(os.path.join(full_path, filename),
                                 "wb")#, 1024*100)

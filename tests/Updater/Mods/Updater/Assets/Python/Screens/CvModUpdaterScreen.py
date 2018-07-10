@@ -24,7 +24,7 @@ import ModUpdater
 
 # Delay of first drawing call of mod window after startup
 # Values < 0 disable delayed drawing.
-DELAYED_MS = 2000
+DELAYED_MS = 200
 
 # globals
 gc = CyGlobalContext()
@@ -74,8 +74,30 @@ def integrate():
     def _delayedPythonCallUtil(_self, argsList):
         iArg1, iArg2 = argsList
         #print("delayedPythonCall triggerd with %i %i" % (iArg1, iArg2))
+
         if iArg1 == 1 and iArg2 == 0:
-            CvScreensInterface.showModUpdaterScreen()
+
+            # To avoid nested redrawing of two threads (leads to CtD)
+            # try to win the battle by periodical requests if getMousePos()
+            # returns a valid value.
+            #(If yes, drawing will not causes an 'unidentifiable C++ exception'
+            # in fullscreen mode.)
+
+            iRepeat = 15  # Milliseconds till next check
+            pt = CyInterface().getMousePos()
+            #print("Mouse position (%i, %i)" % (int(pt.x), int(pt.y)))
+
+            if pt.x == 0 and pt.y == 0:
+                return iRepeat
+            else:
+                if not CvScreensInterface.modUpdaterScreen.FIRST_DRAWN:
+                    CvScreensInterface.showModUpdaterScreen()
+
+                return 0
+
+        # Unhandled argument combination... Should not be reached.
+        return 0
+
 
     CvGameInterface.delayedPythonCall = _delayedPythonCall
     CvGameUtils.CvGameUtils.delayedPythonCall = _delayedPythonCallUtil
@@ -130,14 +152,13 @@ class CvModUpdaterScreen( CvPediaScreen.CvPediaScreen ):
                 }
 
         self.DRAWING_COUNTER = 0
-        self.FIRST_DRAWING = True
-        self.thread = None
+        self.FIRST_DRAWING = True # True until showScreen is called once
+        self.FIRST_DRAWN = False  # True after menu was drawn.
+        # Time :   0               FIRST_DRAWING                           FIRST_DRAWN
+        # chart: [Game Start] [onWindowActivation called] ...wait...  [Timer or second onWindowActivation]
 
     def getScreen(self):
         return CyGInterfaceScreen(self.MOD_UPDATER_SCREEN_NAME, CvScreenEnums.MODUPDATER_SCREEN)
-
-    def delayedShow(self):
-        self.showScreen(True)
 
     def showScreen(self, bForce=False):
         # Screen construction function
@@ -155,12 +176,12 @@ class CvModUpdaterScreen( CvPediaScreen.CvPediaScreen ):
         else:
             self.DRAWING_COUNTER += 1
 
+        self.FIRST_DRAWN = True
         screen = self.getScreen()
         self.deleteAllWidgets()
         bNotActive = (not screen.isActive())
         if bNotActive or bForce:
             self.setCommonWidgets()
-
 
     def initScreen(self):
 
@@ -449,7 +470,8 @@ class CvModUpdaterScreen( CvPediaScreen.CvPediaScreen ):
         for i in range(len(update_status["updates"])-1, -1, -1):
             desc = update_status["updates"][i]["info"].get("desc")
             if desc and len(desc) > 0:
-                show_popup(str(desc))
+                #show_popup(str(desc.encode("utf-8")))  # Error Popup.py
+                show_popup(desc) # type(desc) is unicode
 
     def wrap_pedia_method(self):
         # Wrap CvPediaMain.link method with own code to detect html links
@@ -470,7 +492,4 @@ def show_popup(text):
     popup.setBodyString(text)
     # popup.setBodyString("more text...")
     popup.launch()
-
-### End of integration stuff
-#integrate()
 

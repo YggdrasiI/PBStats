@@ -65,9 +65,14 @@ index 63ade8d..765c2d7 100644
 +
 +						// Event ...
 +						//std::cout << "event" << std::endl;
-+						m_pGame->delayedPythonCall2();
++						int next_milliseconds = m_pGame->delayedPythonCall2();
 +
-+						break; // Omit repeation. Timer should only fire one time.
++            if (next_milliseconds == 0){
++                break; // Quit delayed thread
++            }
++
++            wait_time.sec = next_milliseconds/1000;
++            wait_time.nsec = (next_milliseconds%1000)*1000000L;
 +				}
 +		}
 +};
@@ -90,16 +95,18 @@ index 63ade8d..765c2d7 100644
 +		return 0;
 +}
 +
-+void CvGame::delayedPythonCall2()
++int CvGame::delayedPythonCall2()
 +{
 +		long lResult=0;
 +		gDLL->getPythonIFace()->callFunction(PYGameModule, "delayedPythonCall", m_timerArgsList.makeFunctionArgs(), &lResult);
 +		if (lResult >= 0)
 +		{
-+				//...
++       return lResult; // Repeat
 +		}
++
++    return 0; // Abort
 +}
-+//Updater Mod END
++//PB Mod END
 +
  // Public Functions...
  
@@ -156,7 +163,7 @@ index 4f77fbd..6d4e903 100644
  	DllExport void handleDiplomacySetAIComment(DiploCommentTypes eComment) const;
  	DllExport bool isDiploScreenUp() const;
 +  DllExport int delayedPythonCall(int milliseconds, int arg1 = -1, int arg2 = -1); // Starts new thread
-+  void delayedPythonCall2(); // Called by other thread
++  int delayedPythonCall2(); // Called by other thread
  
  protected:
  	int m_iElapsedGameTurns;
