@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by lcollins (Firaxis Games) -->
+<Civ4GameText xmlns="http://www.firaxis.com">
+	<TEXT>
+		<Tag>TXT_KEY_MOD_UNPAUSE</Tag>
+		<English>Unfreeze screen</English>
+		<French>Unfreeze screen</French>
+		<German>Pause aufheben</German>
+		<Italian>Unfreeze screen</Italian>
+		<Spanish>Unfreeze screen</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MOD_UNPAUSE_DESC</Tag>
+		<English>You're stuck in the diplomatic screen because the game is paused. Use this button to unpause the game.</English>
+		<French>You're stuck in the diplomatic screen because the game is paused. Use this button to unpause the game.</French>
+		<German>Das Diplomatiemen&#252; kann nicht geschlossen werden solange das Spiel pausiert ist. Das ist ein Bug von Civ4. Klicke hier um die Pause aufzuheben.</German>
+		<Italian>You're stuck in the diplomatic screen because the game is paused. Use this button to unpause the game.</Italian>
+		<Spanish>You're stuck in the diplomatic screen because the game is paused. Use this button to unpause the game.</Spanish>
+	</TEXT>
+  <TEXT>
+     <Tag>TXT_KEY_MOD_ALL</Tag>
+     <English>All contacts</English>
+     <French>All contacts</French>
+     <German>Alle Kontakte</German>
+     <Italian>All contacts</Italian>
+     <Spanish>Todos los contactos</Spanish>
+   </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_TRADE</Tag>
+     <English>Trade partners</English>
+     <French>Trade partners</French>
+     <German>Handelskontakte</German>
+     <Italian>Trade partners</Italian>
+     <Spanish>Contactos comerciales</Spanish>
+   </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_FRIENDLY</Tag>
+     <English>Friendly nations</English>
+     <French>Friendly nations</French>
+     <German>Befreundete Nationen</German>
+     <Italian>Friendly nations</Italian>
+     <Spanish>Naciones amistosas</Spanish>
+   </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_NEUTRAL</Tag>
+     <English>Neutrale nations</English>
+     <French>Neutrale nations</French>
+     <German>Neutrale Nationen</German>
+     <Italian>Neutrale nations</Italian>
+     <Spanish>Naciones neutrales</Spanish>
+   </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_ENEMY</Tag>
+     <English>Hostile nations</English>
+     <French>Hostile nations</French>
+     <German>Feindliche Nationen</German>
+     <Italian>Hostile nations</Italian>
+     <Spanish>Naciones hostiles</Spanish>
+   </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_SHOW_RELATION_LINES</Tag>
+     <English>Show contacts (white lines)</English>
+     <French>Show contacts (white lines)</French>
+     <German>Zeige Kontakte (wei&#223;e Linien).</German>
+     <Italian>Show contacts (white lines)</Italian>
+     <Spanish>Mostrar contactos (l&#237;neas blancas)</Spanish>
+   </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_REDUCE_ON_SELECTED_LEADRES</Tag>
+     <English>Show selected nations only</English>
+     <French>Show selected nations only</French>
+     <German>Nur ausgew&#228;hlte Nationen anzeigen</German>
+     <Italian>Show selected nations only</Italian>
+     <Spanish>Mostrar solo naciones seleccionadas</Spanish>
+   </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_EXPAND</Tag>
+     <English>Expand selection</English>
+     <French>Expand selection</French>
+     <German>Auswahl erweitern</German>
+     <Italian>Expand selection</Italian>
+     <Spanish>Expandir selecci&#243;n</Spanish>
+   </TEXT>
+   <TEXT>
+     <Tag>TXT_KEY_MOD_CLEAR_SELECTION</Tag>
+     <English>Clear selection</English>
+     <French>Clear selection</French>
+     <German>Auswahl leeren</German>
+     <Italian>Clear selection</Italian>
+     <Spanish>Vaciar selecci&#243;n</Spanish>
+   </TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_ARE_YOU_SURE_MOD_PITBOSS</Tag>
+		<English>Are you sure? You can assign a new password during next login.</English>
+		<French>Vraiment? You can assign a new password during next login.</French>
+		<German>Sind Sie sicher? Die Nation kann beim n&#228;chsten Login mit einem neuen Passwort versehen werden.</German>
+		<Italian>Sei sicuro? You can assign a new password during next login.</Italian>
+		<Spanish>&#191;Seguro? You can assign a new password during next login.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_ARE_YOU_SURE_MOD_PITBOSS2</Tag>
+		<English>Are you sure? Attention, you can not take over this nation again.</English>
+		<French>Vraiment? Attention, you can not take this over nation again.</French>
+		<German>Sind Sie sicher? Achtung, die Nation kann nicht wieder übernommen werden.</German>
+		<Italian>Sei sicuro? Attention, you can not take over this nation again.</Italian>
+		<Spanish>&#191;Seguro? Attention, you can not take over this nation again.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_MOD_NO_BUT_EXIT</Tag>
+		<English>No, but leave to main menu.</English>
+		<French>Non, quitter le Pitboss.</French>
+		<German>Nein, nur Spiel verlassen.</German>
+		<Italian>No, e&amp;sci il Pitboss.</Italian>
+		<Spanish>No, salir al Pitboss.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_MOD_YES_KI</Tag>
+		<English>Yes, set natin to AI.</English>
+		<French>Oui, transmettre partie &#224; intelligence artificielle.</French>
+		<German>Ja, stelle Nation auf KI.</German>
+		<Italian>S&#236;, set nation to AI.</Italian>
+		<Spanish>S&#237;, set nation to AI.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_RETIRE_MOD_PITBOSS</Tag>
+		<English>Retire (AI)</English>
+		<French>Abandonner (AI)</French>
+		<German>Auf KI stellen</German>
+		<Italian>Ritirati (AI)</Italian>
+		<Spanish>Retirarse (AI)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MOD_PAUSE_TIMER</Tag>
+		<English>Toggle pause</English>
+		<French>Toggle pause</French>
+		<German>Pause</German>
+		<Italian>Toggle pause</Italian>
+		<Spanish>Toggle pause</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MOD_</Tag>
+		<English></English>
+		<French></French>
+		<German></German>
+		<Italian></Italian>
+		<Spanish></Spanish>
+	</TEXT>
+</Civ4GameText>

@@ -52,7 +52,7 @@ ALTROOT_BASEDIR = os.path.abspath(".")
 # Default mod name. Can be overwritten in GAMES-dict.
 # Moreover, the mod name will be changed automatically
 # if the save to load contains an other mod name.
-MOD = "PB Mod_v7"
+MOD = "PB Mod_v8"
 
 # Allow restart if PB server quits
 RESTART = True

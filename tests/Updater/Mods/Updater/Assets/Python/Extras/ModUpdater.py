@@ -1,4 +1,4 @@
-#!/usr/bin/python4
+#!/usr/bin/python2
 # -*- coding: utf-8 -*-
 
 import zipfile
@@ -34,7 +34,20 @@ try:
 except:
     IN_CIV4 = False
     DUMMY_MOD_PATH = os.path.join("/", "dev", "shm", _MOD_NAME_FALLBACK_)
+    #Note that __main__ overwrites this value, now.
 
+# Because Python 2.4 version has no urllib.urlopen().getcode()
+class Urlopen_with_errcode(urllib.FancyURLopener):
+    errcode = 200
+
+    def getcode(self):
+        return self.errcode
+
+    def http_error_default(self, url, fp, errcode, errmsg, headers):
+        self.errcode = errcode
+
+    #def http_error_404(self, url, fp, errcode, errmsg, headers, data=None):
+    #    self.errcode = errcode
 
 class ModUpdater:
     Config_file = "update_config.json"
@@ -162,10 +175,20 @@ class ModUpdater:
             self.get_info_json().get("name", "__vanilla__")
 
         # Try urls and break after first available
+        bFoundUrl = False
         for url_prefix in config["update_urls"]:
             try:
                 url = "%s/%s" % (url_prefix, "updates.html")
-                f = urllib.urlopen(url)
+                print("Fetch '%s'" % (url,))
+
+                #f = urllib.urlopen(url)  # Note: getcode was added in Python 2.6...
+
+                opener = Urlopen_with_errcode({})
+                f = opener.open(url)
+                if opener.getcode() != 200:
+                    raise Exception("Server not returns statuscode 200 " \
+                                    "but %d." % (opener.getcode(),))
+
                 line = f.readline(1000)
                 while len(line) > 0:
                     update = self.parse_update_link(line.strip(), url_prefix)
@@ -187,9 +210,13 @@ class ModUpdater:
                 f.close()
             except Exception, e:
                 print("ERR: %s" % (str(e),))
-                return False  # Website lookup fails
+                continue  # Website lookup fails
             else:
+                bFoundUrl = True
                 break
+
+        if not bFoundUrl:
+            return False  # All website lookups failed
 
         try:
             upos1 = available_names.index(current_version)
@@ -299,7 +326,8 @@ class ModUpdater:
         if update.get("checksum"):
             md5_sum = self.get_md5_sum(zip_path)
             if md5_sum == update.get("checksum"):
-                print("Update file '%s' already preset skip download." % (update["name"],) )
+                print("File '%s' is already preset. " \
+                      "Skip download of update file." % (update["name"],) )
                 already_downloaded = True
 
         # Download file
@@ -476,9 +504,46 @@ class ModUpdater:
         return md5_sum
 
 if __name__ == "__main__":
+    # Select Mod folder as target
+    import sys
+    import os.path
+    script_folder = os.path.dirname(os.path.realpath(sys.argv[0]))
+    iAssetsPos = script_folder.rfind("Assets")
+    if iAssetsPos == -1:
+        DUMMY_MOD_PATH = os.path.join(script_folder, _MOD_NAME_FALLBACK_)
+        # => I.e. Z:\dev\shm\Updater
+    else:
+        DUMMY_MOD_PATH =  script_folder[:iAssetsPos-1]
+
+    print("Mod path: %s" %(DUMMY_MOD_PATH,) )
+
+    # Check if updates are forced
+    bForce = False
+    if len(sys.argv) > 1 and sys.argv[1] in ["-f", "--force", "-y", "--yes"]:
+        bForce = True
+
+
     updater = ModUpdater()
     updater.check_for_updates()
 
     if updater.has_pending_updates():
-        print(updater.PendingUpdates)
-        updater.start_update()
+        print("Avaiable updates:")
+        for u in updater.PendingUpdates:
+            print("  - %s" %(u["name"],) )
+
+        if not bForce:
+            print("" \
+                  "Press [Enter] to continue installation " \
+                  "and [Ctrl+C] to abort.")
+            try:
+                user_in = sys.stdin.readline()
+            except:
+                pass
+            else:
+                bForce = True
+
+        if bForce:
+            updater.start_update()
+
+    else:
+        print("No pending updates.")

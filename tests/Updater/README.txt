@@ -2,7 +2,10 @@
 
 Features:
   • Adds extra screen to main menu which inform user about mod updates.
-  • Installs (aka unzip + sugar) mod updates with one click within the game.
+  • Installs mod updates (= unzip + some sugar) with one click within the game.
+  • Python code also works without starting Civ4. This allows updating 
+    by command line, i.e.
+    'cd Mods/[MODNAME]; python Assets/Python/Extras/ModUpdater.py'
 
 Usage:
   As user: Just click on 'search updates' in the main screen.
@@ -48,7 +51,7 @@ Requirements:
      is very old…
 
    • Adding of new Screen (Python/Screens/CvModUpdater.py, XML/Text/PBModUpdater.xml) and
-     updater file (Python/Extra/ModUpdater.py, Python/simplejson.py)
+     updater file (Python/Extra/ModUpdater.py, Python/Extra/simplejson.py)
 
    • Add update_config.json to your mod with following content:
         {
@@ -120,6 +123,12 @@ Issues:
         LOG("Zip file not found.");
         return 1;
       }
+
+
+Extras:
+ • To automate the update zip creation, the 'createUpdate.py' script can be used (Linux/Mac only).
+   Just copy it into a git repository of your Mod and generate Zip files as difference between
+   two brances.
 
 
 Thanks:

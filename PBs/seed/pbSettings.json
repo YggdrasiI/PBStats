@@ -1,31 +1,42 @@
 {
- "comment" : "Look into Webserver.py for a commented version of this structure with all options.",
+ "shortnames": {
+  "enable": true, 
+  "maxLenName": 1, 
+  "maxLenDesc": 4
+ }, 
  "numRecoverySavesPerPlayer": 5, 
- "MotD": "Modified PitBoss Server, Version 7",
+ "shell": {
+  "enable": false, 
+  "ip": "127.0.0.1", 
+  "port": 3333
+ }, 
+ "MotD": "Modified PitBoss Server, Version 8", 
  "noGui": 0, 
- "autostart": 1,
- "errorLogFile": "Logs\\pitbossErr.log",
+ "tmpToRestart": false, 
+ "comment": "Look into Webserver.py for a commented version of this structure with all options.", 
+ "errorLogFile": "Logs\\pitbossErr.log", 
+ "autostart": 1, 
+ "webfrontend": {
+  "sendPeriodicalData": 0, 
+  "gameId": -1, 
+  "url": "http:\/\/civ.zulan.net\/pbspy\/update", 
+  "url_deprecated_php": "http:\/\/civ.zulan.net\/pb\/update.php", 
+  "sendInterval": 10
+ }, 
  "webserver": {
+  "allowSigns": false, 
+  "allowReplay": false, 
+  "allowWB": false, 
   "host": "", 
   "password": "pw", 
   "port": 13373
  }, 
- "webfrontend": {
-  "url": "http:\/\/civ.zulan.net\/pbspy\/update", 
-  "url_deprecated_php": "http:\/\/civ.zulan.net\/pb\/update.php", 
-  "sendPeriodicalData": 0, 
-  "gameId": -1, 
-  "sendInterval": 10
- }, 
  "save": {
-  "filename": "Example_v7.CivBeyondSwordSave",
-  "adminpw": "optional; I recommend to collect them into PBs/pbPasswords.json",
-	"savefolder" : "saves\\multi\\",
-	"readfolders" : []
- },
- "shell": {
-     "enable": false,
-     "ip": "127.0.0.1",
-     "port": 3333
+  "writefolder": "Saves\\multi\\", 
+  "folderIndex": 1, 
+  "filename": "Example_v8.CivBeyondSwordSave", 
+  "adminpw": "optional; I recommend to collect them into PBs\/pbPasswords.json", 
+  "readfolders": [], 
+  "savefolder": "saves\\multi\\"
  }
 }
