@@ -58,7 +58,7 @@ def integrate():
             CvScreensInterface.modUpdaterScreen.handleClick(val1, val2)
         else:
             iEntryId = CvScreensInterface.pediaMainScreen.pediaHistorical.getIdFromEntryInfo(argsList[0], argsList[1])
-            CvScreensInterface.pediaMainScreen.pediaJump(PEDIA_HISTORY, iEntryId, True)
+            CvScreensInterface.pediaMainScreen.pediaJump(CvScreenEnums.PEDIA_HISTORY, iEntryId, True)
             return
 
     CvScreensInterface.showModUpdaterScreen = _showModUpdaterScreen
