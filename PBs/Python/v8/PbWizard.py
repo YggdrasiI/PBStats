@@ -145,8 +145,9 @@ if CIV4_SHELL and not PBMOD_AUTOSTART:
                 "loc": locals(),
                 "shell": start_shell(PbSettings.get("shell", {}), "pb_wizard")
             }
-            self.civ4Shell["shell"].set_startup_iface(self)
-            self.civ4Shell["shell"].init()
+            if self.civ4Shell["shell"]:
+                self.civ4Shell["shell"].set_startup_iface(self)
+                self.civ4Shell["shell"].init()
 
             self.OnInit()
 
