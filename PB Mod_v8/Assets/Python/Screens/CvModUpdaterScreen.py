@@ -329,7 +329,7 @@ class CvModUpdaterScreen( CvPediaScreen.CvPediaScreen ):
         if self.mode == "info_none":
             screen.setText(self.getNextWidgetName(), "Background", self.MOD_NAME, CvUtil.FONT_CENTER_JUSTIFY,
                         self.MOD_MENU_DIM[0] + self.MOD_MENU_DIM[2]/2, self.MOD_MENU_DIM[1] + self.Y_TITLE, 0, FontTypes.TITLE_FONT,
-                        WidgetTypes.WIDGET_PEDIA_DESCRIPTION_NO_HELP, self.ID_OFFSET+self.events["start"], 0)
+                        WidgetTypes.WIDGET_PEDIA_DESCRIPTION_NO_HELP, self.ID_OFFSET+self.events["exit"], 0)
             textPos = [self.MOD_MENU_DIM[0] + 20, self.MOD_MENU_DIM[1] + self.HEADLINE_HEIGHT + 0*20]
             screen.addMultilineText(self.getNextWidgetName(), self.UPDATER_NO_INFO,
                     textPos[0], textPos[1], self.MOD_MENU_DIM[2] - 40, body_height,
