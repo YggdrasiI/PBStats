@@ -1,4 +1,4 @@
-=== The problem ===
+﻿=== The problem ===
 The network code of Civ4:BTS limits the bandwidth to ancient 10kB/sec, 
 but advanced saves consume a few MB. This leads to long timeouts during the login… 
 
@@ -14,10 +14,10 @@ We wrote a wrapper executable which handle this for you!
 It requires changes on both (client & server) sides.
 
 1) As Player:  
-• Copy BTS_Wrapper.exe, *.dll and *.lib files of this folder into your
+• Copy BTS_Wrapper.exe and *.dll files of this folder into your
 Civ4:BTS installation folder. Do not delete/move the normal executable. It's still required.
 • Start your game with the wrapper, i.e.
-'BTS_Wrapper.exe mod= "PB Mod_v7"\"'.
+'BTS_Wrapper.exe mod= "PB Mod_v8"\"'.
 
 • If MSVCP100.dll is missing, see http://answers.microsoft.com/en-us/windows/forum/windows_other-performance/msvcp100dll-missing/9a687c31-0619-4ee9-b511-020985e29b5f
 
@@ -52,7 +52,7 @@ If it does not work re-check the setup of your paths.
 
 
 === Sources ===
-The sources and project files for Visual Studio 2017 can be found in ./sources_v3.
+The sources and project files for Visual Studio 2017 can be found in ./sources_v4.
 Used following libraries:
 • MinHook, https://github.com/TsudaKageyu/minhook/
 • Curl, https://github.com/bagder/curl
@@ -60,18 +60,19 @@ Used following libraries:
 
 
 === P.S. ===
-Less flexible, but without any modifcation of the Civ4 executable, you could also mount the http folder with the saves into your local filesystem. If the save path on the client equals the path on the server it will be loaded over this way.
+Less flexible, but without any modifcation of the Civ4 executable, you could also mount the http folder with the saves into your local filesystem.
+If the save path on the client equals the path on the server it will be loaded over the file system!
 
-Example set of paths for BTS_Wrapper.exe and Webdav usage:
+Example set of paths for parallel BTS_Wrapper.exe and Webdav usage:
 
-Public http folder with Webdav support: http://{server}/{prefix}
-Altroot directory on Server: /home/$USERNAME/_http_{server}/{path}/PBs/PB1.
-Save folder (Wine Syntax): Z:\home\$USERNAME\_http_{server}\{prefix}\PBs\PB1\Saves\pitboss\auto.
-Url of saves: http://{server}/{prefix}/home/$USERNAME/_http_{server}/{path}/PBs/PB1/Saves/pitboss/auto
+Assume a public http folder with Webdav support: http://{server}/{prefix}
+Altroot directory on Linux-Server: /home/$USERNAME/_http_{server}/{path}/PBs/PB1.
+This altroot resolves to the following save folder (Wine Syntax): Z:\home\$USERNAME\_http_{server}\{prefix}\PBs\PB1\Saves\pitboss\auto.
+Moreover, the 'pitboss/auto' folder should be accessable ofer this Url: http://{server}/{prefix}/{path}/PBs/PB1/Saves/pitboss/auto
 
-=>
-1. A BTS_Wrapper.exe user profits from the '_http_'-syntax. Civ4 download the save over http.
-2. If the user maps Z: drive  to http://{server}/{prefix} server and client share the same path syntax. Civ4 reads the save from Z:.
+Benefits of this setup:
+1. A BTS_Wrapper.exe user profits from the '_http_'-syntax of the folder. Civ4 will download the save over http.
+2. If a user maps the Z:-drive to http://{server}/{prefix} both, server and client, uses the same path syntax! Thus, Civ4 will read the saves from Z:.
 
-Olaf Schulz, 2015-17
+Olaf Schulz, 2015-18
 
