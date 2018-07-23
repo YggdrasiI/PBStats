@@ -72,8 +72,9 @@ class ModUpdater:
         if self.__mod_path__:
             return self.__mod_path__
 
-        if WITH_MOD_PATH:
+        if WITH_MOD_PATH and hasattr(CyGame(), "getModPath"):
             # Absolute path
+
             self.__mod_path__ = CyGame().getModPath()
         else:
             # Relative Mod path (do not work if Mod is installed in „My Games“

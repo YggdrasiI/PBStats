@@ -238,9 +238,9 @@ class CvModUpdaterScreen( CvPediaScreen.CvPediaScreen ):
 
 
         nU = len(self.updater.PendingUpdates)
-        print("Num of available updates: %d" % (nU,))
+        # print("Num of available updates: %d" % (nU,))
         if self.FIRST_DRAWING:
-            self.UPDATER_AVAIL = u"Hey"
+            self.UPDATER_AVAIL = u"String generation omitted"
         else:
             # This fails (C++ Exception) at early initialisation stages of Civ4!
             # CyTranslator.getText can not handle variables until the main menu is shown...
