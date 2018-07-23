@@ -30,9 +30,134 @@
 #include "CvDLLEngineIFaceBase.h"
 #include "CvDLLPythonIFaceBase.h"
 
+//PB Mod
+
+/* Delayed Python Call stuff ... */
+
+#ifdef WITH_TIMER
+class Timer : boost::noncopyable
+{
+		boost::xtime wait_time, next_time;
+		boost::mutex monitor;
+		boost::condition aborted;
+		boost::thread thread;
+		CvGame *m_pGame;
+public:
+
+		explicit Timer(boost::xtime const & interval, CvGame *pGame)
+				: wait_time(interval)
+				, m_pGame(pGame)
+				, thread( boost::bind(& Timer::thread_body, this) )
+		{ }
+
+		~Timer()
+		{
+				aborted.notify_one();
+#ifdef NEWER_BOOST_VERSION_REQ
+				try
+				{
+						thread.join();
+				}
+				catch ( const boost::thread_interrupted& )
+				{
+						/* suppressed to avoid kill of application*/
+				}
+#else
+				thread.join();
+#endif
+		}
+
+		private:
+
+		void calc_next_time()
+		{
+				boost::xtime_get(& next_time, boost::TIME_UTC);
+				next_time.sec += wait_time.sec;
+				next_time.nsec += wait_time.nsec;
+				next_time.sec += next_time.nsec / 1000000000;
+				next_time.nsec %= 1000000000;
+		}
+
+		void thread_body()
+		{
+				boost::mutex::scoped_lock lock(monitor);
+
+				for (;;)
+				{
+						calc_next_time();
+						if (aborted.timed_wait(lock, next_time)) break;
+
+						// Event ...
+						//std::cout << "event" << std::endl;
+						int next_milliseconds = m_pGame->delayedPythonCall2();
+
+						if (next_milliseconds == 0){
+								break; // Quit delayed thread
+						}
+
+						wait_time.sec = next_milliseconds/1000;
+						wait_time.nsec = (next_milliseconds%1000)*1000000L;
+				}
+		}
+};
+#endif
+
+int CvGame::delayedPythonCall(int milliseconds, int arg1, int arg2)
+{
+#ifdef WITH_TIMER 
+		// Destroy previous timer object. If this timer is still waiting, it will abort.
+		if (m_pTimer){
+				delete m_pTimer; m_pTimer = NULL;
+		}
+
+		// Save handle to current thread. It suspends this thread if delayedPythonCall2
+		// is called. (Hardcore mutex :))
+		DuplicateHandle(GetCurrentProcess(),
+						GetCurrentThread(),
+						GetCurrentProcess(),
+						&m_pMainThreadDup,
+						0,
+						FALSE,
+						DUPLICATE_SAME_ACCESS);
+
+		m_timerArgsList.clear();
+		m_timerArgsList.add(arg1);
+		m_timerArgsList.add(arg2);
+
+		boost::xtime interval = { milliseconds/1000, (milliseconds%1000)*1000000L }; // sec, nanosec.
+		m_pTimer = new Timer(interval, this);
+#endif
+		return 0;
+}
+
+int CvGame::delayedPythonCall2()
+{
+		long lResult=0;
+		if( m_pMainThreadDup ){
+			SuspendThread(m_pMainThreadDup);
+		}
+		gDLL->getPythonIFace()->callFunction(PYGameModule, "delayedPythonCall", m_timerArgsList.makeFunctionArgs(), &lResult);
+		if( m_pMainThreadDup ){
+			ResumeThread(m_pMainThreadDup);
+		}
+		if (lResult >= 0)
+		{
+				//...
+				return lResult; // Repeat
+		}
+
+		return 0; // Abort
+}
+//PB Mod END
+
 // Public Functions...
 
 CvGame::CvGame()
+#ifdef WITH_TIMER
+		: m_pTimer(NULL)
+		, m_pMainThreadDup(NULL)
+		, m_timerArgsList()
+#endif
 {
 	m_aiRankPlayer = new int[MAX_PLAYERS];        // Ordered by rank...
 	m_aiPlayerRank = new int[MAX_PLAYERS];        // Ordered by player ID...
@@ -72,6 +197,12 @@ CvGame::CvGame()
 CvGame::~CvGame()
 {
 	uninit();
+
+#ifdef WITH_TIMER
+	if (m_pTimer){
+			delete m_pTimer; m_pTimer = NULL;
+	}
+#endif
 
 	SAFE_DELETE_ARRAY(m_aiRankPlayer);
 	SAFE_DELETE_ARRAY(m_aiPlayerRank);
@@ -749,7 +880,7 @@ void CvGame::assignStartingPlots()
 	int iValue;
 	int iBestValue;
 	int iI, iJ, iK;
-	
+
 	std::vector<int> playerOrder;
 	std::vector<int>::iterator playerOrderIter;
 
@@ -1314,7 +1445,7 @@ void CvGame::normalizeRemoveBadFeatures()
 					}
 				}
 			}
-        }
+		}
 	}
 }
 
@@ -1347,57 +1478,57 @@ void CvGame::normalizeRemoveBadTerrain()
 			    for (iX = -iMaxRange; iX <= iMaxRange; iX++)
 			    {
 			        for (iY = -iMaxRange; iY <= iMaxRange; iY++)
-			        {
-			            pLoopPlot = plotXY(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iX, iY);
-                        if (pLoopPlot != NULL)
-                        {
-                            int iDistance = plotDistance(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
-                            if (iDistance <= iMaxRange)
-                            {
-                                if (!(pLoopPlot->isWater()) && ((iDistance <= iCityRange) || (pLoopPlot->isCoastalLand()) || (0 == getSorenRandNum(1 + iDistance - iCityRange, "Map Upgrade Terrain Food"))))
-                                {
-                                    iPlotFood = GC.getTerrainInfo(pLoopPlot->getTerrainType()).getYield(YIELD_FOOD);
-                                    iPlotProduction = GC.getTerrainInfo(pLoopPlot->getTerrainType()).getYield(YIELD_PRODUCTION);
-                                    if ((iPlotFood + iPlotProduction) <= 1)
-                                    {
-                                        iTargetFood = 1;
-                                        iTargetTotal = 1;
-                                        if (pLoopPlot->getBonusType(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_BONUS)
-                                        {
-                                            iTargetFood = 1;
-                                            iTargetTotal = 2;
-                                        }
-                                        else if ((iPlotFood == 1) || (iDistance <= iCityRange))
-                                        {
-                                            iTargetFood = 1 + getSorenRandNum(2, "Map Upgrade Terrain Food");
-                                            iTargetTotal = 2;
-                                        }
-                                        else
-                                        {
-                                            iTargetFood = pLoopPlot->isCoastalLand() ? 2 : 1;
-                                            iTargetTotal = 2;
-                                        }
-                                        
-                                        for (iK = 0; iK < GC.getNumTerrainInfos(); iK++)
-                                        {
-                                            if (!(GC.getTerrainInfo((TerrainTypes)iK).isWater()))
-                                            {
-                                                if ((GC.getTerrainInfo((TerrainTypes)iK).getYield(YIELD_FOOD) >= iTargetFood) && 
-                                                    (GC.getTerrainInfo((TerrainTypes)iK).getYield(YIELD_FOOD) + GC.getTerrainInfo((TerrainTypes)iK).getYield(YIELD_PRODUCTION)) == iTargetTotal)
-                                                {
-                                                    if ((pLoopPlot->getFeatureType() == NO_FEATURE) || GC.getFeatureInfo(pLoopPlot->getFeatureType()).isTerrain(iK))
-                                                    {
-                                                        pLoopPlot->setTerrainType((TerrainTypes)iK);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-  
-			            }
-			        }
+							{
+									pLoopPlot = plotXY(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iX, iY);
+									if (pLoopPlot != NULL)
+									{
+											int iDistance = plotDistance(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+											if (iDistance <= iMaxRange)
+											{
+													if (!(pLoopPlot->isWater()) && ((iDistance <= iCityRange) || (pLoopPlot->isCoastalLand()) || (0 == getSorenRandNum(1 + iDistance - iCityRange, "Map Upgrade Terrain Food"))))
+													{
+															iPlotFood = GC.getTerrainInfo(pLoopPlot->getTerrainType()).getYield(YIELD_FOOD);
+															iPlotProduction = GC.getTerrainInfo(pLoopPlot->getTerrainType()).getYield(YIELD_PRODUCTION);
+															if ((iPlotFood + iPlotProduction) <= 1)
+															{
+																	iTargetFood = 1;
+																	iTargetTotal = 1;
+																	if (pLoopPlot->getBonusType(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_BONUS)
+																	{
+																			iTargetFood = 1;
+																			iTargetTotal = 2;
+																	}
+																	else if ((iPlotFood == 1) || (iDistance <= iCityRange))
+																	{
+																			iTargetFood = 1 + getSorenRandNum(2, "Map Upgrade Terrain Food");
+																			iTargetTotal = 2;
+																	}
+																	else
+																	{
+																			iTargetFood = pLoopPlot->isCoastalLand() ? 2 : 1;
+																			iTargetTotal = 2;
+																	}
+
+																	for (iK = 0; iK < GC.getNumTerrainInfos(); iK++)
+																	{
+																			if (!(GC.getTerrainInfo((TerrainTypes)iK).isWater()))
+																			{
+																					if ((GC.getTerrainInfo((TerrainTypes)iK).getYield(YIELD_FOOD) >= iTargetFood) && 
+																									(GC.getTerrainInfo((TerrainTypes)iK).getYield(YIELD_FOOD) + GC.getTerrainInfo((TerrainTypes)iK).getYield(YIELD_PRODUCTION)) == iTargetTotal)
+																					{
+																							if ((pLoopPlot->getFeatureType() == NO_FEATURE) || GC.getFeatureInfo(pLoopPlot->getFeatureType()).isTerrain(iK))
+																							{
+																									pLoopPlot->setTerrainType((TerrainTypes)iK);
+																							}
+																					}
+																			}
+																	}
+															}
+													}
+											}
+
+									}
+							}
 				}
 			}
 		}
@@ -1450,7 +1581,7 @@ void CvGame::normalizeAddFoodBonuses()
 						}
 						else
 						{
-                            if (pLoopPlot->calculateBestNatureYield(YIELD_FOOD, GET_PLAYER((PlayerTypes)iI).getTeam()) >= 3)
+								if (pLoopPlot->calculateBestNatureYield(YIELD_FOOD, GET_PLAYER((PlayerTypes)iI).getTeam()) >= 3)
 						    {
 						        iGoodNatureTileCount++;
 						    }
@@ -1638,10 +1769,10 @@ void CvGame::normalizeAddExtras()
 			{
 				int iValue = GET_PLAYER((PlayerTypes)iI).AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true);
 				iTotalValue += iValue;
-                iPlayerCount++;
-                
-                iBestValue = std::max(iValue, iBestValue);
-                iWorstValue = std::min(iValue, iWorstValue);
+				iPlayerCount++;
+
+				iBestValue = std::max(iValue, iBestValue);
+				iWorstValue = std::min(iValue, iWorstValue);
 			}
 		}
 	}
@@ -1658,7 +1789,7 @@ void CvGame::normalizeAddExtras()
 
 			if (pStartingPlot != NULL)
 			{
-                int iCount = 0;
+				int iCount = 0;
 				int iFeatureCount = 0;
 				int aiShuffle[NUM_CITY_PLOTS];
 				shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
@@ -1739,101 +1870,101 @@ void CvGame::normalizeAddExtras()
 					}
 				}
 				
-			    bool bLandBias = (iWaterCount > NUM_CITY_PLOTS / 2);
-                
-                shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());                
+				bool bLandBias = (iWaterCount > NUM_CITY_PLOTS / 2);
+
+				shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());                
 
 				for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 				{
-				    CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), aiShuffle[iJ]);
+						CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), aiShuffle[iJ]);
 
-                    if ((pLoopPlot != NULL) && (pLoopPlot != pStartingPlot))
-                    {
-                        if (getSorenRandNum(((bLandBias && pLoopPlot->isWater()) ? 2 : 1), "Placing Bonuses") == 0)
-                        {
-                        	if ((iOtherCount * 3 + iOceanFoodCount * 2 + iCoastFoodCount * 2) >= 12)
-                        	{
-                        		break;
-                        	}
-                        	
-                            if (GET_PLAYER((PlayerTypes)iI).AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true) >= iTargetValue)
-                            {
-                                break;
-                            }
-
-						    bool bCoast = (pLoopPlot->isWater() && pLoopPlot->isAdjacentToLand());
-						    bool bOcean = (pLoopPlot->isWater() && !bCoast);
-							if ((pLoopPlot != pStartingPlot)
-                                && !(bCoast && (iCoastFoodCount > 2))
-                                && !(bOcean && (iOceanFoodCount > 2)))
-							{
-								for (int iPass = 0; iPass < 2; iPass++)
+						if ((pLoopPlot != NULL) && (pLoopPlot != pStartingPlot))
+						{
+								if (getSorenRandNum(((bLandBias && pLoopPlot->isWater()) ? 2 : 1), "Placing Bonuses") == 0)
 								{
-									if (pLoopPlot->getBonusType() == NO_BONUS)
-									{
-										for (int iK = 0; iK < GC.getNumBonusInfos(); iK++)
+										if ((iOtherCount * 3 + iOceanFoodCount * 2 + iCoastFoodCount * 2) >= 12)
 										{
-											if (GC.getBonusInfo((BonusTypes)iK).isNormalize())
-											{
-											    //???no bonuses with negative yields?
-												if ((GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_FOOD) >= 0) &&
-													  (GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_PRODUCTION) >= 0))
-												{
-													if ((GC.getBonusInfo((BonusTypes)iK).getTechCityTrade() == NO_TECH) || (GC.getTechInfo((TechTypes)(GC.getBonusInfo((BonusTypes)iK).getTechCityTrade())).getEra() <= getStartEra()))
-													{
-														if (GET_TEAM(GET_PLAYER((PlayerTypes)iI).getTeam()).isHasTech((TechTypes)(GC.getBonusInfo((BonusTypes)iK).getTechReveal())))
-														{
-															if ((iPass == 0) ? CvMapGenerator::GetInstance().canPlaceBonusAt(((BonusTypes)iK), pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude) : pLoopPlot->canHaveBonus(((BonusTypes)iK), bIgnoreLatitude))
-															{
-																pLoopPlot->setBonusType((BonusTypes)iK);
-																iCoastFoodCount += bCoast ? 1 : 0;
-																iOceanFoodCount += bOcean ? 1 : 0;
-																iOtherCount += !(bCoast || bOcean) ? 1 : 0;
-																break;
-															}
-														}
-													}
-												}
-											}
+												break;
 										}
-										
-										if (bLandBias && !pLoopPlot->isWater() && pLoopPlot->getBonusType() == NO_BONUS)
-										{
-											if (((iFeatureCount > 4) && (pLoopPlot->getFeatureType() != NO_FEATURE))
-												&& ((iCoastFoodCount + iOceanFoodCount) > 2))
-											{
-												if (getSorenRandNum(2, "Clear feature to add bonus") == 0)
-												{
-												pLoopPlot->setFeatureType(NO_FEATURE);
 
-													for (iK = 0; iK < GC.getNumBonusInfos(); iK++)
-													{
-														if (GC.getBonusInfo((BonusTypes)iK).isNormalize())
-														{
-															//???no bonuses with negative yields?
-															if ((GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_FOOD) >= 0) &&
-																  (GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_PRODUCTION) >= 0))
-															{
-																if ((GC.getBonusInfo((BonusTypes)iK).getTechCityTrade() == NO_TECH) || (GC.getTechInfo((TechTypes)(GC.getBonusInfo((BonusTypes)iK).getTechCityTrade())).getEra() <= getStartEra()))
-																{
-																	if ((iPass == 0) ? CvMapGenerator::GetInstance().canPlaceBonusAt(((BonusTypes)iK), pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude) : pLoopPlot->canHaveBonus(((BonusTypes)iK), bIgnoreLatitude))
-																	{
-																		pLoopPlot->setBonusType((BonusTypes)iK);
-																		iOtherCount++;
-																		break;
-																	}
-																}
-															}
-														}
-													}
-												}
-											}										
+										if (GET_PLAYER((PlayerTypes)iI).AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true) >= iTargetValue)
+										{
+												break;
 										}
-									}
+
+										bool bCoast = (pLoopPlot->isWater() && pLoopPlot->isAdjacentToLand());
+										bool bOcean = (pLoopPlot->isWater() && !bCoast);
+										if ((pLoopPlot != pStartingPlot)
+														&& !(bCoast && (iCoastFoodCount > 2))
+														&& !(bOcean && (iOceanFoodCount > 2)))
+										{
+												for (int iPass = 0; iPass < 2; iPass++)
+												{
+														if (pLoopPlot->getBonusType() == NO_BONUS)
+														{
+																for (int iK = 0; iK < GC.getNumBonusInfos(); iK++)
+																{
+																		if (GC.getBonusInfo((BonusTypes)iK).isNormalize())
+																		{
+																				//???no bonuses with negative yields?
+																				if ((GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_FOOD) >= 0) &&
+																								(GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_PRODUCTION) >= 0))
+																				{
+																						if ((GC.getBonusInfo((BonusTypes)iK).getTechCityTrade() == NO_TECH) || (GC.getTechInfo((TechTypes)(GC.getBonusInfo((BonusTypes)iK).getTechCityTrade())).getEra() <= getStartEra()))
+																						{
+																								if (GET_TEAM(GET_PLAYER((PlayerTypes)iI).getTeam()).isHasTech((TechTypes)(GC.getBonusInfo((BonusTypes)iK).getTechReveal())))
+																								{
+																										if ((iPass == 0) ? CvMapGenerator::GetInstance().canPlaceBonusAt(((BonusTypes)iK), pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude) : pLoopPlot->canHaveBonus(((BonusTypes)iK), bIgnoreLatitude))
+																										{
+																												pLoopPlot->setBonusType((BonusTypes)iK);
+																												iCoastFoodCount += bCoast ? 1 : 0;
+																												iOceanFoodCount += bOcean ? 1 : 0;
+																												iOtherCount += !(bCoast || bOcean) ? 1 : 0;
+																												break;
+																										}
+																								}
+																						}
+																				}
+																		}
+																}
+
+																if (bLandBias && !pLoopPlot->isWater() && pLoopPlot->getBonusType() == NO_BONUS)
+																{
+																		if (((iFeatureCount > 4) && (pLoopPlot->getFeatureType() != NO_FEATURE))
+																						&& ((iCoastFoodCount + iOceanFoodCount) > 2))
+																		{
+																				if (getSorenRandNum(2, "Clear feature to add bonus") == 0)
+																				{
+																						pLoopPlot->setFeatureType(NO_FEATURE);
+
+																						for (iK = 0; iK < GC.getNumBonusInfos(); iK++)
+																						{
+																								if (GC.getBonusInfo((BonusTypes)iK).isNormalize())
+																								{
+																										//???no bonuses with negative yields?
+																										if ((GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_FOOD) >= 0) &&
+																														(GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_PRODUCTION) >= 0))
+																										{
+																												if ((GC.getBonusInfo((BonusTypes)iK).getTechCityTrade() == NO_TECH) || (GC.getTechInfo((TechTypes)(GC.getBonusInfo((BonusTypes)iK).getTechCityTrade())).getEra() <= getStartEra()))
+																												{
+																														if ((iPass == 0) ? CvMapGenerator::GetInstance().canPlaceBonusAt(((BonusTypes)iK), pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude) : pLoopPlot->canHaveBonus(((BonusTypes)iK), bIgnoreLatitude))
+																														{
+																																pLoopPlot->setBonusType((BonusTypes)iK);
+																																iOtherCount++;
+																																break;
+																														}
+																												}
+																										}
+																								}
+																						}
+																				}
+																		}										
+																}
+														}
+												}
+										}
 								}
-							}
 						}
-					}
 				}
 				
 				shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
@@ -4749,7 +4880,7 @@ int CvGame::getPlayerRank(PlayerTypes ePlayer) const
 	FAssertMsg(ePlayer < MAX_PLAYERS, "ePlayer is expected to be within maximum bounds (invalid Index)");
 	return m_aiPlayerRank[ePlayer];
 }
- 
+
 
 void CvGame::setPlayerRank(PlayerTypes ePlayer, int iRank)													
 {
@@ -7175,7 +7306,7 @@ int CvGame::getNumDeals()
 }
 
 
- CvDeal* CvGame::getDeal(int iID)																		
+CvDeal* CvGame::getDeal(int iID)																		
 {
 	return ((CvDeal *)(m_deals.getAt(iID)));
 }
@@ -7187,7 +7318,7 @@ CvDeal* CvGame::addDeal()
 }
 
 
- void CvGame::deleteDeal(int iID)
+void CvGame::deleteDeal(int iID)
 {
 	m_deals.removeAt(iID);
 	gDLL->getInterfaceIFace()->setDirty(Foreign_Screen_DIRTY_BIT, true);
@@ -7205,7 +7336,7 @@ CvDeal* CvGame::nextDeal(int *pIterIdx, bool bRev)
 }
 
 
- CvRandom& CvGame::getMapRand()																					
+CvRandom& CvGame::getMapRand()																					
 {
 	return m_mapRand;
 }

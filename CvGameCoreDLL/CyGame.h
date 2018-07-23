@@ -280,6 +280,9 @@ public:
 	int setCivPassword(int ePlayer, const char *ssNewPw, const char *szAdminPw);
 	bool isDiploScreenUp() const;
 	void sendTurnCompletePB(int iPlayer);
+	std::wstring getModPath();
+	int unzipModUpdate(std::wstring zipFilename);
+  int delayedPythonCall(int milliseconds, int arg1, int arg2);
 
 protected:
 	CvGame* m_pGame;

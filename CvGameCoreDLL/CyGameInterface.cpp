@@ -269,6 +269,9 @@ void CyGamePythonInterface()
 		.def("setCivPassword", &CyGame::setCivPassword, "int (int ePlayer, const char *szNewPw, const char *szAdminPw) - Allows change of passwords over webinterface")
 		.def("isDiploScreenUp", &CyGame::isDiploScreenUp, "bool ()")
 		.def("sendTurnCompletePB", &CyGame::sendTurnCompletePB, "void (int iPlayer)")
+		.def("getModPath", &CyGame::getModPath, "wstring getModPath() - Return absolute path to folder of used CvGameCoreDLL.dll.")
+		.def("unzipModUpdate", &CyGame::unzipModUpdate, "int (wstring zipFilename) - Unzip file into the Mod installation folder.")
+		.def("delayedPythonCall", &CyGame::delayedPythonCall, "int (int milliseconds, int arg1, int arg2) - Call function delayed (unblocked).")
 		;
 
 	python::class_<CyDeal>("CyDeal")

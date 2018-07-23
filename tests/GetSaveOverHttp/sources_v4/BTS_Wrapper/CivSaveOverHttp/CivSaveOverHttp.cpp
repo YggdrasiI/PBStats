@@ -5,6 +5,8 @@
  */
 
 #include "stdafx.h"
+
+#define GETSAVEOVERHTTP_EXPORTS //?
 #include "CivSaveOverHttp.h"
 #include "Webserver.h"
 
@@ -19,7 +21,7 @@
 #include <fstream>
 
 // Creates BTS_Wrapper.log
-//#define WITH_LOGFILE
+#define WITH_LOGFILE
 
 // To share saves in DirectIP mode
 #include <winsock2.h>
@@ -77,6 +79,7 @@ static std::string Str_url_prefix3 = std::string("_url_"); //deprecated syntax. 
 #define MAX_TMP_NAME_LEN 512
 static std::string tmp_path = std::string(MAX_TMP_NAME_LEN, ' ');
 static std::string last_cached_orig_path = std::string();
+static MH_STATUS status;
 #ifdef WITH_LOGFILE
 std::ofstream logfile;
 #endif
@@ -458,35 +461,64 @@ extern "C" BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvR
 #ifdef WITH_LOGFILE
                 logfile.open("BTS_Wrapper.log");
 #endif
-                MH_Initialize();
+                status = MH_Initialize();
+#ifdef WITH_LOGFILE
+                logfile << "MH_Initialize() returns: " << MH_StatusToString(status) << std::endl;
+#endif
                 LPVOID pfn3 = GetProcAddress(GetModuleHandleA("WS2_32.dll"), "sendto");
                 LPVOID pfn4 = GetProcAddress(GetModuleHandleA("WS2_32.dll"), "recvfrom");
-                MH_CreateHook(pfn3, &MySendto, reinterpret_cast<void**>((LPVOID)&fpSendto));
-                MH_CreateHook(pfn4, &MyRecvfrom, reinterpret_cast<void**>((LPVOID)&fpRecvFrom));
+                status = MH_CreateHook(pfn3, &MySendto, reinterpret_cast<void**>((LPVOID)&fpSendto));
+#ifdef WITH_LOGFILE
+                logfile << "MH_CreateHook() for sendto returns: " << MH_StatusToString(status) << std::endl;
+#endif
+                status = MH_CreateHook(pfn4, &MyRecvfrom, reinterpret_cast<void**>((LPVOID)&fpRecvFrom));
+#ifdef WITH_LOGFILE
+                logfile << "MH_CreateHook() for recvfrom returns: " << MH_StatusToString(status) << std::endl;
+#endif
 #ifdef WITH_LOGFILE
                 logfile << "(BTS_Wrapper) Enable Hooks of 'sendto' and 'recvfrom'." << std::endl;
                 logfile.flush();
 #endif
-                MH_EnableHook(MH_ALL_HOOKS);
+                status = MH_EnableHook(MH_ALL_HOOKS);
+#ifdef WITH_LOGFILE
+                logfile << "MH_EnableHook() returns: " << MH_StatusToString(status) << std::endl;
+#endif
 
             }
             break;
         case DLL_PROCESS_DETACH:
             {
-                MH_DisableHook(MH_ALL_HOOKS);
-                MH_Uninitialize();
+                Webserver_Run = 0;
+#if 0 //               Crashs?!
+                status = MH_DisableHook(MH_ALL_HOOKS);
 #ifdef WITH_LOGFILE
+                logfile << "MH_DisableHook() returns: " << MH_StatusToString(status) << std::endl;
+#endif
+                status = MH_Uninitialize();
+#ifdef WITH_LOGFILE
+                logfile << "MH_Uninitialize() returns: " << MH_StatusToString(status) << std::endl;
+#endif
+#ifdef WITH_LOGFILE
+                status = MH_Uninitialize();
                 logfile << "Process_Detach" << std::endl;
                 logfile.close();
 #endif
-                Webserver_Run = 0;
+#else
+                MH_DisableHook(MH_ALL_HOOKS);
+                MH_Uninitialize();
+#endif
+#ifdef WITH_LOGFILE
+                // Bad idea to use logfile at this stage!! Could crash the app.
+                //logfile << "Process_Detach" << std::endl;
+                //logfile.close();
+#endif
             }
             break;
         case DLL_THREAD_ATTACH:
             break;
         case DLL_THREAD_DETACH:
 #ifdef WITH_LOGFILE
-            logfile << "Thread_Detach" << std::endl;
+            //logfile << "Thread_Detach" << std::endl;
 #endif
             break;
     }
@@ -518,8 +550,7 @@ extern "C" BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvR
 
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
     void StartServer(const char *pPortName)
     {
@@ -527,6 +558,7 @@ extern "C"
         Webserver_Port = atoi(pPortName);
         startServer(Webserver_Port);
         Webserver_Run = 1;
+        //stopServer(); // Never reached...
         return;
 
         // Because Webserver_Run will only set to 0 in DllMain,

@@ -1209,3 +1209,52 @@ void CyGame::sendTurnCompletePB(int iPlayer){
     GC.getInitCore().sendTurnCompletePB((PlayerTypes) iPlayer);
 	}
 }
+
+std::wstring __mod_path__; // static variable to avoid local one.
+std::wstring CyGame::getModPath()
+{
+	const char *path = get_dll_folder();  
+
+	// Remove lowest folder (\Assets)
+	char *last_slash = strrchr(path, '\\');
+	*last_slash = '\0';
+
+	__mod_path__.clear();
+	int status = CharToWString(__mod_path__, path);
+	return status == 0 ? __mod_path__ : L"";
+}
+
+int CyGame::unzipModUpdate(std::wstring zipFilename)
+{
+	std::wstring out_folder(getModPath());   
+	BSTR out_folder_bstr = SysAllocString(out_folder.c_str());
+	
+#if 0
+	// Manuell konstruieren
+	const char *dll_folder = get_dll_folder();
+	std::string absolute_path = std::string(dll_folder);
+	absolute_path.append("\\");
+	absolute_path.append("Update 1.zip");
+	std::wstring wabsolute_path;
+	StringToWString(wabsolute_path, absolute_path);
+  BSTR z_bstr = SysAllocString(wabsolute_path.c_str()); //=>File not found error
+	free((void *)dll_folder);
+#else
+	//BSTR z_bstr = SysAllocString(L"I:\\Olaf\\Civ4\\Beyond the Sword\\Mods\\PB Mod_v7\\Update 1.zip");//ok
+	BSTR z_bstr = SysAllocString(zipFilename.c_str());
+	//BSTR z_bstr = SysAllocString(L"Z:\\home\\olaf\\Civ4\\Civ4\\Beyond the Sword\\Mods\\PB Mod_v7\\Update 1.zip");
+#endif
+
+	int ret = Unzip2Folder(z_bstr, out_folder_bstr);
+
+	SysFreeString(z_bstr);
+	SysFreeString(out_folder_bstr);
+	return ret;
+}
+
+/* Delayed Python Call stuff ... */
+int CyGame::delayedPythonCall(int milliseconds, int arg1, int arg2)
+{
+	return (NULL != m_pGame ? m_pGame->delayedPythonCall(milliseconds, arg1, arg2) : -1);
+}
+

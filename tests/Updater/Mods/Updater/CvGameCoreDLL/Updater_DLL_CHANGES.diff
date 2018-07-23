@@ -67,12 +67,12 @@ index 63ade8d..765c2d7 100644
 +						//std::cout << "event" << std::endl;
 +						int next_milliseconds = m_pGame->delayedPythonCall2();
 +
-+            if (next_milliseconds == 0){
-+                break; // Quit delayed thread
-+            }
++						if (next_milliseconds == 0){
++								break; // Quit delayed thread
++						}
 +
-+            wait_time.sec = next_milliseconds/1000;
-+            wait_time.nsec = (next_milliseconds%1000)*1000000L;
++						wait_time.sec = next_milliseconds/1000;
++						wait_time.nsec = (next_milliseconds%1000)*1000000L;
 +				}
 +		}
 +};
@@ -85,6 +85,17 @@ index 63ade8d..765c2d7 100644
 +		if (m_pTimer){
 +				delete m_pTimer; m_pTimer = NULL;
 +		}
++
++		// Save handle to current thread. It suspends this thread if delayedPythonCall2
++		// is called. (Hardcore mutex :))
++		DuplicateHandle(GetCurrentProcess(),
++						GetCurrentThread(),
++						GetCurrentProcess(),
++						&m_pMainThreadDup,
++						0,
++						FALSE,
++						DUPLICATE_SAME_ACCESS);
++
 +		m_timerArgsList.clear();
 +		m_timerArgsList.add(arg1);
 +		m_timerArgsList.add(arg2);
@@ -98,13 +109,19 @@ index 63ade8d..765c2d7 100644
 +int CvGame::delayedPythonCall2()
 +{
 +		long lResult=0;
++		if( m_pMainThreadDup ){
++			SuspendThread(m_pMainThreadDup);
++		}
 +		gDLL->getPythonIFace()->callFunction(PYGameModule, "delayedPythonCall", m_timerArgsList.makeFunctionArgs(), &lResult);
++		if( m_pMainThreadDup ){
++			ResumeThread(m_pMainThreadDup);
++		}
 +		if (lResult >= 0)
 +		{
-+       return lResult; // Repeat
++			 return lResult; // Repeat
 +		}
 +
-+    return 0; // Abort
++		return 0; // Abort
 +}
 +//PB Mod END
 +
@@ -113,6 +130,7 @@ index 63ade8d..765c2d7 100644
  CvGame::CvGame()
 +#ifdef WITH_TIMER
 +		: m_pTimer(NULL)
++		, m_pMainThreadDup(NULL)
 +		, m_timerArgsList()
 +#endif
  {
@@ -162,8 +180,8 @@ index 4f77fbd..6d4e903 100644
  
  	DllExport void handleDiplomacySetAIComment(DiploCommentTypes eComment) const;
  	DllExport bool isDiploScreenUp() const;
-+  DllExport int delayedPythonCall(int milliseconds, int arg1 = -1, int arg2 = -1); // Starts new thread
-+  int delayedPythonCall2(); // Called by other thread
++	DllExport int delayedPythonCall(int milliseconds, int arg1 = -1, int arg2 = -1); // Starts new thread
++	int delayedPythonCall2(); // Called by other thread
  
  protected:
  	int m_iElapsedGameTurns;
@@ -173,8 +191,9 @@ index 4f77fbd..6d4e903 100644
  
 +// Updater Mod
 +#ifdef WITH_TIMER
-+  Timer *m_pTimer;
-+  CyArgsList m_timerArgsList;
++	Timer *m_pTimer;
++	HANDLE m_pMainThreadDup;
++	CyArgsList m_timerArgsList;
 +#endif
 +// Updater Mod END
 +
@@ -409,7 +428,7 @@ index fe06140..b4e240b 100644
 +std::wstring __mod_path__; // static variable to avoid local one.
 +std::wstring CyGame::getModPath()
 +{
-+	const char *path = get_dll_folder();  
++	const char *path = get_dll_folder();
 +
 +	// Remove lowest folder (\Assets)
 +	char *last_slash = strrchr(path, '\\');
@@ -422,7 +441,7 @@ index fe06140..b4e240b 100644
 +
 +int CyGame::unzipModUpdate(std::wstring zipFilename)
 +{
-+	std::wstring out_folder(getModPath());   
++	std::wstring out_folder(getModPath());
 +	BSTR out_folder_bstr = SysAllocString(out_folder.c_str());
 +	
 +	BSTR z_bstr = SysAllocString(zipFilename.c_str());
@@ -451,7 +470,7 @@ index ea0cf3a..42614ff 100644
  	void sendTurnCompletePB(int iPlayer);
 +	std::wstring getModPath();
 +	int unzipModUpdate(std::wstring zipFilename);
-+  int delayedPythonCall(int milliseconds, int arg1, int arg2);
++	int delayedPythonCall(int milliseconds, int arg1, int arg2);
  
  protected:
  	CvGame* m_pGame;

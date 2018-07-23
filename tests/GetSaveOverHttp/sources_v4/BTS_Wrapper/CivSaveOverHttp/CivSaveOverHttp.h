@@ -15,8 +15,7 @@
 //#include <windows.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 GETSAVEOVERHTTP_API void StartServer(const char *pPortName);
 

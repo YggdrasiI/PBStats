@@ -24,7 +24,7 @@ import ModUpdater
 
 # Delay of first drawing call of mod window after startup
 # Values < 0 disable delayed drawing.
-DELAYED_MS = 200
+DELAYED_MS = 5000
 
 # globals
 gc = CyGlobalContext()
@@ -83,11 +83,13 @@ def integrate():
             #(If yes, drawing will not causes an 'unidentifiable C++ exception'
             # in fullscreen mode.)
 
-            iRepeat = 15  # Milliseconds till next check
+            iRepeat = 1000  # Milliseconds till next check
             pt = CyInterface().getMousePos()
             #print("Mouse position (%i, %i)" % (int(pt.x), int(pt.y)))
 
             if pt.x == 0 and pt.y == 0:
+                print("(ModUpdaterScreen) Hey, window not ready for drawing."
+                        "Wait %s milliseconds..." % (iRepeat,))
                 return iRepeat
             else:
                 if not CvScreensInterface.modUpdaterScreen.FIRST_DRAWN:
