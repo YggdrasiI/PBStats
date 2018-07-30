@@ -6,12 +6,12 @@
 	}, 
 	"numRecoverySavesPerPlayer": 5, 
 	"shell": {
-		"enable": false, 
+		"enable": 0, 
 		"ip": "127.0.0.1", 
 		"port": 3333
 	}, 
 	"MotD": "Modified PitBoss Server, Version 8", 
-	"noGui": 0, 
+	"gui": 1, 
 	"tmpToRestart": false, 
 	"comment": "Look into Webserver.py for a commented version of this structure with all options.", 
 	"errorLogFile": "Logs\\pitbossErr.log", 

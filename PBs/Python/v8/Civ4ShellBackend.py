@@ -30,18 +30,21 @@ class Server:
         self.pbAdminFrame = None    # PbAdmin.py
 
     def __del__(self):
+        print("Civ4Shell __del__")
         # Stop server
         self.run = False
         self.close()
 
     def close(self):
-        if self.conn is not None:
-            # print("Closing Server...")
-            self.conn.close()
-            self.conn = None
-        if self.s is not None:
-            self.s.close()
-            self.s = None
+        if not self.run:
+            return
+
+        print("Civ4Shell close")
+        self.run = False
+        # Hm, only a request release the lock on the listen socket...
+        # How to avoid this ugly hack?!
+        socket.socket(socket.AF_INET,
+                  socket.SOCK_STREAM).connect( (self.tcp_ip, self.tcp_port))
 
     def start(self):
         self.run = True
@@ -77,7 +80,13 @@ class Server:
                 # Client expect message
                 self.conn.send(EOF)
 
-        self.close()
+        # Cleanup/Release port
+        if self.conn is not None:
+            self.conn.close()
+            self.conn = None
+        if self.s is not None:
+            self.s.close()
+            self.s = None
 
     def init(self):
         """ Should be called by game loop thread. """
@@ -102,7 +111,11 @@ class Server:
                     self.output_store.append("%s%s%c" % (out, err, EOF))
                 else:  # Without stderr
                     self.output_store.append("%s%c" % (out, EOF))
-            elif data[0:2] == "q:":  # Quit shell
+            elif data[0:2] == "q:":  # Quit shell and ( wizard or admin frame)
+                if self.pbAdminFrame:
+                    self.pbAdminFrame.OnExit(None)
+                elif self.pbStartupIFace:
+                    self.pbStartupIFace.bQuitWizard = True
                 self.run = False
                 return False
             elif data[0:2] == "Q:":  # Quit PB_Server
@@ -114,7 +127,7 @@ class Server:
                     # Should not be reached. (see 'q:' branch)
                     PB.quit()
                 else:
-                    CyPitboss().consoleOut("Quit not possible. Unable to quit all app threads.")
+                    print("Quit not possible. Unable to quit all app threads.")
 
                 self.run = False
                 return False
@@ -128,6 +141,12 @@ class Server:
                 import simplejson as json
                 s = json.dumps(self.gen_loadable_status(glob))
                 self.output_store.append("%s%c" % (s, EOF))
+            elif data[0:2] == "U:":  # Prepare Mod Update
+                # Only useful in combination with PBStats/tests/Updater
+                # TODO
+                ws = glob.get("Webserver")
+                if ws:
+                    ws.action_mod_update()
             elif data[0:2] == "S:":  # Search/Completion
                 # TODO
                 break

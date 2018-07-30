@@ -66,7 +66,7 @@ START_LINUX = 'wine "{CIV4BTS_EXE}" mod= "{MOD}"\\\" /ALTROOT="{ALTROOT_W}"'
 # Variant with cleaned output
 UNBUFFER = False
 START_LINUX_UNBUFFER = r'unbuffer wine "{CIV4BTS_EXE}" mod= "{MOD}"\\\" '\
-        r'/ALTROOT="{ALTROOT_W}" | grep -v "^FTranslator::AddText\|^fixme:"'
+        r'/ALTROOT="{ALTROOT_W}" | grep -v "^FTranslator::AddText\|fixme:\|err:"'
 
 # (Linux only)Path for xvfb-run framebuffer.
 # Screenshot available via 'xwud --id $XVFB_DIR'
@@ -106,7 +106,7 @@ if "GAMES" not in globals():
         "2": {"name": "Pitboss 2", "mod": MOD,
               "altroot": os.path.join(ALTROOT_BASEDIR, "PB2")},
         "seed": {"name": "Example", "mod": MOD,
-              "altroot": os.path.join(ALTROOT_BASEDIR, "seed")},
+                 "altroot": os.path.join(ALTROOT_BASEDIR, "seed")},
     }
 ###################
 
@@ -300,15 +300,17 @@ def findSaves(gameid, pbSettings, reg_pattern=None, pattern="*"):
 
 def isAutostartEnabled(pbSettings):
     # Return 1 if autostart is 'true' or '1'
-    autostart = bool(pbSettings.get("autostart", False))
-    noGui = bool(pbSettings.get("noGui", False))
-    shell = bool(pbSettings.get("shell", {}).get("enable"))
-    if not autostart and noGui and not shell:
-        print("Warning: Autostart flag is disabled, but noGui and shell "
-              "flag overrides the setting.")
-        autostart = True
+    bGui = (int(pbSettings.get("gui", 1)) != 0)
+    bGui = (int(pbSettings.get("noGui", not bGui)) == 0)  # Old key name
+    bAutostart = (int(pbSettings.get("autostart", 0)) != 0)
+    bShell = (int(pbSettings.get("shell", {}).get("enable", 0)) != 0)
 
-    return autostart
+    if not bAutostart and not bGui and not bShell:
+        print("Warning: Autostart flag is disabled, but gui and shell "
+              "flag also.\nThe PB server handles this case like 'gui=1'")
+        bAutostart = True
+
+    return bAutostart
 
 def isRestartDisabled(gameid, pbSettings):
     noRestart = bool(pbSettings.get("tmpNoRestart", False))
@@ -431,16 +433,16 @@ def setupGame(gameid, save_pat=None, password=None):
         save_pat = pbSettings.get("save", {}).get("filename", "")
         lSaves = findSaves(gameid, pbSettings, save_pat)
 
-    autostart = isAutostartEnabled(pbSettings)
-    if autostart:
+    bAutostart = isAutostartEnabled(pbSettings)
+    if bAutostart:
         print("Autostart {0}".format(
             (pbSettings.get("save", {}).get("filename", "?"))))
 
-    if autostart and len(lSaves) == 0:
+    if bAutostart and len(lSaves) == 0:
         print("No save found for pattern '%s'." % (save_pat))
         return -1
 
-    if autostart:
+    if bAutostart:
         mod_name = parseModName(lSaves[0][0])
     else:
         mod_name = select_mod_manually(GAMES[gameid]["mod"])

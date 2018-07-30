@@ -10,14 +10,13 @@ import sys
 import re
 import os.path
 import socket
-
-if sys.platform[0:3] == "win32":
-    import pyreadline as readline
-else:
-    import readline  # For history, do not remove
-
 from socket import gethostname
 from time import sleep
+
+if sys.platform[0:3] != "win32":
+    import readline  # For history, do not remove
+else:
+    import pyreadline as readline
 
 # For reply's
 # from threading import Thread
@@ -79,7 +78,7 @@ class Client:
         self.s.connect(tAddrPort)
 
     def close(self):
-        if not self.s is None:
+        if self.s is not None:
             # warn("Close Client")
             self.s.shutdown(socket.SHUT_RDWR)
             self.s.close()
@@ -138,8 +137,8 @@ class Civ4Shell(cmd.Cmd):
 
         # Overwrite address
         self.remote_server_adr = (
-                        kwargs.get("host", self.remote_server_adr[0]),
-                        kwargs.get("port", self.remote_server_adr[1]))
+            kwargs.get("host", self.remote_server_adr[0]),
+            kwargs.get("port", self.remote_server_adr[1]))
         print(kwargs)
         print(self.remote_server_adr)
         # Start client
@@ -199,7 +198,7 @@ class Civ4Shell(cmd.Cmd):
         print(" Add unit (Player 0):")
         # Attention pydoc.doc(CyPlayer.initUnit)) returns wrong declaration!
         self.default("gc.getPlayer(0).initUnit(1, 1, 1,"
-                "UnitAITypes.NO_UNITAI, DirectionTypes.NO_DIRECTION)")
+                     "UnitAITypes.NO_UNITAI, DirectionTypes.NO_DIRECTION)")
         self.default("print('Num Units: %i' % gc.getPlayer(0).getNumUnits())")
 
     def do_doc(self, arg):
@@ -220,7 +219,7 @@ class Civ4Shell(cmd.Cmd):
 
         Assumed maximal nesting depth of the json structure: 2.
         Examples to edit a value:
-            'config edit noGui=1'
+            'config edit gui=0'
             'config edit adminpw=the_password'
             'config edit shell/port=3334'
           Note that the prefix 'shell/' in the last example is required because
@@ -240,21 +239,21 @@ class Civ4Shell(cmd.Cmd):
                         w = max(w, len(kk)+2)
 
                 w = max(w, len(k))
-            w = [w+1, w+1-2]  # +1 for ':' and -2 for indent.
+            s = [w+1, w+1-2]  # +1 for ':' and -2 for indent.
 
             print("==================================")
             for (k, v) in settings.items():
                 if isinstance(v, dict):
                     print("%s:" % (k,))
                     for kk in v:
-                        print("  %*.*s  %s" % (-w[1], w[1], kk + ":", str(v[kk])))
-
+                        print("  %*.*s  %s" % (-s[1], s[1], kk + ":",
+                                               str(v[kk])))
                 else:
-                    print("%*.*s  %s" % (-w[0], w[0], k + ":", str(v)))
+                    print("%*.*s  %s" % (-s[0], s[0], k + ":", str(v)))
             print("==================================")
 
         elif len(args) > 0 and args[0] == "save":
-            d = "Webserver.savePbSettings()"
+            d = "PbSettings.save()"
             self.default(d)
         elif len(args) > 0 and args[0] == "reload":
             # Nullify settings dict to force reload of file.
@@ -273,7 +272,7 @@ class Civ4Shell(cmd.Cmd):
             changes = []
             for (k, v) in settings.items():
                 if isinstance(v, dict):
-                    if len(conf_key) > 1 and not conf_key[0] == k:
+                    if len(conf_key) > 1 and conf_key[0] != k:
                         continue
 
                     for (kk, vv) in v.items():
@@ -321,7 +320,7 @@ class Civ4Shell(cmd.Cmd):
         if len(arg) > 0:
             saveName = "%s.CivBeyondSwordSave" % (arg.split(" ")[0])
             saveName = saveName.replace(".CivBeyondSwordSave.CivBeyondSwordSave",
-                             ".CivBeyondSwordSave")
+                                        ".CivBeyondSwordSave")
 
             # Path relative to game dir, but not root/altroot.
             filepath = "\\".join(["Saves", "multi", saveName])
@@ -329,7 +328,7 @@ class Civ4Shell(cmd.Cmd):
             mode = str(self.send("M:"))
             if mode == "pb_wizard":
                 warn("PB server is in startup phase and no game is loaded."
-                      "\nCurrent mode is '{0}' ".format(mode))
+                     "\nCurrent mode is '{0}' ".format(mode))
                 return
 
             d = """\
@@ -393,16 +392,17 @@ else:
             if loadable_check.get("loadable") == -2:
                 warn("Given admin password is wrong and search in list of"
                      "alternatives ( see pbPasswords.json) also fails.\n\n"
-                    "Fix 'adminpw' value.")
+                     "Fix 'adminpw' value.")
 
         if mode == "pb_wizard":
-                self.send("q:")  # Quit loop which blockades the startup process
+            self.send("q:")  # Quit loop which blockades the startup process
 
         if mode == "pb_admin":
             # An other game is already loaded. Update settings file
             # and quit PB server. At next startup, the new file should be
             # loaded.
-            self.send("p:Webserver.getPbSettings()[\"save\"][\"oneOffAutostart\"] = 1; Webserver.savePbSettings()")
+            self.send('p:Webserver.getPbSettings()["save"]["oneOffAutostart"]'
+                      '= 1; Webserver.getPbSettings().save()')
             print("Restart PB server")
             sleep(1)
             self.send("Q:")
@@ -413,7 +413,7 @@ else:
 
         # TODO: re-open of socket fails...
         # Exit as workaround...
-#        return True
+        # return True
 
         print("Wait a few seconds...")
         for _ in xrange(10):
@@ -499,7 +499,7 @@ else:
 
         print("\n%c %s %12.12s %s %12.12s %12.12s %s %s %s %s" % (
             "X", "Id", "Player", "Score", "Leader", "Nation", "Gold",
-                                     "Cities", "Units", "Status"))
+            "Cities", "Units", "Status"))
         for pl in status.get("players", []):
             print("%c %2i %12.12s %5.5s %12.12s %12.12s %4i %6i %5i %s" % (
                 "*" if pl.get("finishedTurn") else " ",
@@ -511,8 +511,7 @@ else:
                 pl.get("gold", -1),
                 pl.get("nCities", -1),
                 pl.get("nUnits", -1),
-                player_status(pl))
-            )
+                player_status(pl)))
 
         print("")
 
@@ -550,8 +549,8 @@ else:
         # print(saves)
         for s in saves:
             print("%2i - %20s | %s" %(index,
-                                    s.get("date", "date?"),
-                                    s.get("name", "name?")))
+                                      s.get("date", "date?"),
+                                      s.get("name", "name?")))
             index += 1
 
         self.latest_save_list = saves
@@ -794,7 +793,7 @@ else:
             regPattern = ".*"
         d = """\
 import simplejson as json
-print(json.dumps({0}'saves':Webserver.getListOfSaves('{2}','{3}', {4}){1}))
+print(json.dumps({0}'saves':PbSettings.getListOfSaves('{2}','{3}', {4}){1}))
 """.format("{", "}", pattern, regPattern, sOptNum)
 
         # print(d)
@@ -899,9 +898,9 @@ def restrict_textwidth(text, max_width, prefix):
         posR = text.find('\n', posL, posL+max_width)
         if posR == -1:
             text = "%s\n%s%s" % (
-                    text[0:posL+max_width],
-                    prefix,
-                    text[posL+max_width:])
+                text[0:posL+max_width],
+                prefix,
+                text[posL+max_width:])
             posL += max_width + 1 + len(prefix) + 1
         else:
             posL = posR+1

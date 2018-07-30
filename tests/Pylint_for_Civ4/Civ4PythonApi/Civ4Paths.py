@@ -13,6 +13,8 @@ def civ4_paths(civ4=CIV4, mod=MOD):
         os.path.join(civ4, "Beyond the Sword", "Assets", "Python"),
         os.path.join(civ4, "Warlords", "Assets", "Python"),
         os.path.join(civ4, "Assets", "Python"),
+        # Python 2.4 with wx, etc
+        os.path.join(civ4, "Warlords", "Assets", "Python", "System"),
     ]
 
     o = []

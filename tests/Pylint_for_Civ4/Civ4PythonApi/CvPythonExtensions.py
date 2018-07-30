@@ -11219,6 +11219,9 @@ class CyGlobalContext:
         def sendChat(sMsg, eChatTargetType):
             pass
 
+        @staticmethod
+        def sendTurnCompletePB(iPlayer):
+            pass
 
 class CyGlobeLayer:
 
@@ -18105,6 +18108,14 @@ class XYCoords:
 class CyPitboss:
     # Extracted from PBWizard.py and PBAdmin.py
     @staticmethod
+    def loadMod(sModname):
+        pass
+
+    @staticmethod
+    def isCurrentMod():
+        return bool()
+
+    @staticmethod
     def getModName():
         return str()
 
@@ -18217,6 +18228,34 @@ class CyPitboss:
         return str()
 
     @staticmethod
+    def getNumCustomMapOptions(sMapName):
+        return int()
+
+    @staticmethod
+    def getNumCustomMapOptionValues(iOption, sMapName):
+        return int()
+
+    @staticmethod
+    def getCustomMapOptionName(iOption, sMapName):
+        return str()
+
+    @staticmethod
+    def getCustomMapOptionDescAt(iRow, iOption, sMapName):
+        return int()
+
+    @staticmethod
+    def getNumLeaders(iCiv):
+        return int()
+
+    @staticmethod
+    def getCivLeaderAt(iCiv, iLeader):
+        return str()
+
+    @staticmethod
+    def getName(iPlayer):
+        return str()
+
+    @staticmethod
     def getEmail():
         return str()
 
@@ -18304,7 +18343,7 @@ class CyPitboss:
 
     @staticmethod
     def playerParamChanged(iSlot, iWho, iCiv, iTeam,
-                          iDifficulty, iGlobalLeaderID):
+                           iDifficulty, iGlobalLeaderID):
         # iWho is slot status
         pass
 
@@ -18401,6 +18440,10 @@ class CyPitboss:
         return bool()
 
     @staticmethod
+    def isOptionValid(iOption):
+        return bool()
+
+    @staticmethod
     def forceVictories():
         return bool()
 
@@ -18423,6 +18466,10 @@ class CyPitboss:
     @staticmethod
     def getCivLeaderIndex(iCiv, iLeader):
         return int()
+
+    @staticmethod
+    def resetAdvancedStartPoints():
+        pass
 
     @staticmethod
     def getReady(iSlot):
