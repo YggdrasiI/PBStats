@@ -350,7 +350,7 @@ class ModUpdater:
 
         if update["name"].endswith(".zip"):
             print("Extract '%s'" % (update["name"],) )
-            """
+
             self.remove_old_info_txt()
             if not self.unzip(zip_path, config["mod_path"]):
                 return False
@@ -359,7 +359,6 @@ class ModUpdater:
             update["info"] = self.get_info_json()
             if not self.handle_info_json(update["info"]):
                 return False
-            """
 
             config["current_version"] = update["name"]
             config["installed_updates"] = config.get(

@@ -118,8 +118,8 @@ class Civ4Shell(cmd.Cmd):
     Connect to local Civ4 server with 'connect port'.
     Exit shell with 'bye'.
 
-    MODDING-NOTE: Predifined commands was desined for pitboss servers and
-    had no effect on normal Civ4 instances.
+    MODDING-NOTE: Predefined commands are designed for pitboss servers.
+                  They had no effect on normal Civ4 instances.
     """
 
     remote_server_adr = (PYCONSOLE_HOSTNAME, PYCONSOLE_PORT)
@@ -416,10 +416,14 @@ else:
 #        return True
 
         print("Wait a few seconds...")
-        sleep(10)
+        for _ in xrange(10):
+            sleep(1)
+            sys.stdout.write(".")
+            sys.stdout.flush()
+
         for _ in xrange(60):
             sleep(2)
-            sys.stdout.write(".")
+            sys.stdout.write(":")
             sys.stdout.flush()
             try:
                 self.init()
