@@ -23,7 +23,8 @@ typedef std::string String;
 typedef std::wstring String;
 #endif
 
-std::string sWebserver_Port("8080");
+//std::string sWebserver_Port("8080");
+std::string sWebserver_Port("-1");  // Disabled
 int Webserver_Port = atoi(sWebserver_Port.c_str());
 
 // Detect filename of newest exe
@@ -140,8 +141,9 @@ int main(const int argc, const char * const argv[])
     WaitForSingleObject(hThread, INFINITE);
     VirtualFreeEx(processInformation.hProcess, pReservedSpace, strlen(dllPath), MEM_COMMIT);
 
-#ifdef WITH_WEBSERVER
+
     // Get return value of remote call of LoadLibrary by reading GetExitCodeThread
+    // We need this value for calls of GetRemoteProcAddress later...
     // NOTE: Unfortunately this doesn’t work for 64bit processes! GetExitCodeThread returns a 32bit value; in a 64bit process, LoadLibrary will return a 64bit value.
     DWORD exitCode;
     if( !GetExitCodeThread(hThread, &exitCode) ){
@@ -149,11 +151,12 @@ int main(const int argc, const char * const argv[])
 
         return 0;
     }
+    HMODULE dllHandleRemote = (HMODULE) exitCode;
 
+#ifdef WITH_WEBSERVER
     if( Webserver_Port > -1 ){
         //2. Start Webserver as remote thread in the other process
         //2.0 get position of function StartServer in CivSaveOverHttp.dll 
-        HMODULE dllHandleRemote = (HMODULE) exitCode;
         void * pStartServerRemote = (void *) /*FARPROC*/ GetRemoteProcAddress (processInformation.hProcess, dllHandleRemote, "StartServer");
 
         /* NOTE: Above differs from address determined by this process, i.e... */
@@ -201,8 +204,38 @@ int main(const int argc, const char * const argv[])
     }
 #endif
 
+    //============================================
+    // Propagate calling arguments for Log
+    void * pSetStartArgsRemote = (void *) /*FARPROC*/ GetRemoteProcAddress (processInformation.hProcess, dllHandleRemote, "SetStartArgs");
+
+    if( pSetStartArgsRemote ){
+        // Transfer the args string into other address space
+        void* pReservedSpaceArgs = VirtualAllocEx(processInformation.hProcess, NULL, args.length(), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+        if (!pReservedSpace)
+        {
+            std::cout << "Could not allocate virtual memory. GetLastError() = " << GetLastError() << std::endl;
+            return 0;
+        }
+        if (!WriteProcessMemory(processInformation.hProcess, pReservedSpaceArgs, args.c_str(), args.length(), NULL))
+        {
+            std::cout << "Error while calling WriteProcessMemory(). GetLastError() = " << GetLastError() << std::endl;
+            return 0;
+        }
+
+        // Call SetStartArgs(pArgs)
+        HANDLE hThreadArgs = CreateRemoteThread(processInformation.hProcess, NULL, 0,
+                (LPTHREAD_START_ROUTINE)pSetStartArgsRemote, pReservedSpaceArgs, 0, NULL);
+        if (!hThreadArgs)
+        {
+            std::cout << "Unable to create the remote thread. GetLastError() = " << GetLastError() << std::endl;
+            return 0;
+        }
+        WaitForSingleObject(hThreadArgs, INFINITE);
+        VirtualFreeEx(processInformation.hProcess, pReservedSpaceArgs, args.length(), MEM_COMMIT);
+    }
+    //============================================
+
     std::cout << "Done" << std::endl;
     return 0;
 }
-
 

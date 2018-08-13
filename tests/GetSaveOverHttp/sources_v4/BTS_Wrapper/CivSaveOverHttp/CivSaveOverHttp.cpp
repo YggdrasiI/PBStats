@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <ctime>
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -77,12 +78,26 @@ static std::string Str_url_prefix2 = std::string("_https_");
 static std::string Str_url_prefix3 = std::string("_url_"); //deprecated syntax. Will be handled like https case.
 
 #define MAX_TMP_NAME_LEN 512
+//static char tmp_path[MAX_TMP_NAME_LEN];
 static std::string tmp_path = std::string(MAX_TMP_NAME_LEN, ' ');
+static std::string save_path = std::string();
 static std::string last_cached_orig_path = std::string();
 static MH_STATUS status;
 #ifdef WITH_LOGFILE
+bool logactive(false);
 std::ofstream logfile;
+#define LOGPRINT(X) \
+                if( logactive ){ \
+                    logfile << X << std::endl; \
+                    logfile.flush(); \
+                }
+#else
+#define LOGPRINT(X) 
 #endif
+
+time_t download_last_start = 0;
+time_t download_start = 0;
+std::string startArgs;
 
 // for curl file handling
 struct DownloadFile {
@@ -105,17 +120,44 @@ static size_t my_fwrite(void *buffer, size_t size, size_t nmemb, void *stream)
 
 int gen_temp_file_path(std::string &path) {
 
-    char tmp_path[MAX_TMP_NAME_LEN]; //ugly
-    unsigned int tmp_len = GetTempPathA(MAX_TMP_NAME_LEN, tmp_path);
+    //char tmp_path[MAX_TMP_NAME_LEN]; //ugly
+    // Guarantee length of internal buffer
+    if( tmp_path.length() < MAX_TMP_NAME_LEN){
+      tmp_path.resize(MAX_TMP_NAME_LEN, ' ');
+    }
+
+    unsigned int tmp_len = GetTempPathA(MAX_TMP_NAME_LEN, (char *)tmp_path.c_str());
     if (tmp_len + Tmp_Name.length() > MAX_TMP_NAME_LEN) {
         path.clear();
         return -1;
     }
+    tmp_path.resize(tmp_len); // otherwise many ' ' follow the \0 inserted by GetTempPathA // hm, bringt nix...
     path.clear();
-    path.append(tmp_path); // with '/' ?!
+    path.append(tmp_path);
     path.append(Tmp_Name);
     return 0;
 }
+
+#ifdef WITH_LOGFILE
+int gen_logfile_path(std::string &path) {
+
+    // Guarantee length of internal buffer
+    if( tmp_path.length() < MAX_TMP_NAME_LEN){
+      tmp_path.resize(MAX_TMP_NAME_LEN, ' ');
+    }
+
+    std::string fname = std::string("BTS_Wrapper.log");
+    unsigned int tmp_len = GetTempPathA(MAX_TMP_NAME_LEN, (char *)tmp_path.c_str());
+    if (tmp_len + fname.length() > MAX_TMP_NAME_LEN) {
+        return -1;
+    }
+    tmp_path.resize(tmp_len); // otherwise many ' ' follow the \0 inserted by GetTempPathA
+    path.clear();
+    path.append(tmp_path);
+    path.append(fname);
+    return 0;
+}
+#endif
 
 int curl_download(std::string &url, std::string &path) {
 
@@ -214,11 +256,25 @@ int WINAPI MySendto(
     int assumed_return_value = len;
 
     // FE FE 00 00 |** ** 05 08| 00 00 [...]
-    if (len > 0x20) {
+    /*
+     * Package contains 33 bytes and a string of variable length.
+     * Assume save path with at least 31 chars...
+     * This is a conervative estimation, because the path contains substrings like 
+     * 'C:\', 'Saves\pitboss\auto\Recovery_' and '.CivBeyondSwordSave'
+     */
+    if (len > 0x20 + 0x20 ) {
         unsigned int id = *((unsigned int*)(buf + 4)) >> 16; // Flips byte order...
-        if (id == 0x0805 /* DirectIP game */ ||
-                id == 0x0806 /* DirectIP game (2, gesehen bei Test mit multiple-Argument) */ ||
-                id == 0x0807 /* Pitboss game */) {
+        if ( 
+#if 0
+                id == 0x0805 /* DirectIP game */
+                || id == 0x0806 /* DirectIP game (2, gesehen bei Test mit multiple-Argument) */
+                || id == 0x0807 /* Pitboss game */
+                || id == 0x0808 /* Pitboss game, wenn schon jemand eingeloggt ist */
+                /* Hm, bei zwei eingeloggten Spielern ändert sich der Wert erneut...*/
+#else
+                id >= 0x0805 && id < 0x0815
+#endif
+           ){
 
             const unsigned int offset = 0x21; // Start of string.
             const unsigned int path_len = *((unsigned int *)(buf + offset - 4)); // Length info of string
@@ -251,9 +307,7 @@ int WINAPI MySendto(
                 uint32_t l_old = path.length();
                 uint32_t l_url = url.length();
 
-#ifdef WITH_LOGFILE
-                logfile << "(BTS_Wrapper) Change path in package from '" << path << "' to '" << url << std::endl;
-#endif
+                LOGPRINT("(BTS_Wrapper) Change path in package from '" << path << "' to '" << url);
 
                 *((char *)buf + len) = '\0';
                 memcpy((char *)buf + len + 1, &l_url, 4);
@@ -288,12 +342,25 @@ int WINAPI MyRecvfrom(
 
     // Analyse packet...
     // FE FE 00 00 ** ** 05 08 00 00 [...]
-    if (recv_from_length > 0x20) {
+    /*
+     * Package contains 33 bytes and a string of variable length.
+     * Assume save path with at least 31 chars...
+     * This is a conervative estimation, because the path contains substrings like 
+     * 'C:\', 'Saves\pitboss\auto\Recovery_' and '.CivBeyondSwordSave'
+     */
+    if (len > 0x20 + 0x20 ) {
         unsigned int id = *((unsigned int*)(buf + 4)) >> 16; // Flips byte order...
-        if (id == 0x0805 /* DirectIP game */ ||
-                id == 0x0806 /* DirectIP game (2, gesehen bei Test mit multiple-Argument) */ ||
-                id == 0x0807 /* Pitboss game */) {
-
+        if ( 
+#if 0
+                id == 0x0805 /* DirectIP game */
+                || id == 0x0806 /* DirectIP game (2, gesehen bei Test mit multiple-Argument) */
+                || id == 0x0807 /* Pitboss game */
+                || id == 0x0808 /* Pitboss game, wenn schon jemand eingeloggt ist */
+                /* Hm, bei zwei eingeloggten Spielern ändert sich der Wert erneut...*/
+#else
+                id >= 0x0805 && id < 0x0815
+#endif
+           ){
 
             // Extract file path from packet. Note that the path is not null terminated.
             const unsigned int offset = 0x21; // Start of string.
@@ -347,7 +414,7 @@ int WINAPI MyRecvfrom(
             else {
                 last_cached_orig_path = path;
                 // Ask system to gen tmp. file name.
-                if (gen_temp_file_path(tmp_path)) {
+                if (gen_temp_file_path(save_path)) {
                     goto skip;
                 }
             }
@@ -357,7 +424,7 @@ int WINAPI MyRecvfrom(
              * Copy header bytes from original packet and append path to temp file.
              * This will overwrite the original packed if the download succeeds...
              * */
-            uint32_t l_new = tmp_path.length();
+            uint32_t l_new = save_path.length();
             char *buf2 = (char *)malloc(offset + l_new + 5);
 
             // Head
@@ -365,9 +432,9 @@ int WINAPI MyRecvfrom(
 
             // Changed body
             memcpy(buf2 + offset - 4, &l_new, 4);
-            memcpy(buf2 + offset, tmp_path.c_str(), l_new);
+            memcpy(buf2 + offset, save_path.c_str(), l_new);
 
-            /* Try to download into tmp_path.
+            /* Try to download into save_path.
              *
              */
             /* First, construct url
@@ -428,23 +495,40 @@ int WINAPI MyRecvfrom(
                 }
             }
 
-#ifdef WITH_LOGFILE
-            logfile << "(BTS_Wrapper) Download '" << url2 << "' into '" << tmp_path << "'." << std::endl;
-            logfile.flush();
-#endif
-            if (protocol > -1 &&
-                    0 == curl_download(url2, tmp_path))
-            {
-                last_cached_orig_path = path;
-
+            // Check if download was already invoked ( aka double sending of this packet)
+            bool skip(false);
+            double seconds(-1.0);
+            if( download_last_start != 0 ){
+                time(&download_start);
+                seconds = difftime(download_start, download_last_start);
+                if( seconds < 30 ){
+                    skip = true;
+                }
+            }
+            if(skip){
+                LOGPRINT("(BTS_Wrapper) Skip Download. Time between the download invoking network packets are '" << seconds << "' seconds only. '");
                 // Replace buffer with copy
                 recv_from_length = offset + l_new + 4;
                 memcpy(buf, buf2, recv_from_length);
+
             }else{
-                // Shrink packet to original length?! (offset+path_len)
-                recv_from_length = offset + path_len;
+                LOGPRINT("(BTS_Wrapper) Download '" << url2 << "' into '" << save_path << "'.");
+
+                time(&download_last_start);
+                if (protocol > -1 &&
+                        0 == curl_download(url2, save_path))
+                {
+                    last_cached_orig_path = path;
+
+                    // Replace buffer with copy
+                    recv_from_length = offset + l_new + 4;
+                    memcpy(buf, buf2, recv_from_length);
+                }else{
+                    // Shrink packet to original length?! (offset+path_len)
+                    recv_from_length = offset + path_len;
+                }
+                free(buf2);
             }
-            free(buf2);
         }
     }
 skip:
@@ -459,30 +543,34 @@ extern "C" BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvR
         case DLL_PROCESS_ATTACH:
             {
 #ifdef WITH_LOGFILE
-                logfile.open("BTS_Wrapper.log");
+                logactive = false;
+                std::string fpath = "BTS_Wrapper.log";
+                // Try creation of logfile in current dir
+                logfile.open(fpath);
+                if( logfile.is_open() ){
+                    logactive = true;
+                }else{
+                    // Create file in %TMP% folder
+                    if( 0 == gen_logfile_path(fpath)){
+                        logfile.open(fpath);
+                        if( logfile.is_open() ){
+                            logactive = true;
+                            LOGPRINT("Log path: " << fpath);
+                        }
+                    }
+                }
 #endif
                 status = MH_Initialize();
-#ifdef WITH_LOGFILE
-                logfile << "MH_Initialize() returns: " << MH_StatusToString(status) << std::endl;
-#endif
+                LOGPRINT("MH_Initialize() returns: " << MH_StatusToString(status));
                 LPVOID pfn3 = GetProcAddress(GetModuleHandleA("WS2_32.dll"), "sendto");
                 LPVOID pfn4 = GetProcAddress(GetModuleHandleA("WS2_32.dll"), "recvfrom");
                 status = MH_CreateHook(pfn3, &MySendto, reinterpret_cast<void**>((LPVOID)&fpSendto));
-#ifdef WITH_LOGFILE
-                logfile << "MH_CreateHook() for sendto returns: " << MH_StatusToString(status) << std::endl;
-#endif
+                LOGPRINT("MH_CreateHook() for sendto returns: " << MH_StatusToString(status));
                 status = MH_CreateHook(pfn4, &MyRecvfrom, reinterpret_cast<void**>((LPVOID)&fpRecvFrom));
-#ifdef WITH_LOGFILE
-                logfile << "MH_CreateHook() for recvfrom returns: " << MH_StatusToString(status) << std::endl;
-#endif
-#ifdef WITH_LOGFILE
-                logfile << "(BTS_Wrapper) Enable Hooks of 'sendto' and 'recvfrom'." << std::endl;
-                logfile.flush();
-#endif
+                LOGPRINT("MH_CreateHook() for recvfrom returns: " << MH_StatusToString(status));
+                LOGPRINT(logfile << "(BTS_Wrapper) Enable Hooks of 'sendto' and 'recvfrom'.");
                 status = MH_EnableHook(MH_ALL_HOOKS);
-#ifdef WITH_LOGFILE
-                logfile << "MH_EnableHook() returns: " << MH_StatusToString(status) << std::endl;
-#endif
+                LOGPRINT("MH_EnableHook() returns: " << MH_StatusToString(status));
 
             }
             break;
@@ -491,35 +579,33 @@ extern "C" BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvR
                 Webserver_Run = 0;
 #if 0 //               Crashs?!
                 status = MH_DisableHook(MH_ALL_HOOKS);
-#ifdef WITH_LOGFILE
-                logfile << "MH_DisableHook() returns: " << MH_StatusToString(status) << std::endl;
-#endif
+                LOGPRINT("MH_DisableHook() returns: " << MH_StatusToString(status));
                 status = MH_Uninitialize();
-#ifdef WITH_LOGFILE
-                logfile << "MH_Uninitialize() returns: " << MH_StatusToString(status) << std::endl;
-#endif
-#ifdef WITH_LOGFILE
+                LOGPRINT("MH_Uninitialize() returns: " << MH_StatusToString(status));
                 status = MH_Uninitialize();
-                logfile << "Process_Detach" << std::endl;
-                logfile.close();
+                LOGPRINT("Process_Detach");
+#ifdef WITH_LOGFILE
+                if( logfile.is_open() ){
+                    logfile.close();
+                }
 #endif
 #else
                 MH_DisableHook(MH_ALL_HOOKS);
                 MH_Uninitialize();
 #endif
+
 #ifdef WITH_LOGFILE
                 // Bad idea to use logfile at this stage!! Could crash the app.
-                //logfile << "Process_Detach" << std::endl;
-                //logfile.close();
+                //LOGPRINT("Process_Detach");
+                //if( logactive and logfile.is_open() ){
+                //    logfile.close();
+                //}
 #endif
             }
             break;
         case DLL_THREAD_ATTACH:
             break;
         case DLL_THREAD_DETACH:
-#ifdef WITH_LOGFILE
-            //logfile << "Thread_Detach" << std::endl;
-#endif
             break;
     }
     return true;
@@ -532,6 +618,7 @@ extern "C" BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvR
  *
  * (Pitboss game)
  * crc32: ecaf54ee
+ *                       _____
  0000  fe fe 00 00|85 00 07 08|00 00 00 01 ff ff ff ff  ................
  0010  fe 54 15 01 37 00 00 00 00|ee 54 af ec|62 00 00  .T..7.....T..b..
  0020  00 5a 3a 5c 68 6f 6d 65 5c 70 62 5c 5f 75 72 6c  .Z:\home\pb\_url
@@ -539,7 +626,17 @@ extern "C" BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvR
  0070  2e 43 69 76 42 65 79 6f 6e 64 53 77 6f 72 64 53  .CivBeyondSwordS
  0080  61 76 65                                         ave
 
+ * (Pitboss game, someone already logged in)
+ *                        _____
+ 0000   fe fe 00 00|55 00 08 08|00 00 00 01 ff ff ff ff   þþ..U.......ÿÿÿÿ
+ 0010   5d 13 00 00 36 00 00 00 00 ff 0e 96 91 64 00 00   ]...6....ÿ...d..
+ 0020   00 5a 3a 5c 68 6f 6d 65 5c 63 69 76 70 62 5c 5f   .Z:\home\civpb\_
+ [...]
+ 0070   6c 65 2e 43 69 76 42 65 79 6f 6e 64 53 77 6f 72   le.CivBeyondSwor
+ 0080   64 53 61 76 65                                    dSave
+
  * (Direct IP game)
+ *                       _____
  0000  fe fe 00 00|3f 00 05 08|00 00 00 01 00 00 00 00  ....?...........
  0010  01 00 00 00 7c 00 00 00 00 5a 2c 23 07 5d 00 00  ....|....Z,#.]..
  0020  00 43 3a 5c 55 73 65 72 73 5c 85 65 85 65 5c 44  .C:\Users\XxXx\D
@@ -554,10 +651,14 @@ extern "C" {
 #endif
     void StartServer(const char *pPortName)
     {
-        //    Set static variable (will read by other thread)
+        // Set static variable (will read by other thread)
         Webserver_Port = atoi(pPortName);
         startServer(Webserver_Port);
         Webserver_Run = 1;
+
+        // Not threadsave, but StartServer only called once at startup
+        LOGPRINT("(BTS_Wrapper) Webserver for Saves started at port " << Webserver_Port);
+
         //stopServer(); // Never reached...
         return;
 
@@ -570,6 +671,12 @@ extern "C" {
         stopServer(); // Never reached...
     }
 
+    void SetStartArgs(const char *pArgs)
+    {
+        startArgs = pArgs;
+        // Not threadsave, but SetStartArgs only called once at startup
+        LOGPRINT("(BTS_Wrapper) Startup args: " << startArgs);
+    }
 #ifdef __cplusplus
 }
 #endif

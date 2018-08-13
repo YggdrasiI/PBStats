@@ -18,6 +18,7 @@
 extern "C" {
 #endif
 GETSAVEOVERHTTP_API void StartServer(const char *pPortName);
+GETSAVEOVERHTTP_API void SetStartArgs(const char *pArgs);
 
 #ifdef __cplusplus
 }
