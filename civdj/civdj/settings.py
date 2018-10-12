@@ -36,8 +36,8 @@ INSTALLED_APPS = (
     'debug_toolbar',
 #    'erroneous',
     'static_precompiler',
+    'django_bleach',
     'pbspy',
-    'bleach',
 )
 
 MIDDLEWARE_CLASSES = (
