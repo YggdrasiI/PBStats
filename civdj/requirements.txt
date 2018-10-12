@@ -1,5 +1,6 @@
 bleach
 Django==1.11.*
+django-bleach
 django-crispy-forms
 django-debug-toolbar
 django-erroneous

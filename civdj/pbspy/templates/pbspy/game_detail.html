@@ -1,6 +1,7 @@
 {% extends "pbspy/base.html" %}
 {% load i18n %}
 {% load format_log %}
+{% load bleach_tags %}
 
 {% block content %}
     <h1 id="game_name">{{ game.name }}</h1>
@@ -208,9 +209,7 @@
                             <td class="colDate">{{ logentry.date | log_date_privacy:14 }}</td>
                             <td class="colTurn">{{ logentry.turn }}</td>
                             <td class="colPlayer">{{ logentry | log_player_privacy:14 }}</td>
-                            {% autoescape off %}
-                                <td class="colEvent">{{ logentry.message }}</td>
-                            {% endautoescape %}
+                            <td class="colEvent">{{ logentry.message | bleach }}</td>
                         </tr>
                     {% endif %}
                 {% endfor %}
