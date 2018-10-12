@@ -128,10 +128,10 @@ STATIC_URL = "/static/"
 
 
 # Which HTML tags are allowed
-BLEACH_ALLOWED_TAGS = ['li', 'ul']
+BLEACH_ALLOWED_TAGS = ['li', 'ul', 'img']
 
 # Which HTML attributes are allowed
-BLEACH_ALLOWED_ATTRIBUTES = []
+BLEACH_ALLOWED_ATTRIBUTES = ['src', 'alt']
 
 # Which CSS properties are allowed in 'style' attributes (assuming style is
 # an allowed attribute)

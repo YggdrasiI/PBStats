@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load bleach_tags %}
 
 {% block content %}
 <table class='game_victory'>
@@ -21,7 +22,7 @@
         Player not defined. → No default victory message available.
         Write one if this field should not be empty.
             {% else %}
-            {{ victory_info.get_victory_message|safe }}
+            {{ victory_info.get_victory_message|bleach }}
             {% endif %}
             </td>
     </tr>
