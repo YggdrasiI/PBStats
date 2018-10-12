@@ -3,4 +3,4 @@
 __pycache__
 db.sqlite3
 civdj/settings_local.py
-static
+/static
