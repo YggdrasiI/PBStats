@@ -277,12 +277,14 @@ public:
 	bool isEventActive(int /*EventTriggerTypes*/ eTrigger);
 	void doControl(int iControl);
 
-	int setCivPassword(int ePlayer, const char *ssNewPw, const char *szAdminPw);
+	int setCivPassword(int ePlayer, const char *pNewPw, const char *pAdminPw);
 	bool isDiploScreenUp() const;
 	void sendTurnCompletePB(int iPlayer);
 	std::wstring getModPath();
 	int unzipModUpdate(std::wstring zipFilename);
-  int delayedPythonCall(int milliseconds, int arg1, int arg2);
+	int delayedPythonCall(int milliseconds, int arg1, int arg2);
+	int setAdminPassword(const char *pNewAdminPw, const char *pAdminPw);
+	void fixTradeRoutes();
 
 protected:
 	CvGame* m_pGame;

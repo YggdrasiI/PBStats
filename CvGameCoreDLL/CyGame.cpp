@@ -1182,21 +1182,23 @@ void CyGame::doControl(int iControl)
 	}
 }
 
-/* Check if corrent admin password is given and set player password to new value.
- * I do not test specical chars in passwords. Simply omit them...
+/* Set player password to new value. Requires correct admin password as second argument.
  * */
-int CyGame::setCivPassword(int ePlayer, const char *szNewPw, const char *szAdminPw)
+int CyGame::setCivPassword(int ePlayer, const char *pNewPw, const char *pAdminPw)
 {
-	//convert adminpassword to CvString
-	CvString adminPW;
-	adminPW.Convert ( GC.getInitCore().getAdminPassword() );
-	if( strcmp( adminPW.GetCString(), szAdminPw ) == 0 ){
-		CvWString newCivPW( szNewPw );
-		GC.getInitCore().setCivPassword((PlayerTypes)ePlayer, newCivPW );
-	}else{
-		return -1;
-	}
-	return 0;
+  // Evaluate MD5-Hash of AdminPw
+  CvWString szAdminPw(pAdminPw);
+  if (!szAdminPw.empty()){
+    szAdminPw = CvWString(gDLL->md5String((char*)CvString(szAdminPw).GetCString()));
+  }
+
+  if( 0 == szAdminPw.compare( GC.getInitCore().getAdminPassword())){
+    CvWString szNewCivPW( pNewPw );
+    GC.getInitCore().setCivPassword((PlayerTypes)ePlayer, szNewCivPW );
+  }else{
+    return -1;
+  }
+  return 0;
 }
 
 bool CyGame::isDiploScreenUp() const
@@ -1213,15 +1215,15 @@ void CyGame::sendTurnCompletePB(int iPlayer){
 std::wstring __mod_path__; // static variable to avoid local one.
 std::wstring CyGame::getModPath()
 {
-	const char *path = get_dll_folder();  
+  const char *path = get_dll_folder();  
 
-	// Remove lowest folder (\Assets)
-	char *last_slash = strrchr(path, '\\');
-	*last_slash = '\0';
+  // Remove lowest folder (\Assets)
+  char *last_slash = strrchr(path, '\\');
+  *last_slash = '\0';
 
-	__mod_path__.clear();
-	int status = CharToWString(__mod_path__, path);
-	return status == 0 ? __mod_path__ : L"";
+  __mod_path__.clear();
+  int status = CharToWString(__mod_path__, path);
+  return status == 0 ? __mod_path__ : L"";
 }
 
 int CyGame::unzipModUpdate(std::wstring zipFilename)
@@ -1237,7 +1239,7 @@ int CyGame::unzipModUpdate(std::wstring zipFilename)
 	absolute_path.append("Update 1.zip");
 	std::wstring wabsolute_path;
 	StringToWString(wabsolute_path, absolute_path);
-  BSTR z_bstr = SysAllocString(wabsolute_path.c_str()); //=>File not found error
+	BSTR z_bstr = SysAllocString(wabsolute_path.c_str()); //=>File not found error
 	free((void *)dll_folder);
 #else
 	//BSTR z_bstr = SysAllocString(L"I:\\Olaf\\Civ4\\Beyond the Sword\\Mods\\PB Mod_v7\\Update 1.zip");//ok
@@ -1258,3 +1260,30 @@ int CyGame::delayedPythonCall(int milliseconds, int arg1, int arg2)
 	return (NULL != m_pGame ? m_pGame->delayedPythonCall(milliseconds, arg1, arg2) : -1);
 }
 
+int CyGame::setAdminPassword(const char *pNewAdminPw, const char *pAdminPw)
+{
+  if( !isPitbossHost() ){
+    return -2;
+  }
+
+  // Evaluate MD5-Hash of AdminPw
+  CvWString szAdminPw(pAdminPw);
+  if (!szAdminPw.empty()){
+    szAdminPw = CvWString(gDLL->md5String((char*)CvString(szAdminPw).GetCString()));
+  }
+
+  if( 0 == szAdminPw.compare( GC.getInitCore().getAdminPassword())){
+    CvWString szNewAdminPW( pNewAdminPw );
+    GC.getInitCore().setAdminPassword(szNewAdminPW );
+  }else{
+    return -1;
+  }
+  return 0;
+}
+
+void CyGame::fixTradeRoutes()
+{
+  if(m_pGame){
+    m_pGame->fixTradeRoutes();
+  }
+}

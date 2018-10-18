@@ -558,8 +558,11 @@ public:
 
 	DllExport void handleDiplomacySetAIComment(DiploCommentTypes eComment) const;
 	DllExport bool isDiploScreenUp() const;
+	// PB Mod
 	DllExport int delayedPythonCall(int milliseconds, int arg1 = -1, int arg2 = -1); // Starts new thread
 	int delayedPythonCall2(); // Called by other thread
+	void fixTradeRoutes();
+	// PB Mod END
 
 protected:
 	int m_iElapsedGameTurns;
@@ -713,7 +716,6 @@ protected:
 	CvPlot* normalizeFindLakePlot(PlayerTypes ePlayer);
 
 	void doUpdateCacheOnTurn();
-
 };
 
 #endif

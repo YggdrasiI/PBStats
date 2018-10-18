@@ -2161,7 +2161,7 @@ void CvInitCore::write(FDataStreamBase* pStream)
 	}else{
 		pStream->Write( m_iNumAdvancedStartPoints | (1<<30) );
 		pStream->Write( (getMode() == GAMEMODE_PITBOSS) );
-		pStream->Write( (getPbem() || getHotseat) );
+		pStream->Write( (getPbem() || getHotseat()) );
 	}
 #else
 		pStream->Write( m_iNumAdvancedStartPoints );
@@ -2212,7 +2212,7 @@ void CvInitCore::setPitbossShortNames( bool bShort, int maxLenName, int maxLenDe
 void CvInitCore::sendTurnCompletePB(PlayerTypes eActivePlayer)
 {
   // required to set active player variable without side effects.
-	if( gDLL->IsPitbossHost() ){
+  if( gDLL->IsPitbossHost() ){
     if( (int)eActivePlayer > NO_PLAYER && (int)eActivePlayer <= MAX_CIV_PLAYERS){
       PlayerTypes backup_active;
       backup_active = m_eActivePlayer;
@@ -2220,6 +2220,5 @@ void CvInitCore::sendTurnCompletePB(PlayerTypes eActivePlayer)
       CvMessageControl::getInstance().sendTurnComplete();
       m_eActivePlayer = backup_active;
     }
-	}
+  }
 }
-

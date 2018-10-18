@@ -162,9 +162,9 @@ CvGame::CvGame()
 	m_aiRankPlayer = new int[MAX_PLAYERS];        // Ordered by rank...
 	m_aiPlayerRank = new int[MAX_PLAYERS];        // Ordered by player ID...
 	m_aiPlayerScore = new int[MAX_PLAYERS];       // Ordered by player ID...
-	m_aiRankTeam = new int[MAX_TEAMS];						// Ordered by rank...
-	m_aiTeamRank = new int[MAX_TEAMS];						// Ordered by team ID...
-	m_aiTeamScore = new int[MAX_TEAMS];						// Ordered by team ID...
+	m_aiRankTeam = new int[MAX_TEAMS];            // Ordered by rank...
+	m_aiTeamRank = new int[MAX_TEAMS];            // Ordered by team ID...
+	m_aiTeamScore = new int[MAX_TEAMS];           // Ordered by team ID...
 
 	m_paiUnitCreatedCount = NULL;
 	m_paiUnitClassCreatedCount = NULL;
@@ -9169,3 +9169,70 @@ bool CvGame::pythonIsBonusIgnoreLatitudes() const
 	return false;
 }
 
+// PB Mod 
+/*
+ * For unknown reason the CvCity array m_abTradeRoute contain false-positive entries.
+ * This cities are forever blocked as trade targets!
+ * This function loops over all cities and reset the arrays.
+ */
+void CvGame::fixTradeRoutes()
+{
+	TCHAR szOut[128];
+	int countActiveForeignRoutesBefore[MAX_PLAYERS];
+	int countActiveForeignRoutesAfter[MAX_PLAYERS];
+
+  // 1. Clear internal arrays...
+  for( int iI=0; iI < MAX_PLAYERS; ++iI){
+		countActiveForeignRoutesBefore[iI] = 0;
+		countActiveForeignRoutesAfter[iI] = 0;
+    CvPlayer& kPlayer = GET_PLAYER((PlayerTypes) iI);
+    if (!kPlayer.isEverAlive()) continue;
+
+    int iLoop;
+    CvCity* pLoopCity;
+    for (pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
+    {
+      for( int iJ=0;  iJ < MAX_PLAYERS; ++iJ){
+				if( pLoopCity->isTradeRoute((PlayerTypes) iJ) && iI != iJ ){
+					++countActiveForeignRoutesBefore[iJ];
+				}
+        pLoopCity->setTradeRoute((PlayerTypes) iJ, false);
+      }
+    }
+  }
+
+  // 2. Set used entries on true
+  int MTR = GC.getDefineINT("MAX_TRADE_ROUTES");
+  for( int iI=0; iI < MAX_PLAYERS; ++iI){
+    CvPlayer& kPlayer = GET_PLAYER((PlayerTypes) iI);
+    if (!kPlayer.isEverAlive()) continue;
+
+    int iLoop;
+    CvCity* pLoopCity;
+	CvCity* pTradeCity;
+    for (pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
+    {
+      for (int iJ = 0; iJ < MTR; iJ++)
+      {
+        pTradeCity = pLoopCity->getTradeCity(iJ);
+
+        if (pTradeCity != NULL)
+        {
+					if( pTradeCity->getOwnerINLINE() != iI ){
+						++countActiveForeignRoutesAfter[iI];
+					}
+          pTradeCity->setTradeRoute((PlayerTypes) iI, true);
+        }
+      }
+    }
+  }
+
+	// 3. Print results to log
+	gDLL->messageControlLog("fixTradeRoutes() results (Num. of foreign trade routes)");
+	for( int iI=0; iI < MAX_PLAYERS; ++iI){
+		sprintf(szOut, "Player: %d Before: %d After: %d\n",
+				iI, countActiveForeignRoutesBefore, countActiveForeignRoutesAfter );
+		gDLL->messageControlLog(szOut);
+	}
+}
+// PB Mod END
