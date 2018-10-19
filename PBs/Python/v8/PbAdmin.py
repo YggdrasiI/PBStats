@@ -79,7 +79,9 @@ class AdminFrame(wx.Frame):
             # self.init_shell()  # To early?!
 
         # Webserver
-        self.webserver = Webserver.ThreadedHTTPServer((PbSettings['webserver']['host'], PbSettings['webserver']['port']), Webserver.HTTPRequestHandler)
+        self.webserver = Webserver.ThreadedHTTPServer(
+            (PbSettings['webserver']['host'], PbSettings['webserver']['port']),
+            Webserver.HTTPRequestHandler)
         self.t = Thread(target=self.webserver.serve_forever)
         self.t.setDaemon(True)
         self.t.start()
@@ -87,8 +89,21 @@ class AdminFrame(wx.Frame):
         # Periodical game data upload
         self.webupload = None
         if(PbSettings['webfrontend']['sendPeriodicalData'] != 0):
-            self.webupload = Webserver.PerpetualTimer(PbSettings['webfrontend'], self.webserver, True)
+            self.webupload = Webserver.PerpetualTimer(PbSettings['webfrontend'],
+                                                      self.webserver, True)
             self.webupload.start()
+
+        bRestorePassword = (int(PbSettings.get("restorePassword", 0)) != 0)
+        if bRestorePassword:
+            adminPwd = str(PbSettings.get("save", {}).get("adminpw", ""))
+            if hasattr(CyGame(), "setAdminPassword"):
+                CyGame().setAdminPassword(adminPwd, "")
+                PbSettings.pop("restorePassword", None)
+                PbSettings.save()
+            else:
+                PB.consoleOut("restorePassword-Flag is set in pbSettings, "
+                              "but DLL does not contain setAdminPassword "
+                              "method.")
 
     def init_shell(self):
         self.civ4Shell = {

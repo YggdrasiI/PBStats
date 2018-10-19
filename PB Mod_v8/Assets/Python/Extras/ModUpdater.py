@@ -542,7 +542,9 @@ if __name__ == "__main__":
                 bForce = True
 
         if bForce:
-            updater.start_update()
+            status = updater.start_update()
+            if not status.get("successful", False):
+                sys.exit(-1)
 
     else:
         print("No pending updates.")

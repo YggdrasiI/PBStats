@@ -60,8 +60,13 @@ RESTART = True
 RESTART_TIMEOUT = 3
 
 # Start command templates
-START_WINDOWS = '""{CIV4BTS_EXE}" mod= "{MOD}"\" /ALTROOT={ALTROOT}"'
+START_WINDOWS = '"{CIV4BTS_EXE}" mod= "{MOD}"\" /ALTROOT={ALTROOT}"'
 START_LINUX = 'wine "{CIV4BTS_EXE}" mod= "{MOD}"\\\" /ALTROOT="{ALTROOT_W}"'
+
+# Update command (For mods with ModUpdater.py)
+UPDATE_WINDOWS = 'python {SCRIPT} {ARGS}'
+UPDATE_LINUX = 'python {SCRIPT} {ARGS}'
+UPDATE_SCRIPT = 'ModUpdater.py'
 
 # Variant with cleaned output
 UNBUFFER = False
@@ -298,12 +303,15 @@ def findSaves(gameid, pbSettings, reg_pattern=None, pattern="*"):
     return savesWithTimestamps
 
 
-def isAutostartEnabled(pbSettings):
+def isAutostart(pbSettings):
     # Return 1 if autostart is 'true' or '1'
     bGui = (int(pbSettings.get("gui", 1)) != 0)
     bGui = (int(pbSettings.get("noGui", not bGui)) == 0)  # Old key name
     bAutostart = (int(pbSettings.get("autostart", 0)) != 0)
     bShell = (int(pbSettings.get("shell", {}).get("enable", 0)) != 0)
+
+    if not bAutostart:
+        bAutostart = isForcedAutostart(pbSettings)
 
     if not bAutostart and not bGui and not bShell:
         print("Warning: Autostart flag is disabled, but gui and shell "
@@ -311,6 +319,14 @@ def isAutostartEnabled(pbSettings):
         bAutostart = True
 
     return bAutostart
+
+
+def isForcedAutostart(pbSettings):
+    # Forced autostart flag, i.e. set by webinterface during restart
+    bForcedAutostart = (int(pbSettings.get("save", {}).get(
+        "oneOffAutostart", 0)) != 0)
+    return bForcedAutostart
+
 
 def isRestartDisabled(gameid, pbSettings):
     noRestart = bool(pbSettings.get("tmpNoRestart", False))
@@ -320,6 +336,19 @@ def isRestartDisabled(gameid, pbSettings):
         saveSettings(gameid, pbSettings)
 
     return noRestart
+
+
+def isUpdateFlag(pbSettings):
+    bUpdate = bool(pbSettings.get("startUpdate", False))
+    return bUpdate
+
+
+def removeUpdateFlag(gameid, pbSettings):
+    pbSettings.pop("startUpdate", None)
+    # Set flag to call CyGame().setAdminPassword() after startup.
+    # This restores the password protection.
+    pbSettings["restorePassword"] = 1
+    saveSettings(gameid, pbSettings)
 
 
 def getAutostartSave(pbSettings):
@@ -433,7 +462,7 @@ def setupGame(gameid, save_pat=None, password=None):
         save_pat = pbSettings.get("save", {}).get("filename", "")
         lSaves = findSaves(gameid, pbSettings, save_pat)
 
-    bAutostart = isAutostartEnabled(pbSettings)
+    bAutostart = isAutostart(pbSettings)
     if bAutostart:
         print("Autostart {0}".format(
             (pbSettings.get("save", {}).get("filename", "?"))))
@@ -473,6 +502,40 @@ def setupGame(gameid, save_pat=None, password=None):
         print("Altroot directory found. Is the path correctly?\n'%s'\n"\
               "Copy 'seed' if you want create a new game." % (altroot))
         return
+
+    if isUpdateFlag(pbSettings):
+        cur_folder = os.curdir
+        mod_folder = os.path.join(CIV4BTS_PATH, "Mods", mod_name)
+        script_rel_path = os.path.join("Assets", "Python", "Extras",
+                                       UPDATE_SCRIPT)
+        if os.path.sep == "\\":  # Windows
+            update_cmd = UPDATE_WINDOWS.format(
+                SCRIPT=script_rel_path,
+                ARGS="--forced" if isForcedAutostart(pbSettings) else "")
+        else:
+            update_cmd = UPDATE_LINUX.format(
+                SCRIPT=script_rel_path,
+                ARGS="--forced" if isForcedAutostart(pbSettings) else "")
+
+        if not os.path.isdir(mod_folder):
+            print("(ModUpdater) Mod folder not found. Is the path correctly?\n'%s'\n" %
+                  (mod_folder))
+            return
+        elif not os.path.isfile(os.path.join(mod_folder, script_rel_path)):
+            print("(ModUpdater) Update script not included. Does this mod"
+                  "supports this update mechanism?!\n")
+            return
+        else:
+            print("Search and handle mod updates in\n{0}\n"
+                  "Cmd: {1}".format(mod_folder, update_cmd))
+            os.chdir(mod_folder)
+            exit_status = os.system(update_cmd)
+            os.chdir(cur_folder)
+            if exit_status == 0:
+                removeUpdateFlag(gameid, pbSettings)
+            else:
+                print("Update process returns {0} != 0. Abort start".format(exit_status))
+                return
 
     if XVFB:
         xvfb_dir = XVFB_DIR.format(GAMEID=gameid)

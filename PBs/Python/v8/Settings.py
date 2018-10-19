@@ -354,8 +354,8 @@ class Settings(dict):
                        'info': 'Saving of "%s" failed.' % (filepath,)}
             else:
                 # Update last file name info and save json file
-                self.lock.acquire()
                 self.load(False)
+                self.lock.acquire()
                 self["save"]["filename"] = filename
                 self["save"]["folderIndex"] = folderIndex
                 self.lock.release()

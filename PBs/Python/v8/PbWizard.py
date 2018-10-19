@@ -1468,7 +1468,15 @@ class StartupIFace(wx.App):
         self.scenarioSelect = None
         self.staging = None
 
-        PB.consoleOut(r"Startflags:\n\tgui: %i\n\tautostart: %i\n\tshell: %i"
+        # Handle one time autostart flag
+        bForcedAutostart = (int(PbSettings.get("save",{}).get(
+            "oneOffAutostart", 0)) != 0)
+        if bForcedAutostart:
+            bAutostart = bForcedAutostart
+            PbSettings.get("save",{}).pop("oneOffAutostart", None)
+            PbSettings.save()
+
+        PB.consoleOut("Startflags:\n\tgui: %i\n\tautostart: %i\n\tshell: %i"
                       "" % (self.bGui, self.bAutostart, self.bShell))
 
         if not self.bGui and not self.bAutostart and not self.bShell:
@@ -1644,9 +1652,9 @@ class StartupIFace(wx.App):
     def startWizard(self):
         # PB.consoleOut("StartWizard called")
         if self.bAutostart:
-            PB.consoleOut("StartWizard called by EXE, but autostart flag is"
-                          " set. Return immediately 'True' to inform EXE it"
-                          " could continue...")
+            #PB.consoleOut("StartWizard called by EXE, but autostart flag is"
+            #              " set. Return immediately 'True' to inform EXE it"
+            #              " could continue...")
             return True
 
         if not self.bGui:

@@ -38,7 +38,8 @@ if pythonDir not in sys.path:
 from Settings import Settings
 import FindHash
 from WebserverActions import Action_Handlers, createGameData \
-#        ,getListOfSaves, getSaveFolder
+        , gen_answer \
+        #, getListOfSaves, getSaveFolder
 
 
 PbSettings = Settings() #.instance()
@@ -153,8 +154,8 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         # super(ThreadedHTTPServer, self).__init__(args, kwargs)  # super-on-old-class
         HTTPServer.__init__(self, *args, **kwargs)
         self.oldGamestate = {}
-        self.adminApp = None
-        self.adminFrame = None
+        self.pbAdminApp = None
+        self.pbAdminFrame = None
         # Mutex for write operation, i.e. (WB)Saves
         self.lock = thread.allocate_lock()
 
@@ -166,8 +167,8 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         # HTTPServer.shutdown(self)
 
     def setPbApp(self, adminApp):
-        self.adminApp = adminApp  # class AdminIFace
-        self.adminFrame = adminApp.adminFrame
+        self.pbAdminApp = adminApp  # class AdminIFace(wx.App)
+        self.pbAdminFrame = adminApp.adminFrame  # class AdminFrame(wx.Frame)
 
         # Setup some extra Values in the DLL
         shortnames = PbSettings.setdefault(

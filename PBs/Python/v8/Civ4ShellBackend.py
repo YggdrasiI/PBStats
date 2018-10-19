@@ -101,6 +101,7 @@ class Server:
         while len(self.code_store) > 0:
             data = self.code_store.pop(0)
             if data[0:2].lower() == "p:":  # Call code
+                glob["adminFrame"] = self.pbAdminFrame
                 # Execute input
                 (out, err) = self.run_code(data[2:], glob, loc)
 

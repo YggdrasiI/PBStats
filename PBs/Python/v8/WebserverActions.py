@@ -83,7 +83,7 @@ def action_template(inputdata, server, wfile):
 @action_args_decorator
 def action_gamedata(inputdata, server, wfile):
     gamedata = createGameData()
-    wfile.write(gen_answer(gamedata))
+    wfile.write(gen_answer({'info': gamedata}))
 
 
 @action_args_decorator
@@ -135,7 +135,7 @@ def action_save(inputdata, server, wfile):
         max(filename.rfind("/"), filename.rfind("\\")) + 1:
         len(filename)]
 
-    ret = server.createSave(filename)
+    ret = PbSettings.createSave(filename)
     wfile.write(gen_answer(ret))
 
 
@@ -185,11 +185,11 @@ def action_pause(inputdata, server, wfile):
 @action_args_decorator
 def action_end_turn(inputdata, server, wfile):
     # Create Backup save in auto-Folder
-    filename = r"Auto_" + \
-        PB.getGamename() + r"_R" + str(PB.getGameturn()) + r"end_" + PB.getGamedate(False) + r".CivBeyondSwordSave"
-    server.createSave(str(filename), 1)
+    filename = "Auto_" + PB.getGamename() + "_R" + str(PB.getGameturn()) + \
+            "end_" + PB.getGamedate(False) + ".CivBeyondSwordSave"
+    PbSettings.createSave(str(filename), 1)
 
-    if(PB.getTurnTimer()):
+    if PB.getTurnTimer():
         gc.getGame().incrementTurnTimer(-PB.getTurnTimeLeft() + 4 * 20)
         msg = 'Set timer on a few seconds.'
     else:
@@ -262,9 +262,9 @@ def action_restart(inputdata, server, wfile):
         PbSettings.lock.acquire()
         PbSettings["save"]["oneOffAutostart"] = 1
         PbSettings.lock.release()
-        PbSettings.save()
+        # PbSettings.save()  # Redundant
         filename = "Reload.CivBeyondSwordSave"
-        ret = server.createSave(filename)
+        ret = PbSettings.createSave(filename)
         if ret["return"] != "ok":
             bReload = False
             wfile.write(gen_answer("Reloading failed. Was not able to "
@@ -273,10 +273,10 @@ def action_restart(inputdata, server, wfile):
     if bReload:
         # Quit server. The loop in the batch file should
         # restart the server....
-        if server.adminWindow is not None:
+        if server.pbAdminFrame is not None:
             wfile.write(gen_answer('Set loaded file on "%s" and quit PB server'
-                                   'window.' % (filename,)))
-            server.adminWindow.OnExit(None)
+                                   ' window.' % (filename,)))
+            server.pbAdminFrame.OnCloseWindow(None)
         else:
             wfile.write(gen_answer("Reloading failed. Was not able "
                                    "to quit PB server window.", "fail"))
@@ -288,18 +288,19 @@ def action_player_password(inputdata, server, wfile):
     newCivPW = str(inputdata.get("newCivPW", r""))
     ret = -1
     if playerId > -1:
-        # Well, the hashing should be done in the DLL, but I forgot this
-        # call and will not change the DLL in this version of the mod.
-        # TODO: Move this line into the DLL for newer
-        # versions of the mod.
         adminPW = str(PbSettings.temp.get(
             "adminpw", PbSettings.get("save", {}).get("adminpw", "")))
+        # Old approach with md5 evaluation on python side
+        """
         if len(adminPW) > 0:
             adminPWHash = md5.new(adminPW).hexdigest()
         else:
             adminPWHash = ""
 
         ret = gc.getGame().setCivPassword(playerId, newCivPW, adminPWHash)
+        """
+        # New approach
+        ret = gc.getGame().setCivPassword(playerId, newCivPW, adminPW)
 
     if ret == 0:
         wfile.write(gen_answer('Passwort of player %i changed to "%s".'
@@ -375,8 +376,8 @@ def action_player_color(inputdata, server, wfile):
 def action_get_motd(inputdata, server, wfile):
     try:
         motd = ""
-        if server.adminApp is not None:
-            motd = server.adminApp.getMotD()
+        if server.pbAdminApp is not None:
+            motd = server.pbAdminApp.getMotD()
 
         wfile.write(gen_answer({'info': 'Return MotD.', 'msg': motd}))
     except Exception, e:  # Old Python 2.4 syntax!
@@ -476,8 +477,8 @@ def action_set_motd(inputdata, server, wfile):
         PbSettings.lock.release()
         PbSettings.save()
 
-        if server.adminApp is not None:
-            server.adminApp.setMotD(msg)
+        if server.pbAdminApp is not None:
+            server.pbAdminApp.setMotD(msg)
 
         wfile.write(gen_answer('New MotD: %s' % (msg,)))
     except Exception, e:  # Old Python 2.4 syntax!
@@ -628,8 +629,35 @@ def action_mod_update(inputdata, server, wfile):
     """
     # TODO: Update invoking over webinterface
     try:
-        gc.getGame().setAdminPassword()
-        wfile.write(gen_answer('Reply'))
+        bCanChangePassword = hasattr(CyGame(), "setAdminPassword")
+        adminPW = str(PbSettings.temp.get(
+            "adminpw", PbSettings.get("save", {}).get("adminpw", "")))
+        filename = "PreUpdate.CivBeyondSwordSave"
+
+        if not bCanChangePassword:
+            wfile.write(gen_answer("(Mod Updating) DLL does not contain "
+                                   "setAdminPassword method. "
+                                   "Abort automatic update", "fail"))
+        elif gc.getGame().setAdminPassword("", adminPW) != 0:
+            wfile.write(gen_answer("(Mod Updating) Admin password change "
+                                   "failed.", "fail"))
+        elif PbSettings.createSave(filename)["return"] != "ok":
+            gc.getGame().setAdminPassword(adminPW, "")
+            wfile.write(gen_answer("(Mod Updating) Creation of backup save "
+                                   "'%s' failed." % (filename,), "fail"))
+        else:
+            gc.getGame().setAdminPassword(adminPW, "")
+
+            PbSettings.load(False)
+            PbSettings.lock.acquire()
+            PbSettings["save"]["oneOffAutostart"] = 1
+            PbSettings["startUpdate"] = 1
+            PbSettings.lock.release()
+            PbSettings.save()
+            wfile.write(gen_answer("(Mod Updating) Update prepared. Restart "
+                                   "with '%s' after ALL pitboss games are "
+                                   "prepared for the update." % (filename,)))
+
     except:
         if wfile:
             wfile.write(gen_answer("Error description", "fail"))
@@ -685,7 +713,7 @@ def createGameData():
                 'modName': PB.getModName(),
                }
 
-    if(PB.getTurnTimer()):
+    if PB.getTurnTimer():
         gamedata["turnTimer"] = 1
         gamedata['turnTimerMax'] = gc.getGame().getPitbossTurnTime()
         gamedata['turnTimerValue'] = PB.getTurnTimeLeft()
