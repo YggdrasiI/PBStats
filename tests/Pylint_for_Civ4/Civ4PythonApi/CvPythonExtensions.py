@@ -10049,6 +10049,15 @@ class CyGame:
         def setPitbossShortNames(bEnable, iLenName, iLenDesc):
             pass
 
+        @staticmethod
+        def getModPath():
+            return str()
+
+        @staticmethod
+        def unzipModUpdate(zip_path):
+            return int()
+
+
 class CyGameTextMgr:
 
     @staticmethod
