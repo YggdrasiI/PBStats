@@ -115,6 +115,12 @@ if "GAMES" not in globals():
     }
 ###################
 
+def my_input(t=""):
+    # Branch for Python2/3
+    if int(sys.version[0]) < 3:
+        return raw_input(t)
+    else:
+        return input(t)
 
 def init():
     # Expand environment variables
@@ -503,40 +509,6 @@ def setupGame(gameid, save_pat=None, password=None):
               "Copy 'seed' if you want create a new game." % (altroot))
         return
 
-    if isUpdateFlag(pbSettings):
-        cur_folder = os.curdir
-        mod_folder = os.path.join(CIV4BTS_PATH, "Mods", mod_name)
-        script_rel_path = os.path.join("Assets", "Python", "Extras",
-                                       UPDATE_SCRIPT)
-        if os.path.sep == "\\":  # Windows
-            update_cmd = UPDATE_WINDOWS.format(
-                SCRIPT=script_rel_path,
-                ARGS="--forced" if isForcedAutostart(pbSettings) else "")
-        else:
-            update_cmd = UPDATE_LINUX.format(
-                SCRIPT=script_rel_path,
-                ARGS="--forced" if isForcedAutostart(pbSettings) else "")
-
-        if not os.path.isdir(mod_folder):
-            print("(ModUpdater) Mod folder not found. Is the path correctly?\n'%s'\n" %
-                  (mod_folder))
-            return
-        elif not os.path.isfile(os.path.join(mod_folder, script_rel_path)):
-            print("(ModUpdater) Update script not included. Does this mod"
-                  "supports this update mechanism?!\n")
-            return
-        else:
-            print("Search and handle mod updates in\n{0}\n"
-                  "Cmd: {1}".format(mod_folder, update_cmd))
-            os.chdir(mod_folder)
-            exit_status = os.system(update_cmd)
-            os.chdir(cur_folder)
-            if exit_status == 0:
-                removeUpdateFlag(gameid, pbSettings)
-            else:
-                print("Update process returns {0} != 0. Abort start".format(exit_status))
-                return
-
     if XVFB:
         xvfb_dir = XVFB_DIR.format(GAMEID=gameid)
         xvfb_mcookie = XVFB_MCOOKIE.format(GAMEID=gameid)
@@ -580,6 +552,9 @@ def setupGame(gameid, save_pat=None, password=None):
 
     try:
         while True:
+            if isUpdateFlag(pbSettings):
+                prepare_update(gameid, pbSettings, mod_name)
+
             if pre_start_cmd:
                 os.system(pre_start_cmd)
 
@@ -606,11 +581,12 @@ def select_mod_manually(default):
 
     def prompt(t):
         try:
-            user_in = default
-            if int(sys.version[0]) < 3:
-                user_in = raw_input(t)
-            else:
-                user_in = input(t)
+            # user_in = default
+            # if int(sys.version[0]) < 3:
+            #     user_in = raw_input(t)
+            # else:
+            #     user_in = input(t)
+            user_in = my_input(t)
         except EOFError:
             return default
 
@@ -651,16 +627,54 @@ def select_mod_manually(default):
             mod=default, user_in=user_in))
         return default
 
+def prepare_update(gameid, pbSettings, mod_name):
+    cur_folder = os.curdir
+    mod_folder = os.path.join(CIV4BTS_PATH, "Mods", mod_name)
+    script_rel_path = os.path.join("Assets", "Python", "Extras",
+                                   UPDATE_SCRIPT)
+    if os.path.sep == "\\":  # Windows
+        update_cmd = UPDATE_WINDOWS.format(
+            SCRIPT=script_rel_path,
+            ARGS="--force" if isForcedAutostart(pbSettings) else "")
+    else:
+        update_cmd = UPDATE_LINUX.format(
+            SCRIPT=script_rel_path,
+            ARGS="--force" if isForcedAutostart(pbSettings) else "")
+
+    if not os.path.isdir(mod_folder):
+        print("(ModUpdater) Mod folder not found. Is the path correctly?\n'%s'\n" %
+              (mod_folder))
+        return -3
+    elif not os.path.isfile(os.path.join(mod_folder, script_rel_path)):
+        print("(ModUpdater) Update script not included. Does this mod"
+              "supports this update mechanism?!\n")
+        return -2
+    else:
+        print("Search and handle mod updates in\n{0}\n"
+              "Cmd: {1}".format(mod_folder, update_cmd))
+        os.chdir(mod_folder)
+        exit_status = os.system(update_cmd)
+        os.chdir(cur_folder)
+        if exit_status == 0:
+            removeUpdateFlag(gameid, pbSettings)
+        else:
+            print("Update process returns {0} != 0. Abort start".format(exit_status))
+            return -1
+
+    return 0
+
+
 if __name__ == "__main__":
     args = list(sys.argv[1:])
 
     init()
     if len(args) == 0:
         printSelectionMenu()
-        if int(sys.version[0]) < 3:
-            args.extend(raw_input().split(" "))
-        else:
-            args.extend(input().split(" "))
+        # if int(sys.version[0]) < 3:
+        #     args.extend(raw_input().split(" "))
+        # else:
+        #     args.extend(input().split(" "))
+        args.extend(my_input().split(" "))
 
     # Add dummies for optional arguments
     args.append(None)

@@ -10050,12 +10050,24 @@ class CyGame:
             pass
 
         @staticmethod
+        def sendTurnCompletePB(iPlayer):
+            pass
+
+        @staticmethod
         def getModPath():
             return str()
 
         @staticmethod
+        def delayedPythonCall(iMilliseconds, iArg1, iArg2):
+            return int()
+
+        @staticmethod
         def unzipModUpdate(zip_path):
             return int()
+
+        @staticmethod
+        def fixTradeRoutes():
+            pass
 
 
 class CyGameTextMgr:
@@ -11228,9 +11240,6 @@ class CyGlobalContext:
         def sendChat(sMsg, eChatTargetType):
             pass
 
-        @staticmethod
-        def sendTurnCompletePB(iPlayer):
-            pass
 
 class CyGlobeLayer:
 
