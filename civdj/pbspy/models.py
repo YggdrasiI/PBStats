@@ -898,6 +898,7 @@ class GameLogTimerChanged(GameLog):
                 format(timer=self.timer_max_h)
         return _("turn timer disabled.")
 
+
 class GameLogCurrentTimerChanged(GameLog):
     # Store old and new value of game.timer_remaining_4s
     from_4s = models.PositiveSmallIntegerField(blank=True, null=True)
@@ -917,6 +918,7 @@ class GameLogCurrentTimerChanged(GameLog):
                      to {remaining_h}h {remaining_m}m.").\
                 format(**timeargs)
         return _("remaining time of current turn has changed.")
+
 
 class GameLogPause(GameLog):
     paused = models.BooleanField(default=None)

@@ -1,0 +1,15 @@
+bleach
+Django==1.11.*
+django-bleach
+django-crispy-forms
+django-debug-toolbar
+django-erroneous
+django-floppyforms
+django-polymorphic
+django-registration-redux
+django-static-precompiler
+mysqlclient
+pytz
+six
+South
+sqlparse

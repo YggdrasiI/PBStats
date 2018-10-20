@@ -36,6 +36,7 @@ INSTALLED_APPS = (
     'debug_toolbar',
 #    'erroneous',
     'static_precompiler',
+    'django_bleach',
     'pbspy',
 )
 
@@ -124,5 +125,23 @@ STATICFILES_DIRS = [
 __abs_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_ROOT = __abs_path + "/static"
 STATIC_URL = "/static/"
+
+
+# Which HTML tags are allowed
+BLEACH_ALLOWED_TAGS = ['li', 'ul', 'img']
+
+# Which HTML attributes are allowed
+BLEACH_ALLOWED_ATTRIBUTES = ['src', 'alt']
+
+# Which CSS properties are allowed in 'style' attributes (assuming style is
+# an allowed attribute)
+BLEACH_ALLOWED_STYLES = []
+
+# Strip unknown tags if True, replace with HTML escaped characters if False
+BLEACH_STRIP_TAGS = True
+
+# Strip HTML comments, or leave them in.
+BLEACH_STRIP_COMMENTS = True
+
 
 from civdj.settings_local import *
