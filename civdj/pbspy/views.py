@@ -403,8 +403,11 @@ def game_manage(request, game_id, action=""):
             return HttpResponse('pb autostart disabled', status=200)
         elif action == 'remove_magellan_bonus':
             ret = game.pb_remove_magellan_bonus(1)
-            return HttpResponse('pb remove magellan. Server returns: '
+            return HttpResponse('Magellan bonus removed. Server returns: '
                                 + ret['info'], status=200)
+        elif action == 'prepare_mod_update':
+            ret = game.pb_prepare_mod_update()
+            return HttpResponse("Server returns: " + ret['info'] , status=200)
         elif action == 'end_turn':
             game.pb_end_turn()
             return HttpResponse('turn ended', status=200)
@@ -423,8 +426,14 @@ def game_manage(request, game_id, action=""):
         elif action == 'chat':
             form = GameManagementChatForm(request.POST)
             if form.is_valid():
-                game.pb_chat(form.cleaned_data['message'], request.user)
-                return HttpResponse('chat message sent.', status=200)
+                ret = game.pb_chat(form.cleaned_data['message'], request.user)
+                if ret["return"] == 'ok':
+                    return HttpResponse("chat message '{0}' sent.".format(
+                        ret['msg']), status=200)
+                else:
+                    return HttpResponse("Sending of chat message failed. "
+                                        "Error: {0}.".format(
+                                            ret['info']), status=200)
             context['chat_form'] = form
         elif action == 'motd':
             form = GameManagementMotDForm(request.POST)

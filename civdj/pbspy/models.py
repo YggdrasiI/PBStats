@@ -434,6 +434,9 @@ class Game(models.Model):
     def pb_remove_magellan_bonus(self, takebackBonus, user=None):
         return self.pb_action(action='removeMagellanBonus', takebackBonus=int(takebackBonus))
 
+    def pb_prepare_mod_update(self, user=None):
+        return self.pb_action(action='modUpdate')
+
     def pb_save(self, filename, user=None):
         if not savegame_allowed_name_re.match(filename):
             raise InvalidCharacterError()

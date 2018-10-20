@@ -148,4 +148,18 @@
             <span><input type="submit" value="{% trans "remove Magellan bonus" %}"/></span>
         </form>
     </div>
+    <div class="game_management_section_imploded">
+        <h2>{% trans "Prepare mod update" %}</h2>
+        <span class="description">
+            {% trans "Password protected saves can not be loaded with modified XML, Python or DLL files." %}
+            {% trans "Use this option to create an admin password free save (PreUpdate.CivBeyondSwordSave). This requires the implementation of CyGame().setAdminPassword in your mod." %}<br>
+            {% trans "Moreover, if your mod includes the ModUpdater-feature, the next call of startPitboss.py search for mod updates." %}<br>
+            {% trans "Attention, if you host multiple games, remove the admin
+            password of all games before you're updating!" %}
+        </span>
+        <form method="post" action="{% url 'game_manage' game.id 'prepare_mod_update' %}">
+            {% csrf_token %}
+            <span><input type="submit" value="{% trans "prepare mod update" %}"/></span>
+        </form>
+    </div>
 {% endblock %}

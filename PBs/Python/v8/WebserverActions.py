@@ -88,18 +88,27 @@ def action_gamedata(inputdata, server, wfile):
 
 @action_args_decorator
 def action_chat(inputdata, server, wfile):
+    msg_in = inputdata.get("msg",
+                           u"Default message. Missing msg argument?!")
     try:
-        msg = str(inputdata.get("msg",
-                                "Default message. Missing msg argument?!"))
+        # type(msg_in) is unicode, but the content are bytes or a basestr!
+        # Convert manually.
+        #msg = "".join([latin1(ord(c)) for c in msg_in])
+        msg = msg_in.encode('latin1', 'replace')
+
+        PB.sendChat(msg)
         msg = msg.replace('&', '&amp;')
         msg = msg.replace('<', '&lt;')
         msg = msg.replace('>', '&gt;')
-        PB.sendChat(msg)
-        wfile.write(gen_answer('Send: ' + msg))
-    except:
+        #wfile.write(gen_answer(u'' + msg.decode('latin1')))
+        wfile.write(gen_answer({'info': 'Chat message send.',
+                                'msg': msg.decode('latin1')}))
+    except Exception, e:  # Old Python 2.4 syntax!
         wfile.write(gen_answer(
             'Some error occured trying to send the message. '
-            'Probably a character that cannot be encoded.', "fail"))
+            'Probably a character that cannot be encoded. ' +
+            str(e) + '\n' +
+            str([ord(c) for c in msg_in]), "fail"))
 
 
 @action_args_decorator
@@ -276,7 +285,12 @@ def action_restart(inputdata, server, wfile):
         if server.pbAdminFrame is not None:
             wfile.write(gen_answer('Set loaded file on "%s" and quit PB server'
                                    ' window.' % (filename,)))
-            server.pbAdminFrame.OnCloseWindow(None)
+            try:
+                # Required because OnExit throws error for gui=0...
+                server.pbAdminFrame.OnExit(None)
+            except Exception, e:  # Old Python 2.4 syntax!
+                PB.consoleOut("Error during shutdown: " + str(e))
+
         else:
             wfile.write(gen_answer("Reloading failed. Was not able "
                                    "to quit PB server window.", "fail"))
@@ -354,7 +368,7 @@ def action_end_player_turn(inputdata, server, wfile):
         # gc.getGame().setActivePlayer(playerId, False)
         # CyMessageControl().sendTurnComplete()
         # gc.getGame().setActivePlayer(-1, False)
-        gc.sendTurnCompletePB(playerId)
+        CyGame().sendTurnCompletePB(playerId)
         wfile.write(gen_answer("Turn of player %i finished." % (playerId,)))
     else:
         wfile.write(gen_answer("Invalid player id.", "fail"))
@@ -379,7 +393,8 @@ def action_get_motd(inputdata, server, wfile):
         if server.pbAdminApp is not None:
             motd = server.pbAdminApp.getMotD()
 
-        wfile.write(gen_answer({'info': 'Return MotD.', 'msg': motd}))
+        wfile.write(gen_answer({'info': 'Return MotD.',
+                                'msg': motd.decode('latin1')}))
     except Exception, e:  # Old Python 2.4 syntax!
         wfile.write(gen_answer("Some error occured trying to get the MotD."
                                "Error msg: %s" % (str(e),), "fail"))
@@ -465,22 +480,29 @@ def action_get_replay(inputdata, server, wfile):
 
 @action_args_decorator
 def action_set_motd(inputdata, server, wfile):
+    msg_in = inputdata.get("msg",
+                           u"No MotD given. Missing msg argument?!")
     try:
-        msg = str(inputdata.get("msg",
-                                "No MotD given. Missing msg argument?!"))
-        msg = msg.replace('&', '&amp;')
-        msg = msg.replace('<', '&lt;')
-        msg = msg.replace('>', '&gt;')
+        # type(msg_in) is unicode, but the content are bytes or a basestr!
+        # Convert manually.
+        #msg = "".join([latin1(ord(c)) for c in msg_in])
+        msg = msg_in.encode('latin1', 'replace')
+
         PbSettings.load(False)
         PbSettings.lock.acquire()
-        PbSettings["MotD"] = msg
+        PbSettings["MotD"] = msg.decode('latin1')
         PbSettings.lock.release()
         PbSettings.save()
 
         if server.pbAdminApp is not None:
             server.pbAdminApp.setMotD(msg)
 
-        wfile.write(gen_answer('New MotD: %s' % (msg,)))
+        msg = msg.replace('&', '&amp;')
+        msg = msg.replace('<', '&lt;')
+        msg = msg.replace('>', '&gt;')
+        #wfile.write(gen_answer(u'New MotD: %s' % (msg.decode('latin1'),)))
+        wfile.write(gen_answer({'info': 'New MotD set.',
+                                'msg': msg.decode('latin1')}))
     except Exception, e:  # Old Python 2.4 syntax!
         wfile.write(gen_answer("Some error occured trying to set the MotD. "
                                "Probably a character that cannot be encoded. "
@@ -635,16 +657,17 @@ def action_mod_update(inputdata, server, wfile):
         filename = "PreUpdate.CivBeyondSwordSave"
 
         if not bCanChangePassword:
+            # set state to "ok", because "fail" would raise error in PBSpy
             wfile.write(gen_answer("(Mod Updating) DLL does not contain "
                                    "setAdminPassword method. "
-                                   "Abort automatic update", "fail"))
+                                   "Abort automatic update", "ok"))
         elif gc.getGame().setAdminPassword("", adminPW) != 0:
             wfile.write(gen_answer("(Mod Updating) Admin password change "
-                                   "failed.", "fail"))
+                                   "failed.", "ok"))
         elif PbSettings.createSave(filename)["return"] != "ok":
             gc.getGame().setAdminPassword(adminPW, "")
             wfile.write(gen_answer("(Mod Updating) Creation of backup save "
-                                   "'%s' failed." % (filename,), "fail"))
+                                   "'%s' failed." % (filename,), "ok"))
         else:
             gc.getGame().setAdminPassword(adminPW, "")
 
@@ -654,9 +677,11 @@ def action_mod_update(inputdata, server, wfile):
             PbSettings["startUpdate"] = 1
             PbSettings.lock.release()
             PbSettings.save()
-            wfile.write(gen_answer("(Mod Updating) Update prepared. Restart "
-                                   "with '%s' after ALL pitboss games are "
-                                   "prepared for the update." % (filename,)))
+            wfile.write(gen_answer(
+                "(Mod Updateing) Update prepared. Restart with the passsword "
+                "free save '%s'. "
+                "The next server start with 'startPitboss.py' "
+                "should invoke mod updating process. " % (filename,)))
 
     except:
         if wfile:
@@ -702,7 +727,13 @@ Action_Handlers = {
 }
 
 
-#===== ?! accidential removed functions due creash ?!
+def latin1(ordinal):
+    # Hepler function for sendChat and setMotD
+    # 2.4 does not support "A if BOOL else B" syntax
+    if ordinal > 255:
+        return "?"
+    else:
+        return chr(ordinal)
 
 def createGameData():
     # Collect all available data
