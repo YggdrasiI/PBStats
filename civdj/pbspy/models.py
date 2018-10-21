@@ -22,6 +22,11 @@ import hashlib
 from six.moves.urllib.error import URLError
 from six.moves import urllib
 
+MONTH_NAMES_ENG = ["undefined", "january", "february", "march",
+                   "april", "may", "june", "july", "august",
+                   "september", "october", "november", "december"]
+# Seasons treated as extra months
+MONTH_NAMES_ENG.extend(["winter", "spring", "summer", "fall"])
 
 class InvalidCharacterError(Exception):
     pass
@@ -52,11 +57,9 @@ def format_year(number):
         if number >= 10000:
             year = int(number % 10000)
             imonth = int(number / 10000)
-            if imonth == 1:
-                month = _('January')
-            elif imonth == 7:
-                month = _('July')
-            else:
+            try:
+                month = _(MONTH_NAMES_ENG[imonth]).capitalize()
+            except:
                 raise ValueError('Invalid month for format_year')
             return _("{month}, {year} AD").format(month=month, year=year)
 
@@ -70,12 +73,11 @@ def parse_year(year_str):
         year = int(year)
     except ValueError:
         (month, year, qual) = year_str.split()
-        if month.lower().find('jan'):
-            imonth = 1
-        elif month.lower().find('jul'):
-            imonth = 7
-        else:
-            raise ValueError('Failed to parse month part of date')
+        month = month.replace(",", "")  # Remove tailing ','
+        try:
+            imonth = MONTH_NAMES_ENG.index(month.lower())
+        except ValueError:
+            raise ValueError('Failed to parse month/season part of date')
         year = int(year) + 10000 * imonth
 
     if qual == 'AD':
@@ -85,7 +87,7 @@ def parse_year(year_str):
     else:
         raise ValueError('invalid year suffix')
 
-savegame_allowed_name_re = re.compile('^[0-9a-zA-Z_\-][0-9a-zA-Z_\.\-]*\Z')
+savegame_allowed_name_re = re.compile(r'^[0-9a-zA-Z_\-][0-9a-zA-Z_\.\-]*\Z')
 
 
 class Game(models.Model):
