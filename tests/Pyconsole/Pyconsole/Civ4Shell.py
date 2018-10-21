@@ -8,6 +8,7 @@
 import cmd
 import sys
 import re
+import json
 import os.path
 import socket
 from socket import gethostname
@@ -159,6 +160,30 @@ class Civ4Shell(cmd.Cmd):
     def emptyline(self):
         """Do nothing on empty input line"""
         pass
+
+    def webserver_action(self, action_name, action_args, iprint_result=0):
+        """ Call Webserver.ActionHandlers entry"""
+
+        action = {"action": action_name, "args": action_args}
+        result = str(self.send("A:"+json.dumps(action)))
+        try:
+            result_json = json.loads(result)
+        except ValueError:
+            print(result)
+            result_json = {"info" : "Can not decode PB reply.", 'return': 'fail'}
+
+        # Predefined styles for output printing
+        if iprint_result == 2:
+            feedback("Return value: {0}\n{1}".format(
+                result_json.get("return", "None"),
+                result_json.get("info")
+            ))
+        elif iprint_result == 1:
+            feedback("{0}".format(
+                result_json.get("info")
+            ))
+
+        return result_json
 
     # ----- internal shell commands -----
     def do_connect(self, arg):
@@ -379,7 +404,6 @@ else:
                 result = result[result.find("{"):result.rfind("}")+1]
 
             try:
-                import json
                 loadable_check = json.loads(result)
             except ValueError:
                 print("Can not decode result of loadable check.")
@@ -451,15 +475,54 @@ else:
         # End shell, too
         return True
 
+    def do_pb_mod_update(self, arg):
+        """ Create save without password protection.
+
+        Save required for mod updates.
+        """
+        # self.send("p:PB.quit()")
+        result = str(self.send("U:"))
+        try:
+            update_status = json.loads(result)
+        except ValueError:
+            update_status = {"info" : "Can not decode PB reply.", 'return': 'fail'}
+
+        feedback(update_status.get("info"))
+
+    def do_pb_autostart(self, arg):
+        """ Set autostart flag. Without argument, the value will be swaped.
+
+        pb_autostart [0|1]
+        """
+        try:
+            num = int(arg)
+            args = {"value": min(num, 1)}
+        except ValueError:
+            args = None
+
+        result_json = self.webserver_action("setAutostart", args, 2)
+
+    def do_pb_headless(self, arg):
+        """ Set headless mode. Without argument, the value will be swaped.
+
+        pb_headless [0|1]
+        """
+        try:
+            num = int(arg)
+            args = {"value": min(num, 1)}
+        except ValueError:
+            args = None
+
+        result_json = self.webserver_action("setHeadless", args, 2)
+
     def do_status(self, arg):
         """ Return some status information.
 
         Should return list of player (points/gold/num units/num cities)
         Uptime, Mode, etc
-        TODO """
+        """
         result = str(self.send("s:"))
         try:
-            import json
             status = json.loads(result)
         except ValueError:
             status = {"error" : "Can not decode status."}
@@ -593,6 +656,20 @@ else:
             print("Type 'pb_start' to trigger restart with above file.")
 
     def do_pause(self, arg):
+        """ Set pause. Without argument, the value will be swaped.
+
+        pause [0|1]
+        """
+        try:
+            num = int(arg)
+            args = {"value": min(num, 1)}
+        except ValueError:
+            args = None
+
+        result_json = self.webserver_action("setPause", args, 1)
+
+    '''
+    def do_pause(self, arg):
         """ Toggle pause. """
 
         # See Webserver.py for details
@@ -607,6 +684,7 @@ else:
 """
         result = str(self.send("p:"+d))
         feedback(result)
+    '''
 
     def do_pb_end_turn(self, arg):
         """ Set turn complete flag of player. Use 'status' to get player id.
@@ -780,7 +858,6 @@ else:
             result = result[result.find("{"):result.rfind("}")+1]
 
         try:
-            import json
             settings = json.loads(result)
         except ValueError:
             print("Can not decode settings")
@@ -802,7 +879,6 @@ print(json.dumps({0}'saves':PbSettings.getListOfSaves('{2}','{3}', {4}){1}))
             json_str = result[result.find("{"):result.rfind("}")+1]
 
             try:
-                import json
                 saves = json.loads(json_str)
                 return saves.get("saves", [])
             except ValueError:

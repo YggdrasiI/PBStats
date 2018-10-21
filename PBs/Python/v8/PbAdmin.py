@@ -26,7 +26,6 @@ if pythonDir not in sys.path:
     sys.path.append(pythonDir)
 from Settings import Settings
 
-# PbSettings = Webserver.getPbSettings()
 PbSettings = Settings() #.instance()
 
 # Pipe error messages into a file to avoid popup windows

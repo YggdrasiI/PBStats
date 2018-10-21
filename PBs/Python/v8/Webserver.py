@@ -404,7 +404,7 @@ class PerpetualTimer:
 
 
 # =====================================================
-
+'''
 def getPbSettings():
     # TODO
     """Loads settings file and use default settings as fallback."""
@@ -417,11 +417,11 @@ def getPbSettings():
     if "noGui" in PbSettings:
         # Old key overrides default key/new key
         PbSettings["gui"] = 1 - int(PbSettings["noGui"])
-
         del(PbSettings["noGui"])
+        PbSettings.save()
 
     return PbSettings
-
+'''
 
 
 

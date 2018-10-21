@@ -26,7 +26,6 @@ bPublic = True
 bSaved = False
 bScenario = False
 
-# PbSettings = Webserver.getPbSettings()
 PbSettings = Settings() #.instance()
 
 class ModSelectPage(wx.wizard.PyWizardPage):

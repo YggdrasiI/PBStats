@@ -44,7 +44,7 @@ AltrootDir = gc.getAltrootDir()
 # Path to settings file.
 #
 # If the loading of the setting file failed the path will be set no None
-# in getPbSettings().
+# in load().
 PbFn = os.path.join(AltrootDir, "pbSettings.json")
 
 # Default settings.
@@ -206,6 +206,12 @@ class Settings(dict):
                 self.save()
             else:
                 globals()["PbFn"] = None
+
+        # Convert old key names
+        if "noGui" in tmpSettings:
+            # Old key overrides default key/new key
+            tmpSettings["gui"] = 1 - int(tmpSettings["noGui"])
+            del(tmpSettings["noGui"])
 
         self.lock.acquire()
         self.clear()

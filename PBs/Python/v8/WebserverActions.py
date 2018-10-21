@@ -115,7 +115,9 @@ def action_chat(inputdata, server, wfile):
 def action_autostart(inputdata, server, wfile):
     PbSettings.load(False)
     PbSettings.lock.acquire()
-    PbSettings["autostart"] = int(inputdata.get("value", 0))
+    new_autostart_val = inputdata.get(
+        "value", 1 - int(PbSettings["autostart"]))
+    PbSettings["autostart"] = int(new_autostart_val)
     PbSettings.lock.release()
     PbSettings.save()
     wfile.write(gen_answer('Autostart flag: '
@@ -126,8 +128,10 @@ def action_autostart(inputdata, server, wfile):
 def action_headless(inputdata, server, wfile):
     PbSettings.load(False)
     PbSettings.lock.acquire()
-    # PbSettings["noGui"] = int(inputdata.get("value", 0))
-    PbSettings["gui"] = 1 - int(inputdata.get("value", 0))
+    # Input is bHeadless aka '1 - bGui'
+    # Default inputvalue is swapped current value
+    new_headless_val = inputdata.get("value", PbSettings["gui"])
+    PbSettings["gui"] = 1 - int(new_headless_val)
     PbSettings.lock.release()
     PbSettings.save()
     wfile.write(gen_answer('Headless/noGui flag: '
@@ -156,7 +160,7 @@ def action_turntimer(inputdata, server, wfile):
 
 
 @action_args_decorator
-def action_currenttimer(inputdata, server, wfile):
+def action_current_timer(inputdata, server, wfile):
     iSeconds = int(inputdata.get("seconds", 0))
     iMinutes = int(inputdata.get("minutes", 0))
     iHours = int(inputdata.get("hours", 0))
@@ -170,7 +174,8 @@ def action_currenttimer(inputdata, server, wfile):
 
 @action_args_decorator
 def action_pause(inputdata, server, wfile):
-    bPause = int(inputdata.get("value", 0))
+    # Default value is swapped current value
+    bPause = int(inputdata.get("value", not bool(gc.getGame().isPaused())))
     if bPause:
         if not gc.getGame().isPaused():
             PB.sendChat("(Webinterface) Activate pause.")
@@ -649,7 +654,6 @@ def action_mod_update(inputdata, server, wfile):
     machines, ModUpdater.py will be called by Civ4 itsself, but on Linux,
     by startPitboss.py!
     """
-    # TODO: Update invoking over webinterface
     try:
         bCanChangePassword = hasattr(CyGame(), "setAdminPassword")
         adminPW = str(PbSettings.temp.get(
@@ -704,7 +708,7 @@ Action_Handlers = {
     "setHeadless": action_headless,
     "save": action_save,
     "setTurnTimer": action_turntimer,
-    "setCurrentTurnTimer": action_currenttimer,
+    "setCurrentTurnTimer": action_current_timer,
     "setPause": action_pause,
     "endTurn": action_end_turn,
     "restart": action_restart,
@@ -775,7 +779,8 @@ def createGameData():
 
     gamedata['players'] = players
 
-    gamedata['bHeadless'] = PbSettings.get("noGui", 0)
+    #gamedata['bHeadless'] = PbSettings.get("noGui", 0)
+    gamedata['bHeadless'] = 1 - int(PbSettings.get("gui", 1))
     gamedata['bAutostart'] = PbSettings.get("autostart", 0)
 
     return gamedata

@@ -7,6 +7,10 @@ import sys
 from StringIO import StringIO
 from threading import Thread, Timer
 from time import sleep
+try:
+    import simplejson as json
+except ImportError:
+    print("Import om simplejson failed. Several commands will not work.")
 
 TCP_IP = '127.0.0.1'
 TCP_PORT = 3333
@@ -43,8 +47,8 @@ class Server:
         self.run = False
         # Hm, only a request release the lock on the listen socket...
         # How to avoid this ugly hack?!
-        socket.socket(socket.AF_INET,
-                  socket.SOCK_STREAM).connect( (self.tcp_ip, self.tcp_port))
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
+            (self.tcp_ip, self.tcp_port))
 
     def start(self):
         self.run = True
@@ -120,7 +124,7 @@ class Server:
                 self.run = False
                 return False
             elif data[0:2] == "Q:":  # Quit PB_Server
-                gc = glob.get("gc")
+                # gc = glob.get("gc")
                 PB = glob.get("PB")
                 if self.pbAdminFrame:
                     self.pbAdminFrame.OnExit(None)
@@ -135,19 +139,33 @@ class Server:
             elif data[0:2] == "M:":
                 self.output_store.append("%s%c" % (self.get_mode(), EOF))
             elif data[0:2] == "s:":  # Status information
-                import simplejson as json
                 s = json.dumps(self.gen_status_infos(glob))
                 self.output_store.append("%s%c" % (s, EOF))
             elif data[0:2] == "l:":  # Save loadable information
-                import simplejson as json
                 s = json.dumps(self.gen_loadable_status(glob))
                 self.output_store.append("%s%c" % (s, EOF))
             elif data[0:2] == "U:":  # Prepare Mod Update
                 # Only useful in combination with PBStats/tests/Updater
-                # TODO
                 ws = glob.get("Webserver")
                 if ws:
-                    ws.action_mod_update()
+                    tmp_str = StringIO()
+                    ws.Action_Handlers["modUpdate"](wfile=tmp_str)
+                    self.output_store.append("%s%c" % (tmp_str.getvalue(), EOF))
+            elif data[0:2] == "A:":  # Simulate webserver interaction
+                ws = glob.get("Webserver")
+                tmp_str = StringIO()
+                try:
+                    s = json.loads(data[2:])
+                    action = s["action"]
+                    args = s.get("args", None)
+                    ws.Action_Handlers[action](inputdata=args, wfile=tmp_str)
+                    # escaped_str = json.dumps(tmp_str.getvalue())
+                    self.output_store.append(tmp_str.getvalue())
+                except Exception, e:
+                    err_msg = json.dumps(str(e))
+                    self.output_store.append(
+                        "{'info': 'Error: %s', 'return': 'fail'}" % (err_msg,))
+
             elif data[0:2] == "S:":  # Search/Completion
                 # TODO
                 break
@@ -223,7 +241,7 @@ class Server:
         ws = glob.get("Webserver")
         if not ws:
             return {"error": "No Webserver module available."}
-        dSave = ws.getPbSettings().get("save")
+        dSave = ws.PbSettings.get("save")
         sName = dSave["filename"]
         preferedIdx = dSave.get("folderIndex", 0)
         pbPasswords = []  # ws.getPbPasswords()
@@ -255,9 +273,10 @@ class GameDummy:
             self.timer = Timer(self.seconds, self.handle_function)  # New context
             self.timer.start()
 
-    """ Similar to definition in CvEventManager.py """
     def onGameUpdate(self, argsList):
-        'sample generic event, called on each game turn slice'
+        ''''sample generic event, called on each game turn slice
+        Similar to definition in CvEventManager.py
+        '''
         genericArgs = argsList[0][0]  # tuple of tuple of my args
         turnSlice = genericArgs[0]
 
