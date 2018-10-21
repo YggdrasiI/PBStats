@@ -398,6 +398,9 @@ def action_get_motd(inputdata, server, wfile):
         if server.pbAdminApp is not None:
             motd = server.pbAdminApp.getMotD()
 
+        motd = motd.replace('&', '&amp;')
+        motd = motd.replace('<', '&lt;')
+        motd = motd.replace('>', '&gt;')
         wfile.write(gen_answer({'info': 'Return MotD.',
                                 'msg': motd.decode('latin1')}))
     except Exception, e:  # Old Python 2.4 syntax!
