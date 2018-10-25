@@ -81,7 +81,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     parseddata = cgi.parse_qs(rawdata, keep_blank_values=1)
                     inputdata = dict(simplejson.loads(
                         parseddata.keys()[0]))
-                    PB.consoleOut(str(inputdata))
+                    # PB.consoleOut(str(inputdata))
 
                     if self.check_password(inputdata.get("password", "")):
                         action = inputdata.get("action")
