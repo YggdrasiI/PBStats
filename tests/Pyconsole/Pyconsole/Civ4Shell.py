@@ -282,17 +282,17 @@ class Civ4Shell(cmd.Cmd):
             self.default(d)
         elif len(args) > 0 and args[0] == "reload":
             # Nullify settings dict to force reload of file.
-            d = "Webserver.PbSettings = None; Webserver.getPbSettings()"
+            d = "PbSettings.load()"
             self.default(d)
         elif(len(args) > 1 and args[0] == "edit"
              and "=" in args[1]):
             conf_key = args[1].split("=")[0].split("/")  # ['b'] or ['a', 'b']
             new_value = args[1].split("=")[1]
             settings = self.getPbSettings()
-            template_edit1 = "Webserver.getPbSettings()['%s'] = %s('%s');"
-            template_edit2 = "Webserver.getPbSettings()['%s']['%s'] = %s('%s');"
-            template_del1 = "Webserver.getPbSettings().pop('%s');"
-            template_del2 = "Webserver.getPbSettings()['%s'].pop('%s');"
+            template_edit1 = "PbSettings['%s'] = %s('%s');"
+            template_edit2 = "PbSettings['%s']['%s'] = %s('%s');"
+            template_del1 = "PbSettings.pop('%s');"
+            template_del2 = "PbSettings['%s'].pop('%s');"
 
             changes = []
             for (k, v) in settings.items():
@@ -425,8 +425,8 @@ else:
             # An other game is already loaded. Update settings file
             # and quit PB server. At next startup, the new file should be
             # loaded.
-            self.send('p:Webserver.getPbSettings()["save"]["oneOffAutostart"]'
-                      '= 1; Webserver.getPbSettings().save()')
+            self.send('p:PbSettings["save"]["oneOffAutostart"]'
+                      '= 1; PbSettings.save()')
             print("Restart PB server")
             sleep(1)
             self.send("Q:")
@@ -850,7 +850,7 @@ else:
         return ""
 
     def getPbSettings(self):
-        d = "import simplejson as json; print(json.dumps(Webserver.getPbSettings()))"
+        d = "import simplejson as json; print(json.dumps(PbSettings))"
         result = str(self.send("p:"+d))
         # print(result)
         # Strip unwanted output (reason?!)
