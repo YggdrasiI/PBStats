@@ -25,7 +25,7 @@ UNZIP_OVER_DLL = True
 WITH_MOD_PATH = True
 
 # Define mod name. Required if WITH_MOD_PATH = False
-_MOD_NAME_FALLBACK_ = "Updater"
+_MOD_NAME_FALLBACK_ = "PB Mod_v8"
 
 
 # Wrap extracted files into extra folder (just for debugging)
@@ -107,6 +107,10 @@ class ModUpdater:
         config_path = os.path.join(self.get_config()["mod_path"],
                                    self.Config_file)
         return config_path
+
+    def get_delayed_startup_seconds(self):
+        # Negative value omit creation of updater screen
+        return self.get_config().get("startup_delay", -1)
 
     def read_json_dict(self, filename):
         ret = {}

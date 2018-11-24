@@ -108,6 +108,10 @@ class ModUpdater:
                                    self.Config_file)
         return config_path
 
+    def get_delayed_startup_seconds(self):
+        # Negative value omit creation of updater screen
+        return self.get_config().get("startup_delay", -1)
+
     def read_json_dict(self, filename):
         ret = {}
         if os.path.isfile(filename):
@@ -542,7 +546,9 @@ if __name__ == "__main__":
                 bForce = True
 
         if bForce:
-            updater.start_update()
+            status = updater.start_update()
+            if not status.get("successful", False):
+                sys.exit(-1)
 
     else:
         print("No pending updates.")
