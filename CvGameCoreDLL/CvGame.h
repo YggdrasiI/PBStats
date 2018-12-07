@@ -43,6 +43,7 @@ public:
 	DllExport void init(HandicapTypes eHandicap);
 	DllExport void reset(HandicapTypes eHandicap, bool bConstructorCall = false);
 
+
 protected:
 
 	void uninit();
@@ -147,6 +148,7 @@ public:
 
 	bool canTrainNukes() const;																		// Exposed to Python
 	DllExport EraTypes getCurrentEra() const;											// Exposed to Python
+	EraTypes getCurrentHighestEra();
 
 	DllExport TeamTypes getActiveTeam() const;																		// Exposed to Python
 	DllExport CivilizationTypes getActiveCivilizationType() const;								// Exposed to Python
@@ -557,12 +559,26 @@ public:
 	DllExport void handleMiddleMouse(bool bCtrl, bool bAlt, bool bShift);
 
 	DllExport void handleDiplomacySetAIComment(DiploCommentTypes eComment) const;
-	DllExport bool isDiploScreenUp() const;
 	// PB Mod
+	DllExport bool isDiploScreenUp() const;
 	DllExport int delayedPythonCall(int milliseconds, int arg1 = -1, int arg2 = -1); // Starts new thread
 	int delayedPythonCall2(); // Called by other thread
 	void fixTradeRoutes();
 	// PB Mod END
+
+	//Plako for RBMod (monitor)
+	void appendBeginAndResize(CvString filepath, CvString inputData);
+	bool replace(CvString& str, const CvString& from, CvString& to);
+	// novice - monitor
+	CvString getLogfilePath(const CvString& fileName, bool addExtension = true);
+	// novice - monitor
+	CvString CvGame::getGameStateString();
+	// novice - monitor
+	void CvGame::logGameStateString(PlayerTypes playerEndingTurn);
+	// novice
+	void CvGame::logEvent(PlayerTypes player, const CvString& eventType);
+	// novice
+	CvString CvGame::getLocalTimeString(bool removeColons = false);
 
 protected:
 	int m_iElapsedGameTurns;
@@ -674,7 +690,6 @@ protected:
 #endif
 // PB Mod END
 
-
 	void doTurn();
 	void doDeals();
 	void doGlobalWarming();
@@ -716,6 +731,9 @@ protected:
 	CvPlot* normalizeFindLakePlot(PlayerTypes ePlayer);
 
 	void doUpdateCacheOnTurn();
+    
+	//Plako for Rbmod (monitor)
+	void getTurnTimerText(CvWString& strText);
 };
 
 #endif

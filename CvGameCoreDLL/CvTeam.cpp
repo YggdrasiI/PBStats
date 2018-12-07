@@ -2388,8 +2388,20 @@ int CvTeam::getResearchCost(TechTypes eTech) const
 	iCost *= GC.getHandicapInfo(getHandicapType()).getResearchPercent();
 	iCost /= 100;
 
-	iCost *= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getResearchPercent();
-	iCost /= 100;
+	int iWorldSizeModifier = GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getResearchPercent();
+	if(GC.getDefineINT("TECH_COST_SCALING_ALGORITHM") == 1)
+	{
+		// AGDM addition, use algorithm described here: http://realmsbeyond.net/forums/showthread.php?tid=6632&pid=465879#pid465879
+		// ((log(cost of tech) / log (40) - 1) * (1.2X + 0.3)
+        double fX = (log((double)GC.getTechInfo(eTech).getResearchCost()) / log((double)40.0)) - 1;
+		fX *= (((double)iWorldSizeModifier-100.0)*0.012 + 0.3);
+		iCost = (int)(iCost * (1.0 + fX));
+	}
+	else
+	{
+		iCost *= iWorldSizeModifier;
+		iCost /= 100;
+	}
 
 	iCost *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent();
 	iCost /= 100;
@@ -4929,6 +4941,30 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 
 					GET_PLAYER((PlayerTypes)iI).invalidateYieldRankCache();
 				}
+			}
+
+			//T-hawk for Realms Beyond balance mod
+			//If a tech has a free unit, and that unit has corp spread capability, spawn it for researchers after the first
+			//(for the first researcher, the existing code below will spawn it as if it were a great person)
+			// novice: Added global define enabling this functionality
+			if(GC.getDefineINT("ENABLE_EXECUTIVE_SPAWNS_FOR_STRAGGLERS") > 0) {
+				eFreeUnit = GET_PLAYER(ePlayer).getTechFreeUnit(eIndex);
+				if (eFreeUnit != NO_UNIT && GC.getGameINLINE().countKnownTechNumTeams(eIndex) > 1)
+				{
+					pCapitalCity = GET_PLAYER(ePlayer).getCapitalCity();
+					if (pCapitalCity != NULL)
+					{
+						for (int iI = 0; iI < GC.getNumCorporationInfos(); ++iI)
+						{
+							if (GC.getUnitInfo(eFreeUnit).getCorporationSpreads((CorporationTypes)iI) > 0)
+							{
+								GET_PLAYER(ePlayer).initUnit(eFreeUnit, pCapitalCity->getX_INLINE(), pCapitalCity->getY_INLINE(), UNITAI_MISSIONARY);
+								break;
+							}
+						}
+					}
+				}
+				//end mod
 			}
 
 			if (bFirst)

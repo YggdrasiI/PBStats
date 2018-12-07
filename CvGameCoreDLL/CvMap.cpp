@@ -967,6 +967,31 @@ int CvMap::maxPlotDistance()
 	return std::max(1, plotDistance(0, 0, ((isWrapXINLINE()) ? (getGridWidthINLINE() / 2) : (getGridWidthINLINE() - 1)), ((isWrapYINLINE()) ? (getGridHeightINLINE() / 2) : (getGridHeightINLINE() - 1))));
 }
 
+//T-hawk for Realms Beyond balance mod
+//For a toroidal map, return max plot distance as if it is cylindrical
+//For purpose of city maintenance costs only (called from CvCity::calculateDistanceMaintenanceTimes100)
+int CvMap::maxPlotDistanceToroidalAsCylindrical()
+{
+	if (isWrapXINLINE() && isWrapYINLINE())
+	{
+		/*calculate the max plot distance ourselves.  treat it as a cylindrical map with X wrapping
+		  +-------------+
+		  |A            |
+		  |             |
+		  |      C      |
+		  |             |
+		  |      B      |
+          +-------------+		
+		we want the distance between A and B, diagonals are 1.5 steps.
+		(note that the original toroidal behavior uses the distance between A and C.)
+		this calculates it the same way plotDistance does */
+		int iDX = getGridWidthINLINE() / 2;
+		int iDY = getGridHeightINLINE() - 1;
+		return (std::max(iDX, iDY) + (std::min(iDX, iDY) / 2));
+	}
+	else
+		return maxPlotDistance();
+}
 
 int CvMap::maxStepDistance()
 {

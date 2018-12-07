@@ -15,7 +15,8 @@ unsigned int memSize(void* a);
 void* reallocMem(void* a, unsigned int uiBytes, const char* pcFile, int iLine);
 
 #define malloc(a) new(a, __FILE__, __LINE__)
-#define new new(__FILE__, __LINE__)
+//PLako for RBmod (monitor)
+//#define new new(__FILE__, __LINE__)
 #define free(a) delete(a)
 #define realloc(a, b) reallocMem(a, b, __FILE__, __LINE__)
 #define _msize(a) memSize(a)

@@ -309,6 +309,35 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 		GC.getGameINLINE().updatePlotGroups();
 	}
 
+	// AGDM addition, apply civic effects:
+	for (iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+	{
+		for (int iJ = 0; iJ < NUM_YIELD_TYPES; ++iJ)
+		{
+			for (int iK = 0; iK < GC.getNumCivicOptionInfos(); iK++)
+			{
+				CivicTypes eCivic = GET_PLAYER(getOwnerINLINE()).getCivics((CivicOptionTypes)iK);
+				if (GC.getCivicInfo(eCivic).getBuildingYieldChanges(iI, iJ) != 0)
+				{
+					changeBuildingYieldChange((BuildingClassTypes)iI, (YieldTypes)iJ, (GC.getCivicInfo(eCivic)).getBuildingYieldChanges(iI, iJ));
+				}
+			}
+		}
+		for (iJ = 0; iJ < NUM_COMMERCE_TYPES; ++iJ)
+		{
+			for (int iK = 0; iK < GC.getNumCivicOptionInfos(); iK++)
+			{
+				CivicTypes eCivic = GET_PLAYER(getOwnerINLINE()).getCivics((CivicOptionTypes)iK);
+				if (GC.getCivicInfo(eCivic).getBuildingCommerceChanges(iI, iJ) != 0)
+				{
+					changeBuildingCommerceChange((BuildingClassTypes)iI, (CommerceTypes)iJ, (GC.getCivicInfo(eCivic)).getBuildingCommerceChanges(iI, iJ));
+				}
+			}
+		}
+	}
+
+	pPlot->updateYield(); // AGDM addition
+
 	AI_init();
 }
 
@@ -765,6 +794,9 @@ void CvCity::kill(bool bUpdatePlotGroups)
 		abEspionageVisibility.push_back(getEspionageVisibility((TeamTypes)iI));
 	}
 
+	// RBMP release trade routes or they'll be lost forever
+	clearTradeRoutes();
+
 	pPlot->setPlotCity(NULL);
 
 	area()->changeCitiesPerPlayer(getOwnerINLINE(), -1);
@@ -1119,6 +1151,23 @@ void CvCity::updateVisibility()
 void CvCity::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThreshold, bool bIncrementExperience)
 {
 	GET_PLAYER(getOwnerINLINE()).createGreatPeople(eGreatPersonUnit, bIncrementThreshold, bIncrementExperience, getX_INLINE(), getY_INLINE());
+	// AGDM addition: Add settled great people for PHI.
+	int iI, iJ;
+	int iExtraSettledGreatPeople = GC.getDefineINT("EXTRA_SETTLED_GREAT_PEOPLE_FROM_PHI");
+	if(iExtraSettledGreatPeople > 0 && bIncrementThreshold) {
+		for (iJ = 0; iJ < GC.getNumTraitInfos(); iJ++)
+		{
+			if(GET_PLAYER(getOwnerINLINE()).hasTrait((TraitTypes)iJ) && GC.getTraitInfo((TraitTypes)iJ).getGreatPeopleRateModifier() > 0) {
+				for (iI = 0; iI < GC.getNumSpecialistInfos(); ++iI)
+				{
+					if (GC.getUnitInfo(eGreatPersonUnit).getGreatPeoples(iI))
+					{
+						changeFreeSpecialistCount((SpecialistTypes)iI, iExtraSettledGreatPeople);
+					}
+				}
+			}
+		}
+	}
 }
 
 
@@ -3692,12 +3741,31 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 			changeBaseYieldRate(((YieldTypes)iI), ((GC.getBuildingInfo(eBuilding).getYieldChange(iI) + getBuildingYieldChange((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType(), (YieldTypes)iI))* iChange));
 			changeYieldRateModifier(((YieldTypes)iI), (GC.getBuildingInfo(eBuilding).getYieldModifier(iI) * iChange));
 			changePowerYieldRateModifier(((YieldTypes)iI), (GC.getBuildingInfo(eBuilding).getPowerYieldModifier(iI) * iChange));
+			// AGDM addition: Add building yield modifiers and commerce modifiers from civics
+			for(iJ = 0; iJ < GC.getNumCivicOptionInfos(); iJ++)
+			{
+				CivicTypes eCivic = GET_PLAYER(getOwnerINLINE()).getCivics((CivicOptionTypes)iJ);
+				changeYieldRateModifier((YieldTypes)iI, GC.getCivicInfo(eCivic).getBuildingYieldModifiers(GC.getBuildingInfo(eBuilding).getBuildingClassType(), iI) * iChange);
+			}
 		}
 
 		for (iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
 		{
 			changeCommerceRateModifier(((CommerceTypes)iI), (GC.getBuildingInfo(eBuilding).getCommerceModifier(iI) * iChange));
 			changeCommerceHappinessPer(((CommerceTypes)iI), (GC.getBuildingInfo(eBuilding).getCommerceHappiness(iI) * iChange));
+			// AGDM addition: Add building yield modifiers and commerce modifiers from civics
+			for(iJ = 0; iJ < GC.getNumCivicOptionInfos(); iJ++)
+			{
+				CivicTypes eCivic = GET_PLAYER(getOwnerINLINE()).getCivics((CivicOptionTypes)iJ);
+				changeCommerceRateModifier((CommerceTypes)iI, GC.getCivicInfo(eCivic).getBuildingCommerceModifiers(GC.getBuildingInfo(eBuilding).getBuildingClassType(), iI) * iChange);
+			}
+		}
+		// AGDM addition: Get military production and free experience from civics
+		for(iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
+		{
+			CivicTypes eCivic = GET_PLAYER(getOwnerINLINE()).getCivics((CivicOptionTypes)iI);
+			changeMilitaryProductionModifier(GC.getCivicInfo(eCivic).getBuildingMilitaryProductionModifiers(GC.getBuildingInfo(eBuilding).getBuildingClassType()) * iChange);
+			changeFreeExperience(GC.getCivicInfo(eCivic).getBuildingFreeExperiences(GC.getBuildingInfo(eBuilding).getBuildingClassType()) * iChange);
 		}
 
 		for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
@@ -3709,6 +3777,13 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 		{
 			changeMaxSpecialistCount(((SpecialistTypes)iI), GC.getBuildingInfo(eBuilding).getSpecialistCount(iI) * iChange);
 			changeFreeSpecialistCount(((SpecialistTypes)iI), GC.getBuildingInfo(eBuilding).getFreeSpecialistCount(iI) * iChange);
+			// AGDM addition: Add free specialists from civics
+			for(iJ = 0; iJ < GC.getNumCivicOptionInfos(); iJ++)
+			{
+				CivicTypes eCivic = GET_PLAYER(getOwnerINLINE()).getCivics((CivicOptionTypes)iJ);
+				int iS = GC.getCivicInfo(eCivic).getBuildingFreeSpecialistCounts(GC.getBuildingInfo(eBuilding).getBuildingClassType(), iI);
+				changeFreeSpecialistCount((SpecialistTypes)iI, iS * iChange);
+			}
 		}
 
 		for (iI = 0; iI < GC.getNumImprovementInfos(); ++iI)
@@ -4677,6 +4752,23 @@ int CvCity::getHurryPopulation(HurryTypes eHurry, int iHurryCost) const
 
 	int iPopulation = (iHurryCost - 1) / GC.getGameINLINE().getProductionPerPopulation(eHurry);
 
+	//T-hawk for Realms Beyond rebalance mod.
+	//Slavery gives 30H for first population whipped, 20 for each additional.
+	//If hurry population > 1, population beyond the first yields only 2/3.
+	if (iPopulation > 0 && GC.getDefineINT("SLAVERY_NERF_ENABLED") > 0)
+	{
+		//sample cases:
+		//29H : the above calc comes to 28/30 and we never get here
+		//30H : the above calc comes to 29/30 and we never get here
+		//31H : 1 + (30 - 30) / 20 = 1
+		//49H : 1 + (48 - 30) / 20 = 1
+		//50H : 1 + (49 - 30) / 20 = 1
+		//51H : 1 + (50 - 30) / 20 = 2
+		//70H : 1 + (69 - 30) / 20 = 2
+		//71H : 1 + (70 - 30) / 20 = 3
+		iPopulation = 1 + (iHurryCost - 1 - GC.getGameINLINE().getProductionPerPopulation(eHurry)) / (GC.getGameINLINE().getProductionPerPopulation(eHurry) * 2 / 3);
+	} //end mod
+
 	return std::max(1, (iPopulation + 1));
 }
 
@@ -4686,7 +4778,21 @@ int CvCity::hurryProduction(HurryTypes eHurry) const
 
 	if (GC.getHurryInfo(eHurry).getProductionPerPopulation() > 0)
 	{
-		iProduction = (100 * getExtraProductionDifference(hurryPopulation(eHurry) * GC.getGameINLINE().getProductionPerPopulation(eHurry))) / std::max(1, getHurryCostModifier());
+		if(GC.getDefineINT("SLAVERY_NERF_ENABLED") > 0) {
+			//iProduction = (100 * getExtraProductionDifference(hurryPopulation(eHurry) * GC.getGameINLINE().getProductionPerPopulation(eHurry))) / std::max(1, getHurryCostModifier());
+			//T-hawk for Realms Beyond rebalance mod, see above
+			//First try 1 population and see if it is enough
+			iProduction = (100 * getExtraProductionDifference(1 * GC.getGameINLINE().getProductionPerPopulation(eHurry))) / std::max(1, getHurryCostModifier());
+			if (iProduction < productionLeft())
+			{
+				//More than 1 population needed, now add the rest
+				iProduction += (100 * getExtraProductionDifference((hurryPopulation(eHurry) - 1) * GC.getGameINLINE().getProductionPerPopulation(eHurry) * 2 / 3)) / std::max(1, getHurryCostModifier());
+			} //end mod
+		}
+		else {
+			// BTS implementation:
+			iProduction = (100 * getExtraProductionDifference(hurryPopulation(eHurry) * GC.getGameINLINE().getProductionPerPopulation(eHurry))) / std::max(1, getHurryCostModifier());
+		}
 		FAssert(iProduction >= productionLeft());
 	}
 	else
@@ -5358,6 +5464,11 @@ void CvCity::updateMaintenance()
 	if (!isDisorder() && !isWeLoveTheKingDay() && (getPopulation() > 0))
 	{
 		iNewMaintenance = (calculateBaseMaintenanceTimes100() * std::max(0, (getMaintenanceModifier() + 100))) / 100;
+
+		//T-hawk for RB balance mod.  Added a trait to reduce city maintenance.  Works multiplicatively after discounts from courthouse/etc.
+		int iCityUpkeepModifier = GET_PLAYER(getOwnerINLINE()).getCityUpkeepModifier();
+		if (iCityUpkeepModifier > 0)
+			iNewMaintenance -= iNewMaintenance * iCityUpkeepModifier / 100;
 	}
 
 	if (iOldMaintenance != iNewMaintenance)
@@ -5404,7 +5515,15 @@ int CvCity::calculateDistanceMaintenanceTimes100() const
 		iTempMaintenance *= GC.getHandicapInfo(getHandicapType()).getDistanceMaintenancePercent();
 		iTempMaintenance /= 100;
 
-		iTempMaintenance /= GC.getMapINLINE().maxPlotDistance();
+		//T-hawk for Realms Beyond balance mod
+		//For toroidal maps, calculate distance factor as if cylindrical (see CvMap for the implementation)
+		//novice: Added global define to enable this behaviour
+		if(GC.getDefineINT("ENABLE_TREAT_TOROIDAL_MAINTENANCE_AS_CYLINDRICAL") > 0) {
+			iTempMaintenance /= GC.getMapINLINE().maxPlotDistanceToroidalAsCylindrical();
+		}
+		else {
+			iTempMaintenance /= GC.getMapINLINE().maxPlotDistance();
+		}
 
 		iWorstCityMaintenance = std::max(iWorstCityMaintenance, iTempMaintenance);
 
@@ -7474,6 +7593,9 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 				// ONEVENT - Culture growth
 				CvEventReporter::getInstance().cultureExpansion(this, getOwnerINLINE());
 				
+
+				// RBMP don't allow culture border pops to use production twice
+				/*
 				//Stop Build Culture
 				if (isProductionProcess())
 				{
@@ -7481,7 +7603,7 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 					{
 						popOrder(0, false, true);						
 					}
-				}
+				}*/
 			}
 		}
 	}
@@ -7936,13 +8058,29 @@ int CvCity::getCommerceRateTimes100(CommerceTypes eIndex) const
 	int iRate = m_aiCommerceRate[eIndex];
 	if (GC.getGameINLINE().isOption(GAMEOPTION_NO_ESPIONAGE))
 	{
-		if (eIndex == COMMERCE_CULTURE)
-		{
-			iRate += m_aiCommerceRate[COMMERCE_ESPIONAGE];
+		// novice: Added global define for fixing NO ESPIONAGE
+		if(GC.getDefineINT("ENABLE_NO_ESPIONAGE_FIX") > 0) {
+			//T-hawk for Realms Beyond rebalance mod
+			//Lose the espionage-to-culture conversion for No Espionage
+			/*if (eIndex == COMMERCE_CULTURE)
+			{
+				iRate += m_aiCommerceRate[COMMERCE_ESPIONAGE];
+			}
+			else*/ if (eIndex == COMMERCE_ESPIONAGE)
+			{
+				iRate = 0;
+			}
 		}
-		else if (eIndex == COMMERCE_ESPIONAGE)
-		{
-			iRate = 0;
+		else {
+			// BTS implementation:
+			if (eIndex == COMMERCE_CULTURE)
+			{
+				iRate += m_aiCommerceRate[COMMERCE_ESPIONAGE];
+			}
+			else if (eIndex == COMMERCE_ESPIONAGE)
+			{
+				iRate = 0;
+			}
 		}
 	}
 
@@ -9314,7 +9452,24 @@ void CvCity::setGreatPeopleUnitRate(UnitTypes eIndex, int iNewValue)
 	FAssertMsg(eIndex < GC.getNumUnitInfos(), "eIndex expected to be < GC.getNumUnitInfos()");
 	if (GC.getGameINLINE().isOption(GAMEOPTION_NO_ESPIONAGE) && GC.getUnitInfo(eIndex).getEspionagePoints() > 0)
 	{
-		return;
+		// novice: Added global define for fixing NO ESPIONAGE
+		if(GC.getDefineINT("ENABLE_NO_ESPIONAGE_FIX") > 0) {
+			//T-hawk for Realms Beyond rebalance mod
+			//Great Spy points: don't produce those weird typeless points, instead convert to Merchant points
+			//this is a bit clunky: we have to loop through all unit types looking for the great merchant
+			for (int i = 0; i < (UnitTypes) GC.getNumUnitInfos(); i++)
+			{
+				if(GC.getUnitInfo((UnitTypes)i).getBaseTrade() > 0)
+				{
+					eIndex = (UnitTypes)i;
+					break;
+				}
+			}
+		}
+		else {
+			// BTS implementation:
+			return;
+		}
 	}
 
 	m_paiGreatPeopleUnitRate[eIndex] = iNewValue;
@@ -9496,6 +9651,16 @@ void CvCity::changeMaxSpecialistCount(SpecialistTypes eIndex, int iChange)
 {
 	FAssertMsg(eIndex >= 0, "eIndex expected to be >= 0");
 	FAssertMsg(eIndex < GC.getNumSpecialistInfos(), "eIndex expected to be < GC.getNumSpecialistInfos()");
+
+
+	// novice: Added global define for fixing NO ESPIONAGE
+	if(GC.getDefineINT("ENABLE_NO_ESPIONAGE_FIX") > 0) {
+		//T-hawk for Realms Beyond rebalance mod
+		//Fix No Espionage: make sure no spy specialist slot ever exists
+		if ((GC.getGameINLINE().isOption(GAMEOPTION_NO_ESPIONAGE))
+			&& GET_PLAYER(getOwnerINLINE()).specialistCommerce(eIndex, COMMERCE_ESPIONAGE) > 0)
+			return;
+	}
 
 	if (iChange != 0)
 	{
@@ -10467,7 +10632,7 @@ void CvCity::updateTradeRoutes()
 	}
 
 	clearTradeRoutes();
-
+	
 	if (!isDisorder() && !isPlundered())
 	{
 		iTradeRoutes = getTradeRoutes();
@@ -10490,7 +10655,8 @@ void CvCity::updateTradeRoutes()
 
 								for (iJ = 0; iJ < iTradeRoutes; iJ++)
 								{
-									if (iValue > paiBestValue[iJ])
+									// RBMP fix trade route player order bias - always prefer internal routes if values are equal
+									if (iValue > paiBestValue[iJ] || iValue == paiBestValue[iJ] && (getTeam() == GET_PLAYER((PlayerTypes)iI).getTeam()))
 									{
 										for (iK = (iTradeRoutes - 1); iK > iJ; iK--)
 										{
@@ -10750,6 +10916,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 				changeOverflowProduction(iOverflow, getProductionModifier(eTrainUnit));
 			}
 			setUnitProduction(eTrainUnit, 0);
+			// RBMP decay fix
+			setUnitProductionTime(eTrainUnit, 0);
 
 			int iProductionGold = std::max(0, iOverflow - iMaxOverflowForGold) * GC.getDefineINT("MAXED_UNIT_GOLD_PERCENT") / 100;
 			if (iProductionGold > 0)
@@ -10822,6 +10990,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 				changeOverflowProduction(iOverflow, getProductionModifier(eConstructBuilding));
 			}
 			setBuildingProduction(eConstructBuilding, 0);
+			// RBMP decay fix
+			setBuildingProductionTime(eConstructBuilding, 0);
 
 			int iProductionGold = std::max(0, iOverflow - iMaxOverflowForGold) * GC.getDefineINT("MAXED_BUILDING_GOLD_PERCENT") / 100;
 			if (iProductionGold > 0)
@@ -11300,6 +11470,23 @@ bool CvCity::doCheckProduction()
 
 				if (iProductionGold > 0)
 				{
+					// novice: Added global define for fail gold nerf
+					float fOwnCityFailgoldMultiplier = GC.getDefineFLOAT("OWN_CITY_FAIL_GOLD_MULTIPLIER");
+					//T-hawk for Realms Beyond balance mod
+					//No refund fail gold for wonders if you built the wonder yourself (covers national wonders too)
+					//FIXED version after PBEM20 bug
+					bool isOwnCity = false;
+					int iLoop;
+					CvCity* pLoopCity;
+					for (pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
+					{
+						if (pLoopCity->getNumBuilding((BuildingTypes) iI) > 0)
+							isOwnCity = true;
+					}
+					if(isOwnCity) {
+						iProductionGold = (int)(iProductionGold*fOwnCityFailgoldMultiplier);
+					}
+
 					GET_PLAYER(getOwnerINLINE()).changeGold(iProductionGold);
 
 					szBuffer = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED", getNameKey(), GC.getBuildingInfo((BuildingTypes)iI).getTextKeyWide(), iProductionGold);
@@ -11410,6 +11597,9 @@ void CvCity::doProduction(bool bAllowNoProduction)
 		return;
 	}
 
+	// RBMP don't allow double use of production by automation
+	bool bWasProcess = isProductionProcess();
+
 	if (!isHuman() || isProductionAutomated())
 	{
 		if (!isProduction() || isProductionProcess() || AI_isChooseProductionDirty())
@@ -11423,7 +11613,8 @@ void CvCity::doProduction(bool bAllowNoProduction)
 		return;
 	}
 
-	if (isProductionProcess())
+	// RBMP use the recorded value from before instead of looking it up now
+	if (bWasProcess)
 	{
 		return;
 	}

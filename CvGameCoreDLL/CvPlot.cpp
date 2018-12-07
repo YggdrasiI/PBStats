@@ -430,7 +430,9 @@ void CvPlot::doImprovement()
 				{
 					if (GC.getImprovementInfo(getImprovementType()).getImprovementBonusDiscoverRand(iI) > 0)
 					{
-						if (GC.getGameINLINE().getSorenRandNum(GC.getImprovementInfo(getImprovementType()).getImprovementBonusDiscoverRand(iI), "Bonus Discovery") == 0)
+						// RBMP game speed scaling: * 100 / GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getImprovementPercent()
+						if (GC.getGameINLINE().getSorenRandNum(GC.getImprovementInfo(getImprovementType()).getImprovementBonusDiscoverRand(iI) * 100 /
+							GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getImprovementPercent(), "Bonus Discovery") == 0)
 						{
 							setBonusType((BonusTypes)iI);
 
@@ -5872,6 +5874,7 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 	RouteTypes eRoute;
 	PlayerTypes ePlayer;
 	bool bCity;
+	bool bCapital;
 	int iYield;
 
 	if (bDisplay && GC.getGameINLINE().isDebugMode())
@@ -5890,6 +5893,7 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 	}
 
 	bCity = false;
+	bCapital = false;
 
 	if (bDisplay)
 	{
@@ -5930,6 +5934,11 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 			if (!bDisplay || pCity->isRevealed(GC.getGameINLINE().getActiveTeam(), false))
 			{
 				iYield += GC.getYieldInfo(eYield).getCityChange();
+				if(pCity->isCapital()) {
+					// AGDM addition
+					iYield += GC.getYieldInfo(eYield).getCapitalChange();
+					bCapital = true;
+				}
 				if (GC.getYieldInfo(eYield).getPopulationChangeDivisor() != 0)
 				{
 					iYield += ((pCity->getPopulation() + GC.getYieldInfo(eYield).getPopulationChangeOffset()) / GC.getYieldInfo(eYield).getPopulationChangeDivisor());
@@ -5976,6 +5985,11 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 	if (bCity)
 	{
 		iYield = std::max(iYield, GC.getYieldInfo(eYield).getMinCity());
+		if (bCapital)
+		{
+			// AGDM addition
+			iYield = std::max(iYield, GC.getYieldInfo(eYield).getMinCapital());
+		}
 	}
 
 	iYield += GC.getGameINLINE().getPlotExtraYield(m_iX, m_iY, eYield);
@@ -5986,7 +6000,19 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 		{
 			if (iYield >= GET_PLAYER(ePlayer).getExtraYieldThreshold(eYield))
 			{
-				iYield += GC.getDefineINT("EXTRA_YIELD");
+				// novice: Added global define enabling financial nerf
+				if(GC.getDefineINT("ENABLE_FINANCIAL_RIVERSIDE_PENALTY") > 0) {
+					//T-hawk for Realms Beyond rebalance mod
+					//Change Financial trait: apply commerce bonus only for non river tiles
+					//This change is a bit hacky - it doesn't actually look at the traits held by the player - but only Financial's bonus yield even gets here
+					if (!isRiver() || eYield != YIELD_COMMERCE)
+					{
+						iYield += GC.getDefineINT("EXTRA_YIELD");
+					}
+				}
+				else {
+					iYield += GC.getDefineINT("EXTRA_YIELD");
+				}
 			}
 		}
 
@@ -8104,7 +8130,8 @@ void CvPlot::doFeature()
 
 	if (getFeatureType() != NO_FEATURE)
 	{
-		iProbability = GC.getFeatureInfo(getFeatureType()).getDisappearanceProbability();
+		// RBMP game speed scaling: * 100 / GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getImprovementPercent()
+		iProbability = GC.getFeatureInfo(getFeatureType()).getDisappearanceProbability() * 100 / GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getImprovementPercent();
 
 		if (iProbability > 0)
 		{
@@ -8156,6 +8183,9 @@ void CvPlot::doFeature()
 								iProbability *= std::max(0, (GC.getROUTE_FEATURE_GROWTH_MODIFIER() + 100));
 								iProbability /= 100;
 							}
+
+							// RBMP game speed scaling:
+							iProbability = iProbability * 100 / GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getImprovementPercent();
 
 							if (iProbability > 0)
 							{

@@ -3581,6 +3581,15 @@ void CvDLLWidgetData::parseMaintenanceHelp(CvWidgetDataStruct &widgetDataStruct,
 				szBuffer.append(gDLL->getText("TXT_KEY_MISC_CORPORATION_MAINT_FLOAT", szMaint.GetCString()));
 			}
 
+			// AGDM addition: Inform about reduced mainenance due to trait introduced by T-hawk for RB balance mod. Works multiplicatively after discounts from courthouse/etc.
+			int iCityUpkeepModifier = GET_PLAYER(pHeadSelectedCity->getOwnerINLINE()).getCityUpkeepModifier();
+			if (iCityUpkeepModifier != 0)
+			{
+				CvWString szMaint = CvWString::format(L"%d%%", 0-iCityUpkeepModifier);
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_TRAITS_MAINT", szMaint.GetCString()));
+			}
+
 			szBuffer.append(SEPARATOR);
 
 			//		swprintf(szTempBuffer, "\n%d%c Total Maintenance", pHeadSelectedCity->getMaintenance(), GC.getCommerceInfo(COMMERCE_GOLD).getChar());

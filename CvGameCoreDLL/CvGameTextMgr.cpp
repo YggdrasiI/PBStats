@@ -2082,7 +2082,7 @@ void createTestFontString(CvWStringBuffer& szString)
 {
 	int iI;
 	szString.assign(L"!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[×]^_`abcdefghijklmnopqrstuvwxyz\n");
-	szString.append(L"{}~\\ßÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ¿¡«»°ŠŒŽšœž™©®€£¢”‘“…’");
+	//szString.append(L"{}~\\ßÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ¿¡«»°ŠŒŽšœž™©®€£¢”‘“…’");
 	for (iI=0;iI<NUM_YIELD_TYPES;++iI)
 		szString.append(CvWString::format(L"%c", GC.getYieldInfo((YieldTypes) iI).getChar()));
 
@@ -3282,6 +3282,12 @@ void CvGameTextMgr::parseTraits(CvWStringBuffer &szHelpString, TraitTypes eTrait
 			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_CIVIC_UPKEEP_MODIFIER", GC.getTraitInfo(eTrait).getUpkeepModifier()));
 		}
 
+		// AGDM addition: Describe effect of iCityUpkeepModifier tag introduced by T-Hawk for RB Mod
+		if (GC.getTraitInfo(eTrait).getCityUpkeepModifier() != 0)
+		{
+			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_CITY_UPKEEP_MODIFIER", 0 - GC.getTraitInfo(eTrait).getCityUpkeepModifier()));
+		}
+
 		// iLevelExperienceModifier
 		if (GC.getTraitInfo(eTrait).getLevelExperienceModifier() != 0)
 		{
@@ -3573,7 +3579,9 @@ void CvGameTextMgr::parseLeaderTraits(CvWStringBuffer &szHelpString, LeaderHeadT
 		bool bFirst = true;
 		for (iI = 0; iI < GC.getNumTraitInfos(); ++iI)
 		{
-			if (GC.getLeaderHeadInfo(eLeader).hasTrait(iI))
+			if (GC.getLeaderHeadInfo(eLeader).hasTrait(iI)
+				 // AGDM addition:
+				|| (!bCivilopediaText && eCivilization != NO_CIVILIZATION && GC.getCivilizationInfo(eCivilization).hasTrait(iI)))
 			{
 				if (!bFirst)
 				{
@@ -3660,6 +3668,31 @@ void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes
 			// Civ Name
 			szBuffer.Format(SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), GC.getCivilizationInfo(eCivilization).getDescription());
 			szInfoText.append(szBuffer);
+
+			// AGDM addition: Civilization Traits
+			bool bHasTraits = false;
+			for (int iI = 0; iI < GC.getNumTraitInfos(); ++iI)
+			{
+				if (GC.getCivilizationInfo(eCivilization).hasTrait(iI))
+				{
+					bHasTraits = true;
+				}
+			}
+			if(bHasTraits) {
+				szBuffer.Format(NEWLINE SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"), gDLL->getText("TXT_KEY_PEDIA_TRAITS").GetCString());
+				szInfoText.append(szBuffer);
+				for (int iI = 0; iI < GC.getNumTraitInfos(); ++iI)
+				{
+					if (GC.getCivilizationInfo(eCivilization).hasTrait(iI))
+					{
+						// Add Trait
+						szText.Format((bLinks ? L"<link=literal>%s</link>" : L"%s"), GC.getTraitInfo((TraitTypes)iI).getDescription());
+						szBuffer.Format(L"%s  %c%s", NEWLINE, gDLL->getSymbolID(BULLET_CHAR), szText.GetCString());
+						szInfoText.append(szBuffer);
+					}
+				}
+			}
+			// End of AGDM addition
 
 			// Free Techs
 			szBuffer.Format(NEWLINE SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"), gDLL->getText("TXT_KEY_FREE_TECHS").GetCString());
@@ -4721,6 +4754,151 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 		}
 	}
 
+	//	Building Yields Changes, AGDM addition
+	for (iI = 0; iI < NUM_YIELD_TYPES; ++iI)
+	{
+		iLast = 0;
+
+		for (iJ = 0; iJ < GC.getNumBuildingClassInfos(); iJ++)
+		{
+			if (GC.getCivicInfo(eCivic).getBuildingYieldChanges(iJ, iI) != 0)
+			{
+				szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_CIVIC_BUILDING_YIELD_CHANGE", GC.getCivicInfo(eCivic).getBuildingYieldChanges(iJ, iI), GC.getYieldInfo((YieldTypes)iI).getChar()).c_str());
+				CvWString szBuilding;
+				if (bPlayerContext && NO_PLAYER != GC.getGameINLINE().getActivePlayer())
+				{
+					BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(GC.getGameINLINE().getActiveCivilizationType()).getCivilizationBuildings(iJ);
+					if (NO_BUILDING != eBuilding)
+					{
+						szBuilding.Format(L"<link=literal>%s</link>", GC.getBuildingInfo(eBuilding).getDescription());
+					}
+				}
+				else
+				{
+					szBuilding.Format(L"<link=literal>%s</link>", GC.getBuildingClassInfo((BuildingClassTypes)iJ).getDescription());
+				}
+				setListHelp(szHelpText, szFirstBuffer, szBuilding, L", ", (GC.getCivicInfo(eCivic).getBuildingYieldChanges(iJ, iI) != iLast));
+				iLast = GC.getCivicInfo(eCivic).getBuildingYieldChanges(iJ, iI);
+			}
+		}
+	}
+
+	//	Building Yields Modifiers, AGDM addition
+	for (iI = 0; iI < NUM_YIELD_TYPES; ++iI)
+	{
+		iLast = 0;
+
+		for (iJ = 0; iJ < GC.getNumBuildingClassInfos(); iJ++)
+		{
+			if (GC.getCivicInfo(eCivic).getBuildingYieldModifiers(iJ, iI) != 0)
+			{
+				szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_CIVIC_BUILDING_YIELD_MODIFIER", GC.getCivicInfo(eCivic).getBuildingYieldModifiers(iJ, iI), GC.getYieldInfo((YieldTypes)iI).getChar()).c_str());
+				CvWString szBuilding;
+				if (bPlayerContext && NO_PLAYER != GC.getGameINLINE().getActivePlayer())
+				{
+					BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(GC.getGameINLINE().getActiveCivilizationType()).getCivilizationBuildings(iJ);
+					if (NO_BUILDING != eBuilding)
+					{
+						szBuilding.Format(L"<link=literal>%s</link>", GC.getBuildingInfo(eBuilding).getDescription());
+					}
+				}
+				else
+				{
+					szBuilding.Format(L"<link=literal>%s</link>", GC.getBuildingClassInfo((BuildingClassTypes)iJ).getDescription());
+				}
+				setListHelp(szHelpText, szFirstBuffer, szBuilding, L", ", (GC.getCivicInfo(eCivic).getBuildingYieldModifiers(iJ, iI) != iLast));
+				iLast = GC.getCivicInfo(eCivic).getBuildingYieldModifiers(iJ, iI);
+			}
+		}
+	}
+
+	//	Building Commerce Changes, AGDM addition
+	for (iI = 0; iI < NUM_COMMERCE_TYPES; ++iI)
+	{
+		iLast = 0;
+
+		for (iJ = 0; iJ < GC.getNumBuildingClassInfos(); iJ++)
+		{
+			if (GC.getCivicInfo(eCivic).getBuildingCommerceChanges(iJ, iI) != 0)
+			{
+				szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_CIVIC_BUILDING_COMMERCE_CHANGE", GC.getCivicInfo(eCivic).getBuildingCommerceChanges(iJ, iI), GC.getCommerceInfo((CommerceTypes) iI).getChar()).c_str());
+				CvWString szBuilding;
+				if (bPlayerContext && NO_PLAYER != GC.getGameINLINE().getActivePlayer())
+				{
+					BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(GC.getGameINLINE().getActiveCivilizationType()).getCivilizationBuildings(iJ);
+					if (NO_BUILDING != eBuilding)
+					{
+						szBuilding.Format(L"<link=literal>%s</link>", GC.getBuildingInfo(eBuilding).getDescription());
+					}
+				}
+				else
+				{
+					szBuilding.Format(L"<link=literal>%s</link>", GC.getBuildingClassInfo((BuildingClassTypes)iJ).getDescription());
+				}
+				setListHelp(szHelpText, szFirstBuffer, szBuilding, L", ", (GC.getCivicInfo(eCivic).getBuildingCommerceChanges(iJ, iI) != iLast));
+				iLast = GC.getCivicInfo(eCivic).getBuildingCommerceChanges(iJ, iI);
+			}
+		}
+	}
+
+	//	Building Commerce Modifiers, AGDM addition
+	for (iI = 0; iI < NUM_COMMERCE_TYPES; ++iI)
+	{
+		iLast = 0;
+
+		for (iJ = 0; iJ < GC.getNumBuildingClassInfos(); iJ++)
+		{
+			if (GC.getCivicInfo(eCivic).getBuildingCommerceModifiers(iJ, iI) != 0)
+			{
+				szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_CIVIC_BUILDING_COMMERCE_MODIFIER", GC.getCivicInfo(eCivic).getBuildingCommerceModifiers(iJ, iI), GC.getCommerceInfo((CommerceTypes) iI).getChar()).c_str());
+				CvWString szBuilding;
+				if (bPlayerContext && NO_PLAYER != GC.getGameINLINE().getActivePlayer())
+				{
+					BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(GC.getGameINLINE().getActiveCivilizationType()).getCivilizationBuildings(iJ);
+					if (NO_BUILDING != eBuilding)
+					{
+						szBuilding.Format(L"<link=literal>%s</link>", GC.getBuildingInfo(eBuilding).getDescription());
+					}
+				}
+				else
+				{
+					szBuilding.Format(L"<link=literal>%s</link>", GC.getBuildingClassInfo((BuildingClassTypes)iJ).getDescription());
+				}
+				setListHelp(szHelpText, szFirstBuffer, szBuilding, L", ", (GC.getCivicInfo(eCivic).getBuildingCommerceModifiers(iJ, iI) != iLast));
+				iLast = GC.getCivicInfo(eCivic).getBuildingCommerceModifiers(iJ, iI);
+			}
+		}
+	}
+
+	//	Building giving Free Specialists, AGDM addition
+	for (iI = 0; iI < GC.getNumSpecialistInfos(); ++iI)
+	{
+		iLast = 0;
+
+		for (iJ = 0; iJ < GC.getNumBuildingClassInfos(); iJ++)
+		{
+			if (GC.getCivicInfo(eCivic).getBuildingFreeSpecialistCounts(iJ, iI) != 0)
+			{
+				szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_CIVIC_BUILDING_FREE_SPECIALIST", GC.getCivicInfo(eCivic).getBuildingFreeSpecialistCounts(iJ, iI), GC.getSpecialistInfo((SpecialistTypes)iI).getTextKeyWide()).c_str());
+				CvWString szBuilding;
+				if (bPlayerContext && NO_PLAYER != GC.getGameINLINE().getActivePlayer())
+				{
+					BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(GC.getGameINLINE().getActiveCivilizationType()).getCivilizationBuildings(iJ);
+					if (NO_BUILDING != eBuilding)
+					{
+						szBuilding.Format(L"<link=literal>%s</link>", GC.getBuildingInfo(eBuilding).getDescription());
+					}
+				}
+				else
+				{
+					szBuilding.Format(L"<link=literal>%s</link>", GC.getBuildingClassInfo((BuildingClassTypes)iJ).getDescription());
+				}
+				setListHelp(szHelpText, szFirstBuffer, szBuilding, L", ", (GC.getCivicInfo(eCivic).getBuildingFreeSpecialistCounts(iJ, iI) != iLast));
+				iLast = GC.getCivicInfo(eCivic).getBuildingFreeSpecialistCounts(iJ, iI);
+			}
+		}
+	}
+
 	//	Building Happiness
 	for (iI = 0; iI < GC.getNumBuildingClassInfos(); ++iI)
 	{
@@ -4757,6 +4935,44 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 			{
 				szHelpText.append(NEWLINE);
 				szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_BUILDING_HAPPINESS", GC.getCivicInfo(eCivic).getBuildingHealthChanges(iI), ((GC.getCivicInfo(eCivic).getBuildingHealthChanges(iI) > 0) ? gDLL->getSymbolID(HEALTHY_CHAR) : gDLL->getSymbolID(UNHEALTHY_CHAR)), GC.getBuildingClassInfo((BuildingClassTypes)iI).getTextKeyWide()));
+			}
+		}
+
+		// Building free experience, AGDM addition
+		if (GC.getCivicInfo(eCivic).getBuildingFreeExperiences(iI) != 0)
+		{
+			if (bPlayerContext && NO_PLAYER != GC.getGameINLINE().getActivePlayer())
+			{
+				BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(GC.getGameINLINE().getActiveCivilizationType()).getCivilizationBuildings(iI);
+				if (NO_BUILDING != eBuilding)
+				{
+					szHelpText.append(NEWLINE);
+					szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_BUILDING_FREE_EXPERIENCE", GC.getCivicInfo(eCivic).getBuildingFreeExperiences(iI), GC.getBuildingInfo(eBuilding).getTextKeyWide()));
+				}
+			}
+			else
+			{
+				szHelpText.append(NEWLINE);
+				szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_BUILDING_FREE_EXPERIENCE", GC.getCivicInfo(eCivic).getBuildingFreeExperiences(iI), GC.getBuildingClassInfo((BuildingClassTypes)iI).getTextKeyWide()));
+			}
+		}
+
+		// Building military production bonus, AGDM addition
+		if (GC.getCivicInfo(eCivic).getBuildingMilitaryProductionModifiers(iI) != 0)
+		{
+			if (bPlayerContext && NO_PLAYER != GC.getGameINLINE().getActivePlayer())
+			{
+				BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(GC.getGameINLINE().getActiveCivilizationType()).getCivilizationBuildings(iI);
+				if (NO_BUILDING != eBuilding)
+				{
+					szHelpText.append(NEWLINE);
+					szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_BUILDING_MILITARY_PRODUCTION", GC.getCivicInfo(eCivic).getBuildingMilitaryProductionModifiers(iI), GC.getBuildingInfo(eBuilding).getTextKeyWide()));
+				}
+			}
+			else
+			{
+				szHelpText.append(NEWLINE);
+				szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_BUILDING_MILITARY_PRODUCTION", GC.getCivicInfo(eCivic).getBuildingMilitaryProductionModifiers(iI), GC.getBuildingClassInfo((BuildingClassTypes)iI).getTextKeyWide()));
 			}
 		}
 	}
@@ -7148,6 +7364,80 @@ void CvGameTextMgr::setBuildingHelp(CvWStringBuffer &szBuffer, BuildingTypes eBu
 		}
 	}
 
+	// AGDM addition:
+	iLast = 0;
+	for (iI = 0; iI < GC.getNumCivicInfos(); ++iI)
+	{
+		int iChange = GC.getCivicInfo((CivicTypes)iI).getBuildingFreeExperiences(kBuilding.getBuildingClassType());
+		if (0 != iChange)
+		{
+			szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_BUILDING_CIVIC_FREE_XP", iChange).c_str());
+			szTempBuffer.Format(L"<link=literal>%s</link>", GC.getCivicInfo((CivicTypes)iI).getDescription());
+			setListHelp(szBuffer, szFirstBuffer, szTempBuffer, L", ", (iChange != iLast));
+			iLast = iChange;
+		}
+	}
+
+	// AGDM addition:
+	iLast = 0;
+	for (iI = 0; iI < GC.getNumCivicInfos(); ++iI)
+	{
+		int iChange = GC.getCivicInfo((CivicTypes)iI).getBuildingMilitaryProductionModifiers(kBuilding.getBuildingClassType());
+		if (0 != iChange)
+		{
+			szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_BUILDING_CIVIC_MILITARY_PRODUCTION", iChange).c_str());
+			szTempBuffer.Format(L"<link=literal>%s</link>", GC.getCivicInfo((CivicTypes)iI).getDescription());
+			setListHelp(szBuffer, szFirstBuffer, szTempBuffer, L", ", (iChange != iLast));
+			iLast = iChange;
+		}
+	}
+
+	// AGDM addition:
+	for (int iJ = 0; iJ < GC.getNumSpecialistInfos(); ++iJ)
+	{
+		iLast = 0;
+		for (iI = 0; iI < GC.getNumCivicInfos(); ++iI)
+		{
+			int iChange = GC.getCivicInfo((CivicTypes)iI).getBuildingFreeSpecialistCounts(kBuilding.getBuildingClassType(), iJ);
+			if (0 != iChange)
+			{
+				szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_BUILDING_CIVIC_FREE_SPECIALIST", iChange, GC.getSpecialistInfo((SpecialistTypes)iJ).getTextKeyWide()).c_str() );
+				szTempBuffer.Format(L"<link=literal>%s</link>", GC.getCivicInfo((CivicTypes)iI).getDescription());
+				setListHelp(szBuffer, szFirstBuffer, szTempBuffer, L", ", (iChange != iLast));
+				iLast = iChange;
+			}
+		}
+	}
+
+	// AGDM addition:
+	for (iI = 0; iI < GC.getNumCivicInfos(); ++iI)
+	{
+		szTempBuffer.Format(L"%s<link>%s</link>", gDLL->getText("TXT_KEY_BUILDING_CIVIC_WITH").c_str(), GC.getCivicInfo((CivicTypes)iI).getDescription());
+		int* aiModifiers = GC.getCivicInfo((CivicTypes)iI).getBuildingCommerceModifierArray(kBuilding.getBuildingClassType());
+		setCommerceChangeHelp(szBuffer, L"", L"", szTempBuffer, aiModifiers, true, true);
+	}
+	// AGDM addition:
+	for (iI = 0; iI < GC.getNumCivicInfos(); ++iI)
+	{
+		szTempBuffer.Format(L"%s<link>%s</link>", gDLL->getText("TXT_KEY_BUILDING_CIVIC_WITH").c_str(), GC.getCivicInfo((CivicTypes)iI).getDescription());
+		int* aiModifiers = GC.getCivicInfo((CivicTypes)iI).getBuildingCommerceChangeArray(kBuilding.getBuildingClassType());
+		setCommerceChangeHelp(szBuffer, L"", L"", szTempBuffer, aiModifiers, false, true);
+	}
+	// AGDM addition:
+	for (iI = 0; iI < GC.getNumCivicInfos(); ++iI)
+	{
+		szTempBuffer.Format(L"%s<link>%s</link>", gDLL->getText("TXT_KEY_BUILDING_CIVIC_WITH").c_str(), GC.getCivicInfo((CivicTypes)iI).getDescription());
+		int* aiModifiers = GC.getCivicInfo((CivicTypes)iI).getBuildingYieldModifierArray(kBuilding.getBuildingClassType());
+		setYieldChangeHelp(szBuffer, L"", L"", szTempBuffer, aiModifiers, true, true);
+	}
+	// AGDM addition:
+	for (iI = 0; iI < GC.getNumCivicInfos(); ++iI)
+	{
+		szTempBuffer.Format(L"%s<link>%s</link>", gDLL->getText("TXT_KEY_BUILDING_CIVIC_WITH").c_str(), GC.getCivicInfo((CivicTypes)iI).getDescription());
+		int* aiModifiers = GC.getCivicInfo((CivicTypes)iI).getBuildingYieldChangeArray(kBuilding.getBuildingClassType());
+		setYieldChangeHelp(szBuffer, L"", L"", szTempBuffer, aiModifiers, false, true);
+	}
+
 	iLast = 0;
 
 	for (iI = 0; iI < GC.getNumBonusInfos(); ++iI)
@@ -8737,7 +9027,6 @@ void CvGameTextMgr::setHappyHelp(CvWStringBuffer &szBuffer, CvCity& city)
 		FAssert(iTotalHappy == city.happyLevel())
 	}
 }
-
 
 void CvGameTextMgr::setYieldChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, const int* piYieldChange, bool bPercent, bool bNewLine)
 {
@@ -11584,6 +11873,10 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 			for (int iLoop = 0; iLoop < city.getNumBuilding((BuildingTypes)i); iLoop++)
 			{
 				iBuildingMod += infoBuilding.getCommerceModifier(eCommerceType);
+				// AGDM addition: Add bonus from civics
+				for (int iCivicLoop = 0; iCivicLoop < GC.getNumCivicOptionInfos(); iCivicLoop++) {
+					iBuildingMod += GC.getCivicInfo(owner.getCivics((CivicOptionTypes)iCivicLoop)).getBuildingCommerceModifiers(infoBuilding.getBuildingClassType(), eCommerceType);
+				}
 			}
 		}
 		for (int j = 0; j < MAX_PLAYERS; j++)
@@ -11735,6 +12028,10 @@ void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity& city, YieldT
 			for (int iLoop = 0; iLoop < city.getNumBuilding((BuildingTypes)i); iLoop++)
 			{
 				iBuildingMod += infoBuilding.getYieldModifier(eYieldType);
+				// AGDM addition: Add bonus from civics
+				for (int iCivicLoop = 0; iCivicLoop < GC.getNumCivicOptionInfos(); iCivicLoop++) {
+					iBuildingMod += GC.getCivicInfo(owner.getCivics((CivicOptionTypes)iCivicLoop)).getBuildingYieldModifiers(infoBuilding.getBuildingClassType(), eYieldType);
+				}
 			}
 		}
 		for (int j = 0; j < MAX_PLAYERS; j++)

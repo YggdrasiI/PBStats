@@ -1,5 +1,10 @@
 // game.cpp
 
+//plako for Rbmod (monitor)
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
 #include "CvGameCoreDLL.h"
 #include "CvGameCoreUtils.h"
 #include "CvGame.h"
@@ -25,6 +30,9 @@
 #include "CvEventReporter.h"
 #include "CvMessageControl.h"
 
+//plako for Rbmod (monitor)
+#include "CvGameTextMgr.h"
+
 // interface uses
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLEngineIFaceBase.h"
@@ -37,116 +45,116 @@
 #ifdef WITH_TIMER
 class Timer : boost::noncopyable
 {
-		boost::xtime wait_time, next_time;
-		boost::mutex monitor;
-		boost::condition aborted;
-		boost::thread thread;
-		CvGame *m_pGame;
-public:
+  boost::xtime wait_time, next_time;
+  boost::mutex monitor;
+  boost::condition aborted;
+  boost::thread thread;
+  CvGame *m_pGame;
+  public:
 
-		explicit Timer(boost::xtime const & interval, CvGame *pGame)
-				: wait_time(interval)
-				, m_pGame(pGame)
-				, thread( boost::bind(& Timer::thread_body, this) )
-		{ }
+  explicit Timer(boost::xtime const & interval, CvGame *pGame)
+    : wait_time(interval)
+      , m_pGame(pGame)
+      , thread( boost::bind(& Timer::thread_body, this) )
+  { }
 
-		~Timer()
-		{
-				aborted.notify_one();
+  ~Timer()
+  {
+    aborted.notify_one();
 #ifdef NEWER_BOOST_VERSION_REQ
-				try
-				{
-						thread.join();
-				}
-				catch ( const boost::thread_interrupted& )
-				{
-						/* suppressed to avoid kill of application*/
-				}
+    try
+    {
+      thread.join();
+    }
+    catch ( const boost::thread_interrupted& )
+    {
+      /* suppressed to avoid kill of application*/
+    }
 #else
-				thread.join();
+    thread.join();
 #endif
-		}
+  }
 
-		private:
+  private:
 
-		void calc_next_time()
-		{
-				boost::xtime_get(& next_time, boost::TIME_UTC);
-				next_time.sec += wait_time.sec;
-				next_time.nsec += wait_time.nsec;
-				next_time.sec += next_time.nsec / 1000000000;
-				next_time.nsec %= 1000000000;
-		}
+  void calc_next_time()
+  {
+    boost::xtime_get(& next_time, boost::TIME_UTC);
+    next_time.sec += wait_time.sec;
+    next_time.nsec += wait_time.nsec;
+    next_time.sec += next_time.nsec / 1000000000;
+    next_time.nsec %= 1000000000;
+  }
 
-		void thread_body()
-		{
-				boost::mutex::scoped_lock lock(monitor);
+  void thread_body()
+  {
+    boost::mutex::scoped_lock lock(monitor);
 
-				for (;;)
-				{
-						calc_next_time();
-						if (aborted.timed_wait(lock, next_time)) break;
+    for (;;)
+    {
+      calc_next_time();
+      if (aborted.timed_wait(lock, next_time)) break;
 
-						// Event ...
-						//std::cout << "event" << std::endl;
-						int next_milliseconds = m_pGame->delayedPythonCall2();
+      // Event ...
+      //std::cout << "event" << std::endl;
+      int next_milliseconds = m_pGame->delayedPythonCall2();
 
-						if (next_milliseconds == 0){
-								break; // Quit delayed thread
-						}
+      if (next_milliseconds == 0){
+        break; // Quit delayed thread
+      }
 
-						wait_time.sec = next_milliseconds/1000;
-						wait_time.nsec = (next_milliseconds%1000)*1000000L;
-				}
-		}
+      wait_time.sec = next_milliseconds/1000;
+      wait_time.nsec = (next_milliseconds%1000)*1000000L;
+    }
+  }
 };
 #endif
 
 int CvGame::delayedPythonCall(int milliseconds, int arg1, int arg2)
 {
 #ifdef WITH_TIMER 
-		// Destroy previous timer object. If this timer is still waiting, it will abort.
-		if (m_pTimer){
-				delete m_pTimer; m_pTimer = NULL;
-		}
+  // Destroy previous timer object. If this timer is still waiting, it will abort.
+  if (m_pTimer){
+    delete m_pTimer; m_pTimer = NULL;
+  }
 
-		// Save handle to current thread. It suspends this thread if delayedPythonCall2
-		// is called. (Hardcore mutex :))
-		DuplicateHandle(GetCurrentProcess(),
-						GetCurrentThread(),
-						GetCurrentProcess(),
-						&m_pMainThreadDup,
-						0,
-						FALSE,
-						DUPLICATE_SAME_ACCESS);
+  // Save handle to current thread. It suspends this thread if delayedPythonCall2
+  // is called. (Hardcore mutex :))
+  DuplicateHandle(GetCurrentProcess(),
+      GetCurrentThread(),
+      GetCurrentProcess(),
+      &m_pMainThreadDup,
+      0,
+      FALSE,
+      DUPLICATE_SAME_ACCESS);
 
-		m_timerArgsList.clear();
-		m_timerArgsList.add(arg1);
-		m_timerArgsList.add(arg2);
+  m_timerArgsList.clear();
+  m_timerArgsList.add(arg1);
+  m_timerArgsList.add(arg2);
 
-		boost::xtime interval = { milliseconds/1000, (milliseconds%1000)*1000000L }; // sec, nanosec.
-		m_pTimer = new Timer(interval, this);
+  boost::xtime interval = { milliseconds/1000, (milliseconds%1000)*1000000L }; // sec, nanosec.
+  m_pTimer = new Timer(interval, this);
 #endif
-		return 0;
+  return 0;
 }
 
 int CvGame::delayedPythonCall2()
 {
-		long lResult=0;
-		if( m_pMainThreadDup ){
-			SuspendThread(m_pMainThreadDup);
-		}
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "delayedPythonCall", m_timerArgsList.makeFunctionArgs(), &lResult);
-		if( m_pMainThreadDup ){
-			ResumeThread(m_pMainThreadDup);
-		}
-		if (lResult >= 0)
-		{
-				//...
-				return lResult; // Repeat
-		}
+  long lResult=0;
+  if( m_pMainThreadDup ){
+    SuspendThread(m_pMainThreadDup);
+  }
+  gDLL->getPythonIFace()->callFunction(PYGameModule, "delayedPythonCall", m_timerArgsList.makeFunctionArgs(), &lResult);
+  if( m_pMainThreadDup ){
+    ResumeThread(m_pMainThreadDup);
+  }
+  if (lResult >= 0)
+  {
+    //...
+    return lResult; // Repeat
+  }
 
-		return 0; // Abort
+  return 0; // Abort
 }
 //PB Mod END
 
@@ -154,17 +162,17 @@ int CvGame::delayedPythonCall2()
 
 CvGame::CvGame()
 #ifdef WITH_TIMER
-		: m_pTimer(NULL)
-		, m_pMainThreadDup(NULL)
-		, m_timerArgsList()
+  : m_pTimer(NULL)
+    , m_pMainThreadDup(NULL)
+    , m_timerArgsList()
 #endif
-{
+    {
 	m_aiRankPlayer = new int[MAX_PLAYERS];        // Ordered by rank...
 	m_aiPlayerRank = new int[MAX_PLAYERS];        // Ordered by player ID...
 	m_aiPlayerScore = new int[MAX_PLAYERS];       // Ordered by player ID...
-	m_aiRankTeam = new int[MAX_TEAMS];            // Ordered by rank...
-	m_aiTeamRank = new int[MAX_TEAMS];            // Ordered by team ID...
-	m_aiTeamScore = new int[MAX_TEAMS];           // Ordered by team ID...
+	m_aiRankTeam = new int[MAX_TEAMS];						// Ordered by rank...
+	m_aiTeamRank = new int[MAX_TEAMS];						// Ordered by team ID...
+	m_aiTeamScore = new int[MAX_TEAMS];						// Ordered by team ID...
 
 	m_paiUnitCreatedCount = NULL;
 	m_paiUnitClassCreatedCount = NULL;
@@ -199,9 +207,9 @@ CvGame::~CvGame()
 	uninit();
 
 #ifdef WITH_TIMER
-	if (m_pTimer){
-			delete m_pTimer; m_pTimer = NULL;
-	}
+    if (m_pTimer){
+      delete m_pTimer; m_pTimer = NULL;
+    }
 #endif
 
 	SAFE_DELETE_ARRAY(m_aiRankPlayer);
@@ -392,6 +400,9 @@ void CvGame::init(HandicapTypes eHandicap)
 	AI_init();
 
 	doUpdateCacheOnTurn();
+
+	// novice: Log game state when game's initialized
+	GC.getGameINLINE().logGameStateString(NO_PLAYER);
 }
 
 //
@@ -880,7 +891,7 @@ void CvGame::assignStartingPlots()
 	int iValue;
 	int iBestValue;
 	int iI, iJ, iK;
-
+	
 	std::vector<int> playerOrder;
 	std::vector<int>::iterator playerOrderIter;
 
@@ -1445,7 +1456,7 @@ void CvGame::normalizeRemoveBadFeatures()
 					}
 				}
 			}
-		}
+        }
 	}
 }
 
@@ -1478,57 +1489,57 @@ void CvGame::normalizeRemoveBadTerrain()
 			    for (iX = -iMaxRange; iX <= iMaxRange; iX++)
 			    {
 			        for (iY = -iMaxRange; iY <= iMaxRange; iY++)
-							{
-									pLoopPlot = plotXY(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iX, iY);
-									if (pLoopPlot != NULL)
-									{
-											int iDistance = plotDistance(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
-											if (iDistance <= iMaxRange)
-											{
-													if (!(pLoopPlot->isWater()) && ((iDistance <= iCityRange) || (pLoopPlot->isCoastalLand()) || (0 == getSorenRandNum(1 + iDistance - iCityRange, "Map Upgrade Terrain Food"))))
-													{
-															iPlotFood = GC.getTerrainInfo(pLoopPlot->getTerrainType()).getYield(YIELD_FOOD);
-															iPlotProduction = GC.getTerrainInfo(pLoopPlot->getTerrainType()).getYield(YIELD_PRODUCTION);
-															if ((iPlotFood + iPlotProduction) <= 1)
-															{
-																	iTargetFood = 1;
-																	iTargetTotal = 1;
-																	if (pLoopPlot->getBonusType(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_BONUS)
-																	{
-																			iTargetFood = 1;
-																			iTargetTotal = 2;
-																	}
-																	else if ((iPlotFood == 1) || (iDistance <= iCityRange))
-																	{
-																			iTargetFood = 1 + getSorenRandNum(2, "Map Upgrade Terrain Food");
-																			iTargetTotal = 2;
-																	}
-																	else
-																	{
-																			iTargetFood = pLoopPlot->isCoastalLand() ? 2 : 1;
-																			iTargetTotal = 2;
-																	}
-
-																	for (iK = 0; iK < GC.getNumTerrainInfos(); iK++)
-																	{
-																			if (!(GC.getTerrainInfo((TerrainTypes)iK).isWater()))
-																			{
-																					if ((GC.getTerrainInfo((TerrainTypes)iK).getYield(YIELD_FOOD) >= iTargetFood) && 
-																									(GC.getTerrainInfo((TerrainTypes)iK).getYield(YIELD_FOOD) + GC.getTerrainInfo((TerrainTypes)iK).getYield(YIELD_PRODUCTION)) == iTargetTotal)
-																					{
-																							if ((pLoopPlot->getFeatureType() == NO_FEATURE) || GC.getFeatureInfo(pLoopPlot->getFeatureType()).isTerrain(iK))
-																							{
-																									pLoopPlot->setTerrainType((TerrainTypes)iK);
-																							}
-																					}
-																			}
-																	}
-															}
-													}
-											}
-
-									}
-							}
+			        {
+			            pLoopPlot = plotXY(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iX, iY);
+                        if (pLoopPlot != NULL)
+                        {
+                            int iDistance = plotDistance(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+                            if (iDistance <= iMaxRange)
+                            {
+                                if (!(pLoopPlot->isWater()) && ((iDistance <= iCityRange) || (pLoopPlot->isCoastalLand()) || (0 == getSorenRandNum(1 + iDistance - iCityRange, "Map Upgrade Terrain Food"))))
+                                {
+                                    iPlotFood = GC.getTerrainInfo(pLoopPlot->getTerrainType()).getYield(YIELD_FOOD);
+                                    iPlotProduction = GC.getTerrainInfo(pLoopPlot->getTerrainType()).getYield(YIELD_PRODUCTION);
+                                    if ((iPlotFood + iPlotProduction) <= 1)
+                                    {
+                                        iTargetFood = 1;
+                                        iTargetTotal = 1;
+                                        if (pLoopPlot->getBonusType(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_BONUS)
+                                        {
+                                            iTargetFood = 1;
+                                            iTargetTotal = 2;
+                                        }
+                                        else if ((iPlotFood == 1) || (iDistance <= iCityRange))
+                                        {
+                                            iTargetFood = 1 + getSorenRandNum(2, "Map Upgrade Terrain Food");
+                                            iTargetTotal = 2;
+                                        }
+                                        else
+                                        {
+                                            iTargetFood = pLoopPlot->isCoastalLand() ? 2 : 1;
+                                            iTargetTotal = 2;
+                                        }
+                                        
+                                        for (iK = 0; iK < GC.getNumTerrainInfos(); iK++)
+                                        {
+                                            if (!(GC.getTerrainInfo((TerrainTypes)iK).isWater()))
+                                            {
+                                                if ((GC.getTerrainInfo((TerrainTypes)iK).getYield(YIELD_FOOD) >= iTargetFood) && 
+                                                    (GC.getTerrainInfo((TerrainTypes)iK).getYield(YIELD_FOOD) + GC.getTerrainInfo((TerrainTypes)iK).getYield(YIELD_PRODUCTION)) == iTargetTotal)
+                                                {
+                                                    if ((pLoopPlot->getFeatureType() == NO_FEATURE) || GC.getFeatureInfo(pLoopPlot->getFeatureType()).isTerrain(iK))
+                                                    {
+                                                        pLoopPlot->setTerrainType((TerrainTypes)iK);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+  
+			            }
+			        }
 				}
 			}
 		}
@@ -1581,7 +1592,7 @@ void CvGame::normalizeAddFoodBonuses()
 						}
 						else
 						{
-								if (pLoopPlot->calculateBestNatureYield(YIELD_FOOD, GET_PLAYER((PlayerTypes)iI).getTeam()) >= 3)
+                            if (pLoopPlot->calculateBestNatureYield(YIELD_FOOD, GET_PLAYER((PlayerTypes)iI).getTeam()) >= 3)
 						    {
 						        iGoodNatureTileCount++;
 						    }
@@ -1769,10 +1780,10 @@ void CvGame::normalizeAddExtras()
 			{
 				int iValue = GET_PLAYER((PlayerTypes)iI).AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true);
 				iTotalValue += iValue;
-				iPlayerCount++;
-
-				iBestValue = std::max(iValue, iBestValue);
-				iWorstValue = std::min(iValue, iWorstValue);
+                iPlayerCount++;
+                
+                iBestValue = std::max(iValue, iBestValue);
+                iWorstValue = std::min(iValue, iWorstValue);
 			}
 		}
 	}
@@ -1789,7 +1800,7 @@ void CvGame::normalizeAddExtras()
 
 			if (pStartingPlot != NULL)
 			{
-				int iCount = 0;
+                int iCount = 0;
 				int iFeatureCount = 0;
 				int aiShuffle[NUM_CITY_PLOTS];
 				shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
@@ -1870,101 +1881,101 @@ void CvGame::normalizeAddExtras()
 					}
 				}
 				
-				bool bLandBias = (iWaterCount > NUM_CITY_PLOTS / 2);
-
-				shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());                
+			    bool bLandBias = (iWaterCount > NUM_CITY_PLOTS / 2);
+                
+                shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());                
 
 				for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 				{
-						CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), aiShuffle[iJ]);
+				    CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), aiShuffle[iJ]);
 
-						if ((pLoopPlot != NULL) && (pLoopPlot != pStartingPlot))
-						{
-								if (getSorenRandNum(((bLandBias && pLoopPlot->isWater()) ? 2 : 1), "Placing Bonuses") == 0)
+                    if ((pLoopPlot != NULL) && (pLoopPlot != pStartingPlot))
+                    {
+                        if (getSorenRandNum(((bLandBias && pLoopPlot->isWater()) ? 2 : 1), "Placing Bonuses") == 0)
+                        {
+                        	if ((iOtherCount * 3 + iOceanFoodCount * 2 + iCoastFoodCount * 2) >= 12)
+                        	{
+                        		break;
+                        	}
+                        	
+                            if (GET_PLAYER((PlayerTypes)iI).AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true) >= iTargetValue)
+                            {
+                                break;
+                            }
+
+						    bool bCoast = (pLoopPlot->isWater() && pLoopPlot->isAdjacentToLand());
+						    bool bOcean = (pLoopPlot->isWater() && !bCoast);
+							if ((pLoopPlot != pStartingPlot)
+                                && !(bCoast && (iCoastFoodCount > 2))
+                                && !(bOcean && (iOceanFoodCount > 2)))
+							{
+								for (int iPass = 0; iPass < 2; iPass++)
 								{
-										if ((iOtherCount * 3 + iOceanFoodCount * 2 + iCoastFoodCount * 2) >= 12)
+									if (pLoopPlot->getBonusType() == NO_BONUS)
+									{
+										for (int iK = 0; iK < GC.getNumBonusInfos(); iK++)
 										{
-												break;
-										}
-
-										if (GET_PLAYER((PlayerTypes)iI).AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true) >= iTargetValue)
-										{
-												break;
-										}
-
-										bool bCoast = (pLoopPlot->isWater() && pLoopPlot->isAdjacentToLand());
-										bool bOcean = (pLoopPlot->isWater() && !bCoast);
-										if ((pLoopPlot != pStartingPlot)
-														&& !(bCoast && (iCoastFoodCount > 2))
-														&& !(bOcean && (iOceanFoodCount > 2)))
-										{
-												for (int iPass = 0; iPass < 2; iPass++)
+											if (GC.getBonusInfo((BonusTypes)iK).isNormalize())
+											{
+											    //???no bonuses with negative yields?
+												if ((GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_FOOD) >= 0) &&
+													  (GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_PRODUCTION) >= 0))
 												{
-														if (pLoopPlot->getBonusType() == NO_BONUS)
+													if ((GC.getBonusInfo((BonusTypes)iK).getTechCityTrade() == NO_TECH) || (GC.getTechInfo((TechTypes)(GC.getBonusInfo((BonusTypes)iK).getTechCityTrade())).getEra() <= getStartEra()))
+													{
+														if (GET_TEAM(GET_PLAYER((PlayerTypes)iI).getTeam()).isHasTech((TechTypes)(GC.getBonusInfo((BonusTypes)iK).getTechReveal())))
 														{
-																for (int iK = 0; iK < GC.getNumBonusInfos(); iK++)
-																{
-																		if (GC.getBonusInfo((BonusTypes)iK).isNormalize())
-																		{
-																				//???no bonuses with negative yields?
-																				if ((GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_FOOD) >= 0) &&
-																								(GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_PRODUCTION) >= 0))
-																				{
-																						if ((GC.getBonusInfo((BonusTypes)iK).getTechCityTrade() == NO_TECH) || (GC.getTechInfo((TechTypes)(GC.getBonusInfo((BonusTypes)iK).getTechCityTrade())).getEra() <= getStartEra()))
-																						{
-																								if (GET_TEAM(GET_PLAYER((PlayerTypes)iI).getTeam()).isHasTech((TechTypes)(GC.getBonusInfo((BonusTypes)iK).getTechReveal())))
-																								{
-																										if ((iPass == 0) ? CvMapGenerator::GetInstance().canPlaceBonusAt(((BonusTypes)iK), pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude) : pLoopPlot->canHaveBonus(((BonusTypes)iK), bIgnoreLatitude))
-																										{
-																												pLoopPlot->setBonusType((BonusTypes)iK);
-																												iCoastFoodCount += bCoast ? 1 : 0;
-																												iOceanFoodCount += bOcean ? 1 : 0;
-																												iOtherCount += !(bCoast || bOcean) ? 1 : 0;
-																												break;
-																										}
-																								}
-																						}
-																				}
-																		}
-																}
-
-																if (bLandBias && !pLoopPlot->isWater() && pLoopPlot->getBonusType() == NO_BONUS)
-																{
-																		if (((iFeatureCount > 4) && (pLoopPlot->getFeatureType() != NO_FEATURE))
-																						&& ((iCoastFoodCount + iOceanFoodCount) > 2))
-																		{
-																				if (getSorenRandNum(2, "Clear feature to add bonus") == 0)
-																				{
-																						pLoopPlot->setFeatureType(NO_FEATURE);
-
-																						for (iK = 0; iK < GC.getNumBonusInfos(); iK++)
-																						{
-																								if (GC.getBonusInfo((BonusTypes)iK).isNormalize())
-																								{
-																										//???no bonuses with negative yields?
-																										if ((GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_FOOD) >= 0) &&
-																														(GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_PRODUCTION) >= 0))
-																										{
-																												if ((GC.getBonusInfo((BonusTypes)iK).getTechCityTrade() == NO_TECH) || (GC.getTechInfo((TechTypes)(GC.getBonusInfo((BonusTypes)iK).getTechCityTrade())).getEra() <= getStartEra()))
-																												{
-																														if ((iPass == 0) ? CvMapGenerator::GetInstance().canPlaceBonusAt(((BonusTypes)iK), pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude) : pLoopPlot->canHaveBonus(((BonusTypes)iK), bIgnoreLatitude))
-																														{
-																																pLoopPlot->setBonusType((BonusTypes)iK);
-																																iOtherCount++;
-																																break;
-																														}
-																												}
-																										}
-																								}
-																						}
-																				}
-																		}										
-																}
+															if ((iPass == 0) ? CvMapGenerator::GetInstance().canPlaceBonusAt(((BonusTypes)iK), pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude) : pLoopPlot->canHaveBonus(((BonusTypes)iK), bIgnoreLatitude))
+															{
+																pLoopPlot->setBonusType((BonusTypes)iK);
+																iCoastFoodCount += bCoast ? 1 : 0;
+																iOceanFoodCount += bOcean ? 1 : 0;
+																iOtherCount += !(bCoast || bOcean) ? 1 : 0;
+																break;
+															}
 														}
+													}
 												}
+											}
 										}
+										
+										if (bLandBias && !pLoopPlot->isWater() && pLoopPlot->getBonusType() == NO_BONUS)
+										{
+											if (((iFeatureCount > 4) && (pLoopPlot->getFeatureType() != NO_FEATURE))
+												&& ((iCoastFoodCount + iOceanFoodCount) > 2))
+											{
+												if (getSorenRandNum(2, "Clear feature to add bonus") == 0)
+												{
+												pLoopPlot->setFeatureType(NO_FEATURE);
+
+													for (iK = 0; iK < GC.getNumBonusInfos(); iK++)
+													{
+														if (GC.getBonusInfo((BonusTypes)iK).isNormalize())
+														{
+															//???no bonuses with negative yields?
+															if ((GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_FOOD) >= 0) &&
+																  (GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_PRODUCTION) >= 0))
+															{
+																if ((GC.getBonusInfo((BonusTypes)iK).getTechCityTrade() == NO_TECH) || (GC.getTechInfo((TechTypes)(GC.getBonusInfo((BonusTypes)iK).getTechCityTrade())).getEra() <= getStartEra()))
+																{
+																	if ((iPass == 0) ? CvMapGenerator::GetInstance().canPlaceBonusAt(((BonusTypes)iK), pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude) : pLoopPlot->canHaveBonus(((BonusTypes)iK), bIgnoreLatitude))
+																	{
+																		pLoopPlot->setBonusType((BonusTypes)iK);
+																		iOtherCount++;
+																		break;
+																	}
+																}
+															}
+														}
+													}
+												}
+											}										
+										}
+									}
 								}
+							}
 						}
+					}
 				}
 				
 				shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
@@ -2172,10 +2183,165 @@ int CvGame::getTeamClosenessScore(int** aaiDistances, int* aiStartingLocs)
 	return iScore;
 }
 
+//Plako for Rbmod (monitor)
+void CvGame::appendBeginAndResize(CvString filepath, CvString inputData) {
+	
+	std::ifstream in(filepath);
+	CvString contents;
+	if (in)
+	{
+		in.seekg(0, std::ios::end);
+		contents.resize(in.tellg());
+		in.seekg(0, std::ios::beg);
+		in.read(&contents[0], contents.size());
+		in.close();
+	}
+	else {
+		std::ofstream out(filepath, std::ios::trunc);
+		out << inputData;
+		out << "---LAST LINE---" << "\n";
+		out.close();
+		return;
+	}
+
+	std::stringstream ss;
+	ss << contents;
+
+	std::ofstream out(filepath, std::ios::trunc);
+	out << inputData;
+
+	CvString line;
+	int lineCount = 0;
+	while (std::getline(ss, line)) {
+		if (line==NULL) break;
+		out << line << "\n";
+		if (line=="---LAST LINE---") break;
+		lineCount++;
+		if (lineCount>4000) break;
+	}
+	out.close();
+
+}
+
+//Plako for Rbmod (monitor)
+void CvGame::getTurnTimerText(CvWString& strText) {
+	if (getTurnSlicesRemaining() > 0)
+		{
+		// Get number of seconds remaining
+		int iTurnSecondsRemaining = ((int)floorf((float)(getTurnSlicesRemaining()-1) * ((float)gDLL->getMillisecsPerTurn()/1000.0f)) + 1);
+		int iTurnMinutesRemaining = (int)(iTurnSecondsRemaining/60);
+		iTurnSecondsRemaining = (iTurnSecondsRemaining%60);
+		int iTurnHoursRemaining = (int)(iTurnMinutesRemaining/60);
+		iTurnMinutesRemaining = (iTurnMinutesRemaining%60);
+
+		// Display time remaining
+		CvWString szTempBuffer;
+		szTempBuffer.Format(L"%d:%02d:%02d", iTurnHoursRemaining, iTurnMinutesRemaining, iTurnSecondsRemaining);
+		strText += szTempBuffer;
+	}
+	else
+	{
+		// Flash zeroes
+		if (getTurnSlicesRemaining() % 2 == 0)
+		{
+			// Display 0
+			strText+=L"0:00";
+		}
+	}
+}
+
+//Plako for Rbmod (monitor)
+bool CvGame::replace(CvString& str, const CvString& from, CvString& to) {
+    size_t start_pos = str.find(from);
+    if(start_pos == std::string::npos)
+        return false;
+    str.replace(start_pos, from.length(), to);
+    return true;
+}
 
 void CvGame::update()
 {
 	PROFILE("CvGame::update");
+
+	//Plako for RBmod (monitor)
+	//1 slice is 250 ms. Write data once per second to file
+	if(gDLL->IsPitbossHost() && GC.getDefineINT("ENABLE_PITBOSS_PORTAL_LOGGING") > 0) {
+		if ((getTurnSlice() % 4) == 0) {
+			// Log time.txt
+			CvWString turnTimerText; 
+			getTurnTimerText(turnTimerText);
+			std::ofstream outTime(GC.getGameINLINE().getLogfilePath("time"), std::ios::trunc);
+			outTime << (CvString)turnTimerText << "\n"; 
+			outTime	<< this->getLocalTimeString() << "\n";
+			outTime << this->getGameTurnYear() << "\n";
+			outTime << this->getGameTurn() << "\n";
+			outTime.close();
+
+			// Log score.txt
+			std::ofstream outScore(GC.getGameINLINE().getLogfilePath("score"), std::ios::trunc);
+			for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+			{
+				CvPlayer& kPlayer = GET_PLAYER((PlayerTypes) iI);
+				if (kPlayer.isEverAlive())
+				{
+					int score = kPlayer.calculateScore();
+					if (!kPlayer.isTurnActive()) {
+						outScore << "*";
+					}
+					else {
+						outScore << " ";
+					}
+					std::ostringstream convertScore;
+					convertScore << score;
+
+					std::ostringstream convertId;
+					convertId << kPlayer.getID();
+
+					std::ostringstream convertGameTurn;
+					convertGameTurn << GC.getGameINLINE().getGameTurn();
+
+					outScore << " --- " << (CvString)(kPlayer.getName()) << " --- " << convertScore.str() << " --- " << convertId.str() << "\n";
+				}
+			}
+			outScore.close();
+
+			// Log connected, disconnected, and score change events
+			for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+			{
+				CvPlayer& kPlayer = GET_PLAYER((PlayerTypes) iI);
+				if (kPlayer.isEverAlive())
+				{
+					if (kPlayer.isConnected() && (kPlayer.isConnected()!=kPlayer.getPreviousConnected())) {
+						kPlayer.setPreviousConnected(true);
+						GC.getGameINLINE().logEvent(kPlayer.getID(), "Connected");
+						// Trigger recovery save
+						if(GC.getDefineINT("ENABLE_EXTENDED_RECOVERY_SAVES") > 0) {
+							CvString saveName = (CvString)(kPlayer.getName()) + "_connected_" + GC.getGameINLINE().getLocalTimeString(true) + ".CivBeyondSwordSave";
+							CvString fileName = GC.getGameINLINE().getLogfilePath(saveName, false);
+							gDLL->getEngineIFace()->SaveGame(fileName, SAVEGAME_RECOVERY);
+						}
+					}
+					if (!(kPlayer.isConnected()) && (kPlayer.isConnected()!=kPlayer.getPreviousConnected())) {
+						kPlayer.setPreviousConnected(false);
+						GC.getGameINLINE().logEvent(kPlayer.getID(), "Disconnected");
+						// Trigger recovery save
+						if(GC.getDefineINT("ENABLE_EXTENDED_RECOVERY_SAVES") > 0) {
+							CvString saveName = (CvString)(kPlayer.getName()) + "_disconnected_" + GC.getGameINLINE().getLocalTimeString(true) + ".CivBeyondSwordSave";
+							CvString fileName = GC.getGameINLINE().getLogfilePath(saveName, false);
+							gDLL->getEngineIFace()->SaveGame(fileName, SAVEGAME_RECOVERY);
+						}
+					}
+					int score = kPlayer.calculateScore();
+					if (score!=kPlayer.getPreviousScore()) {
+						kPlayer.setPreviousScore(score);
+						std::ostringstream convertScore;
+						convertScore << score;
+						GC.getGameINLINE().logEvent(kPlayer.getID(), convertScore.str());
+					}					
+				}
+			}
+		}
+	}
 
 	if (!gDLL->GetWorldBuilderMode() || isInAdvancedStart())
 	{
@@ -3300,6 +3466,24 @@ bool CvGame::canTrainNukes() const
 	return false;
 }
 
+//Plako for RBmod - find the highest era among the players
+EraTypes CvGame::getCurrentHighestEra()
+{
+	int iEra;
+	int iI;
+
+	iEra = 0;
+
+	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	{
+		if (iEra<GET_PLAYER((PlayerTypes)iI).getCurrentEra()) {
+			iEra = GET_PLAYER((PlayerTypes)iI).getCurrentEra();
+		}
+	}
+
+	return (EraTypes)iEra;
+}
+
 
 EraTypes CvGame::getCurrentEra() const
 {
@@ -4080,7 +4264,9 @@ bool CvGame::circumnavigationAvailable() const
 		return false;
 	}
 
-	if (kMap.getLandPlots() > ((kMap.numPlotsINLINE() * 2) / 3))
+	//T-hawk for Realms Beyond balance mod, change circumnavigation availability to a global define
+	//Novice: Changed from int to float so BTS setting of 33.333333% could be kept
+	if ((kMap.numPlotsINLINE() - kMap.getLandPlots()) < ((kMap.numPlotsINLINE() * GC.getDefineFLOAT("CIRCUMNAVIGATE_MIN_WATER_PERCENT" ) / 100)))
 	{
 		return false;
 	}
@@ -4716,6 +4902,16 @@ bool CvGame::isPaused() const
 
 void CvGame::setPausePlayer(PlayerTypes eNewValue)
 {
+	// novice: Log event for game being paused/unpaused
+	if(m_ePausePlayer != eNewValue) {
+		if(eNewValue == NO_PLAYER) {
+			GC.getGameINLINE().logEvent(eNewValue, "Game unpaused");
+		}
+		else {
+			GC.getGameINLINE().logEvent(eNewValue, "Game paused");
+		}
+	}
+
 	m_ePausePlayer = eNewValue;
 }
 
@@ -4880,7 +5076,7 @@ int CvGame::getPlayerRank(PlayerTypes ePlayer) const
 	FAssertMsg(ePlayer < MAX_PLAYERS, "ePlayer is expected to be within maximum bounds (invalid Index)");
 	return m_aiPlayerRank[ePlayer];
 }
-
+ 
 
 void CvGame::setPlayerRank(PlayerTypes ePlayer, int iRank)													
 {
@@ -5645,6 +5841,125 @@ const CvWString & CvGame::getName()
 	return GC.getInitCore().getGameName();
 }
 
+// novice
+void CvGame::logEvent(PlayerTypes player, const CvString& eventType)
+{
+	if(gDLL->IsPitbossHost() && GC.getDefineINT("ENABLE_PITBOSS_PORTAL_LOGGING") > 0) {
+		CvString eventText = getLocalTimeString() + " --- ";
+		if(player == NO_PLAYER) {
+			eventText += "NO PLAYER";
+		}
+		else {
+			CvPlayer& kPlayer = GET_PLAYER(player);
+			eventText += (CvString)(kPlayer.getName());
+		}
+		eventText += " --- " + eventType + " --- ";
+
+		std::ostringstream convertPlayerId;
+		convertPlayerId << player;
+		eventText += convertPlayerId.str()+ " --- "; 
+
+		std::ostringstream convertGameTurn;
+		convertGameTurn << getGameTurn();
+		eventText += convertGameTurn.str() + "\n";
+
+		appendBeginAndResize(getLogfilePath("event"), eventText);
+	}
+}
+
+// novice
+CvString CvGame::getLocalTimeString(bool removeColons)
+{
+	time_t rawtime;
+	struct tm * timeinfo;
+	time ( &rawtime );
+	timeinfo = localtime ( &rawtime );
+
+	CvString timeString = asctime (timeinfo);
+	CvString from = "\n";
+	CvString to = " ";
+
+	replace(timeString, from, to);
+
+	if(removeColons) {
+		CvString colon = ":";
+		CvString colonReplacement = "_";
+		bool found = replace(timeString, colon, colonReplacement);
+		while(found) {
+			found = replace(timeString, colon, colonReplacement);
+		}
+		CvString space = " ";
+		found = replace(timeString, space, colonReplacement);
+		while(found) {
+			found = replace(timeString, space, colonReplacement);
+		}
+	}
+
+	std::stringstream convert;
+	convert << timeString;
+	return convert.str();
+}
+
+// novice - monitor
+CvString CvGame::getLogfilePath(const CvString& fileName, bool addExtension)
+{
+	std::stringstream convert;
+	CvString *gameName = new CvString(GC.getInitCore().getGameName().GetCString()); // Converts wide string to narrow string
+	convert << GC.getDefineSTRING("PITBOSS_PORTAL_LOG_DIRECTORY") << "/" << gameName->c_str() << "_" << fileName;
+	if(addExtension) {
+		convert << ".txt";
+	}
+	delete gameName;
+	return convert.str();
+}
+
+// novice - monitor
+void CvGame::logGameStateString(PlayerTypes playerEndingTurn) {
+	if(gDLL->IsPitbossHost() && GC.getDefineINT("ENABLE_PITBOSS_PORTAL_GAMESTATE_LOGGING") > 0) {
+		std::stringstream filename;
+		filename << "gamestate_";
+		std::ostringstream convertGameTurn;
+		convertGameTurn << getGameTurn();
+
+		if(playerEndingTurn == NO_PLAYER) {
+			filename << "sot" << convertGameTurn.str();
+		}
+		else {
+			filename << "eot" << convertGameTurn.str() << "_player";
+			std::ostringstream convertPlayerId;
+			convertPlayerId << playerEndingTurn;
+			filename << convertPlayerId.str();
+		}
+		std::ofstream outState(getLogfilePath(filename.str()), std::ios::trunc);
+		outState << getGameStateString() << "\n"; 
+		outState.close();
+	}
+}
+
+// novice - monitor/observer. Call into python function getGameStateString in file CvGameInterface.py to get a string representation of the current game state
+CvString CvGame::getGameStateString()
+{
+	try
+	{
+		CvWStringBuffer szBuffer;
+		CvWString szGameState;
+		CyArgsList argsList;
+		argsList.add(0);
+		gDLL->getPythonIFace()->callFunction(PYGameModule, "getGameStateString", argsList.makeFunctionArgs(), &szGameState);
+		szBuffer.append(szGameState);
+		std::wstring gameState = szBuffer.getCString();
+		CvString *gameStateN = new CvString(gameState);
+		std::stringstream convert;
+		convert << gameStateN->c_str();
+		delete gameStateN;
+		return convert.str();
+	}
+	catch(std::exception & e) {
+		std::stringstream ex;
+		ex << "{ \"error\": \"Error getting game state from python: " << e.what() << "\"}";
+		return ex.str();
+	}
+}
 
 void CvGame::setName(const TCHAR* szName)
 {
@@ -5820,6 +6135,11 @@ void CvGame::doTurn()
 	stopProfilingDLL();
 
 	gDLL->getEngineIFace()->AutoSave();
+
+	// novice - monitor: Log game state at start of turn
+	GC.getGameINLINE().logGameStateString(NO_PLAYER);
+	// novice: Log event when turn starts so that the turn roll is immediately recorded
+	GC.getGameINLINE().logEvent(NO_PLAYER, "New turn");
 }
 
 
@@ -7306,7 +7626,7 @@ int CvGame::getNumDeals()
 }
 
 
-CvDeal* CvGame::getDeal(int iID)																		
+ CvDeal* CvGame::getDeal(int iID)																		
 {
 	return ((CvDeal *)(m_deals.getAt(iID)));
 }
@@ -7318,7 +7638,7 @@ CvDeal* CvGame::addDeal()
 }
 
 
-void CvGame::deleteDeal(int iID)
+ void CvGame::deleteDeal(int iID)
 {
 	m_deals.removeAt(iID);
 	gDLL->getInterfaceIFace()->setDirty(Foreign_Screen_DIRTY_BIT, true);
@@ -7336,7 +7656,7 @@ CvDeal* CvGame::nextDeal(int *pIterIdx, bool bRev)
 }
 
 
-CvRandom& CvGame::getMapRand()																					
+ CvRandom& CvGame::getMapRand()																					
 {
 	return m_mapRand;
 }
@@ -9169,70 +9489,70 @@ bool CvGame::pythonIsBonusIgnoreLatitudes() const
 	return false;
 }
 
-// PB Mod 
-/*
- * For unknown reason the CvCity array m_abTradeRoute contain false-positive entries.
- * This cities are forever blocked as trade targets!
- * This function loops over all cities and reset the arrays.
- */
-void CvGame::fixTradeRoutes()
-{
-	TCHAR szOut[128];
-	int countActiveForeignRoutesBefore[MAX_PLAYERS];
-	int countActiveForeignRoutesAfter[MAX_PLAYERS];
+  // PB Mod 
+  /*
+   * For unknown reason the CvCity array m_abTradeRoute contain false-positive entries.
+   * This cities are forever blocked as trade targets!
+   * This function loops over all cities and reset the arrays.
+   */
+  void CvGame::fixTradeRoutes()
+  {
+    TCHAR szOut[128];
+    int countActiveForeignRoutesBefore[MAX_PLAYERS];
+    int countActiveForeignRoutesAfter[MAX_PLAYERS];
 
-  // 1. Clear internal arrays...
-  for( int iI=0; iI < MAX_PLAYERS; ++iI){
-		countActiveForeignRoutesBefore[iI] = 0;
-		countActiveForeignRoutesAfter[iI] = 0;
-    CvPlayer& kPlayer = GET_PLAYER((PlayerTypes) iI);
-    if (!kPlayer.isEverAlive()) continue;
+    // 1. Clear internal arrays...
+    for( int iI=0; iI < MAX_PLAYERS; ++iI){
+      countActiveForeignRoutesBefore[iI] = 0;
+      countActiveForeignRoutesAfter[iI] = 0;
+      CvPlayer& kPlayer = GET_PLAYER((PlayerTypes) iI);
+      if (!kPlayer.isEverAlive()) continue;
 
-    int iLoop;
-    CvCity* pLoopCity;
-    for (pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
-    {
-      for( int iJ=0;  iJ < MAX_PLAYERS; ++iJ){
-				if( pLoopCity->isTradeRoute((PlayerTypes) iJ) && iI != iJ ){
-					++countActiveForeignRoutesBefore[iJ];
-				}
-        pLoopCity->setTradeRoute((PlayerTypes) iJ, false);
-      }
-    }
-  }
-
-  // 2. Set used entries on true
-  int MTR = GC.getDefineINT("MAX_TRADE_ROUTES");
-  for( int iI=0; iI < MAX_PLAYERS; ++iI){
-    CvPlayer& kPlayer = GET_PLAYER((PlayerTypes) iI);
-    if (!kPlayer.isEverAlive()) continue;
-
-    int iLoop;
-    CvCity* pLoopCity;
-	CvCity* pTradeCity;
-    for (pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
-    {
-      for (int iJ = 0; iJ < MTR; iJ++)
+      int iLoop;
+      CvCity* pLoopCity;
+      for (pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
       {
-        pTradeCity = pLoopCity->getTradeCity(iJ);
-
-        if (pTradeCity != NULL)
-        {
-					if( pTradeCity->getOwnerINLINE() != iI ){
-						++countActiveForeignRoutesAfter[iI];
-					}
-          pTradeCity->setTradeRoute((PlayerTypes) iI, true);
+        for( int iJ=0;  iJ < MAX_PLAYERS; ++iJ){
+          if( pLoopCity->isTradeRoute((PlayerTypes) iJ) && iI != iJ ){
+            ++countActiveForeignRoutesBefore[iJ];
+          }
+          pLoopCity->setTradeRoute((PlayerTypes) iJ, false);
         }
       }
     }
-  }
 
-	// 3. Print results to log
-	gDLL->messageControlLog("fixTradeRoutes() results (Num. of foreign trade routes)");
-	for( int iI=0; iI < MAX_PLAYERS; ++iI){
-		sprintf(szOut, "Player: %d Before: %d After: %d\n",
-				iI, countActiveForeignRoutesBefore, countActiveForeignRoutesAfter );
-		gDLL->messageControlLog(szOut);
-	}
-}
-// PB Mod END
+    // 2. Set used entries on true
+    int MTR = GC.getDefineINT("MAX_TRADE_ROUTES");
+    for( int iI=0; iI < MAX_PLAYERS; ++iI){
+      CvPlayer& kPlayer = GET_PLAYER((PlayerTypes) iI);
+      if (!kPlayer.isEverAlive()) continue;
+
+      int iLoop;
+      CvCity* pLoopCity;
+      CvCity* pTradeCity;
+      for (pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
+      {
+        for (int iJ = 0; iJ < MTR; iJ++)
+        {
+          pTradeCity = pLoopCity->getTradeCity(iJ);
+
+          if (pTradeCity != NULL)
+          {
+            if( pTradeCity->getOwnerINLINE() != iI ){
+              ++countActiveForeignRoutesAfter[iI];
+            }
+            pTradeCity->setTradeRoute((PlayerTypes) iI, true);
+          }
+        }
+      }
+    }
+
+    // 3. Print results to log
+    gDLL->messageControlLog("fixTradeRoutes() results (Num. of foreign trade routes)");
+    for( int iI=0; iI < MAX_PLAYERS; ++iI){
+      sprintf(szOut, "Player: %d Before: %d After: %d\n",
+          iI, countActiveForeignRoutesBefore, countActiveForeignRoutesAfter );
+      gDLL->messageControlLog(szOut);
+    }
+  }
+  // PB Mod END

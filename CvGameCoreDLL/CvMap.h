@@ -153,6 +153,9 @@ public:
 	float getWidthCoords();
 	float getHeightCoords();
 
+	//T-hawk for Realms Beyond balance mod
+	//For a toroidal map, return max plot distance as if it is cylindrical
+    int maxPlotDistanceToroidalAsCylindrical();
 	int maxPlotDistance();																								// Exposed to Python
 	int maxStepDistance();																								// Exposed to Python
 
