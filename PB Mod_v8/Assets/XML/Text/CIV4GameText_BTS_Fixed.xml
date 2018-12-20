@@ -433,4 +433,8 @@
 		<Italian>Il [COLOR_BUILDING_TEXT]dun[COLOR_REVERT], l'equivalente celtico delle [COLOR_BUILDING_TEXT]mura[COLOR_REVERT], potenzia le difese della citt&#224; contro le unit&#224; precedenti alla polvere da sparo e garantisce a tutte le unit&#224; adatte costruite in citt&#224; la promozione [COLOR_HIGHLIGHT_TEXT]Guerriglia II[COLOR_REVERT].</Italian>
 		<Spanish>Los [COLOR_BUILDING_TEXT]Duns[COLOR_REVERT], los equivalentes celtas de las [COLOR_BUILDING_TEXT]Murallas[COLOR_REVERT], aumentan las defensas de una ciudad contra unidades anteriores a las armas de p&#243;lvora y otorgan a todas las unidades pertinentes que se construyan en esa ciudad el ascenso a [COLOR_HIGHLIGHT_TEXT]Guerra de guerrillas II[COLOR_REVERT].</Spanish>
 	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CHANGED_BUILDING_AMERICAN_ARMOURY_PEDIA</Tag>
+		<English>[COLOR_BUILDING_TEXT]Armouries[COLOR_REVERT], the American replacements for [COLOR_BUILDING_TEXT]Barracks[COLOR_REVERT], gives extra XP to melee, mounted, gunpowder and armor units built in this city.</English>
+		</TEXT>
 </Civ4GameText>

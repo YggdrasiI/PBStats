@@ -3275,4 +3275,8 @@
 		<Italian>Non trascurare le forze aeree! In ultima analisi, l'unico modo per fermare gli attacchi aerei nemici &#232; quello di controllare per primi i cieli (se ti manca il petrolio per&#242;, potresti trovarti in guai seri!)</Italian>
 		<Spanish>No desatend&#225;is las fuerzas a&#233;reas. La verdad es que la &#250;nica manera de detener los ataques a&#233;reos del enemigo es que vos mismo control&#233;is los cielos (si carec&#233;is de petr&#243;leo, quiz&#225; corr&#225;is un grave peligro.)</Spanish>
 	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_AMERICAN_ARMOURY_STRATEGY</Tag>
+		<English>Melee units built in Armouries will always have access to two promotions! And if combined with the Charismatic trait, so will tanks, gunpowder and mounted units without any other factors!</English>
+	</TEXT>
 </Civ4GameText>

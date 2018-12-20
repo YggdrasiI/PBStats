@@ -125,9 +125,9 @@
 			<iGreatPeopleRateModifier>0</iGreatPeopleRateModifier>
 			<iGreatGeneralRateModifier>0</iGreatGeneralRateModifier>
 			<iDomesticGreatGeneralRateModifier>0</iDomesticGreatGeneralRateModifier>
-			<iMaxGlobalBuildingProductionModifier>50</iMaxGlobalBuildingProductionModifier>
-			<iMaxTeamBuildingProductionModifier>50</iMaxTeamBuildingProductionModifier>
-			<iMaxPlayerBuildingProductionModifier>50</iMaxPlayerBuildingProductionModifier>
+			<iMaxGlobalBuildingProductionModifier>0</iMaxGlobalBuildingProductionModifier>
+			<iMaxTeamBuildingProductionModifier>0</iMaxTeamBuildingProductionModifier>
+			<iMaxPlayerBuildingProductionModifier>0</iMaxPlayerBuildingProductionModifier>
 			<ExtraYieldThresholds/>
 			<TradeYieldModifiers/>
 			<CommerceChanges/>
@@ -257,7 +257,7 @@
 			<CommerceModifiers/>
 			<FreePromotions>
 				<FreePromotion>
-					<PromotionType>PROMOTION_CITY_GARRISON1</PromotionType>
+					<PromotionType>PROMOTION_DRILL3</PromotionType>
 					<bFreePromotion>1</bFreePromotion>
 				</FreePromotion>
 				<FreePromotion>
