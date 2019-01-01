@@ -1880,7 +1880,7 @@
 	</Define>
 	<Define>
 		<DefineName>ENABLE_PITBOSS_PORTAL_LOGGING</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
+		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>PITBOSS_PORTAL_LOG_DIRECTORY</DefineName>
@@ -1888,11 +1888,11 @@
 	</Define>
 	<Define>
 		<DefineName>ENABLE_PITBOSS_PORTAL_GAMESTATE_LOGGING</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
+		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>ENABLE_EXTENDED_RECOVERY_SAVES</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
+		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>ENABLE_PITBOSS_PAUSE_FIX</DefineName>
