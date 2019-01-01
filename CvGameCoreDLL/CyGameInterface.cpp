@@ -272,6 +272,7 @@ void CyGamePythonInterface()
 		.def("getModPath", &CyGame::getModPath, "wstring getModPath() - Return absolute path to folder of used CvGameCoreDLL.dll.")
 		.def("unzipModUpdate", &CyGame::unzipModUpdate, "int (wstring zipFilename) - Unzip file into the Mod installation folder.")
 		.def("delayedPythonCall", &CyGame::delayedPythonCall, "int (int milliseconds, int arg1, int arg2) - Call function delayed (unblocked).")
+		.def("setAdminPassword", &CyGame::setAdminPassword, "int (const char *szNewPw, const char *szAdminPw) - Allows change of admin password over webinterface")
 		.def("fixTradeRoutes", &CyGame::fixTradeRoutes, "void (void) - Re-evauate used cities in trade routes.")
 		;
 
