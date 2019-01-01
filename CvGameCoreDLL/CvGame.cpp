@@ -1,10 +1,5 @@
 // game.cpp
 
-//plako for Rbmod (monitor)
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
 #include "CvGameCoreDLL.h"
 #include "CvGameCoreUtils.h"
 #include "CvGame.h"
@@ -37,6 +32,11 @@
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLEngineIFaceBase.h"
 #include "CvDLLPythonIFaceBase.h"
+
+//plako for Rbmod (monitor)
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 //PB Mod
 
