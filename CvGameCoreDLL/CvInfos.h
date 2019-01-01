@@ -2177,7 +2177,6 @@ public:
 	DllExport void setArtDefineTag(const TCHAR* szVal);
 	// Arrays
 
-	bool hasTrait(int i) const; // AGDM addition
 	DllExport int getCivilizationBuildings(int i) const;				// Exposed to Python
 	DllExport int getCivilizationUnits(int i) const;				// Exposed to Python
 	DllExport int getCivilizationFreeUnitsClass(int i) const;				// Exposed to Python
@@ -2221,8 +2220,6 @@ protected:
 	CvWString m_szShortDescriptionKey;
 	CvWString m_szAdjectiveKey;
 	// Arrays
-
-	bool* m_pbTraits; // AGDM addition
 
 	int* m_piCivilizationBuildings;
 	int* m_piCivilizationUnits;

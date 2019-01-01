@@ -3579,9 +3579,7 @@ void CvGameTextMgr::parseLeaderTraits(CvWStringBuffer &szHelpString, LeaderHeadT
 		bool bFirst = true;
 		for (iI = 0; iI < GC.getNumTraitInfos(); ++iI)
 		{
-			if (GC.getLeaderHeadInfo(eLeader).hasTrait(iI)
-				 // AGDM addition:
-				|| (!bCivilopediaText && eCivilization != NO_CIVILIZATION && GC.getCivilizationInfo(eCivilization).hasTrait(iI)))
+			if (GC.getLeaderHeadInfo(eLeader).hasTrait(iI))
 			{
 				if (!bFirst)
 				{
@@ -3668,31 +3666,6 @@ void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes
 			// Civ Name
 			szBuffer.Format(SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), GC.getCivilizationInfo(eCivilization).getDescription());
 			szInfoText.append(szBuffer);
-
-			// AGDM addition: Civilization Traits
-			bool bHasTraits = false;
-			for (int iI = 0; iI < GC.getNumTraitInfos(); ++iI)
-			{
-				if (GC.getCivilizationInfo(eCivilization).hasTrait(iI))
-				{
-					bHasTraits = true;
-				}
-			}
-			if(bHasTraits) {
-				szBuffer.Format(NEWLINE SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"), gDLL->getText("TXT_KEY_PEDIA_TRAITS").GetCString());
-				szInfoText.append(szBuffer);
-				for (int iI = 0; iI < GC.getNumTraitInfos(); ++iI)
-				{
-					if (GC.getCivilizationInfo(eCivilization).hasTrait(iI))
-					{
-						// Add Trait
-						szText.Format((bLinks ? L"<link=literal>%s</link>" : L"%s"), GC.getTraitInfo((TraitTypes)iI).getDescription());
-						szBuffer.Format(L"%s  %c%s", NEWLINE, gDLL->getSymbolID(BULLET_CHAR), szText.GetCString());
-						szInfoText.append(szBuffer);
-					}
-				}
-			}
-			// End of AGDM addition
 
 			// Free Techs
 			szBuffer.Format(NEWLINE SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"), gDLL->getText("TXT_KEY_FREE_TECHS").GetCString());
