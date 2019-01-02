@@ -7,6 +7,20 @@
     <meta charset="UTF-8">
     <title>{% block title %}{% trans "PBSPY: Civilization 4 PitBoss Web Interface" %}{% endblock %}</title>
 
+    <link rel="shortcut icon" href="{% static 'img/PBSpyIcon160.png' %}">
+    <link rel="icon" sizes="32x32" href="{% static 'img/PBSpyIcon32.png' %}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{% static 'img/PBSpyIcon512.png' %}">
+    <link rel="icon" type="image/png" sizes="160x160" href="{% static 'img/PBSpyIcon160.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/PBSpyIcon32.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/PBSpyIcon160.png' %}">
+    <link rel="apple-touch-icon" sizes="512x512" href="{% static 'img/PBSpyIcon512.png' %}">
+    <link rel="apple-touch-icon" sizes="160x160" href="{% static 'img/PBSpyIcon160.png' %}">
+
+    <!-- Win >= 8 -->
+    <meta name="msapplication-TileColor" content="#490D03">
+    <meta name="msapplication-TileImage" content="{% static 'img/PBSpyIcon512.png' %}">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+
     <link rel="stylesheet" type="text/css" href="{% static 'pbspy/css/defaultstyle/style.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}{% compile "pbspy/less/defaultstyle/theme.less" %}"/>
 

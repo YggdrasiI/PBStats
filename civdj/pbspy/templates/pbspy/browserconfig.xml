@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+{% load i18n %}
+{% load staticfiles %}
+{% load compile_static %}
+<browserconfig>
+    <msapplication>
+        <tile>
+            <square70x70logo src="{% static 'img/PBSpyIcon160.png' %}"/>
+            <square150x150logo src="{% static 'img/PBSpyIcon160.png' %}"/>
+            <square310x310logo src="{% static 'img/PBSpyIcon512.png' %}"/>
+            <TileColor>#490D03</TileColor>
+        </tile>
+    </msapplication>
+</browserconfig>
