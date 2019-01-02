@@ -245,8 +245,9 @@ class Server:
         dSave = ws.PbSettings.get("save")
         sName = dSave["filename"]
         preferedIdx = dSave.get("folderIndex", 0)
-        pbPasswords = []  # ws.getPbPasswords()
-        pbPasswords.append(dSave.get("adminpw", ""))
+        # pbPasswords = []
+        # pbPasswords.append(dSave.get("adminpw", ""))
+        pbPasswords = ws.PbSettings.getPbPasswords()
         ret = {"loadable":
                ws.isLoadableSave(sName, preferedIdx, pbPasswords),
                "name": sName}

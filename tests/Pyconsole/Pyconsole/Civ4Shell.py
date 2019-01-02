@@ -414,7 +414,7 @@ else:
                      loadable_check.get("file", "name?"))
                 return
             if loadable_check.get("loadable") == -2:
-                warn("Given admin password is wrong and search in list of"
+                warn("Given admin password is wrong and search in list of "
                      "alternatives ( see pbPasswords.json) also fails.\n\n"
                      "Fix 'adminpw' value.")
 
