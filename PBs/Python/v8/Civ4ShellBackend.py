@@ -47,8 +47,9 @@ class Server:
         self.run = False
         # Hm, only a request release the lock on the listen socket...
         # How to avoid this ugly hack?!
-        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
-            (self.tcp_ip, self.tcp_port))
+        # Comment out because it fails on Windows
+        # socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
+        #    (self.tcp_ip, self.tcp_port))
 
     def start(self):
         self.run = True

@@ -154,7 +154,7 @@
             {% trans "Password protected saves can not be loaded with modified XML, Python or DLL files." %}
             {% trans "Use this option to create an admin password free save (PreUpdate.CivBeyondSwordSave). This requires the implementation of CyGame().setAdminPassword in your mod." %}<br>
             {% trans "Moreover, if your mod includes the ModUpdater-feature, the next call of startPitboss.py search for mod updates." %}<br>
-            {% trans "Attention, if you host multiple games, remove the admin password of all games before you're updating!" %}
+            {% trans "Attention, if you host multiple games with the same mod, remove the admin password of all games before you're updating!" %}
         </span>
         <form method="post" action="{% url 'game_manage' game.id 'prepare_mod_update' %}">
             {% csrf_token %}
