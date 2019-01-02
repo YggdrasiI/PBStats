@@ -9637,7 +9637,17 @@ int CvCity::getMaxSpecialistCount(SpecialistTypes eIndex) const
 {
 	FAssertMsg(eIndex >= 0, "eIndex expected to be >= 0");
 	FAssertMsg(eIndex < GC.getNumSpecialistInfos(), "eIndex expected to be < GC.getNumSpecialistInfos()");
-	return m_paiMaxSpecialistCount[eIndex];
+	
+	//Plako for RtRmod 20.7.2015
+	//If RtRSpecialistCount tied into a civic is > 0 add those to max specialist counts
+	int rtRExtraSpecialistCount = 0;
+	for (int iI = 0; iI < GC.getNumCivicInfos(); iI++) {
+		if (GET_PLAYER(getOwnerINLINE()).isCivic((CivicTypes)iI)) {
+			rtRExtraSpecialistCount += GC.getCivicInfo((CivicTypes)iI).getRtRExtraSpecialistCounts(eIndex);
+		}
+	}
+
+	return m_paiMaxSpecialistCount[eIndex]+rtRExtraSpecialistCount;
 }
 
 

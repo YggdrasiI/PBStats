@@ -1363,6 +1363,7 @@ public:
 	int getSpecialistExtraCommerce(int i) const;				// Exposed to Python
 	int* getSpecialistExtraCommerceArray() const;
 	int getBuildingHappinessChanges(int i) const;				// Exposed to Python
+	int getRtRExtraSpecialistCounts(int i) const;				//Plako for RtR mod 21.7.2015
 	int getBuildingHealthChanges(int i) const;				// Exposed to Python
 	int getFeatureHappinessChanges(int i) const;				// Exposed to Python
 
@@ -1452,6 +1453,7 @@ protected:
 	int* m_piCapitalCommerceModifier;
 	int* m_piSpecialistExtraCommerce;
 	int* m_paiBuildingHappinessChanges;
+	int* m_paiRtRExtraSpecialistCounts; //Plako for RtR mod 22.7.2015
 	int* m_paiBuildingHealthChanges;
 	int* m_paiFeatureHappinessChanges;
 

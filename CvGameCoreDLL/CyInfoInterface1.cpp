@@ -425,6 +425,10 @@ void CyInfoPythonInterface1()
 		.def("getCapitalCommerceModifier", &CvCivicInfo::getCapitalCommerceModifier, "int (int i)")
 		.def("getSpecialistExtraCommerce", &CvCivicInfo::getSpecialistExtraCommerce, "int (int i)")
 		.def("getBuildingHappinessChanges", &CvCivicInfo::getBuildingHappinessChanges, "int (int i)")
+
+		//Plako for RtR mod 22.7.2015
+
+		.def("getRtRExtraSpecialistCounts", &CvCivicInfo::getRtRExtraSpecialistCounts, "int (int i)")
 		.def("getBuildingHealthChanges", &CvCivicInfo::getBuildingHealthChanges, "int (int i)")
 		.def("getFeatureHappinessChanges", &CvCivicInfo::getFeatureHappinessChanges, "int (int i)")
 

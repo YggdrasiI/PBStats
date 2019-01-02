@@ -5303,6 +5303,7 @@ m_piCommerceModifier(NULL),
 m_piCapitalCommerceModifier(NULL),
 m_piSpecialistExtraCommerce(NULL),
 m_paiBuildingHappinessChanges(NULL),
+m_paiRtRExtraSpecialistCounts(NULL), //Plako for RtR mod 21.7.2015
 m_paiBuildingHealthChanges(NULL),
 m_paiFeatureHappinessChanges(NULL),
 
@@ -5339,6 +5340,7 @@ CvCivicInfo::~CvCivicInfo()
 	SAFE_DELETE_ARRAY(m_piCapitalCommerceModifier);
 	SAFE_DELETE_ARRAY(m_piSpecialistExtraCommerce);
 	SAFE_DELETE_ARRAY(m_paiBuildingHappinessChanges);
+	SAFE_DELETE_ARRAY(m_paiRtRExtraSpecialistCounts); //Plako for RtR mod 22.7.2015
 	SAFE_DELETE_ARRAY(m_paiBuildingHealthChanges);
 	SAFE_DELETE_ARRAY(m_paiFeatureHappinessChanges);
 
@@ -5674,6 +5676,14 @@ int CvCivicInfo::getBuildingHappinessChanges(int i) const
 	return m_paiBuildingHappinessChanges ? m_paiBuildingHappinessChanges[i] : -1;
 }
 
+//Plako for RtR mod 22.7.2015
+int CvCivicInfo::getRtRExtraSpecialistCounts(int i) const
+{
+	FAssertMsg(i < GC.getNumSpecialistInfos(), "Index out of bounds");
+	FAssertMsg(i > -1, "Index out of bounds");
+	return m_paiRtRExtraSpecialistCounts ? m_paiRtRExtraSpecialistCounts[i] : -1;
+}
+
 int CvCivicInfo::getBuildingHealthChanges(int i) const
 {
 	FAssertMsg(i < GC.getNumBuildingClassInfos(), "Index out of bounds");
@@ -5899,6 +5909,11 @@ void CvCivicInfo::read(FDataStreamBase* stream)
 	m_paiBuildingHappinessChanges = new int[GC.getNumBuildingClassInfos()];
 	stream->Read(GC.getNumBuildingClassInfos(), m_paiBuildingHappinessChanges);
 
+		//Plako for RtR mod 22.7.2015
+	SAFE_DELETE_ARRAY(m_paiRtRExtraSpecialistCounts);
+	m_paiRtRExtraSpecialistCounts = new int[GC.getNumSpecialistInfos()];
+	stream->Read(GC.getNumSpecialistInfos(), m_paiRtRExtraSpecialistCounts);
+
 	SAFE_DELETE_ARRAY(m_paiBuildingHealthChanges);
 	m_paiBuildingHealthChanges = new int[GC.getNumBuildingClassInfos()];
 	stream->Read(GC.getNumBuildingClassInfos(), m_paiBuildingHealthChanges);
@@ -6049,6 +6064,7 @@ void CvCivicInfo::write(FDataStreamBase* stream)
 	stream->Write(NUM_COMMERCE_TYPES, m_piCapitalCommerceModifier);
 	stream->Write(NUM_COMMERCE_TYPES, m_piSpecialistExtraCommerce);
 	stream->Write(GC.getNumBuildingClassInfos(), m_paiBuildingHappinessChanges);
+	stream->Write(GC.getNumSpecialistInfos(), m_paiRtRExtraSpecialistCounts); //Plako for RtR mod 22.7.2015
 	stream->Write(GC.getNumBuildingClassInfos(), m_paiBuildingHealthChanges);
 	stream->Write(GC.getNumFeatureInfos(), m_paiFeatureHappinessChanges);
 
@@ -6218,6 +6234,7 @@ bool CvCivicInfo::read(CvXMLLoadUtility* pXML)
 	pXML->SetVariableListTagPair(&m_pabSpecialistValid, "SpecialistValids", sizeof(GC.getSpecialistInfo((SpecialistTypes)0)), GC.getNumSpecialistInfos());
 
 	pXML->SetVariableListTagPair(&m_paiBuildingHappinessChanges, "BuildingHappinessChanges", sizeof(GC.getBuildingClassInfo((BuildingClassTypes)0)), GC.getNumBuildingClassInfos());
+	pXML->SetVariableListTagPair(&m_paiRtRExtraSpecialistCounts, "RtRExtraSpecialistCounts", sizeof(GC.getSpecialistInfo((SpecialistTypes)0)), GC.getNumSpecialistInfos()); //Plako for RtR mod 22.7.2015
 	pXML->SetVariableListTagPair(&m_paiBuildingHealthChanges, "BuildingHealthChanges", sizeof(GC.getBuildingClassInfo((BuildingClassTypes)0)), GC.getNumBuildingClassInfos());
 	pXML->SetVariableListTagPair(&m_paiFeatureHappinessChanges, "FeatureHappinessChanges", sizeof(GC.getFeatureInfo((FeatureTypes)0)), GC.getNumFeatureInfos());
 

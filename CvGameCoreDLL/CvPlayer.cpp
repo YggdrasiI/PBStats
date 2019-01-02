@@ -3928,6 +3928,14 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		break;
 
 	case TRADE_MAPS:
+
+		//Plako for RtR mod No barbs = no map trading
+		if (GC.getGameINLINE().isOption(GAMEOPTION_NO_BARBARIANS))
+		{
+			return false;
+		}
+		//end RtR mod
+
 		if (getTeam() != GET_PLAYER(eWhoTo).getTeam())
 		{
 			if (GET_TEAM(getTeam()).isMapTrading() || GET_TEAM(GET_PLAYER(eWhoTo).getTeam()).isMapTrading())
