@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^game/create/$', views.game_create, name='game_create'),
     url(r'^set_timezone$', views.set_timezone, name='set_timezone'),
     url(r'^accounts/', include('registration.backends.simple.urls')),
+    url(r'^browserconfig.xml$', views.gen_browserconfig, name='gen_browserconfig'),
     #url(r'^accounts/', include('registration.backends.hmac.urls')),
     #url(r'^accounts/', include('registration.backends.default.urls')),
     # url(r'^login$', 'django.contrib.auth.views.login', name='login'),

@@ -612,6 +612,9 @@ def set_timezone(request):
     request.session['django_timezone'] = tz
     return HttpResponse('Set timezone to ' + escape(tz), status=200)
 
+def gen_browserconfig(request):
+    return render(request, 'pbspy/browserconfig.xml', {})
+
 
 @login_required()
 def game_update_manual(request, game_id):
