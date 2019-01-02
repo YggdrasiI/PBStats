@@ -277,7 +277,7 @@ msgstr "Spiel pausiert durch {username}"
 
 #: models.py:756
 #, python-brace-format
-msgid "poause deactivated by {username}"
+msgid "pause deactivated by {username}"
 msgstr "Spiel fortgesetzt durch {username}"
 
 #: models.py:762
