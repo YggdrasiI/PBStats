@@ -13,10 +13,10 @@
     {% endif %}
     <div id="game_metadata">
         {% if victory_info.is_display %}
-        <h2>{% trans "winner" %}</h2>
+        <h2 id="winner" class="anchor">{% trans "winner" %}</h2>
                 {% include "pbspy/game_victory.html" %}
         {% endif %}
-        <h2>{% trans "game status" %}</h2>
+        <h2 id="status" class="anchor">{% trans "game status" %}</h2>
 
         <div class="game_metadata">
             <p class="game_info">{% trans "Turn" %}: {{ game.turn|default_if_none:_("n/a") }}<br/>{% trans "Year" %}: {{ game.year_str|default:_("n/a") }}
@@ -98,8 +98,8 @@
         {% endif %}
     </div>
 
+    <h2 id="description" class="anchor">{% trans "game description" %}</h2>
     <div id="game_description">
-        <h2>{% trans "game description" %}</h2>
 
         <div class="game_description">
             <pre>
@@ -108,7 +108,7 @@
         </div>
     </div>
 
-    <h2>{% trans "player summary" %}</h2>
+    <h2 id="players" class="anchor">{% trans "player summary" %}</h2>
     <div id="game_players">
         {% if players %}
             <table class='game_players'>
@@ -159,7 +159,7 @@
         {% endif %}
     </div>
 
-    <h2>{% trans "game log" %}</h2>
+    <h2 id="log" class="anchor">{% trans "game log" %}</h2>
     <div id="game_log">
         <div id="game_log_filter">
             <h3>Change game log filter</h3>

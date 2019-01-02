@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+import sys
 import os
 import django
 
@@ -121,10 +122,13 @@ STATICFILES_DIRS = [
     ("COMPILED", os.path.abspath(os.path.join(BASE_DIR, 'static', 'COMPILED')))
 ]
 
+STATIC_PRECOMPILER_FINDER_LIST_FILES = True
+
 # Absolute path for 'collectstatic' command
-__abs_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_ROOT = __abs_path + "/static"
-STATIC_URL = "/static/"
+if sys.argv[1] not in ["compilestatic"]:
+    __abs_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    STATIC_ROOT = __abs_path + "/static"
+    STATIC_URL = "/static/"
 
 
 # Which HTML tags are allowed

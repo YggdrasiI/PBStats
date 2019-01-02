@@ -325,3 +325,14 @@ table.game_colors {
 			content: "ToDo: "attr(todo);
 			color: red;
 		}
+
+// Navigatable Anchors
+h2.anchor {
+  cursor: pointer;
+}
+h2.anchor:active:after  {
+  content: "Direct anchor to this section: #"attr(id);
+  color: #CCCCCC;
+  font-size: 50%;
+  padding-left:3em;
+}
