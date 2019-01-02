@@ -1018,7 +1018,7 @@ class GameLogAdminPause(GameLogAdminAction):
             return _("pause activated by {username}").\
                 format(username=self.get_username())
         else:
-            return _("poause deactivated by {username}").\
+            return _("pause deactivated by {username}").\
                 format(username=self.get_username())
 
 
