@@ -61,7 +61,7 @@ class Server:
         while self.run:
             data = self.conn.recv(BUFFER_SIZE)
             if not data:
-                print "(Civ4Shell) Client disconnects"
+                print("(Civ4Shell) Client disconnects")
                 self.conn, self.addr = self.s.accept()
                 continue
 
