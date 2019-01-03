@@ -30,7 +30,7 @@ Fixed bugs and new features in version 1 (PB Mod_v1):
 
 	• Increase maximal number of players to 52. 
 	• Add extra nation/player color combinations.
-	• Player password could be changed over webinterface.
+	• Webinterface: Add menu to change player password.
 
 New in version 2 (PB Mod_v2): 
 	• Fix connection issue during PB login.
@@ -45,19 +45,19 @@ New in version 2 (PB Mod_v2):
 New in version 3 (PB Mod_v3): 
 	• Bugfix on scrollable player list
 	• Infoscreen (F9) fixes:
-			- Reduce number of displayed graphs by selecting subset of all playes in legend.
+			- Reduce number of displayed graphs by selecting subset of all players in legend.
 			- The screen doesn't reset the selected graph on several user actions.
 	• Foreignscreen (F4) fixes:
 			- The screen was nearly unusable for the player has more as 30 contacts.
 				Now, its possible to select a subset of all contacts and masking the rest.
 	• Some color collisions was fixed.
-	• Extend webinterface with option to change the colorset of players on running PB session. This
+	• Webinterface: Add option to change the player colorset on running PB session. This
 		is useful if two neighbours has the same culture border color.
-	• Add option to change timer of current round.
+	• Webinterface: Add option to change timer of current round.
 
 New in version 4 (PB Mod_v4): 
 	• Bugfixes in F4 Screen
-	• Add Wordbuilder-Save generation
+	• Webinterface: Add Wordbuilder-Save generation
 
 New in version 5 (PB Mod_v5):
 	• More Bugfixes for F4 screen
