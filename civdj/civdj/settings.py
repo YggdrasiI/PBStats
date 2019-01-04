@@ -107,7 +107,7 @@ LOGIN_REDIRECT_URL = 'game_list'
 
 # Overwrite this paths in settings_local.py for DEBUG=False
 # For DEBUG=True, the path [PBStats/]civdj/static seems to be ok...
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'collectstatic_target', 'static')
 STATIC_URL = '/static/'
 
 STATIC_PRECOMPILER_FINDER_LIST_FILES = True
@@ -147,3 +147,8 @@ for d in compile_target_dirs:
         print('CREATE ' + str(out_d))
         os.makedirs(out_d)
 
+
+# Workaround for missing directory 'civdj/static' as
+# source for static files
+if DEBUG:
+    INSTALLED_APPS = INSTALLED_APPS + ('collectstatic_target',)
