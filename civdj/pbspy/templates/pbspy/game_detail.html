@@ -103,7 +103,7 @@
 
         <div class="game_description">
             <pre>
-                {{ game.description }}
+                {{ game.description | bleach }}
             </pre>
         </div>
     </div>
