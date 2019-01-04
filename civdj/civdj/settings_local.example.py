@@ -8,7 +8,10 @@ ALLOWED_HOSTS = ["*"]
 
 # Permanent storage of static files
 if not DEBUG:
-    STATIC_ROOT = '/var/www/pbspy/static/'
+    # Set STATIC_ROOT permissions such that
+    #      manage.py [collectstatic|compilestatic]
+    # can write the files.
+    STATIC_ROOT = '/var/www/html/pbspy/static/'
     STATIC_URL = 'http://localhost/pbspy/static/'
 
 # Look into django docs for setup
