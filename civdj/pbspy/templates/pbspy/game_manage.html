@@ -8,7 +8,7 @@
     (<a href="{% url 'game_change' game.id %}">edit game</a>)
     <p>Performed action: {{ action }}</p>
     <div class="game_management_section_imploded">
-        <h2>{% trans "pause game" %}</h2>
+        <h2 id="pause" class="anchor">{% trans "pause game" %}</h2>
         <span class="description">{% trans "Toggles the ingame pause. Useful to free users in hanging diplomatic screens." %}</span>
         {% if game.is_paused %}
             <form method="post" action="{% url 'game_manage' game.id 'pause_disable' %}">
@@ -23,7 +23,7 @@
         {% endif %}
     </div>
     <div class="game_management_section_imploded">
-        <h2><a name="">{% trans "force turn end" %}</a></h2>
+        <h2 id="force_turn_end" class="anchor"><a name="">{% trans "force turn end" %}</a></h2>
         <span class="description">{% trans "Sets timer on a few seconds." %}</span>
 
         <form method="post" action="{% url 'game_manage' game.id 'end_turn' %}">
@@ -32,7 +32,7 @@
         </form>
     </div>
     <div class="game_management_section_imploded">
-        <h2>{% trans "set turn timer" %}</h2>
+        <h2 id="set_turn_timer" class="anchor">{% trans "set turn timer" %}</h2>
         <span class="description">{% trans "Time for the next round. Note that the ingame clock runs slower as desired. A value of 20 correspond with 24 hours." %}</span>
 
         <form method="post" action="{% url 'game_manage' game.id 'set_turn_timer' %}">
@@ -42,7 +42,7 @@
         </form>
     </div>
     <div class="game_management_section_imploded">
-        <h2>{% trans "set turn timer of current round" %}</h2>
+        <h2 id="set_current_turn_timer" class="anchor">{% trans "set turn timer of current round" %}</h2>
 
         <form method="post" action="{% url 'game_manage' game.id 'set_current_turn_timer' %}">
             {% csrf_token %}
@@ -51,7 +51,7 @@
         </form>
     </div>
     <div class="game_management_section_imploded">
-        <h2>{% trans "save game" %}</h2>
+        <h2 id="save_game" class="anchor">{% trans "save game" %}</h2>
         <span class="description">{% trans "Standard path: [Altroot]/Saves/multi. (Path is defined in pbSettings.json.). Overwrites existing files." %}</span>
 
         <form method="post" action="{% url 'game_manage' game.id 'save' %}">
@@ -64,7 +64,7 @@
         <h2><a href="{% url 'game_manage' game.id 'load' %}">{% trans "load game" %}</a></h2>
     </div>
     <div class="game_management_section_imploded">
-        <h2>{% trans "change password of player" %}</h2>
+        <h2 id="change_password" class="anchor">{% trans "change password of player" %}</h2>
 
         <form method="post" action="{% url 'game_manage' game.id 'set_player_password' %}">
             {% csrf_token %}
@@ -82,7 +82,7 @@
         <h2><a href="{% url 'game_manage' game.id 'kick' %}">{% trans "kick player" %}</a></h2>
     </div>
     <div class="game_management_section_imploded">
-        <h2>{% trans "send chat message" %}</h2>
+        <h2 id="chat" class="anchor">{% trans "send chat message" %}</h2>
         <span class="description">{% trans "Viewable for players in the game." %}</span>
 
         <form method="post" action="{% url 'game_manage' game.id 'chat' %}">
@@ -92,7 +92,7 @@
         </form>
     </div>
     <div class="game_management_section_imploded">
-        <h2>{% trans "swap autostart of save games" %}</h2>
+        <h2 id="autostart" class="anchor">{% trans "swap autostart of save games" %}</h2>
         <span class="description">{% trans "If autostart is enabled the server skips the setup wizard and directly loads a save." %}<br>{% trans "Do not disable the autostart if you running the server headless." %}</span>
         {% if game.is_autostart %}
             <form method="post" action="{% url 'game_manage' game.id 'autostart_disable' %}">
@@ -107,7 +107,7 @@
         {% endif %}
     </div>
     <div class="game_management_section_imploded">
-        <h2>{% trans "swap headless mode" %}</h2>
+        <h2 id="headless" class="anchor">{% trans "swap headless mode" %}</h2>
         <span class="description">{% trans "Flag to disable the GUI. Reduces cpu usage." %}</span>
         {% if game.is_headless %}
             <form method="post" action="{% url 'game_manage' game.id 'headless_disable' %}">
@@ -122,7 +122,7 @@
         {% endif %}
     </div>
     <div class="game_management_section_imploded">
-        <h2>{% trans "change short names ranges" %}</h2>
+        <h2 id="short_names" class="anchor">{% trans "change short names ranges" %}</h2>
 
         <div class="description">
             <p>{% trans "Shorten the leader names and civilization description in the login screen. It omits problems with strictly/badly configured network. Truncate both strings to reduce the size of a critical UDP packet." %}</p>
@@ -138,10 +138,10 @@
         </form>
     </div>
     <div class="game_management_section_imploded">
-      <h2><a href="{% url 'game_manage' game.id 'motd' %}">{% trans "set message of the day" %}</a></h2>
+      <h2 id="motd" class="anchor"><a href="{% url 'game_manage' game.id 'motd' %}">{% trans "set message of the day" %}</a></h2>
     </div>
     <div class="game_management_section_imploded">
-        <h2>{% trans "Magellan bonus" %}</h2>
+        <h2 id="magellan" class="anchor">{% trans "Magellan bonus" %}</h2>
         <span class="description">{% trans "Disable and revert Magellan bonus for all players." %}<br>{% trans "Attention, for simplicity this command decreases the number of extra moves for all players." %}</span>
         <form method="post" action="{% url 'game_manage' game.id 'remove_magellan_bonus' %}">
             {% csrf_token %}
@@ -149,7 +149,7 @@
         </form>
     </div>
     <div class="game_management_section_imploded">
-        <h2>{% trans "Prepare mod update" %}</h2>
+        <h2 id="mod_update" class="anchor">{% trans "Prepare mod update" %}</h2>
         <span class="description">
             {% trans "Password protected saves can not be loaded with modified XML, Python or DLL files." %}
             {% trans "Use this option to create an admin password free save (PreUpdate.CivBeyondSwordSave). This requires the implementation of CyGame().setAdminPassword in your mod." %}<br>

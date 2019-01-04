@@ -741,7 +741,7 @@ class VictoryInfo():
     def __gen_leader_image_list():
         print("Generate list of available leader images")
         leader_image_list = {}
-        for fname in glob.glob(os.path.join("static",
+        for fname in glob.glob(os.path.join('pbspy', 'static',
                                             VictoryInfo.img_folder, "*.*")):
             fbasename = os.path.basename(fname)
             (leader, ext) = os.path.splitext(fbasename)
