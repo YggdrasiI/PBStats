@@ -15,8 +15,9 @@ urlpatterns = [
     url(r'^game/(?P<game_id>\d+)/subscribe/$', views.game_subscribe, {'subscribe': True}, name='game_subscribe'),
     url(r'^game/(?P<game_id>\d+)/unsubscribe/$', views.game_subscribe, {'subscribe': False}, name='game_unsubscribe'),
     url(r'^game/(?P<game_id>\d+)/savefilter/$', views.game_save_filter, name='game_save_filter'),
-    url(r'^game/(?P<game_id>\d+)/loadfilter/(?P<filter_name>[^/]*)$', views.game_load_filter, name='game_load_filter'),
-    url(r'^game/(?P<game_id>\d+)/removefilter/(?P<filter_name>[^/]*)$', views.game_remove_filter, name='game_remove_filter'),
+    # Attention, filter_name can contain slashes, i.e. '01/04/2019i 11:53i p.m.'
+    url(r'^game/(?P<game_id>\d+)/loadfilter/(?P<filter_name>.*)$', views.game_load_filter, name='game_load_filter'),
+    url(r'^game/(?P<game_id>\d+)/removefilter/(?P<filter_name>.*)$', views.game_remove_filter, name='game_remove_filter'),
     url(r'^update$', views.game_update),
     url(r'^game/create/$', views.game_create, name='game_create'),
     url(r'^set_timezone$', views.set_timezone, name='set_timezone'),
