@@ -157,11 +157,12 @@ class GameManagementSetPlayerColorForm(Form):
         col_choices = []
         for col_id in range(num_colors):
             col_choices.append((col_id, "Colorset "+str(col_id)))
+
         self.fields['color'] = forms.ChoiceField(
-                choices=col_choices,
-                label=_('New color'),
-                required=False
-                )
+            choices=col_choices,
+            label=_('New color'),
+            required=False
+        )
 
 
 class GameManagementSetVictoryForm(ModelForm):
@@ -176,7 +177,8 @@ class GameManagementSetVictoryForm(ModelForm):
         help_texts = {
             'victory_type' : _("Set type to NONE to disable victory paragraph."),
             'victory_message' : _("Overrides the default victory message."),
-            'victory_image' : _("Overrides the default (Civ4:BTS leader) image."),
+            'victory_image' : _("Overrides the default (Civ4:BTS leader) "
+                                "image. Use ' ' to avoid display of image."),
         }
 
     def __init__(self, *args, **kwargs):
@@ -188,7 +190,7 @@ class GameManagementSetVictoryForm(ModelForm):
         self.initial['player'] = self.instance.victory_player_id
 
         victory_choises = [(i, VictoryInfo.victory_types[i]["name"])
-                          for i in VictoryInfo.victory_types]
+                           for i in VictoryInfo.victory_types]
         self.fields['victory_type'] = forms.ChoiceField(
             choices=victory_choises,
             required=True
