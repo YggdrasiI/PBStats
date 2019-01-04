@@ -18,6 +18,8 @@ import datetime
 import re
 import json
 import hashlib
+import os.path
+import glob
 
 from six.moves.urllib.error import URLError
 from six.moves import urllib
@@ -141,7 +143,7 @@ class Game(models.Model):
     victory_message    = models.CharField(blank=True, null=True, max_length=2000)
     victory_image    = models.CharField(max_length=200, blank=True, null=True,
                                           validators=[URLValidator(
-                                              regex="^.*[.](png|jpg|jpeg|git|php[?].*)$")])
+                                              regex="^.*[.](png|jpg|jpeg|gif|php[?].*)$")])
 
     subscribed_users   = models.ManyToManyField(User, related_name='subscribed_games', blank=True)
 
@@ -662,7 +664,7 @@ class VictoryInfo():
         100: _("In the year {year}, {name} led the {civ} people "\
                      "to a victory, and will be forever remembered "\
                      "as the greatest ruler in all of human history!"),
-        101: _("This game finshed without a winner."),
+        101: _("This game finished without a winner."),
         102: _("This game was aborted."),
     }
 
@@ -675,7 +677,8 @@ class VictoryInfo():
         # It is better to check the victory type, but not if
         # the player is None. This allow the definition of decided
         # games with a unspecific winner (i.e. teams).
-        return self.display_always or (self.game.victory_type > -1)
+        return self.display_always or (
+            self.game.victory_type > -1 and self.game.victory_type <= 101)
 
     def get_victory_image(self):
         if self.game.victory_image and len(str(self.game.victory_image)) > 0:
@@ -683,16 +686,31 @@ class VictoryInfo():
 
         # Default image
         if self.player is None:
-            path = VictoryInfo.img_folder + "unknown.jpg"
-        else:
-            path = "{}{}{}".format( VictoryInfo.img_folder, self.player.leader, ".jpg")
+            return ""
 
+        if self.game.victory_type > 100:
+            return ""
+
+        elif VictoryInfo.leader_image_exists(self.player.leader):
+            try:
+                img_name = VictoryInfo.__leader_image_list[self.player.leader]
+            except KeyError:
+                img_name = self.player.leader + ".jpg"
+
+        else:
+            img_name = "Unknown.jpg"
+
+        path = "{}{}".format(VictoryInfo.img_folder, img_name)
         from django.conf import settings
         return settings.STATIC_URL + path
 
     def get_victory_headline(self):
         if self.player is None:
             return ""
+
+        if self.game.victory_type > 100:
+            return " "  # not ""
+
         return _("Congratulations to {} of the {}").format(
             self.player.name,
             self.player.civilization)
@@ -714,8 +732,38 @@ class VictoryInfo():
             leader=self.player.leader,
             civ=self.player.civilization,
             year=format_year(self.game.year),
-            victory_type= "<span class='game_victory_type'>{}</span>".format(vt["name"])
+            victory_type="<span class='game_victory_type'>{}</span>".format(vt["name"])
         )
+
+    # Gen list of available leader names at startup
+    __leader_image_list = None
+    @staticmethod
+    def __gen_leader_image_list():
+        print("Generate list of available leader images")
+        leader_image_list = {}
+        for fname in glob.glob(os.path.join("static",
+                                            VictoryInfo.img_folder, "*.*")):
+            fbasename = os.path.basename(fname)
+            (leader, ext) = os.path.splitext(fbasename)
+            if ext in [".png", ".jpg", ".jpeg", ".gif"]:
+                leader_image_list[leader] = fbasename
+
+        return leader_image_list
+
+    @classmethod
+    def leader_image_exists(cls, name):
+        # Permanent lookup variant
+        """
+        img_name = name + ".jpg"
+        return os.path.exists(os.path.join(
+            "static", VictoryInfo.img_folder, img_name))
+        """
+
+        # Cached lookup
+        if cls.__leader_image_list is None:
+            cls.__leader_image_list = cls.__gen_leader_image_list()
+
+        return name in cls.__leader_image_list
 
 
 class Player(models.Model):
