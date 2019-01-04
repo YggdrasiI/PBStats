@@ -125,7 +125,7 @@ STATICFILES_DIRS = [
 STATIC_PRECOMPILER_FINDER_LIST_FILES = True
 
 # Absolute path for 'collectstatic' command
-if sys.argv[1] not in ["compilestatic"]:
+if len(sys.argv) > 1 and sys.argv[1] not in ["compilestatic"]:
     __abs_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     STATIC_ROOT = __abs_path + "/static"
     STATIC_URL = "/static/"
