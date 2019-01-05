@@ -1,23 +1,17 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
+import json
+import operator
+import functools
+from datetime import datetime
+import pytz
+
 # from django import forms
 from django.http import HttpResponseBadRequest, HttpResponse
 from django.views.generic import View, DetailView, ListView
 from django.views.generic.edit import FormMixin
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
-from pbspy.models import Game, GameLog, Player, InvalidPBResponse
-from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm,\
-        GameManagementTimerForm, GameManagementCurrentTimerForm, GameManagementLoadForm, GameManagementSetPlayerPasswordForm,\
-        GameManagementSaveForm, GameLogTypesForm, GameLogSaveFilterForm, GameManagementShortNamesForm,\
-        GameManagementSetPlayerColorForm, GameManagementSetVictoryForm
-
-from pbspy.models import GameLogTurn, GameLogReload, GameLogMetaChange, GameLogTimerChanged,\
-    GameLogPause, GameLogServerTimeout, GameLogPlayer, GameLogLogin, GameLogLogout,\
-    GameLogFinish, GameLogScore, GameLogNameChange, GameLogEliminated, GameLogAI,\
-    GameLogClaimed, GameLogAdminAction, GameLogAdminSave, GameLogAdminPause, GameLogAdminEndTurn,\
-    GameLogForceDisconnect, GameLogMissedTurn, GameLogCurrentTimerChanged,\
-    VictoryInfo
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -30,15 +24,20 @@ from django.core.exceptions import PermissionDenied
 from django.core.exceptions import ValidationError
 from django.utils.html import escape, strip_tags
 from django.utils import timezone
-
-from datetime import datetime
 from django.utils import formats
 
-import pytz
-import json
-import operator
-import functools
+from pbspy.models import Game, GameLog, Player, InvalidPBResponse
+from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm,\
+        GameManagementTimerForm, GameManagementCurrentTimerForm, GameManagementLoadForm, GameManagementSetPlayerPasswordForm,\
+        GameManagementSaveForm, GameLogTypesForm, GameLogSaveFilterForm, GameManagementShortNamesForm,\
+        GameManagementSetPlayerColorForm, GameManagementSetVictoryForm
 
+from pbspy.models import GameLogTurn, GameLogReload, GameLogMetaChange, GameLogTimerChanged,\
+    GameLogPause, GameLogServerTimeout, GameLogPlayer, GameLogLogin, GameLogLogout,\
+    GameLogFinish, GameLogScore, GameLogNameChange, GameLogEliminated, GameLogAI,\
+    GameLogClaimed, GameLogAdminAction, GameLogAdminSave, GameLogAdminPause, GameLogAdminEndTurn,\
+    GameLogForceDisconnect, GameLogMissedTurn, GameLogCurrentTimerChanged,\
+    VictoryInfo
 
 class GameListView(ListView):
     model = Game
@@ -128,7 +127,7 @@ class GameDetailView(FormMixin, DetailView):
         player_order_str = str(
             self.request.GET.get('player_order', player_order_old))
         if player_order_str != player_order_old:
-            if not player_order_str in self.player_order_defs:
+            if player_order_str not in self.player_order_defs:
                 player_order_str = player_order_old
             else:
                 self.request.session['player_order'] = player_order_str
@@ -389,49 +388,51 @@ def game_manage(request, game_id, action=""):
 
     if request.method == 'POST':
         if action == 'pause_enable':
-            game.pb_set_pause(True)
+            game.pb_set_pause(True, user=request.user)
             return HttpResponse('pause enabled', status=200)
         elif action == 'pause_disable':
-            game.pb_set_pause(False)
+            game.pb_set_pause(False, user=request.user)
             return HttpResponse('pause disabled', status=200)
         elif action == 'headless_enable':
-            game.pb_set_headless(True)
+            game.pb_set_headless(True, user=request.user)
             return HttpResponse('headless mode enabled', status=200)
         elif action == 'headless_disable':
-            game.pb_set_headless(False)
+            game.pb_set_headless(False, user=request.user)
             return HttpResponse('headless mode disabled', status=200)
         elif action == 'autostart_enable':
-            game.pb_set_autostart(True)
+            game.pb_set_autostart(True, user=request.user)
             return HttpResponse('pb autostart enabled', status=200)
         elif action == 'autostart_disable':
-            game.pb_set_autostart(False)
+            game.pb_set_autostart(False, user=request.user)
             return HttpResponse('pb autostart disabled', status=200)
         elif action == 'remove_magellan_bonus':
-            ret = game.pb_remove_magellan_bonus(1)
+            ret = game.pb_remove_magellan_bonus(1, user=request.user)
             return HttpResponse('Magellan bonus removed. Server returns: '
                                 + ret['info'], status=200)
         elif action == 'prepare_mod_update':
             ret = game.pb_prepare_mod_update()
             return HttpResponse("Server returns: " + ret['info'] , status=200)
         elif action == 'end_turn':
-            game.pb_end_turn()
+            game.pb_end_turn(user=request.user)
             return HttpResponse('turn ended', status=200)
         elif action == 'set_current_turn_timer':
             form = GameManagementCurrentTimerForm(request.POST)
             if form.is_valid():
-                game.pb_set_current_turn_timer(form.cleaned_data['hours'], form.cleaned_data['minutes'], 20)
+                game.pb_set_current_turn_timer(form.cleaned_data['hours'],
+                                               form.cleaned_data['minutes'],
+                                               20, user=request.user)
                 return HttpResponse('timer set', status=200)
             context['current_timer_form'] = form
         elif action == 'set_turn_timer':
             form = GameManagementTimerForm(request.POST)
             if form.is_valid():
-                game.pb_set_turn_timer(form.cleaned_data['timer'])
+                game.pb_set_turn_timer(form.cleaned_data['timer'], user=request.user)
                 return HttpResponse('timer set', status=200)
             context['timer_form'] = form
         elif action == 'chat':
             form = GameManagementChatForm(request.POST)
             if form.is_valid():
-                ret = game.pb_chat(form.cleaned_data['message'], request.user)
+                ret = game.pb_chat(form.cleaned_data['message'], user=request.user)
                 if ret["return"] == 'ok':
                     return HttpResponse("chat message '{0}' sent.".format(
                         ret['msg']), status=200)
@@ -443,20 +444,21 @@ def game_manage(request, game_id, action=""):
         elif action == 'motd':
             form = GameManagementMotDForm(request.POST)
             if form.is_valid():
-                game.pb_set_motd(form.cleaned_data['message'])
+                game.pb_set_motd(form.cleaned_data['message'], user=request.user)
                 return HttpResponse('MotD sent.', status=200)
             context['motd_form'] = form
         elif action == 'short_names':
             form = GameManagementShortNamesForm(request.POST)
             if form.is_valid():
                 game.pb_short_names(form.cleaned_data['iShortNameLen'],
-                                    form.cleaned_data['iShortDescLen'])
+                                    form.cleaned_data['iShortDescLen'],
+                                    user=request.user)
                 return HttpResponse('Set short names.', status=200)
             context['short_names_form'] = form
         elif action == 'save':
             form = GameManagementSaveForm(request.POST)
             if form.is_valid():
-                game.pb_save(form.cleaned_data['filename'], request.user)
+                game.pb_save(form.cleaned_data['filename'], user=request.user)
                 return HttpResponse('game saved.', status=200)
             context['save_form'] = form
         elif action == 'load':
@@ -464,11 +466,11 @@ def game_manage(request, game_id, action=""):
             if form.is_valid():
                 selected_file = form.cleaned_data['filename']
                 if selected_file == "restart":
-                    game.pb_restart("", 0, request.user)
+                    game.pb_restart("", 0, user=request.user)
                 else:
                     (folder_index_str, filename) = selected_file.split('/', 1)
                     folder_index = int(folder_index_str)
-                    game.pb_restart(filename, folder_index, request.user)
+                    game.pb_restart(filename, folder_index, user=request.user)
                 return HttpResponse('game loaded.', status=200)
             context['load_form'] = form
         elif action == 'set_player_password':
@@ -478,7 +480,8 @@ def game_manage(request, game_id, action=""):
                 try:
                     game.pb_set_player_password(
                         form.cleaned_data['player'],
-                        form.cleaned_data['password'])
+                        form.cleaned_data['password'],
+                        user=request.user)
                     player = game.player_set.filter(ingame_stack=0).filter(id=form.cleaned_data['player'].id)[0]
                     return HttpResponse('Set password for player ' + str(player.ingame_id) + '/'
                                         + str(player.name) + '.', status=200)
@@ -491,7 +494,8 @@ def game_manage(request, game_id, action=""):
             if form.is_valid():
                 game.pb_set_player_color(
                     form.cleaned_data['player'].ingame_id,
-                    form.cleaned_data['color'])
+                    form.cleaned_data['color'],
+                    user=request.user)
                 context['set_color_message'] = form.cleaned_data['player'].name
                 return render_game_manage_color(request, game, context)
             context['set_player_color_form'] = form
@@ -499,7 +503,7 @@ def game_manage(request, game_id, action=""):
             playerId = int(request.POST.get("id", -1))
             if playerId > -1:
                 try:
-                    game.pb_kick(playerId, request.user)
+                    game.pb_kick(playerId, user=request.user)
                     return HttpResponse('player kicked.', status=200)
                 except InvalidPBResponse:
                     return HttpResponseBadRequest('Kicking of player %d failed.' % (playerId,))
@@ -509,7 +513,7 @@ def game_manage(request, game_id, action=""):
             playerId = int(request.POST.get("id", -1))
             if playerId > -1:
                 try:
-                    game.pb_end_player_turn(playerId, request.user)
+                    game.pb_end_player_turn(playerId, user=request.user)
                     return HttpResponse('player turn finished.', status=200)
                 except InvalidPBResponse:
                     return HttpResponseBadRequest('Finishing turn of player %d failed.' % (playerId,))
