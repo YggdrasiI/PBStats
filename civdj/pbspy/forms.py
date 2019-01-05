@@ -177,8 +177,7 @@ class GameManagementSetVictoryForm(ModelForm):
         help_texts = {
             'victory_type' : _("Set type to NONE to disable victory paragraph."),
             'victory_message' : _("Overrides the default victory message."),
-            'victory_image' : _("Overrides the default (Civ4:BTS leader) "
-                                "image. Use ' ' to avoid display of image."),
+            'victory_image' : _("Overrides the default (Civ4:BTS leader) image."),
         }
 
     def __init__(self, *args, **kwargs):
