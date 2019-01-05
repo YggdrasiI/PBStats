@@ -39,6 +39,7 @@ for other setups.
 python3 manage.py migrate
 python3 manage.py migrate static_precompiler
 python3 manage.py compilestatic
+python3 manage.py collectstatic
 python3 manage.py createsuperuser
 
 
