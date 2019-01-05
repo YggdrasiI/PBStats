@@ -92,7 +92,8 @@ class GameManagementChatForm(Form):
 
 
 class GameManagementMotDForm(Form):
-    message = forms.CharField(label=_('Text message'))
+    message = forms.CharField(label=_('Text message'),
+                              required=False, max_length=200)
 
 
 class GameManagementShortNamesForm(Form):
