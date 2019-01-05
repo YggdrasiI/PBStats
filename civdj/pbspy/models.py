@@ -339,7 +339,12 @@ class Game(models.Model):
                     reloadLogMessageDone = True
 
             if is_paused != self.is_paused:
-                GameLogPause(paused=is_paused, **logargs).save()
+                # Check if last log message is of type GameLogAdminPause
+                # to avoid double log messages for the same event.
+                log_entry = self.gamelog_set.last()
+                if (not isinstance(log_entry, GameLogAdminPause) or
+                        log_entry.paused != is_paused):
+                    GameLogPause(paused=is_paused, **logargs).save()
 
             if is_headless != self.is_headless:
                 pass
@@ -487,7 +492,7 @@ class Game(models.Model):
         if result['return'] == 'ok':
             GameLogAdminPause(game=self, user=user, date=timezone.now(), paused=value,
                               year=self.year, turn=self.turn).save()
-            self.is_paused = True
+            self.is_paused = value
             self.save()
         return result
 
