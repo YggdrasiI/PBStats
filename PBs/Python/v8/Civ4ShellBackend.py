@@ -10,7 +10,7 @@ from time import sleep
 try:
     import simplejson as json
 except ImportError:
-    print("Import om simplejson failed. Several commands will not work.")
+    print("Import of simplejson failed. Several commands will not work.")
 
 TCP_IP = '127.0.0.1'
 TCP_PORT = 3333
@@ -159,7 +159,14 @@ class Server:
                     s = json.loads(data[2:])
                     action = s["action"]
                     args = s.get("args", None)
-                    ws.Action_Handlers[action](inputdata=args, wfile=tmp_str)
+                    # ws.Action_Handlers[action](inputdata=args, wfile=tmp_str)
+                    try:
+                        server = self.pbAdminFrame.webserver
+                    except:
+                        server = None
+
+                    ws.Action_Handlers[action](inputdata=args,
+                                               server=server, wfile=tmp_str)
                     # escaped_str = json.dumps(tmp_str.getvalue())
                     self.output_store.append(tmp_str.getvalue())
                 except Exception, e:

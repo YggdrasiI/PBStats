@@ -124,7 +124,7 @@ def get_admin_hash(filename, filename_out=""):
 
         # More hashes
         rw(f, fnull, 4*(4+32))
-        for i in range(4):
+        for _ in range(4):
             fout.write("\0\0\0\0")
 
         unknown_interpretation = get_int(f, fnull)
