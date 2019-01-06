@@ -15,15 +15,16 @@ import thread
 import simplejson
 
 from CvPythonExtensions import *
+import CvPythonExtensions as E
 # import CvUtil
 # import CvEventInterface
 
 # For WB Saves
 # import CvWBDesc
 
-PB = CyPitboss()
-gc = CyGlobalContext()
-LT = CyTranslator()
+PB = E.CyPitboss()
+gc = E.CyGlobalContext()
+LT = E.CyTranslator()
 
 # The class Settings loads pbSettings.json into a dict, provide some
 # thread save (write) operations on this data and holds a few more object
@@ -297,10 +298,11 @@ class Settings(dict):
         def remove_duplicates(li):
             my_set = set()
             res = []
-            for e in li:
-                if e not in my_set:
-                    res.append((e, len(res)))
-                    my_set.add(e)
+            for p in li:
+                rp = os.path.realpath(p).lower()
+                if rp not in my_set:
+                    res.append((p, len(res)))
+                    my_set.add(rp)
             return res
         return remove_duplicates(folders)
 

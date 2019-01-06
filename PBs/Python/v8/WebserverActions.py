@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 import sys
 import os
-import time
-import re
-import glob
-import md5
+# import time
+# import re
+# import glob
+# import md5
 from cStringIO import StringIO
 import simplejson
 
 from CvPythonExtensions import *
-PB = CyPitboss()
-gc = CyGlobalContext()
-LT = CyTranslator()
+import CvPythonExtensions as E
+PB = E.CyPitboss()
+gc = E.CyGlobalContext()
+LT = E.CyTranslator()
 
 # Add Altroot python folder as import path
 pythonDir = os.path.join(gc.getAltrootDir(), '..', 'Python', 'v8')
@@ -42,7 +43,7 @@ def gen_answer(dict_or_info, status=None):
 def action_args_decorator(func):
     # Adding {} or StringIO() as default parameters is problematic
     # because this variables will be shared between all function calls.
-    # To prevent this side effect, this decorator set the varables 'manually'.
+    # To prevent this side effect, this decorator set the variables 'manually'.
     #
     def func_wrapper(inputdata=None, server=None, wfile=None):
         inputdata = inputdata or {}
@@ -192,7 +193,7 @@ def action_pause(inputdata, server, wfile):
             # This crashs on Linux/Wine
             # gc.sendPause(-1)
             # Workaround sends chat message
-            gc.sendChat("RemovePause", ChatTargetTypes.CHATTARGET_ALL)
+            gc.sendChat("RemovePause", E.ChatTargetTypes.CHATTARGET_ALL)
         wfile.write(gen_answer('Deactivate pause.'))
 
 
@@ -209,7 +210,7 @@ def action_end_turn(inputdata, server, wfile):
     else:
         # This variant made trouble with automated units
         # and KI?!
-        messageControl = CyMessageControl()
+        messageControl = E.CyMessageControl()
         messageControl.sendTurnCompleteAll()
         msg = 'End turn'
 
@@ -340,8 +341,8 @@ def action_remove_magellan(inputdata, server, wfile):
             gcPlayer = gc.getPlayer(iPlayer)
             iTeam = gcPlayer.getTeam()
             gcTeam = gc.getTeam(iTeam)
-            if(gcTeam.getExtraMoves(DomainTypes.DOMAIN_SEA) > 0):
-                gcTeam.changeExtraMoves(DomainTypes.DOMAIN_SEA, -1)
+            if(gcTeam.getExtraMoves(E.DomainTypes.DOMAIN_SEA) > 0):
+                gcTeam.changeExtraMoves(E.DomainTypes.DOMAIN_SEA, -1)
                 players_with_bonus.append(gcPlayer.getName())
 
         if len(players_with_bonus) > 0:
@@ -371,9 +372,9 @@ def action_end_player_turn(inputdata, server, wfile):
     playerId = int(inputdata.get("playerId", -1))
     if playerId > -1 and playerId < gc.getMAX_CIV_PLAYERS():
         # gc.getGame().setActivePlayer(playerId, False)
-        # CyMessageControl().sendTurnComplete()
+        # E.CyMessageControl().sendTurnComplete()
         # gc.getGame().setActivePlayer(-1, False)
-        CyGame().sendTurnCompletePB(playerId)
+        E.CyGame().sendTurnCompletePB(playerId)
         wfile.write(gen_answer("Turn of player %i finished." % (playerId,)))
     else:
         wfile.write(gen_answer("Invalid player id.", "fail"))
@@ -405,7 +406,8 @@ def action_get_motd(inputdata, server, wfile):
                                 'msg': motd.decode('latin1')}))
     except Exception, e:  # Old Python 2.4 syntax!
         wfile.write(gen_answer("Some error occured trying to get the MotD."
-                               "Error msg: %s" % (str(e),), "fail"))
+                               # "Error msg: %s" % (str(e),), "fail"))
+                               "Error msg: %s\n%s" % (str(e), str(type(server))), "fail"))
 
 
 @action_args_decorator
@@ -429,7 +431,7 @@ def action_get_replay(inputdata, server, wfile):
     try:
         replayInfo = gc.getGame().getReplayInfo()
         if replayInfo.isNone():
-            replayInfo = CyReplayInfo()
+            replayInfo = E.CyReplayInfo()
             # (gc.getGame().getActivePlayer())
             replayInfo.createInfo(-1)
 
@@ -443,8 +445,8 @@ def action_get_replay(inputdata, server, wfile):
             eColor = replayInfo.getReplayMessageColor(i)
             colRgba = LT.changeTextColor("", eColor)
             color = colRgba[7:colRgba.find(">")]
-            if eMessageType in [ReplayMessageTypes.REPLAY_MESSAGE_CITY_FOUNDED,
-                                ReplayMessageTypes.REPLAY_MESSAGE_MAJOR_EVENT]:
+            if eMessageType in [E.ReplayMessageTypes.REPLAY_MESSAGE_CITY_FOUNDED,
+                                E.ReplayMessageTypes.REPLAY_MESSAGE_MAJOR_EVENT]:
                 # Why does this not work?!
                 # msgText = replayInfo.getReplayMessageText(i).decode('ascii', 'replace')
                 msgText = replayInfo.getReplayMessageText(i)
@@ -590,7 +592,7 @@ def action_list_signs(inputdata, server, wfile):
         wfile.write(gen_answer({'return': 'ok', 'info': 'Action not allowd'}))
         return
 
-    engine = CyEngine()
+    engine = E.CyEngine()
     signs = []
     for i in range(engine.getNumSigns()-1, -1, -1):
         pSign = engine.getSignByIndex(i)
@@ -613,7 +615,7 @@ def action_cleanup_signs(inputdata, server, wfile):
 
 
     # Debugging: Reset all Signs. Remove some special chars
-    engine = CyEngine()
+    engine = E.CyEngine()
     signs = []
     for i in range(engine.getNumSigns()-1, -1, -1):
         pSign = engine.getSignByIndex(i)
@@ -658,7 +660,7 @@ def action_mod_update(inputdata, server, wfile):
     by startPitboss.py!
     """
     try:
-        bCanChangePassword = hasattr(CyGame(), "setAdminPassword")
+        bCanChangePassword = hasattr(E.CyGame(), "setAdminPassword")
         adminPW = str(PbSettings.temp.get(
             "adminpw", PbSettings.get("save", {}).get("adminpw", "")))
         filename = "PreUpdate.CivBeyondSwordSave"
@@ -787,53 +789,3 @@ def createGameData():
     gamedata['bAutostart'] = PbSettings.get("autostart", 0)
 
     return gamedata
-
-"""
-def getSaveFolder(folderIndex=0):
-    folderpaths = PbSettings.getPossibleSaveFolders()
-    try:
-        return folderpaths[folderIndex][0]
-    except IndexError:
-        return folderpaths[0][0]
-
-
-def getListOfSaves(pattern="*", regPattern=None, num=-1):
-    folderpaths = PbSettings.getPossibleSaveFolders()
-    saveList = []
-    fileList = []
-    if regPattern:
-        reg = re.compile(regPattern)
-
-    for fp in folderpaths:
-        folderpath = os.path.join(fp[0], pattern)
-        for f in glob.glob(folderpath):
-            fileList.append((f, fp[1]))
-
-    # Add timestamp (as tuple)
-    existingWithTimestamps = [
-        (x[0], x[1], os.path.getctime(x[0])) for x in fileList]
-
-    # Sort by timestamp
-    existingWithTimestamps.sort(key=lambda xx: xx[2])
-
-    # Remove oldest and non-saves
-    existingWithTimestamps = [x for x in existingWithTimestamps if
-                              x[0].endswith(".CivBeyondSwordSave")]
-    if regPattern:
-        existingWithTimestamps = [x for x in existingWithTimestamps if
-                                  reg.search(x[0])]
-
-    while len(existingWithTimestamps) > num and num >= 0:
-        existingWithTimestamps.pop(0)
-
-    for savefile in existingWithTimestamps:
-        saveList.append({
-            'name': os.path.basename(savefile[0]),
-            'folder': os.path.dirname(savefile[0]),
-            'folderIndex': savefile[1],
-            'date': time.ctime(savefile[2]),
-            'timestamp': savefile[2]
-            })
-
-    return saveList
-"""

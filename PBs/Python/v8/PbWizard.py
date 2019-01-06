@@ -7,12 +7,13 @@ import wx
 import wx.wizard
 import wx.lib.scrolledpanel
 
-from CvPythonExtensions import *
+from CvPythonExtensions import *  # Do not remove this
+import CvPythonExtensions as E
 import Webserver
 
-PB = CyPitboss()
-gc = CyGlobalContext()
-LT = CyTranslator()
+PB = E.CyPitboss()
+gc = E.CyGlobalContext()
+LT = E.CyTranslator()
 
 # Add Altroot python folder as import path
 pythonDir = os.path.join(gc.getAltrootDir(), '..', 'Python', 'v8')
@@ -1453,6 +1454,7 @@ class StartupIFace(wx.App):
         self.bGui = (int(PbSettings.get("gui", 1)) != 0)
         self.bAutostart = (int(PbSettings.get("autostart", 0)) != 0)
         self.bShell = (int(PbSettings.get("shell", {}).get("enable", 0)) != 0)
+        self.bShell = False  # Required for BASE game (Because of old DLL code?!) 
         self.civ4Shell = {}  #  Holds shell object and some extra variables
 
         self.bQuitWizard = False
@@ -1468,11 +1470,11 @@ class StartupIFace(wx.App):
         self.staging = None
 
         # Handle one time autostart flag
-        bForcedAutostart = (int(PbSettings.get("save",{}).get(
+        bForcedAutostart = (int(PbSettings.get("save", {}).get(
             "oneOffAutostart", 0)) != 0)
         if bForcedAutostart:
             bAutostart = bForcedAutostart
-            PbSettings.get("save",{}).pop("oneOffAutostart", None)
+            PbSettings.get("save", {}).pop("oneOffAutostart", None)
             PbSettings.save()
 
         PB.consoleOut("Startflags:\n\tgui: %i\n\tautostart: %i\n\tshell: %i"
@@ -1814,8 +1816,6 @@ def loadSavegame(filename, folderIndex=0, adminPwd=""):
 
 def start_shell(shell_settings, mode=""):
     if shell_settings.get("enable", 0):
-        # pythonDir = os.path.join(gc.getAltrootDir(), '..', 'Python', 'v8')
-        # sys.path.append(pythonDir)
         import Civ4ShellBackend
         shell_ip = str(shell_settings.get("ip", "127.0.0.1"))
         shell_port = int(shell_settings.get("port", 3333))

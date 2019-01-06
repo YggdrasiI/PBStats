@@ -13,12 +13,13 @@ from threading import Thread
 import wx
 import wx.lib.scrolledpanel
 
-from CvPythonExtensions import *
+from CvPythonExtensions import *  # Do not remove this
+import CvPythonExtensions as E
 import Webserver
 
-PB = CyPitboss()
-gc = CyGlobalContext()
-LT = CyTranslator()
+PB = E.CyPitboss()
+gc = E.CyGlobalContext()
+LT = E.CyTranslator()
 
 # Add Altroot python folder as import path
 pythonDir = os.path.join(gc.getAltrootDir(), '..', 'Python', 'v8')
@@ -95,8 +96,8 @@ class AdminFrame(wx.Frame):
         bRestorePassword = (int(PbSettings.get("restorePassword", 0)) != 0)
         if bRestorePassword:
             adminPwd = str(PbSettings.get("save", {}).get("adminpw", ""))
-            if hasattr(CyGame(), "setAdminPassword"):
-                CyGame().setAdminPassword(adminPwd, "")
+            if hasattr(E.CyGame(), "setAdminPassword"):
+                E.CyGame().setAdminPassword(adminPwd, "")
                 PbSettings.pop("restorePassword", None)
                 PbSettings.save()
             else:
@@ -516,7 +517,7 @@ class AdminFrame(wx.Frame):
         "Turn pause event handler"
         if gc.getGame().isPaused():
             # gc.sendPause(-1)
-            gc.sendChat("RemovePause", ChatTargetTypes.CHATTARGET_ALL)
+            gc.sendChat("RemovePause", E.ChatTargetTypes.CHATTARGET_ALL)
         else:
             gc.sendPause(0)
             self.timerDisplay.SetLabel("Game paused.")
@@ -671,8 +672,6 @@ class AdminIFace(wx.App):
 # ================ PB Mod ===================
 def start_shell(shell_settings, mode=""):
     if shell_settings.get("enable", 0):
-        # pythonDir = os.path.join(gc.getAltrootDir(), '..', 'Python', 'v8')
-        # sys.path.append(pythonDir)
         import Civ4ShellBackend
         shell_ip = str(shell_settings.get("ip", "127.0.0.1"))
         shell_port = int(shell_settings.get("port", 3333))

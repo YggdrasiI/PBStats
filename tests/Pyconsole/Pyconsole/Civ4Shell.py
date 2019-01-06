@@ -57,17 +57,13 @@ BUFFER_SIZE = 1024
 EOF = '\x04'
 
 ################################################
+ColorOut = ""
+ColorWarn = ""
+ColorReset = ""
 
 if USE_COLORAMA:
     from colorama import init, Fore, Back, Style
     init()
-    ColorOut = Fore.BLUE
-    ColorWarn = Fore.RED
-    ColorReset = Style.RESET_ALL
-else:
-    ColorOut = ""
-    ColorWarn = ""
-    ColorReset = ""
 
 class Client:
     def __init__(self):
@@ -80,7 +76,7 @@ class Client:
 
     def close(self):
         if self.s is not None:
-            # warn("Close Client")
+            # print("Close Client")
             self.s.shutdown(socket.SHUT_RDWR)
             self.s.close()
             self.s = None
@@ -128,6 +124,8 @@ class Civ4Shell(cmd.Cmd):
     prompt = ''
 
     short_config_usage = "Usage: config [show|reload|save|edit [key]=[value]]"
+    term_background_dark = True
+    automatic_print = True
 
     def __init__(self, *args, **kwargs):
         cmd.Cmd.__init__(self, *args)
@@ -135,6 +133,8 @@ class Civ4Shell(cmd.Cmd):
         self.server = None
         self.bImport_doc = False
         self.latest_save_list = None
+
+        self.setColors(self.term_background_dark)
 
         # Overwrite address
         self.remote_server_adr = (
@@ -153,9 +153,43 @@ class Civ4Shell(cmd.Cmd):
         try:
             self.client.connect(self.remote_server_adr)
         except ValueError:
-            warn("Connecting failed. Invalid port?")
+            self.warn("Connecting failed. Invalid port?")
         except socket.error:
-            warn("Connecting failed. Invalid port?")
+            self.warn("Connecting failed. Invalid port?")
+
+    def setColors(self, bDarkTerminal):
+        if USE_COLORAMA and bDarkTerminal:
+            self.colorOut = Fore.YELLOW
+            self.colorWarn = Fore.RED
+            self.colorReset = Style.RESET_ALL
+        elif USE_COLORAMA and not bDarkTerminal:
+            self.colorOut = Fore.BLUE
+            self.colorWarn = Fore.RED
+            self.colorReset = Style.RESET_ALL
+        else:
+            self.colorOut = ""
+            self.colorWarn = ""
+            self.colorReset = ""
+
+    def warn(self, msg):
+        print(self.colorWarn + msg + self.colorReset)
+
+    def feedback(self, s):
+        if RESULT_LINE_SPLIT is not None:
+            s = restrict_textwidth(
+                s,
+                RESULT_LINE_SPLIT[0],
+                RESULT_LINE_SPLIT[1])
+
+        s_with_tabs = "%s%s%s%s" % (
+            self.colorOut,
+            RESULT_LINE_PREFIX,
+            s.rstrip('\n').replace('\n', '\n' + RESULT_LINE_PREFIX),
+            self.colorReset)
+        print(s_with_tabs)
+        # Restore prompt
+        sys.stdout.write("%s" % (MY_PROMPT))
+
 
     def emptyline(self):
         """Do nothing on empty input line"""
@@ -174,12 +208,12 @@ class Civ4Shell(cmd.Cmd):
 
         # Predefined styles for output printing
         if iprint_result == 2:
-            feedback("Return value: {0}\n{1}".format(
+            self.feedback("Return value: {0}\n{1}".format(
                 result_json.get("return", "None"),
                 result_json.get("info")
             ))
         elif iprint_result == 1:
-            feedback("{0}".format(
+            self.feedback("{0}".format(
                 result_json.get("info")
             ))
 
@@ -208,7 +242,7 @@ class Civ4Shell(cmd.Cmd):
     def do_bye(self, arg):
         """Close Civ4 shell and exit:          bye
         """
-        warn('Quitting Civ4 shell.')
+        self.warn('Quitting Civ4 shell.')
         # self.send("q:", True)  # Inform server that client quits.
         self.close()
         return True
@@ -352,8 +386,8 @@ class Civ4Shell(cmd.Cmd):
 
             mode = str(self.send("M:"))
             if mode == "pb_wizard":
-                warn("PB server is in startup phase and no game is loaded."
-                     "\nCurrent mode is '{0}' ".format(mode))
+                self.warn("PB server is in startup phase and no game is loaded."
+                          "\nCurrent mode is '{0}' ".format(mode))
                 return
 
             d = """\
@@ -372,7 +406,7 @@ else:
             self.default(d)
 
         else:
-            warn("No file name given.")
+            self.warn("No file name given.")
 
     def do_start(self, arg):
         """ Synonym for 'pb_start'. """
@@ -392,7 +426,7 @@ else:
         mode = str(self.send("M:"))
         """
         if not mode == "pb_wizard":
-            warn("PB server is not in startup phase and can't load save."
+            self.warn("PB server is not in startup phase and can't load save."
                   "\nDoes the game already run?\n"
                   "Current mode is '{0}' ".format(mode))
             return
@@ -410,13 +444,13 @@ else:
                 return
 
             if loadable_check.get("loadable") == -1:
-                warn("No file for given name '%s' found." %
+                self.warn("No file for given name '%s' found." %
                      loadable_check.get("file", "name?"))
                 return
             if loadable_check.get("loadable") == -2:
-                warn("Given admin password is wrong and search in list of "
-                     "alternatives ( see pbPasswords.json) also fails.\n\n"
-                     "Fix 'adminpw' value.")
+                self.warn("Given admin password is wrong and search in list of"
+                          "alternatives ( see pbPasswords.json) also fails.\n\n"
+                          "Fix 'adminpw' value.")
 
         if mode == "pb_wizard":
             self.send("q:")  # Quit loop which blockades the startup process
@@ -435,7 +469,7 @@ else:
         # reflect/respect it.
         self.close()
 
-        # TODO: re-open of socket fails...
+        # re-open of socket was failing...
         # Exit as workaround...
         # return True
 
@@ -464,7 +498,7 @@ else:
             except:
                 pass
 
-        warn("...reconnection failed")
+        self.warn("...reconnection failed")
 
     def do_pb_quit(self, arg):
         """ Send quit command (and probably restarts the server).
@@ -487,7 +521,7 @@ else:
         except ValueError:
             update_status = {"info" : "Can not decode PB reply.", 'return': 'fail'}
 
-        feedback(update_status.get("info"))
+        self.feedback(update_status.get("info"))
 
     def do_pb_autostart(self, arg):
         """ Set autostart flag. Without argument, the value will be swaped.
@@ -500,7 +534,7 @@ else:
         except ValueError:
             args = None
 
-        result_json = self.webserver_action("setAutostart", args, 2)
+        self.webserver_action("setAutostart", args, 2)
 
     def do_pb_headless(self, arg):
         """ Set headless mode. Without argument, the value will be swaped.
@@ -513,7 +547,7 @@ else:
         except ValueError:
             args = None
 
-        result_json = self.webserver_action("setHeadless", args, 2)
+        self.webserver_action("setHeadless", args, 2)
 
     def do_status(self, arg):
         """ Return some status information.
@@ -640,7 +674,7 @@ else:
             if l > num-1:
                 dSel = self.latest_save_list[num-1]
             else:
-                warn("Latest list of saves only contain %i elements" % (l,))
+                self.warn("Latest list of saves only contain %i elements" % (l,))
         else:
             reg = re.compile(pat)
             for s in self.latest_save_list:
@@ -666,7 +700,7 @@ else:
         except ValueError:
             args = None
 
-        result_json = self.webserver_action("setPause", args, 1)
+        self.webserver_action("setPause", args, 1)
 
     '''
     def do_pause(self, arg):
@@ -683,7 +717,7 @@ else:
     print(0)
 """
         result = str(self.send("p:"+d))
-        feedback(result)
+        self.feedback(result)
     '''
 
     def do_pb_end_turn(self, arg):
@@ -710,18 +744,18 @@ else:
                 # Note that setActivePlayer(...) could crash the game if
                 # the player id is to big.
             except ValueError:
-                warn("Input argument no integer.")
+                self.warn("Input argument no integer.")
         else:
-            warn("Argument for Player id missing.")
+            self.warn("Argument for Player id missing.")
 
         if d:
             result = str(self.send("p:"+d))
             if result.strip() == "0":
-                feedback("End turn of player {0} successful.".format(iPlayer))
+                self.feedback("End turn of player {0} successful.".format(iPlayer))
             elif result.strip() == "-1":
-                warn("Turn of player {0} is already finished.".format(iPlayer))
+                self.warn("Turn of player {0} is already finished.".format(iPlayer))
             else:
-                warn("End turn of player {0} failed. Server returns '{1}'".format(iPlayer, result))
+                self.warn("End turn of player {0} failed. Server returns '{1}'".format(iPlayer, result))
 
 
     def do_pb_set_timer(self, arg):
@@ -733,9 +767,9 @@ else:
             iHours = int(arg)
             d = "PB.turnTimerChanged({0})".format(iHours)
             self.send("p:"+d)
-            feedback("Set timer on %i" % (iHours,))
+            self.feedback("Set timer on %i" % (iHours,))
         except ValueError:
-            warn("Input no integer.")
+            self.warn("Input no integer.")
 
     def do_pb_set_current_timer(self, args):
         """ Set timer for current round.
@@ -747,7 +781,7 @@ else:
             iArgs.append(0)  # Guarantee minute arg
             iArgs.append(0)  # Guarantee second arg
         except ValueError:
-            warn("Can't parse arguments.")
+            self.warn("Can't parse arguments.")
             return
 
         iSeconds = iArgs[2] + 60*iArgs[1] + 3600*iArgs[0]
@@ -757,12 +791,79 @@ else:
         d = "gc.getGame().incrementTurnTimer("\
                 "-PB.getTurnTimeLeft() + 4 * {0})".format(iSeconds)
         self.send("p:"+d)
-        feedback("Set timer on %02i:%02i:%02i" % tuple(iArgs[0:3]))
+        self.feedback("Set timer on %02i:%02i:%02i" % tuple(iArgs[0:3]))
+
+    def do_kick_player(self, arg):
+        """ Convert player status to AI.
+
+        kick {player id}
+        """
+        try:
+            kick_args = {"playerId": int(arg)}
+        except ValueError:
+            self.warn("Cannot parse player id.")
+            return
+
+        self.webserver_action("kickPlayer", kick_args, 1)
+
+    def do_chat(self, arg):
+        """ Send chat message."""
+        self.webserver_action("setMotD", {"msg": str(arg)}, 1)
+
+    def do_setMotD(self, arg):
+        """ Sets message of the day."""
+        self.webserver_action("setMotD", {"msg": str(arg)}, 2)
+
+    def do_getMotD(self, arg):
+        """ Gets message of the day."""
+        result_json = self.webserver_action("getMotD", {}, 0)
+        if result_json.get('result') == 'ok':
+            print("MotD: " + result_json.get("msg", ""))
+        else:
+            print(str(result_json))
+
+    def do_enable_dark_mode(self, arg):
+        """ Swap used colors used by Pyconsole
+
+            Useful for better readability in dark terminals.
+            Format: enable_dark_mode [0|1]
+        """
+        if len(arg) > 0:
+            try:
+                self.term_background_dark = bool(arg)
+            except ValueError:
+                self.warn("Input no bool.")
+        else:
+            self.term_background_dark = not self.term_background_dark
+
+        self.setColors(self.term_background_dark)
+
+    def do_enable_expression_print(self, arg):
+        """ Enable output printing of expressions.
+
+            Format: enable_expression_print [0|1]
+        """
+        if len(arg) > 0:
+            try:
+                self.automatic_print = bool(arg)
+            except ValueError:
+                self.warn("Input no bool.")
+        else:
+            self.automatic_print = not self.automatic_print
 
     def default(self, line):
         """Send input as python command"""
-        result = str(self.send("P:"+line))
-        feedback(result)
+        if self.automatic_print:
+            line = '''
+try:
+    __to_print = eval('{0}')
+    print(__to_print)
+except SyntaxError:
+    exec('{0}')
+'''.format(line.replace("'", "\'"))
+
+        result = str(self.send("P:" + line))
+        self.feedback(result)
 
     '''
     def do_help(self, args):
@@ -801,7 +902,7 @@ else:
             re_name = re.compile(kname, re.IGNORECASE)
         except:
             bRegexOk = False
-            warn("Can not compile regular expression.")
+            self.warn("Can not compile regular expression.")
             return
 
         lElems = []
@@ -820,7 +921,7 @@ else:
                        "*" if el["desc"] != "" else "")
              for el in lElems]
         if(len(l) == 0):
-            warn("No Civ4 function/class/etc found for %s" % (kname,))
+            self.warn("No Civ4 function/class/etc found for %s" % (kname,))
             return
         elif(len(l) > 20):
             print(civ4_library_abc(l))
@@ -845,7 +946,7 @@ else:
         try:
             return self.client.send(s, bRecv)
         except:
-            warn("Sending of '%s' failed" % (s,))
+            self.warn("Sending of '%s' failed" % (s,))
 
         return ""
 
@@ -882,10 +983,8 @@ print(json.dumps({0}'saves':PbSettings.getListOfSaves('{2}','{3}', {4}){1}))
                 saves = json.loads(json_str)
                 return saves.get("saves", [])
             except ValueError:
-                warn("Can not decode list of saves.")
-                warn(result)
-                #TODO: List of saves will return in multiple package. Sometimes,
-                # the ordering flips.
+                self.warn("Can not decode list of saves.")
+                self.warn(result)
 
         return []
 
@@ -943,25 +1042,6 @@ class Completer:
         # return None
 
 
-def warn(s):
-    print(ColorWarn+s+ColorReset)
-
-def feedback(s):
-    if RESULT_LINE_SPLIT is not None:
-        s = restrict_textwidth(
-            s,
-            RESULT_LINE_SPLIT[0],
-            RESULT_LINE_SPLIT[1])
-
-    s_with_tabs = "%s%s%s%s" % (
-        ColorOut,
-        RESULT_LINE_PREFIX,
-        s.rstrip('\n').replace('\n', '\n' + RESULT_LINE_PREFIX),
-        ColorReset)
-    print(s_with_tabs)
-    # Restore prompt
-    sys.stdout.write("%s" % (MY_PROMPT))
-
 def restrict_textwidth(text, max_width, prefix):
     """ Fill in extra line breaks if distance between two newline
     characters is to long.
@@ -1002,7 +1082,7 @@ def start(**kwargs):
     try:
         readline.read_history_file(PYCONSOLE_HIST_FILE)
     except IOError:
-        warn("Can't read history file")
+        shell.warn("Can't read history file")
 
     # Load help system in background thread
     # doc_thread = Thread(target=load_civ4_library)
@@ -1012,10 +1092,10 @@ def start(**kwargs):
     try:
         shell.cmdloop()
     except KeyboardInterrupt:
-        warn("Ctrl+C pressed. Quitting Civ4 shell.")
+        shell.warn("Ctrl+C pressed. Quitting Civ4 shell.")
         shell.close()
     except TypeError:
-        warn("Type error. Quitting Civ4 shell.")
+        shell.warn("Type error. Quitting Civ4 shell.")
         shell.close()
     finally:
         shell.close()
@@ -1025,7 +1105,7 @@ def start(**kwargs):
         readline.set_history_length(100000)
         readline.write_history_file(".pyconsole.history")
     except IOError:
-        warn("Can't write history file")
+        shell.warn("Can't write history file")
 
 if __name__ == '__main__':
     print("Use 'python Pyconsole [port]' in above folder for start")
