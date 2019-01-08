@@ -113,7 +113,7 @@ class Game(models.Model):
     last_update_successful = models.DateTimeField(null=True)
     # Timestamp of last connection attempt. Will be used to  omit multiple connection attempts.
     # Note: Do NOT use now() as default value. This will repetedly create migrations
-    last_update_attempt = models.DateTimeField(null=False, default=datetime.datetime.now)
+    last_update_attempt = models.DateTimeField(null=False, default=timezone.now)
 
     is_paused          = models.BooleanField(default=False)
     is_headless        = models.BooleanField(default=False)
