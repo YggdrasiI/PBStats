@@ -150,6 +150,10 @@ class Game(models.Model):
     # Update hostname
     is_dynamic_ip      = models.BooleanField(default=False)
 
+    @property
+    def is_finished(self):
+        return self.victory_type > -1
+
     def auth_hash(self):
         return hashlib.md5(self.pb_remote_password.encode()).hexdigest()
 
@@ -176,8 +180,7 @@ class Game(models.Model):
         return (not self.is_private) or (len(self.admins.filter(id=user.id)) == 1)
 
     def get_status(self):
-        #  if self.is_finished:
-        if self.victory_type > -1:
+        if self.is_finished:
             return "finished"
         else:
             if self.is_online:
@@ -200,8 +203,7 @@ class Game(models.Model):
         """
         if not ignore_game_state and not self.is_online:
             return
-        # if not ignore_game_state and self.is_finished:
-        if not ignore_game_state and self.victory_type > -1:
+        if not ignore_game_state and self.is_finished:
             return
         cur_date = timezone.now()
         delta = datetime.timedelta(seconds=min_time_diff)
@@ -682,8 +684,7 @@ class VictoryInfo():
         # It is better to check the victory type, but not if
         # the player is None. This allow the definition of decided
         # games with a unspecific winner (i.e. teams).
-        return self.display_always or (
-            self.game.victory_type > -1 and self.game.victory_type <= 101)
+        return self.display_always or (self.game.is_finished and self.game.victory_type <= 101)
 
     def get_victory_image(self):
         if self.game.victory_image and len(str(self.game.victory_image)) > 0:
