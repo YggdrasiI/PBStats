@@ -250,15 +250,17 @@ class Civ4Shell(cmd.Cmd):
     def do_test(self, arg):
         """Send test commands to backend."""
         print(" Change amount of gold (Player 0):")
-        self.default("gc.getPlayer(0).setGold(100)")
+        self.verbose("gc.getPlayer(0).setGold(gc.getPlayer(0).getGold())")
 
         print(" Number of units (Player 0):")
-        self.default("print('Num Units: %i' % gc.getPlayer(0).getNumUnits())")
+        self.verbose("print('Num Units: %i' % gc.getPlayer(0).getNumUnits())")
+        """
         print(" Add unit (Player 0):")
         # Attention pydoc.doc(CyPlayer.initUnit)) returns wrong declaration!
-        self.default("gc.getPlayer(0).initUnit(1, 1, 1,"
+        self.verbose("gc.getPlayer(0).initUnit(1, 1, 1,"
                      "UnitAITypes.NO_UNITAI, DirectionTypes.NO_DIRECTION)")
-        self.default("print('Num Units: %i' % gc.getPlayer(0).getNumUnits())")
+        self.verbose("print('Num Units: %i' % gc.getPlayer(0).getNumUnits())")
+        """
 
     def do_doc(self, arg):
         """Fetch pydoc information"""
@@ -323,43 +325,7 @@ class Civ4Shell(cmd.Cmd):
             conf_key = args[1].split("=")[0].split("/")  # ['b'] or ['a', 'b']
             new_value = args[1].split("=")[1]
             settings = self.getPbSettings()
-            template_edit1 = "PbSettings['%s'] = %s('%s');"
-            template_edit2 = "PbSettings['%s']['%s'] = %s('%s');"
-            template_del1 = "PbSettings.pop('%s');"
-            template_del2 = "PbSettings['%s'].pop('%s');"
-
-            changes = []
-            for (k, v) in settings.items():
-                if isinstance(v, dict):
-                    if len(conf_key) > 1 and conf_key[0] != k:
-                        continue
-
-                    for (kk, vv) in v.items():
-                        if kk == conf_key[-1]:
-                            if new_value:
-                                changes.append(template_edit2 % (
-                                    k, kk, caster(vv), new_value))
-                            else:
-                                changes.append(template_del2 % (k, kk))
-
-                else:
-                    if k == conf_key[0] and caster(v):
-                        if new_value:
-                            changes.append(template_edit1 % (
-                                k, caster(v), new_value))
-                        else:
-                            changes.append(template_del1 % (k,))
-
-                        break
-
-            if len(changes) == 1:
-                # print(changes)
-                self.send("p:" + changes[0])
-            elif len(changes) > 1:
-                print("Key not unique: %s" % ("/".join(conf_key)))
-            else:
-                print("No editable key: %s" % ("/".join(conf_key)))
-
+            self.config_edit(conf_key, new_value, settings)
         else:
             print(self.short_config_usage)
 
@@ -445,7 +411,7 @@ else:
 
             if loadable_check.get("loadable") == -1:
                 self.warn("No file for given name '%s' found." %
-                     loadable_check.get("file", "name?"))
+                          loadable_check.get("file", "name?"))
                 return
             if loadable_check.get("loadable") == -2:
                 self.warn("Given admin password is wrong and search in list of"
@@ -851,6 +817,13 @@ else:
         else:
             self.automatic_print = not self.automatic_print
 
+    def verbose(self, line, print_input_line=True):
+        """Print line and then send it as python command"""
+        if print_input_line:
+            print(line)
+
+        self.default(line)
+
     def default(self, line):
         """Send input as python command"""
         if self.automatic_print:
@@ -860,7 +833,10 @@ try:
     print(__to_print)
 except SyntaxError:
     exec('{0}')
-'''.format(line.replace("'", "\'"))
+'''.format(line)
+        # Escape \, " and '
+        line = line.replace('\\', '\\\\')
+        line = line.replace("'", r"\'").replace('"', r'\"')
 
         result = str(self.send("P:" + line))
         self.feedback(result)
@@ -949,6 +925,45 @@ except SyntaxError:
             self.warn("Sending of '%s' failed" % (s,))
 
         return ""
+
+    def config_edit(self, conf_key, new_value, settings):
+        template_edit1 = "PbSettings['%s'] = %s('%s');"
+        template_edit2 = "PbSettings['%s']['%s'] = %s('%s');"
+        template_del1 = "PbSettings.pop('%s');"
+        template_del2 = "PbSettings['%s'].pop('%s');"
+
+        changes = []
+        for (k, v) in settings.items():
+            if isinstance(v, dict):
+                if len(conf_key) > 1 and conf_key[0] != k:
+                    continue
+
+                for (kk, vv) in v.items():
+                    if kk == conf_key[-1]:
+                        if new_value:
+                            changes.append(template_edit2 % (
+                                k, kk, caster(vv), new_value))
+                        else:
+                            changes.append(template_del2 % (k, kk))
+
+            else:
+                if k == conf_key[0] and caster(v):
+                    if new_value:
+                        changes.append(template_edit1 % (
+                            k, caster(v), new_value))
+                    else:
+                        changes.append(template_del1 % (k,))
+
+                    break
+
+        if len(changes) == 1:
+            # print(changes)
+            self.send("p:" + changes[0])
+        elif len(changes) > 1:
+            print("Key not unique: %s" % ("/".join(conf_key)))
+        else:
+            print("No editable key: %s" % ("/".join(conf_key)))
+
 
     def getPbSettings(self):
         d = "import simplejson as json; print(json.dumps(PbSettings))"

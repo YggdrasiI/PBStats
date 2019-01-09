@@ -10046,6 +10046,10 @@ class CyGame:
             return int()
 
         @staticmethod
+        def setAdminPassword(sNewPassword, sAdminPasswordHash):
+            return int()
+
+        @staticmethod
         def setPitbossShortNames(bEnable, iLenName, iLenDesc):
             pass
 

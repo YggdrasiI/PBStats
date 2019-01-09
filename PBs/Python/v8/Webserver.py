@@ -371,6 +371,8 @@ class PerpetualTimer:
                 if gc.getPlayer(iPlayer).isTurnActive():
                     inconsistentState = True
                     break
+        except:
+            pass
 
         # PB.consoleOut("Webupload request %i" % (self.requestCounter,))
         self.requestCounter += 1
