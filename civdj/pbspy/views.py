@@ -64,6 +64,7 @@ class GameListView(ListView):
         for game in games_queryset:
             game.refresh(300)
 
+
 game_list = GameListView.as_view()
 
 
@@ -308,6 +309,7 @@ class GameDetailView(FormMixin, DetailView):
 
         return HttpResponseRedirect(reverse('game_detail', args=[game.id]))
 
+
 game_detail = GameDetailView.as_view()
 
 
@@ -322,6 +324,7 @@ class GameLogView(View,
             game_id__exact=game_id).order_by('-id')
         context = self.get_context_data()
         return self.render_to_response(context)
+
 
 game_log = GameLogView.as_view()
 
