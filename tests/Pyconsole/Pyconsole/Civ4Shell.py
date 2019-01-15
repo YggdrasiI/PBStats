@@ -796,7 +796,7 @@ else:
         """
         if len(arg) > 0:
             try:
-                self.term_background_dark = bool(arg)
+                self.term_background_dark = bool(int(arg))
             except ValueError:
                 self.warn("Input no bool.")
         else:
@@ -811,7 +811,7 @@ else:
         """
         if len(arg) > 0:
             try:
-                self.automatic_print = bool(arg)
+                self.automatic_print = bool(int(arg))
             except ValueError:
                 self.warn("Input no bool.")
         else:
@@ -827,6 +827,10 @@ else:
     def default(self, line):
         """Send input as python command"""
         if self.automatic_print:
+            # Escape \, " and '
+            line = line.replace('\\', '\\\\')
+            line = line.replace("'", r"\'").replace('"', r'\"')
+            # Wrap by expression detection
             line = '''
 try:
     __to_print = eval('{0}')
@@ -834,9 +838,6 @@ try:
 except SyntaxError:
     exec('{0}')
 '''.format(line)
-        # Escape \, " and '
-        line = line.replace('\\', '\\\\')
-        line = line.replace("'", r"\'").replace('"', r'\"')
 
         result = str(self.send("P:" + line))
         self.feedback(result)
