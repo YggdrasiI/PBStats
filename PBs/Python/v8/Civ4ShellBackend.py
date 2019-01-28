@@ -10,7 +10,7 @@ from time import sleep
 try:
     import simplejson as json
 except ImportError:
-    print("Import om simplejson failed. Several commands will not work.")
+    print("Import of simplejson failed. Several commands will not work.")
 
 TCP_IP = '127.0.0.1'
 TCP_PORT = 3333
@@ -47,8 +47,9 @@ class Server:
         self.run = False
         # Hm, only a request release the lock on the listen socket...
         # How to avoid this ugly hack?!
-        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
-            (self.tcp_ip, self.tcp_port))
+        # Comment out because it fails on Windows
+        # socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
+        #    (self.tcp_ip, self.tcp_port))
 
     def start(self):
         self.run = True
@@ -158,7 +159,14 @@ class Server:
                     s = json.loads(data[2:])
                     action = s["action"]
                     args = s.get("args", None)
-                    ws.Action_Handlers[action](inputdata=args, wfile=tmp_str)
+                    # ws.Action_Handlers[action](inputdata=args, wfile=tmp_str)
+                    try:
+                        server = self.pbAdminFrame.webserver
+                    except:
+                        server = None
+
+                    ws.Action_Handlers[action](inputdata=args,
+                                               server=server, wfile=tmp_str)
                     # escaped_str = json.dumps(tmp_str.getvalue())
                     self.output_store.append(tmp_str.getvalue())
                 except Exception, e:
@@ -244,8 +252,9 @@ class Server:
         dSave = ws.PbSettings.get("save")
         sName = dSave["filename"]
         preferedIdx = dSave.get("folderIndex", 0)
-        pbPasswords = []  # ws.getPbPasswords()
-        pbPasswords.append(dSave.get("adminpw", ""))
+        # pbPasswords = []
+        # pbPasswords.append(dSave.get("adminpw", ""))
+        pbPasswords = ws.PbSettings.getPbPasswords()
         ret = {"loadable":
                ws.isLoadableSave(sName, preferedIdx, pbPasswords),
                "name": sName}

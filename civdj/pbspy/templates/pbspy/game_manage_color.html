@@ -17,7 +17,7 @@
         <div class="game_management_section">
             <h2>{% trans "Change colorset of player" %}</h2>
 
-            <div class="description">{% trans "To repair bad color combinations of neigboured players after the game starts." %}<br>
+            <div class="description">{% trans "To repair bad color combinations of neigboured players after the game had started." %}<br>
                 {% trans "The colorsets are defined in Assets/XML/Interface/CIV4PlayerColorInfos.xml." %}</div>
             <form method="post" action="{% url 'game_manage' game.id 'set_player_color' %}">
                 {% csrf_token %}

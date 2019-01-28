@@ -92,7 +92,8 @@ class GameManagementChatForm(Form):
 
 
 class GameManagementMotDForm(Form):
-    message = forms.CharField(label=_('Text message'))
+    message = forms.CharField(label=_('Text message'),
+                              required=False, max_length=200)
 
 
 class GameManagementShortNamesForm(Form):
@@ -157,11 +158,12 @@ class GameManagementSetPlayerColorForm(Form):
         col_choices = []
         for col_id in range(num_colors):
             col_choices.append((col_id, "Colorset "+str(col_id)))
+
         self.fields['color'] = forms.ChoiceField(
-                choices=col_choices,
-                label=_('New color'),
-                required=False
-                )
+            choices=col_choices,
+            label=_('New color'),
+            required=False
+        )
 
 
 class GameManagementSetVictoryForm(ModelForm):
@@ -188,7 +190,7 @@ class GameManagementSetVictoryForm(ModelForm):
         self.initial['player'] = self.instance.victory_player_id
 
         victory_choises = [(i, VictoryInfo.victory_types[i]["name"])
-                          for i in VictoryInfo.victory_types]
+                           for i in VictoryInfo.victory_types]
         self.fields['victory_type'] = forms.ChoiceField(
             choices=victory_choises,
             required=True

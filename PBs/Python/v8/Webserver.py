@@ -18,6 +18,7 @@ import md5
 import simplejson
 
 from CvPythonExtensions import *
+import CvPythonExtensions as E
 import CvUtil
 import CvEventInterface
 
@@ -27,9 +28,9 @@ import CvWBDesc
 # import zlib # not included
 # import gzip # exists in Civ4/Assets/Python/System, but can not be imported
 
-PB = CyPitboss()
-gc = CyGlobalContext()
-LT = CyTranslator()
+PB = E.CyPitboss()
+gc = E.CyGlobalContext()
+LT = E.CyTranslator()
 
 # Add Altroot python folder as import path
 pythonDir = os.path.join(gc.getAltrootDir(), '..', 'Python', 'v8')
@@ -206,20 +207,20 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
             CvWBDesc.CvMapDesc().write(f)
             f.write("\n# # # Plot Info # # # \n")
-            iGridW = CyMap().getGridWidth()
-            iGridH = CyMap().getGridHeight()
+            iGridW = E.CyMap().getGridWidth()
+            iGridH = E.CyMap().getGridHeight()
             for iX in range(iGridW):
                 for iY in range(iGridH):
-                    plot = CyMap().plot(iX, iY)
+                    plot = E.CyMap().plot(iX, iY)
                     pDesc = CvWBDesc.CvPlotDesc()
                     if pDesc.needToWritePlot(plot):
                         pDesc.write(f, plot)
             # Signs should be private
             """
             f.write("\n# # # Sign Info # # # \n")
-            iNumSigns = CyEngine().getNumSigns()
+            iNumSigns = E.CyEngine().getNumSigns()
             for i in range(iNumSigns):
-                sign = CyEngine().getSignByIndex(i)
+                sign = E.CyEngine().getSignByIndex(i)
                 pDesc = CvSignDesc()
                 pDesc.write(f, sign)
             """
@@ -370,8 +371,10 @@ class PerpetualTimer:
                 if gc.getPlayer(iPlayer).isTurnActive():
                     inconsistentState = True
                     break
+        except:
+            pass
 
-        # CyPitboss().consoleOut("Webupload request %i" % (self.requestCounter,))
+        # PB.consoleOut("Webupload request %i" % (self.requestCounter,))
         self.requestCounter += 1
 
         if (not inconsistentState
@@ -399,7 +402,7 @@ class PerpetualTimer:
             urllib.urlopen(self.url, params)  # POST method
 
         except:
-            # CyPitboss().consoleOut("Webupload failed")
+            # PB.consoleOut("Webupload failed")
             pass
 
 

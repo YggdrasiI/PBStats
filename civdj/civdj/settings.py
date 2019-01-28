@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+import sys
 import os
 import django
 
@@ -34,7 +35,7 @@ INSTALLED_APPS = (
     # Deprecated variant, see
     # https://github.com/ubernostrum/django-registration/blob/master/docs/quickstart.rst
     'debug_toolbar',
-#    'erroneous',
+    # 'erroneous',
     'static_precompiler',
     'django_bleach',
     'pbspy',
@@ -65,9 +66,9 @@ TEMPLATES = [
         ],
         'APP_DIRS': True,
         'OPTIONS': {
-#            'debug': False,
+            # 'debug': False,
             'context_processors': [
-#                'django.template.context_processors.debug',
+                # 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -104,34 +105,25 @@ ACCOUNT_ACTIVATION_DAYS = 7
 
 LOGIN_REDIRECT_URL = 'game_list'
 
-# For compilation of less files, see
-# https://github.com/andreyfedoseev/django-static-precompiler
-STATIC_PRECOMPILER_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'static')) # Default is STATIC_URL
+# Overwrite this paths in settings_local.py for DEBUG=False
+# For DEBUG=True, the path [PBStats/]civdj/static seems to be ok...
+STATIC_ROOT = os.path.join(BASE_DIR, 'collectstatic_target', 'static')
+STATIC_URL = '/static/'
+
+STATIC_PRECOMPILER_FINDER_LIST_FILES = True
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     # other finders..
-    'static_precompiler.finders.StaticPrecompilerFinder',
+    # 'static_precompiler.finders.StaticPrecompilerFinder',
 )
 
-# Workaround because StaticPrecompilerFinder does not trigger copy
-# of static/COMPILED folder
-STATICFILES_DIRS = [
-    ("COMPILED", os.path.abspath(os.path.join(BASE_DIR, 'static', 'COMPILED')))
-]
-
-# Absolute path for 'collectstatic' command
-__abs_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_ROOT = __abs_path + "/static"
-STATIC_URL = "/static/"
-
-
 # Which HTML tags are allowed
-BLEACH_ALLOWED_TAGS = ['li', 'ul', 'img']
+BLEACH_ALLOWED_TAGS = ['li', 'ul', 'img', 'br', 'p', 'a', 'b', 'strong', 'i', 'em']
 
 # Which HTML attributes are allowed
-BLEACH_ALLOWED_ATTRIBUTES = ['src', 'alt']
+BLEACH_ALLOWED_ATTRIBUTES = ['src', 'alt', 'href']
 
 # Which CSS properties are allowed in 'style' attributes (assuming style is
 # an allowed attribute)
@@ -145,3 +137,19 @@ BLEACH_STRIP_COMMENTS = True
 
 
 from civdj.settings_local import *
+
+# Workaround for missing directory during lessc compiling.
+# Required for compilestatic/collectstatic.
+compile_target_dirs = ['pbspy/less/defaultstyle']
+for d in compile_target_dirs:
+    out_d = os.path.join(STATIC_ROOT, 'COMPILED', d)
+    if not os.path.exists(out_d):
+        print('CREATE ' + str(out_d))
+        os.makedirs(out_d)
+
+
+# Workaround for missing directory 'civdj/static' as
+# source for static files
+if DEBUG:
+    if len(sys.argv) > 1 and sys.argv[1] != "collectstatic":
+        INSTALLED_APPS = INSTALLED_APPS + ('collectstatic_target',)

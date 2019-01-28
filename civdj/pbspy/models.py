@@ -18,6 +18,8 @@ import datetime
 import re
 import json
 import hashlib
+import os.path
+import glob
 
 from six.moves.urllib.error import URLError
 from six.moves import urllib
@@ -27,6 +29,7 @@ MONTH_NAMES_ENG = ["undefined", "january", "february", "march",
                    "september", "october", "november", "december"]
 # Seasons treated as extra months
 MONTH_NAMES_ENG.extend(["winter", "spring", "summer", "fall"])
+
 
 class InvalidCharacterError(Exception):
     pass
@@ -87,6 +90,7 @@ def parse_year(year_str):
     else:
         raise ValueError('invalid year suffix')
 
+
 savegame_allowed_name_re = re.compile(r'^[0-9a-zA-Z_\-][0-9a-zA-Z_\.\-]*\Z')
 
 
@@ -110,8 +114,8 @@ class Game(models.Model):
     # Timestamp of last successful connection. Field is null if the game was never connected.
     last_update_successful = models.DateTimeField(null=True)
     # Timestamp of last connection attempt. Will be used to  omit multiple connection attempts.
-    # Note: Do NOT use now() as default value. This will repetedly create migrations
-    last_update_attempt = models.DateTimeField(null=False, default=datetime.datetime.now)
+    # Note: Do NOT use now() as default value. This will repeatedly create migrations
+    last_update_attempt = models.DateTimeField(null=False, default=timezone.now)
 
     is_paused          = models.BooleanField(default=False)
     is_headless        = models.BooleanField(default=False)
@@ -129,24 +133,23 @@ class Game(models.Model):
     is_private         = models.BooleanField(default=False)
     is_online          = models.BooleanField(default=True)
 
-    """ The followning values has to set manually by Admins. """
-    # This field is now redundand. All lines replaced by 'victory_type > -1'
-    # is_finished        = models.BooleanField(default=False)
-    # Player.id, not Player.ingame_id
+    """ The following values has to set manually by Admins. """
     victory_player_id  = models.OneToOneField('Player', on_delete=models.CASCADE,
-                                           related_name='+',
-                                           blank=True, null=True)
+                                              related_name='+', blank=True, null=True)
     victory_type       = models.SmallIntegerField(default=-1)
     # Empty values of message and image trigger usage of default values.
     victory_message    = models.CharField(blank=True, null=True, max_length=2000)
     victory_image    = models.CharField(max_length=200, blank=True, null=True,
-                                          validators=[URLValidator(
-                                              regex="^.*[.](png|jpg|jpeg|git|php[?].*)$")])
+                                        validators=[URLValidator(regex="^.*[.](png|jpg|jpeg|gif|php[?].*)$")])
 
     subscribed_users   = models.ManyToManyField(User, related_name='subscribed_games', blank=True)
 
     # Update hostname
     is_dynamic_ip      = models.BooleanField(default=False)
+
+    @property
+    def is_finished(self):
+        return self.victory_type > -1
 
     def auth_hash(self):
         return hashlib.md5(self.pb_remote_password.encode()).hexdigest()
@@ -174,8 +177,7 @@ class Game(models.Model):
         return (not self.is_private) or (len(self.admins.filter(id=user.id)) == 1)
 
     def get_status(self):
-        #  if self.is_finished:
-        if self.victory_type > -1:
+        if self.is_finished:
             return "finished"
         else:
             if self.is_online:
@@ -198,8 +200,7 @@ class Game(models.Model):
         """
         if not ignore_game_state and not self.is_online:
             return
-        # if not ignore_game_state and self.is_finished:
-        if not ignore_game_state and self.victory_type > -1:
+        if not ignore_game_state and self.is_finished:
             return
         cur_date = timezone.now()
         delta = datetime.timedelta(seconds=min_time_diff)
@@ -216,7 +217,6 @@ class Game(models.Model):
                 self.last_update_attempt = cur_date
                 self.save()
             return
-
 
     @transaction.atomic
     def set_from_dict(self, info):
@@ -239,20 +239,20 @@ class Game(models.Model):
             timer_remaining_4s = None
 
         if not is_minimal:
-            year      = parse_year(info['gameDate'])
-            turn      = int(info['gameTurn'])
-            is_paused = bool(info['bPaused'])
-            is_headless = bool(info['bHeadless'])
+            year         = parse_year(info['gameDate'])
+            turn         = int(info['gameTurn'])
+            is_paused    = bool(info['bPaused'])
+            is_headless  = bool(info['bHeadless'])
             is_autostart = bool(info['bAutostart'])
-            pb_name   = info['gameName']
-            mod_name = info.get('modName', "").strip("\\").replace("Mods\\", "", 1)
+            pb_name      = info['gameName']
+            mod_name     = info.get('modName', "").strip("\\").replace("Mods\\", "", 1)
 
             logargs = {'game': self, 'date': date,
                        'year': year, 'turn': turn}
 
             player_count_old = self.player_set.filter(ingame_stack=0).count()
             player_count = len(info['players'])
-            reloadLogMessageDone = False  # To prevent multiple log entries on same event
+            reload_log_message_done = False  # To prevent multiple log entries on same event
             if (self.pb_name != info['gameName'] or
                     player_count_old != player_count):
                 GameLogMetaChange(
@@ -261,7 +261,7 @@ class Game(models.Model):
                     player_count_old=player_count_old,
                     player_count=player_count,
                     **logargs).save()
-                reloadLogMessageDone = True
+                reload_log_message_done = True
 
                 """ (Ramk) Zulan notes, that this would be critical
                     The players are used as keys in some GameLog classes
@@ -281,8 +281,7 @@ class Game(models.Model):
                     # pbspy_player.ingame_id, pbspy_player.game_id, pbspy_player.ingame_stack
                     # Zero added for (*)
 
-                    for player in self.player_set.filter(
-                        ingame_id=ingame_id).order_by('-ingame_stack'):
+                    for player in self.player_set.filter(ingame_id=ingame_id).order_by('-ingame_stack'):
                         # Order required to begin with highest stack value.
 
                         if player.ingame_stack in used_stack_vals:
@@ -300,7 +299,7 @@ class Game(models.Model):
                             player.save()
 
             if turn > self.turn:
-                if not reloadLogMessageDone:
+                if not reload_log_message_done:
                     mt = GameLogMissedTurn(**logargs)
                     mt.set_missed_players(self.player_set.filter(ingame_stack=0))
                     if mt.is_turn_incomplete():
@@ -310,34 +309,39 @@ class Game(models.Model):
                 self.send_new_turn_info()
 
             elif turn < self.turn:
-                if not reloadLogMessageDone:
+                if not reload_log_message_done:
                     GameLogReload(**logargs).save()
-                    reloadLogMessageDone = True
+                    reload_log_message_done = True
 
-            elif (timer_remaining_4s is not None and
-                     self.timer_remaining_4s is not None and
-                     timer_remaining_4s > self.timer_remaining_4s + 1200 / 4):
+            elif (timer_remaining_4s is not None
+                  and self.timer_remaining_4s is not None
+                  and timer_remaining_4s > self.timer_remaining_4s + 1200 / 4):
                 # TODO find a better way than to hardcode the value
                 # Note: Ignore small time difference because every combat increase
                 # the timer by the combat animation time
 
-                """ Sequenzial games have always one unfinshed player, but the
+                """
+                Sequential games have always one unfinished player, but the
                 timer resets for each of them. This should not be marked as reload.
                 """
                 unfinished_new = [player_info["id"] for player_info
                                   in info['players'] if not player_info['finishedTurn']]
-                if (len(unfinished_new) == 1 and unfinished_new[0] > 0
-                    and not self.player_set.filter(
-                        ingame_stack=0).filter(
-                            ingame_id=(unfinished_new[0]-1)
-                        )[0].finished_turn):
+                if (len(unfinished_new) == 1
+                        and unfinished_new[0] > 0
+                        and not self.player_set.filer(ingame_stack=0).filter(
+                            ingame_id=(unfinished_new[0]-1))[0].finished_turn):
                     pass
                 else:
                     GameLogReload(**logargs).save()
-                    reloadLogMessageDone = True
+                    reload_log_message_done = True
 
             if is_paused != self.is_paused:
-                GameLogPause(paused=is_paused, **logargs).save()
+                # Check if last log message is of type GameLogAdminPause
+                # to avoid double log messages for the same event.
+                log_entry = self.gamelog_set.last()
+                if (not isinstance(log_entry, GameLogAdminPause) or
+                        log_entry.paused != is_paused):
+                    GameLogPause(paused=is_paused, **logargs).save()
 
             if is_headless != self.is_headless:
                 pass
@@ -349,23 +353,22 @@ class Game(models.Model):
                 pass
 
             if timer_max_h != self.timer_max_h:
-                if not reloadLogMessageDone:
+                if not reload_log_message_done:
                     GameLogTimerChanged(timer_max_h=timer_max_h, **logargs).save()
 
             # FIXME Where does this belong?
-            self.timer_max_h        = timer_max_h
-            self.timer_remaining_4s = timer_remaining_4s
-
+            self.timer_max_h            = timer_max_h
+            self.timer_remaining_4s     = timer_remaining_4s
             self.last_update_successful = date
-            self.last_update_attempt = date
-            self.pb_name            = pb_name
-            self.mod_name            = mod_name
-            self.turn               = turn
-            self.is_paused          = is_paused
-            self.is_headless        = is_headless
-            self.is_autostart       = is_autostart
-            self.year               = year
-            self.is_online          = is_online
+            self.last_update_attempt    = date
+            self.pb_name                = pb_name
+            self.mod_name               = mod_name
+            self.turn                   = turn
+            self.is_paused              = is_paused
+            self.is_headless            = is_headless
+            self.is_autostart           = is_autostart
+            self.year                   = year
+            self.is_online              = is_online
 
         self.save()
 
@@ -433,8 +436,8 @@ class Game(models.Model):
     def pb_set_headless(self, value, user=None):
         return self.pb_action(action='setHeadless', value=bool(value))
 
-    def pb_remove_magellan_bonus(self, takebackBonus, user=None):
-        return self.pb_action(action='removeMagellanBonus', takebackBonus=int(takebackBonus))
+    def pb_remove_magellan_bonus(self, takeback_bonus, user=None):
+        return self.pb_action(action='removeMagellanBonus', takebackBonus=int(takeback_bonus))
 
     def pb_prepare_mod_update(self, user=None):
         return self.pb_action(action='modUpdate')
@@ -448,12 +451,12 @@ class Game(models.Model):
                          filename=filename).save()
         return result
 
-    def pb_kick(self, playerId, user=None):
-        result = self.pb_action(action='kickPlayer', playerId=int(playerId))
+    def pb_kick(self, player_id, user=None):
+        result = self.pb_action(action='kickPlayer', playerId=int(player_id))
         return result
 
-    def pb_end_player_turn(self, playerId, user=None):
-        result = self.pb_action(action='endPlayerTurn', playerId=int(playerId))
+    def pb_end_player_turn(self, player_id, user=None):
+        result = self.pb_action(action='endPlayerTurn', playerId=int(player_id))
         return result
 
     def pb_set_current_turn_timer(self, hours, minutes, seconds, user=None):
@@ -485,7 +488,7 @@ class Game(models.Model):
         if result['return'] == 'ok':
             GameLogAdminPause(game=self, user=user, date=timezone.now(), paused=value,
                               year=self.year, turn=self.turn).save()
-            self.is_paused = True
+            self.is_paused = value
             self.save()
         return result
 
@@ -510,7 +513,7 @@ class Game(models.Model):
         return result['list']
 
     def pb_get_motd(self):
-        #Wrap in try to respect older mod versions
+        # Wrap in try to respect older mod versions
         try:
             result = self.pb_action(action='getMotD')
             return str(result.get('msg', ''))
@@ -530,7 +533,7 @@ class Game(models.Model):
         except InvalidPBResponse:
             return []
 
-    def force_diconnect(self):
+    def force_disconnect(self):
         GameLogForceDisconnect(game=self, date=timezone.now(), year=self.year, turn=self.turn).save()
 
     def update(self):
@@ -573,8 +576,9 @@ class Game(models.Model):
                          manage_url=reverse('game_detail', args=[self.id]))
 
     def search_old_matching_player(self, ingame_id, new_player):
-        """ Search old, inactive player object with similar properties
-            as a new entry. Re-use the old one if possible.
+        """
+        Search old, inactive player object with similar properties
+        as a new entry. Re-use the old one if possible.
         """
         existing_player = None
         players = self.player_set.filter(ingame_stack__gt=0, ingame_id=ingame_id)
@@ -586,7 +590,7 @@ class Game(models.Model):
         except Player.DoesNotExist:
             pass
 
-        if existing_player == None:
+        if existing_player is None:
             try:
                 existing_player = players.get(leader=new_player.leader)
             except Player.MultipleObjectsReturned:
@@ -594,7 +598,7 @@ class Game(models.Model):
             except Player.DoesNotExist:
                 pass
 
-        if existing_player == None:
+        if existing_player is None:
             try:
                 existing_player = players.get(civilization=new_player.civilization)
             except Player.MultipleObjectsReturned:
@@ -602,7 +606,7 @@ class Game(models.Model):
             except Player.DoesNotExist:
                 pass
 
-        if existing_player != None:
+        if existing_player is not None:
             # Make entry active. We assume here that none is active.
             # Otherwise save() will throw an exception.
             existing_player.ingame_stack = 0;
@@ -654,15 +658,15 @@ class VictoryInfo():
     message_templates = {
         -1: _("Game not determined."),
         0: _("In the year {year}, {name} led the {civ} people "\
-                     "to a {victory_type}, and will be forever remembered "\
-                     "as the greatest ruler in all of human history!"),
+             "to a {victory_type}, and will be forever remembered "\
+             "as the greatest ruler in all of human history!"),
         1: _("In the year {year}, {name} led the {civ} people "\
-                     "to a {victory_type}, and will be forever remembered "\
-                     "as the greatest ruler in all of human history!"),
+             "to a {victory_type}, and will be forever remembered "\
+             "as the greatest ruler in all of human history!"),
         100: _("In the year {year}, {name} led the {civ} people "\
-                     "to a victory, and will be forever remembered "\
-                     "as the greatest ruler in all of human history!"),
-        101: _("This game finshed without a winner."),
+               "to a victory, and will be forever remembered "\
+               "as the greatest ruler in all of human history!"),
+        101: _("This game finished without a winner."),
         102: _("This game was aborted."),
     }
 
@@ -675,7 +679,7 @@ class VictoryInfo():
         # It is better to check the victory type, but not if
         # the player is None. This allow the definition of decided
         # games with a unspecific winner (i.e. teams).
-        return self.display_always or (self.game.victory_type > -1)
+        return self.display_always or (self.game.is_finished and self.game.victory_type <= 101)
 
     def get_victory_image(self):
         if self.game.victory_image and len(str(self.game.victory_image)) > 0:
@@ -683,16 +687,31 @@ class VictoryInfo():
 
         # Default image
         if self.player is None:
-            path = VictoryInfo.img_folder + "unknown.jpg"
-        else:
-            path = "{}{}{}".format( VictoryInfo.img_folder, self.player.leader, ".jpg")
+            return ""
 
+        if self.game.victory_type > 100:
+            return ""
+
+        elif VictoryInfo.leader_image_exists(self.player.leader):
+            try:
+                img_name = VictoryInfo.__leader_image_list[self.player.leader]
+            except KeyError:
+                img_name = self.player.leader + ".jpg"
+
+        else:
+            img_name = "Unknown.jpg"
+
+        path = "{}{}".format(VictoryInfo.img_folder, img_name)
         from django.conf import settings
         return settings.STATIC_URL + path
 
     def get_victory_headline(self):
         if self.player is None:
             return ""
+
+        if self.game.victory_type > 100:
+            return " "  # not ""
+
         return _("Congratulations to {} of the {}").format(
             self.player.name,
             self.player.civilization)
@@ -714,13 +733,44 @@ class VictoryInfo():
             leader=self.player.leader,
             civ=self.player.civilization,
             year=format_year(self.game.year),
-            victory_type= "<span class='game_victory_type'>{}</span>".format(vt["name"])
+            victory_type="<span class='game_victory_type'>{}</span>".format(vt["name"])
         )
+
+    # Gen list of available leader names at startup
+    __leader_image_list = None
+
+    @staticmethod
+    def __gen_leader_image_list():
+        print("Generate list of available leader images")
+        leader_image_list = {}
+        for filename in glob.glob(os.path.join('pbspy', 'static',
+                                               VictoryInfo.img_folder, "*.*")):
+            fbasename = os.path.basename(filename)
+            (leader, ext) = os.path.splitext(fbasename)
+            if ext in [".png", ".jpg", ".jpeg", ".gif"]:
+                leader_image_list[leader] = fbasename
+
+        return leader_image_list
+
+    @classmethod
+    def leader_image_exists(cls, name):
+        # Permanent lookup variant
+        """
+        img_name = name + ".jpg"
+        return os.path.exists(os.path.join(
+            "static", VictoryInfo.img_folder, img_name))
+        """
+
+        # Cached lookup
+        if cls.__leader_image_list is None:
+            cls.__leader_image_list = cls.__gen_leader_image_list()
+
+        return name in cls.__leader_image_list
 
 
 class Player(models.Model):
     # We leave it Django to make us a nice auto/unique PK for ForeignKey
-    # Allthough it would be nice to have a composite primary key (game, ingame_id).
+    # Although it would be nice to have a composite primary key (game, ingame_id).
     # https://github.com/simone/django-compositekey doesn't work with Django 1.7 / Python3
     # Id as a fieldname is not allowed except for primary keys
     ingame_id     = models.PositiveSmallIntegerField()
@@ -740,7 +790,7 @@ class Player(models.Model):
     color_rgb     = models.TextField(max_length=3 * 3 + 2)
     # Blending out surplus players (i.e. if other pb game loaded)
     # active is index 0, inactive get index 1, 2, ...
-    ingame_stack     = models.SmallIntegerField(default=0)
+    ingame_stack  = models.SmallIntegerField(default=0)
 
     def status(self):
         if not self.ingame_stack == 0:
@@ -821,7 +871,7 @@ class Player(models.Model):
                                                                leader=self.leader,
                                                                civilization=self.civilization)
 
-    # Required for python2.x and umlautes
+    # Required for python2.x and umlauts
     def __unicode__(self):
         return _("{name} ({leader} of {civilization})").format(name=self.name,
                                                                leader=self.leader,
@@ -1057,7 +1107,7 @@ class GameLogMissedTurn(GameLog):
             self.missed_turn_ids = ""
 
     def is_turn_incomplete(self):
-        return len(self.missed_turn_names)>0
+        return len(self.missed_turn_names) > 0
 
     # TODO: Hand a clean data structure to the template instead of making out own HTML here.
     def message(self):

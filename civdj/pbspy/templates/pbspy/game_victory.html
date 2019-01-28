@@ -14,7 +14,9 @@
     </tr>
     <tr>
         <td class="colVicImage"><a href="{% url 'game_detail' game.id %}">
+            {% if victory_info.get_victory_image != "" %}
                 <img src="{{ victory_info.get_victory_image }}" alt="Image of winning player." />
+            {% endif %}
         </a></td>
         <td class="colVicText">
             
