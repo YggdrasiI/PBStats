@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- Sid Meier's Civilization 4 Beyond the Sword -->
+<!-- RtR mod -->
+<!-- Game Text Infos -->
+<!-- -->
+<Civ4GameText xmlns="http://www.firaxis.com">
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_NO_CITY_TRADING</Tag>
+		<English>No city trading</English>
+		<French>No city trading</French>
+		<German>No city trading</German>
+		<Italian>No city trading</Italian>
+		<Spanish>No city trading</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_NO_CITY_TRADING_HELP</Tag>
+		<English>City trading is disabled from the diplo window.</English>
+		<French>City trading is disabled from the diplo window.</French>
+		<German>City trading is disabled from the diplo window.</German>
+		<Italian>City trading is disabled from the diplo window.</Italian>
+		<Spanish>City trading is disabled from the diplo window.</Spanish>
+	</TEXT>
+</Civ4GameText>
