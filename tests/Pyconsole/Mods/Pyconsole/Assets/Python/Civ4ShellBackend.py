@@ -7,6 +7,10 @@ import sys
 from StringIO import StringIO
 from threading import Thread, Timer
 from time import sleep
+try:
+    import simplejson as json
+except ImportError:
+    print("Import of simplejson failed. Several commands will not work.")
 
 TCP_IP = '127.0.0.1'
 TCP_PORT = 3333
@@ -30,18 +34,22 @@ class Server:
         self.pbAdminFrame = None    # PbAdmin.py
 
     def __del__(self):
+        print("Civ4Shell __del__")
         # Stop server
         self.run = False
         self.close()
 
     def close(self):
-        if self.conn is not None:
-            # print("Closing Server...")
-            self.conn.close()
-            self.conn = None
-        if self.s is not None:
-            self.s.close()
-            self.s = None
+        if not self.run:
+            return
+
+        print("Civ4Shell close")
+        self.run = False
+        # Hm, only a request release the lock on the listen socket...
+        # How to avoid this ugly hack?!
+        # Comment out because it fails on Windows
+        # socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
+        #    (self.tcp_ip, self.tcp_port))
 
     def start(self):
         self.run = True
@@ -54,7 +62,7 @@ class Server:
         while self.run:
             data = self.conn.recv(BUFFER_SIZE)
             if not data:
-                print "(Civ4Shell) Client disconnects"
+                print("(Civ4Shell) Client disconnects")
                 self.conn, self.addr = self.s.accept()
                 continue
 
@@ -77,7 +85,13 @@ class Server:
                 # Client expect message
                 self.conn.send(EOF)
 
-        self.close()
+        # Cleanup/Release port
+        if self.conn is not None:
+            self.conn.close()
+            self.conn = None
+        if self.s is not None:
+            self.s.close()
+            self.s = None
 
     def init(self):
         """ Should be called by game loop thread. """
@@ -92,6 +106,7 @@ class Server:
         while len(self.code_store) > 0:
             data = self.code_store.pop(0)
             if data[0:2].lower() == "p:":  # Call code
+                glob["adminFrame"] = self.pbAdminFrame
                 # Execute input
                 (out, err) = self.run_code(data[2:], glob, loc)
 
@@ -102,11 +117,15 @@ class Server:
                     self.output_store.append("%s%s%c" % (out, err, EOF))
                 else:  # Without stderr
                     self.output_store.append("%s%c" % (out, EOF))
-            elif data[0:2] == "q:":  # Quit shell
+            elif data[0:2] == "q:":  # Quit shell and ( wizard or admin frame)
+                if self.pbAdminFrame:
+                    self.pbAdminFrame.OnExit(None)
+                elif self.pbStartupIFace:
+                    self.pbStartupIFace.bQuitWizard = True
                 self.run = False
                 return False
             elif data[0:2] == "Q:":  # Quit PB_Server
-                gc = glob.get("gc")
+                # gc = glob.get("gc")
                 PB = glob.get("PB")
                 if self.pbAdminFrame:
                     self.pbAdminFrame.OnExit(None)
@@ -114,20 +133,47 @@ class Server:
                     # Should not be reached. (see 'q:' branch)
                     PB.quit()
                 else:
-                    CyPitboss().consoleOut("Quit not possible. Unable to quit all app threads.")
+                    print("Quit not possible. Unable to quit all app threads.")
 
                 self.run = False
                 return False
             elif data[0:2] == "M:":
                 self.output_store.append("%s%c" % (self.get_mode(), EOF))
             elif data[0:2] == "s:":  # Status information
-                import simplejson as json
                 s = json.dumps(self.gen_status_infos(glob))
                 self.output_store.append("%s%c" % (s, EOF))
             elif data[0:2] == "l:":  # Save loadable information
-                import simplejson as json
                 s = json.dumps(self.gen_loadable_status(glob))
                 self.output_store.append("%s%c" % (s, EOF))
+            elif data[0:2] == "U:":  # Prepare Mod Update
+                # Only useful in combination with PBStats/tests/Updater
+                ws = glob.get("Webserver")
+                if ws:
+                    tmp_str = StringIO()
+                    ws.Action_Handlers["modUpdate"](wfile=tmp_str)
+                    self.output_store.append("%s%c" % (tmp_str.getvalue(), EOF))
+            elif data[0:2] == "A:":  # Simulate webserver interaction
+                ws = glob.get("Webserver")
+                tmp_str = StringIO()
+                try:
+                    s = json.loads(data[2:])
+                    action = s["action"]
+                    args = s.get("args", None)
+                    # ws.Action_Handlers[action](inputdata=args, wfile=tmp_str)
+                    try:
+                        server = self.pbAdminFrame.webserver
+                    except:
+                        server = None
+
+                    ws.Action_Handlers[action](inputdata=args,
+                                               server=server, wfile=tmp_str)
+                    # escaped_str = json.dumps(tmp_str.getvalue())
+                    self.output_store.append(tmp_str.getvalue())
+                except Exception, e:
+                    err_msg = json.dumps(str(e))
+                    self.output_store.append(
+                        "{'info': 'Error: %s', 'return': 'fail'}" % (err_msg,))
+
             elif data[0:2] == "S:":  # Search/Completion
                 # TODO
                 break
@@ -203,11 +249,12 @@ class Server:
         ws = glob.get("Webserver")
         if not ws:
             return {"error": "No Webserver module available."}
-        dSave = ws.getPbSettings().get("save")
+        dSave = ws.PbSettings.get("save")
         sName = dSave["filename"]
         preferedIdx = dSave.get("folderIndex", 0)
-        pbPasswords = []  # ws.getPbPasswords()
-        pbPasswords.append(dSave.get("adminpw", ""))
+        # pbPasswords = []
+        # pbPasswords.append(dSave.get("adminpw", ""))
+        pbPasswords = ws.PbSettings.getPbPasswords()
         ret = {"loadable":
                ws.isLoadableSave(sName, preferedIdx, pbPasswords),
                "name": sName}
@@ -235,9 +282,10 @@ class GameDummy:
             self.timer = Timer(self.seconds, self.handle_function)  # New context
             self.timer.start()
 
-    """ Similar to definition in CvEventManager.py """
     def onGameUpdate(self, argsList):
-        'sample generic event, called on each game turn slice'
+        ''''sample generic event, called on each game turn slice
+        Similar to definition in CvEventManager.py
+        '''
         genericArgs = argsList[0][0]  # tuple of tuple of my args
         turnSlice = genericArgs[0]
 
