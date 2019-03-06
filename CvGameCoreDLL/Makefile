@@ -69,7 +69,10 @@ Release_INCS=$(PROJECT_INCS) $(GLOBAL_INCS)
 
 #### LIBS ####
 GLOBAL_LIBS=/LIBPATH:"$(TOOLKIT)/lib" /LIBPATH:"$(PSDK)/Lib" winmm.lib user32.lib
-PROJECT_LIBS=/LIBPATH:Python24/libs /LIBPATH:boost-1.32.0/libs/ boost_python-vc71-mt-1_32.lib
+PROJECT_LIBS=/LIBPATH:Python24/libs /LIBPATH:boost-1.32.0/libs/ boost_python-vc71-mt-1_32.lib \
+	thread.obj exceptions.obj condition.obj xtime.obj mutex.obj once.obj \
+	recursive_mutex.obj read_write_mutex.obj tss_hooks.obj
+
 Debug_LIBS=$(PROJECT_LIBS) $(GLOBAL_LIBS) msvcprt.lib
 Release_LIBS=$(PROJECT_LIBS) $(GLOBAL_LIBS)
 
