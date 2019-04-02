@@ -6,6 +6,7 @@ import operator
 import functools
 from datetime import datetime
 import pytz
+import logging
 
 # from django import forms
 from django.http import HttpResponseBadRequest, HttpResponse
@@ -38,6 +39,10 @@ from pbspy.models import GameLogTurn, GameLogReload, GameLogMetaChange, GameLogT
     GameLogClaimed, GameLogAdminAction, GameLogAdminSave, GameLogAdminPause, GameLogAdminEndTurn,\
     GameLogForceDisconnect, GameLogMissedTurn, GameLogCurrentTimerChanged,\
     VictoryInfo
+
+
+logger = logging.getLogger(__name__)
+
 
 class GameListView(ListView):
     model = Game
@@ -714,7 +719,11 @@ def game_update(request):
         game_id = int(request.POST['id'])
         pw_hash = request.POST['pwHash']
     except (KeyError, ValueError):
+        logger.error('invalid game pw hash, id: {} / {}'.format(game_id, request.META.get('REMOTE_ADDR')))
         return HttpResponseBadRequest('bad request')
+    except Game.DoesNotExist:
+        logger.error('invalid game requested, id: {} / {}'.format(game_id, request.META.get('REMOTE_ADDR')))
+        return HttpResponseBadRequest('game id not found')
 
     game = Game.objects.get(id=game_id)
     if pw_hash != game.auth_hash():
