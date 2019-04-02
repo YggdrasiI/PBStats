@@ -1,5 +1,5 @@
 bleach
-Django>=1.11.15
+Django~=1.11.15
 django-bleach
 django-crispy-forms
 django-debug-toolbar
