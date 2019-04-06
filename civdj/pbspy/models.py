@@ -328,7 +328,7 @@ class Game(models.Model):
                                   in info['players'] if not player_info['finishedTurn']]
                 if (len(unfinished_new) == 1
                         and unfinished_new[0] > 0
-                        and not self.player_set.filer(ingame_stack=0).filter(
+                        and not self.player_set.filter(ingame_stack=0).filter(
                             ingame_id=(unfinished_new[0]-1))[0].finished_turn):
                     pass
                 else:
