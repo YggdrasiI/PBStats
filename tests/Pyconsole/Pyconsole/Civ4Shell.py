@@ -348,7 +348,7 @@ class Civ4Shell(cmd.Cmd):
                                         ".CivBeyondSwordSave")
 
             # Path relative to game dir, but not root/altroot.
-            filepath = "\\".join(["Saves", "multi", saveName])
+            # filepath = "\\".join(["Saves", "multi", saveName])
 
             mode = str(self.send("M:"))
             if mode == "pb_wizard":
@@ -357,19 +357,21 @@ class Civ4Shell(cmd.Cmd):
                 return
 
             d = """\
-try:
-  abs_path = gc.getAltrootDir() + "\\\\"
-except AttributeError:
-  abs_path = ""
-
-fpath = \"%s%s\" % (abs_path, \"{0}\")
-if CyPitboss().save(fpath):
-  print(\"Game saved as %s\" % (fpath,))
+sname = '{0}'
+if PbSettings.createSave(sname)['return'] == 'ok':
+  print('Game saved as %s' % (sname,))
 else:
-  print(\"Save failed\")
-""".format(filepath)
+  print('Save failed')
+""".format(saveName)
             # print(d)
+
+            # Disable automatic_print because above code can not be nested
+            # (why?)
+            automatic_print_backup = self.automatic_print
+            self.automatic_print = False
+
             self.default(d)
+            self.automatic_print = automatic_print_backup
 
         else:
             self.warn("No file name given.")
