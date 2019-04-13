@@ -27,8 +27,9 @@ Civ4:BTS installation folder. Do not delete/move the normal executable. It's sti
 • Extend the port forwarding of Civ4 on the new port. This step depends on your network settings. 
 
 2b) As Pitboss host (the old way / with Linux in mind):
+The tricky part is the encoding of the server ip into the data, provided to the clients, if they loading the save.
 • Assume that your current Altroot folder for the server is $HOME/PBs/PB1
-	and your server has the ip 1.2.3.4. The follwing steps try to fit some paths/urls
+	and your server has the ip 1.2.3.4. The following steps try to fit some paths/urls
 into matching pairs.
 
 • Setup a webserver and prepare a folder for your PB saves and allow symlinks.
@@ -38,8 +39,8 @@ Example path: /var/www/PBs
 Move the Pitboss Altroot folder into this directory.
 Example path: $HOME/_http_1.2.3.4/PBs/PB1.
 
-=> At runtime Civ4 will stores the save games into 
-Z:\home\$USERNAME\_http_1.2.3.4\PBs\PB1\Saves\pitboss\auto.
+=> At runtime Civ4 will store the save games into 
+Z:\home\$USERNAME\_http_1.2.3.4\PBs\PB1\Saves\pitboss\auto (Windows path syntax) .
 
 • Create the directory /var/www/PBs/PB1/Save/ and place a symbolic link into the above pitboss directory.
 

@@ -328,7 +328,7 @@ class Game(models.Model):
                                   in info['players'] if not player_info['finishedTurn']]
                 if (len(unfinished_new) == 1
                         and unfinished_new[0] > 0
-                        and not self.player_set.filer(ingame_stack=0).filter(
+                        and not self.player_set.filter(ingame_stack=0).filter(
                             ingame_id=(unfinished_new[0]-1))[0].finished_turn):
                     pass
                 else:
@@ -942,7 +942,7 @@ class GameLogMetaChange(GameLog):
 
 
 class GameLogTimerChanged(GameLog):
-    timer_max_h = models.PositiveSmallIntegerField(blank=True, null=True)
+    timer_max_h = models.PositiveIntegerField(blank=True, null=True)
 
     def message(self):
         if self.timer_max_h is not None:
@@ -953,8 +953,8 @@ class GameLogTimerChanged(GameLog):
 
 class GameLogCurrentTimerChanged(GameLog):
     # Store old and new value of game.timer_remaining_4s
-    from_4s = models.PositiveSmallIntegerField(blank=True, null=True)
-    to_4s = models.PositiveSmallIntegerField(blank=True, null=True)
+    from_4s = models.PositiveIntegerField(blank=True, null=True)
+    to_4s = models.PositiveIntegerField(blank=True, null=True)
 
     def message(self):
         if self.from_4s is not None and self.to_4s is not None:
