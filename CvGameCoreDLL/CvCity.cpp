@@ -3106,7 +3106,13 @@ int CvCity::getProductionModifier(BuildingTypes eBuilding) const
 	{
 		if (hasBonus((BonusTypes)iI))
 		{
-			iMultiplier += GC.getBuildingInfo(eBuilding).getBonusProductionModifier(iI);
+			//Charriu for RtR mod 14.04.2019
+			if (isWorldWonderClass((BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType())) && GC.getGameINLINE().isOption(GAMEOPTION_NO_WONDER_RESOURCE))
+			{
+				
+			}
+			else
+				iMultiplier += GC.getBuildingInfo(eBuilding).getBonusProductionModifier(iI);
 		}
 	}
 

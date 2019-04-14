@@ -6992,6 +6992,11 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const
 
 		return DENIAL_TOO_MUCH;
 	}
+	//Charriu for RtR mod 14.04.2019
+	if(GC.getGameINLINE().isOption(GAMEOPTION_NO_MAP_TRADING)) {
+
+		return DENIAL_TOO_MUCH;
+	}
 
 	if (pCity->getLiberationPlayer(false) == ePlayer)
 	{

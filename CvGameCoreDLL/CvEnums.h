@@ -731,6 +731,9 @@ enum GameOptionTypes				// Exposed to Python
 	GAMEOPTION_NO_ESPIONAGE,
 //Plako for RtR mod 11.8.2015
 	GAMEOPTION_NO_CITY_TRADING,
+//Charriu for RtR mod 14.04.2019
+	GAMEOPTION_NO_MAP_TRADING,
+	GAMEOPTION_NO_WONDER_RESOURCE,
 
 
 #ifdef _USRDLL
