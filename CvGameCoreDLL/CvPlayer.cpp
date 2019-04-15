@@ -3877,12 +3877,6 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 
 	case TRADE_CITIES:
 		{
-			//Charriu for RtR mod 14.04.2019
-			if (GC.getGameINLINE().isOption(GAMEOPTION_NO_CITY_TRADING))
-			{
-				return false;
-			}
-			//end RtR mod
 			CvCity* pCityTraded = getCity(item.m_iData);
 			
 			// RBMP bugfix - cancel trade if city to be traded doesn't exist anymore
@@ -3936,7 +3930,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	case TRADE_MAPS:
 
 		//Plako for RtR mod No barbs = no map trading
-		if (GC.getGameINLINE().isOption(GAMEOPTION_NO_MAP_TRADING))
+		if (GC.getGameINLINE().isOption(GAMEOPTION_NO_BARBARIANS))
 		{
 			return false;
 		}

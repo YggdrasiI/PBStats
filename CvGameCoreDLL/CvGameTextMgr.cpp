@@ -7737,33 +7737,26 @@ void CvGameTextMgr::setBuildingHelp(CvWStringBuffer &szBuffer, BuildingTypes eBu
 						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
 					}
 				}
-				//Charriu for RtR mod 14.04.2019
-				if (isWorldWonderClass((BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType())) && GC.getGameINLINE().isOption(GAMEOPTION_NO_WONDER_RESOURCE))
+				if (!bCivilopediaText)
 				{
+					szBuffer.append(L" (");
 				}
 				else
 				{
-					if (!bCivilopediaText)
-					{
-						szBuffer.append(L" (");
-					}
-					else
-					{
-						szTempBuffer.Format(L"\n%c", gDLL->getSymbolID(BULLET_CHAR), szTempBuffer);
-						szBuffer.append(szTempBuffer);
-					}
-					if (kBuilding.getBonusProductionModifier(iI) == 100)
-					{
-						szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_DOUBLE_SPEED_WITH", GC.getBonusInfo((BonusTypes)iI).getTextKeyWide()));
-					}
-					else
-					{
-						szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_BUILDS_FASTER_WITH", kBuilding.getBonusProductionModifier(iI), GC.getBonusInfo((BonusTypes)iI).getTextKeyWide()));
-					}
-					if (!bCivilopediaText)
-					{
-						szBuffer.append(L')');
-					}
+					szTempBuffer.Format(L"\n%c", gDLL->getSymbolID(BULLET_CHAR), szTempBuffer);
+					szBuffer.append(szTempBuffer);
+				}
+				if (kBuilding.getBonusProductionModifier(iI) == 100)
+				{
+					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_DOUBLE_SPEED_WITH", GC.getBonusInfo((BonusTypes)iI).getTextKeyWide()));
+				}
+				else
+				{
+					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_BUILDS_FASTER_WITH", kBuilding.getBonusProductionModifier(iI), GC.getBonusInfo((BonusTypes)iI).getTextKeyWide()));
+				}
+				if (!bCivilopediaText)
+				{
+					szBuffer.append(L')');
 				}
 				if (pCity != NULL)
 				{

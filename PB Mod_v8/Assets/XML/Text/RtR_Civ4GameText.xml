@@ -4,52 +4,20 @@
 <!-- Game Text Infos -->
 <!-- -->
 <Civ4GameText xmlns="http://www.firaxis.com">
-  <TEXT>
-    <Tag>TXT_KEY_GAME_OPTION_NO_MAP_TRADING</Tag>
-    <English>No Map Trading</English>
-    <French>No Map Trading</French>
-    <German>Kein Karten Handel</German>
-    <Italian>No Map Trading</Italian>
-    <Spanish>No Map Trading</Spanish>
-  </TEXT>
-  <TEXT>
-    <Tag>TXT_KEY_GAME_OPTION_NO_MAP_TRADING_HELP</Tag>
-    <English>Trading maps via the trading window is not possible</English>
-    <French>Trading maps via the trading window is not possible</French>
-    <German>Karten können nicht mit Hilfe des Handelsbildschirms gehandelt werden</German>
-    <Italian>Trading maps via the trading window is not possible</Italian>
-    <Spanish>Trading maps via the trading window is not possible</Spanish>
-  </TEXT>
-  <TEXT>
-    <Tag>TXT_KEY_GAME_OPTION_NO_CITY_TRADING</Tag>
-    <English>No City Trading</English>
-    <French>No City Trading</French>
-    <German>Kein Stadt Handel</German>
-    <Italian>No City Trading</Italian>
-    <Spanish>No City Trading</Spanish>
-  </TEXT>
-  <TEXT>
-    <Tag>TXT_KEY_GAME_OPTION_NO_CITY_TRADING_HELP</Tag>
-    <English>Trading cities via the trading window is not possible</English>
-    <French>Trading cities via the trading window is not possible</French>
-    <German>Städte können nicht mit Hilfe des Handelsbildschirms gehandelt werden</German>
-    <Italian>Trading cities via the trading window is not possible</Italian>
-    <Spanish>Trading cities via the trading window is not possible</Spanish>
-  </TEXT>
-  <TEXT>
-    <Tag>TXT_KEY_GAME_OPTION_NO_WONDER_RESOURCE</Tag>
-    <English>No resource modifier for world wonders</English>
-    <French>No resource modifier for world wonders</French>
-    <German>Keine Resourcen Boni für Weltwunder</German>
-    <Italian>No resource modifier for world wonders</Italian>
-    <Spanish>No resource modifier for world wonders</Spanish>
-  </TEXT>
-  <TEXT>
-    <Tag>TXT_KEY_GAME_OPTION_NO_WONDER_RESOURCE_HELP</Tag>
-    <English>The production of world wonders can no longer be sped up via resources</English>
-    <French>The production of world wonders can no longer be sped up via resources</French>
-    <German>Weltwunder können nicht mehr mit Hilfe von Resourcen beschleunigt werden</German>
-    <Italian>The production of world wonders can no longer be sped up via resources</Italian>
-    <Spanish>The production of world wonders can no longer be sped up via resources</Spanish>
-  </TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_NO_CITY_TRADING</Tag>
+		<English>No city trading</English>
+		<French>No city trading</French>
+		<German>No city trading</German>
+		<Italian>No city trading</Italian>
+		<Spanish>No city trading</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_NO_CITY_TRADING_HELP</Tag>
+		<English>City trading is disabled from the diplo window.</English>
+		<French>City trading is disabled from the diplo window.</French>
+		<German>City trading is disabled from the diplo window.</German>
+		<Italian>City trading is disabled from the diplo window.</Italian>
+		<Spanish>City trading is disabled from the diplo window.</Spanish>
+	</TEXT>
 </Civ4GameText>
