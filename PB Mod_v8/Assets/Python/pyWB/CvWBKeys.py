@@ -31,9 +31,12 @@ try:
     CityKeys.extend(CvWBKeys_auto.CityKeys)
 
     del sys.modules['CvWBKeys_auto']  # Module not needed anymore
-except Exception as e:
-    raise(e)
-    pass
+except:
+    print("Import of CvWBKeys_auto.py failed.")
+
+# except Exception as e:  # Wrong syntaxt in Python 2.4
+#    raise(e)
+#    pass
 
 
 # Some city keys are used as Civ/Leader keys, too.

@@ -5,7 +5,12 @@ import CvUtil
 from array import *
 
 from CvWBKeys import *
-import CvPlatyBuilderScreen
+
+try:
+    import CvPlatyBuilderScreen
+    WITH_PLATY = True
+except:
+    WITH_PLATY = False
 
 # globals
 gc = CyGlobalContext()
@@ -2068,8 +2073,10 @@ class CvWBDesc:
         The techs/buildings will be restored after the writing of the save game.
         This should not call any Python-Events (bad side effect).
         """
-        backup_bPython =  CvPlatyBuilderScreen.bPython
-        CvPlatyBuilderScreen.bPython = False
+        if WITH_PLATY:
+            backup_bPython =  CvPlatyBuilderScreen.bPython
+            CvPlatyBuilderScreen.bPython = False
+
         global teamTechs
         global cityBuildings
         global bFirstWrite
@@ -2152,7 +2159,9 @@ class CvWBDesc:
                     pTeam.setHasTech(i, True, PlayerTypes.NO_PLAYER, False, False)
         else:
             bFirstWrite = False;
-        CvPlatyBuilderScreen.bPython = backup_bPython
+
+        if WITH_PLATY:
+            CvPlatyBuilderScreen.bPython = backup_bPython
         """ End, Restore buildings and techs """
 
         print("WBSave done\n")
