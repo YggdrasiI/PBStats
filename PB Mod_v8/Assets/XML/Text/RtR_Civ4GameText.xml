@@ -52,4 +52,20 @@
     <Italian>The production of world wonders can no longer be sped up via resources</Italian>
     <Spanish>The production of world wonders can no longer be sped up via resources</Spanish>
   </TEXT>
+  <TEXT>
+    <Tag>TXT_KEY_GAME_OPTION_NO_IMMEDIATE_PEACE</Tag>
+    <English>No Immediate Peace Treaties</English>
+    <French>No Immediate Peace Treaties</French>
+    <German>Keine sofortigen Friedensverträge</German>
+    <Italian>No Immediate Peace Treaties</Italian>
+    <Spanish>No Immediate Peace Treaties</Spanish>
+  </TEXT>
+  <TEXT>
+    <Tag>TXT_KEY_GAME_OPTION_NO_IMMEDIATE_PEACE_HELP</Tag>
+    <English>Peace Treaties cannot be signed until 5 turns after war declaration unless a city has been captured by one of the two parties.</English>
+    <French>Peace Treaties cannot be signed until 5 turns after war declaration unless a city has been captured by one of the two parties.</French>
+    <German>Friedensverträge können erst 5 Runden nach Kriegsbeginn verhandelt werden oder nachdem eine Stadt einer der beiden Parteien erobert wurde.</German>
+    <Italian>Peace Treaties cannot be signed until 5 turns after war declaration unless a city has been captured by one of the two parties.</Italian>
+    <Spanish>Peace Treaties cannot be signed until 5 turns after war declaration unless a city has been captured by one of the two parties.</Spanish>
+  </TEXT>
 </Civ4GameText>
