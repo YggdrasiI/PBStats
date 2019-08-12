@@ -176,6 +176,8 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 
 	m_bMapCentering = false;
 	m_bCapitulated = false;
+	//Charriu Added for RtR 16.06.2019
+	m_bCircumnavigated = false;
 
 	m_eID = eID;
 
@@ -3129,6 +3131,21 @@ void CvTeam::setMapCentering(bool bNewValue)
 	}
 }
 
+//Charriu Added for RtR 16.06.2019
+bool CvTeam::isCircumNavigated() const
+{
+	return m_bCircumnavigated;
+}
+
+//Charriu Added for RtR 16.06.2019
+void CvTeam::setCircumNavigated(bool bNewValue)
+{
+	if (isCircumNavigated() != bNewValue)
+	{
+		m_bCircumnavigated = bNewValue;
+	}
+}
+
 
 TeamTypes CvTeam::getID() const
 {
@@ -5298,6 +5315,14 @@ void CvTeam::testCircumnavigated()
 		return;
 	}
 
+	if (GC.getDefineINT("CIRCUM_FOR_EVERYBODY") > 0)
+	{
+		if (isCircumNavigated())
+		{
+			return;
+		}
+	}
+
 	if (GC.getMapINLINE().isWrapXINLINE())
 	{
 		for (iX = 0; iX < GC.getMapINLINE().getGridWidthINLINE(); iX++)
@@ -5352,6 +5377,7 @@ void CvTeam::testCircumnavigated()
 	{
 		if (GC.getDefineINT("CIRCUMNAVIGATE_FREE_MOVES") != 0)
 		{
+			setCircumNavigated(true);
 			changeExtraMoves(DOMAIN_SEA, GC.getDefineINT("CIRCUMNAVIGATE_FREE_MOVES"));
 
 			for (int iI = 0; iI < MAX_PLAYERS; iI++)
@@ -5950,6 +5976,7 @@ void CvTeam::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iRiverTradeCount);
 	pStream->Read(&m_iEspionagePointsEver);
 
+	pStream->Read(&m_bCircumnavigated);
 	pStream->Read(&m_bMapCentering);
 	pStream->Read(&m_bCapitulated);
 
@@ -6050,6 +6077,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 	pStream->Write(m_iRiverTradeCount);
 	pStream->Write(m_iEspionagePointsEver);
 
+	pStream->Write(m_bCircumnavigated);
 	pStream->Write(m_bMapCentering);
 	pStream->Write(m_bCapitulated);
 

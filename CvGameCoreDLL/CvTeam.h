@@ -185,6 +185,10 @@ public:
 
 	bool isMapCentering() const;																							// Exposed to Python	
 	void setMapCentering(bool bNewValue);																					// Exposed to Python	
+
+	//Charriu Added for RtR 16.06.2019
+	bool isCircumNavigated() const;																							// Exposed to Python	
+	void setCircumNavigated(bool bNewValue);																					// Exposed to Python	
 																																								
 	TeamTypes getID() const;																											// Exposed to Python	
 
@@ -391,6 +395,8 @@ protected:
 	int m_iRiverTradeCount;
 	int m_iEspionagePointsEver;
 
+	//Charriu Added for RtR 16.06.2019
+	bool m_bCircumnavigated;
 	bool m_bMapCentering;
 	bool m_bCapitulated;
 
