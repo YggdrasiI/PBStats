@@ -887,19 +887,6 @@ class StagingPage(wx.wizard.WizardPageSimple):
         # Add our options box to the page
         self.pageSizer.Add(self.optionsSizer, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
 
-        self.bPlayerPanel = False  # Delayed creation
-        self._playerPanel = wx.lib.scrolledpanel.ScrolledPanel(self, -1, size=(800, 300), style=wx.SUNKEN_BORDER)
-        self._panelSizer = wx.BoxSizer(wx.VERTICAL)
-        self.fill_player_panel(0, 1)
-
-        self.leaderRefresh = True
-
-        self.Bind(wx.wizard.EVT_WIZARD_PAGE_CHANGED, self.OnPageChanged)
-        self.Bind(wx.wizard.EVT_WIZARD_PAGE_CHANGING, self.OnPageChanging)
-
-        self.SetSizer(self.pageSizer)
-
-    def fill_player_panel(self, id_from=0, id_to=gc.getMAX_CIV_PLAYERS()):
         # Slot status - choices are static
         slotStatusList = [LT.getText("TXT_KEY_PITBOSS_HUMAN", ()), LT.getText("TXT_KEY_PITBOSS_COMPUTER", ()), LT.getText("TXT_KEY_PITBOSS_CLOSED", ())]
 
@@ -920,26 +907,26 @@ class StagingPage(wx.wizard.WizardPageSimple):
         for rowNum in range(PB.getNumHandicaps()):
             diffList.append((PB.getHandicapAt(rowNum)))
 
+        self.playerPanel = wx.lib.scrolledpanel.ScrolledPanel(self, -1, size=(800, 300), style=wx.SUNKEN_BORDER)
+        self.panelSizer = wx.BoxSizer(wx.VERTICAL)
+
         # NOTE: Takes big amount of time. construction of table was be delayed
         #       to first access to page.
 
         # Create a row - enough for the max players in a Pitboss game
-        for rowNum in range(id_from, id_to):
+        for rowNum in range(gc.getMAX_CIV_PLAYERS()):
             # Create the border box
-            border = wx.StaticBox(self._playerPanel, -1, (LT.getText("TXT_KEY_PITBOSS_PLAYER", (rowNum+1, ))), (0, (rowNum*30)))
+            border = wx.StaticBox(self.playerPanel, -1, (LT.getText("TXT_KEY_PITBOSS_PLAYER", (rowNum+1, ))), (0, (rowNum*30)))
             # Create the layout mgr
             rowSizer = wx.StaticBoxSizer(border, wx.HORIZONTAL)
 
             # Get the info struct
-            if rowNum > 0:
-                PB.consoleOut("slow loop over players %i/%i... "
-                              "" % (rowNum, id_to))
             playerData = PB.getPlayerSetupData(rowNum)
 
             # Slot status dropdown
             itemSizer = wx.BoxSizer(wx.VERTICAL)
-            txt = wx.StaticText(self._playerPanel, -1, (LT.getText("TXT_KEY_PITBOSS_WHO", ())))
-            dropDown = wx.Choice(self._playerPanel, rowNum, (-1, -1), choices=slotStatusList)
+            txt = wx.StaticText(self.playerPanel, -1, (LT.getText("TXT_KEY_PITBOSS_WHO", ())))
+            dropDown = wx.Choice(self.playerPanel, rowNum, (-1, -1), choices=slotStatusList)
             dropDown.SetSelection(playerData.iWho)
             itemSizer.Add(txt)
             itemSizer.Add(dropDown)
@@ -949,8 +936,8 @@ class StagingPage(wx.wizard.WizardPageSimple):
 
             # Civ dropdown
             itemSizer = wx.BoxSizer(wx.VERTICAL)
-            txt = wx.StaticText(self._playerPanel, -1, (LT.getText("TXT_KEY_PITBOSS_CIV", ())))
-            dropDown = wx.Choice(self._playerPanel, rowNum, (-1, -1), choices=civList)
+            txt = wx.StaticText(self.playerPanel, -1, (LT.getText("TXT_KEY_PITBOSS_CIV", ())))
+            dropDown = wx.Choice(self.playerPanel, rowNum, (-1, -1), choices=civList)
             dropDown.SetSelection(playerData.iCiv+1)
             itemSizer.Add(txt)
             itemSizer.Add(dropDown)
@@ -960,8 +947,8 @@ class StagingPage(wx.wizard.WizardPageSimple):
 
             # Leader dropdown
             itemSizer = wx.BoxSizer(wx.VERTICAL)
-            txt = wx.StaticText(self._playerPanel, -1, (LT.getText("TXT_KEY_PITBOSS_LEADER", ())))
-            dropDown = wx.Choice(self._playerPanel, rowNum, (-1, -1), choices=leaderList)
+            txt = wx.StaticText(self.playerPanel, -1, (LT.getText("TXT_KEY_PITBOSS_LEADER", ())))
+            dropDown = wx.Choice(self.playerPanel, rowNum, (-1, -1), choices=leaderList)
             dropDown.SetSelection(playerData.iLeader+1)
             itemSizer.Add(txt)
             itemSizer.Add(dropDown)
@@ -971,8 +958,8 @@ class StagingPage(wx.wizard.WizardPageSimple):
 
             # Team dropdown
             itemSizer = wx.BoxSizer(wx.VERTICAL)
-            txt = wx.StaticText(self._playerPanel, -1, (LT.getText("TXT_KEY_PITBOSS_TEAM", ())))
-            dropDown = wx.Choice(self._playerPanel, rowNum, (-1, -1), choices=teamList)
+            txt = wx.StaticText(self.playerPanel, -1, (LT.getText("TXT_KEY_PITBOSS_TEAM", ())))
+            dropDown = wx.Choice(self.playerPanel, rowNum, (-1, -1), choices=teamList)
             dropDown.SetSelection(playerData.iTeam)
             itemSizer.Add(txt)
             itemSizer.Add(dropDown)
@@ -982,8 +969,8 @@ class StagingPage(wx.wizard.WizardPageSimple):
 
             # Difficulty dropdown
             itemSizer = wx.BoxSizer(wx.VERTICAL)
-            txt = wx.StaticText(self._playerPanel, -1, (LT.getText("TXT_KEY_PITBOSS_DIFFICULTY", ())))
-            dropDown = wx.Choice(self._playerPanel, rowNum, (-1, -1), choices=diffList)
+            txt = wx.StaticText(self.playerPanel, -1, (LT.getText("TXT_KEY_PITBOSS_DIFFICULTY", ())))
+            dropDown = wx.Choice(self.playerPanel, rowNum, (-1, -1), choices=diffList)
             dropDown.SetSelection(playerData.iDifficulty)
             itemSizer.Add(txt)
             itemSizer.Add(dropDown)
@@ -993,21 +980,28 @@ class StagingPage(wx.wizard.WizardPageSimple):
 
             # Ready status
             itemSizer = wx.BoxSizer(wx.VERTICAL)
-            txt = wx.StaticText(self._playerPanel, -1, (LT.getText("TXT_KEY_PITBOSS_STATUS", ())))
-            statusTxt = wx.StaticText(self._playerPanel, rowNum, playerData.getStatusText())
+            txt = wx.StaticText(self.playerPanel, -1, (LT.getText("TXT_KEY_PITBOSS_STATUS", ())))
+            statusTxt = wx.StaticText(self.playerPanel, rowNum, playerData.getStatusText())
             itemSizer.Add(txt)
             itemSizer.Add(statusTxt)
             rowSizer.Add(itemSizer, 0, wx.ALL, 5)
             self.statusArray.append(statusTxt)
 
             # Add row to page Sizer
-            self._panelSizer.Add(rowSizer, 0, wx.ALL, 5)
+            self.panelSizer.Add(rowSizer, 0, wx.ALL, 5)
 
-        self._playerPanel.SetSizer(self._panelSizer)
-        self._playerPanel.SetAutoLayout(1)
-        self._playerPanel.SetupScrolling()
-        self.pageSizer.Add(self._playerPanel, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+        self.playerPanel.SetSizer(self.panelSizer)
+        self.playerPanel.SetAutoLayout(1)
+        self.playerPanel.SetupScrolling()
+
+        self.pageSizer.Add(self.playerPanel, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+
         self.leaderRefresh = False
+
+        self.Bind(wx.wizard.EVT_WIZARD_PAGE_CHANGED, self.OnPageChanged)
+        self.Bind(wx.wizard.EVT_WIZARD_PAGE_CHANGING, self.OnPageChanging)
+
+        self.SetSizer(self.pageSizer)
 
     def enableButtons(self):
         self.myParent.FindWindowById(wx.ID_FORWARD).Enable(True)
@@ -1184,13 +1178,6 @@ class StagingPage(wx.wizard.WizardPageSimple):
 
     def OnPageChanged(self, event):
         global curPage
-
-        if not self.bPlayerPanel:
-            self.bPlayerPanel = True
-            self.fill_player_panel(1)
-        else:
-            self.pageSizer.Add(self._playerPanel, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
-            self.leaderRefresh = False
 
         # Determine what buttons should be enabled
         self.enableButtons()
