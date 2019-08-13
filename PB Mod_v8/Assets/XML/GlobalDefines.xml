@@ -1858,6 +1858,10 @@
 		<DefineName>SLAVERY_NERF_ENABLED</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
+  <Define>
+    <DefineName>CIRCUM_FOR_EVERYBODY</DefineName>
+    <iDefineIntVal>1</iDefineIntVal>
+  </Define>
 	<Define>
 		<DefineName>ENABLE_EXECUTIVE_SPAWNS_FOR_STRAGGLERS</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
