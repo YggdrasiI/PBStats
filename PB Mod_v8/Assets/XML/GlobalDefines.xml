@@ -755,7 +755,7 @@
 	</Define>
 	<Define>
 		<DefineName>PEACE_TREATY_LENGTH</DefineName>
-		<iDefineIntVal>10</iDefineIntVal>
+		<iDefineIntVal>5</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>MAX_ANARCHY_TURNS</DefineName>
@@ -1904,6 +1904,10 @@
 	</Define>
 	<Define>
 		<DefineName>PEACE_TREATY_NEGOTIATIONS</DefineName>
-		<iDefineIntVal>20</iDefineIntVal>
+		<iDefineIntVal>5</iDefineIntVal>
 	</Define>
+  <Define>
+    <DefineName>TECH_COST_SCALING_ALGORITHM</DefineName>
+    <iDefineIntVal>1</iDefineIntVal>
+  </Define>
 </Civ4Defines>
