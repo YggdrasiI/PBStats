@@ -21086,6 +21086,16 @@ void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 			}
 		}
 
+		// Charriu for RB Gameoption No Immediate Peace Treaties
+		else if (GC.getGame().isOption(GAMEOPTION_NO_IMMEDIATE_PEACE))
+		{
+			if (pNode->m_data.m_eItemType == TRADE_PEACE_TREATY || pNode->m_data.m_eItemType == TRADE_SURRENDER)
+			{
+				if (GET_TEAM(getTeam()).getAtWarCounter(GET_PLAYER(eOtherPlayer).getTeam()) < GC.getDefineINT("PEACE_TREATY_NEGOTIATIONS"))
+					pNode->m_data.m_bHidden = true;
+			}
+		}
+
 		// Don't show technologies with no tech trading game option 
 		if (GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING) && pNode->m_data.m_eItemType == TRADE_TECHNOLOGIES)
 		{
