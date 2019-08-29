@@ -68,4 +68,20 @@
     <Italian>Peace Treaties cannot be signed until 5 turns after war declaration unless a city has been captured by one of the two parties.</Italian>
     <Spanish>Peace Treaties cannot be signed until 5 turns after war declaration unless a city has been captured by one of the two parties.</Spanish>
   </TEXT>
+  <TEXT>
+    <Tag>TXT_KEY_GAME_OPTION_TRUE_AI_DIPLO</Tag>
+    <English>True AI Diplo</English>
+    <French>True AI Diplo</French>
+    <German>Wahre AI Diplo</German>
+    <Italian>True AI Diplo</Italian>
+    <Spanish>True AI Diplo</Spanish>
+  </TEXT>
+  <TEXT>
+    <Tag>TXT_KEY_GAME_OPTION_TRUE_AI_DIPLO_HELP</Tag>
+    <English>Players can trade the same items with humans as with AI</English>
+    <French>Players can trade the same items with humans as with AI</French>
+    <German>Spieler k�nnen mit Menschen die gleichen Objekte verhandeln wie mit der KI</German>
+    <Italian>Players can trade the same items with humans as with AI</Italian>
+    <Spanish>Players can trade the same items with humans as with AI</Spanish>
+  </TEXT>
 </Civ4GameText>

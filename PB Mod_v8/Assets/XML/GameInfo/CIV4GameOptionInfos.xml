@@ -202,5 +202,12 @@
 		        <bDefault>0</bDefault>
 		        <bVisible>1</bVisible>
 	        </GameOptionInfo>
+	        <GameOptionInfo>
+		        <Type>GAMEOPTION_TRUE_AI_DIPLO</Type>
+		        <Description>TXT_KEY_GAME_OPTION_TRUE_AI_DIPLO</Description>
+	  	        <Help>TXT_KEY_GAME_OPTION_TRUE_AI_DIPLO_HELP</Help>
+		        <bDefault>0</bDefault>
+		        <bVisible>1</bVisible>
+	        </GameOptionInfo>
 	</GameOptionInfos>
 </Civ4GameOptionInfos>

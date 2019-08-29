@@ -736,6 +736,8 @@ enum GameOptionTypes				// Exposed to Python
 	GAMEOPTION_NO_WONDER_RESOURCE,
 //Charriu for RtR mod 17.07.2019
 	GAMEOPTION_NO_IMMEDIATE_PEACE,
+//Charriu for RtR mod
+	GAMEOPTION_TRUE_AI_DIPLO,
 
 
 #ifdef _USRDLL
