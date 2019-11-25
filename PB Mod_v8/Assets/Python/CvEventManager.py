@@ -337,6 +337,7 @@ class CvEventManager:
 
 	def onLoadGame(self, argsList):
 		CvAdvisorUtils.resetNoLiberateCities()
+                check_stack_attack();
 		return 0
 
 	def onGameStart(self, argsList):
@@ -1090,3 +1091,15 @@ class CvEventManager:
 		iStartYear = popupReturn.getSpinnerWidgetValue(int(0))
 		CvScreensInterface.getWorldBuilderScreen().setStartYearCB(iStartYear)
 		return
+
+def check_stack_attack():
+	iPlayer = gc.getGame().getActivePlayer()
+	if (iPlayer != -1
+			and not CyGame().isPitbossHost() and CyGame().isPitboss()
+			and gc.getPlayer(iPlayer).isOption(PlayerOptionTypes.PLAYEROPTION_QUICK_ATTACK)
+			):
+		szBody = localText.getText("TXT_KEY_MOD_POPUP_WARNING_STACK_ATTACK", ())
+		popupInfo = CyPopupInfo()
+		popupInfo.setButtonPopupType(ButtonPopupTypes.BUTTONPOPUP_TEXT)
+		popupInfo.setText(szBody)
+		popupInfo.addPopup(iPlayer)

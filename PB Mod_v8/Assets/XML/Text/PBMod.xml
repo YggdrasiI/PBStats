@@ -138,6 +138,14 @@
 		<Spanish>Toggle pause</Spanish>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_MOD_POPUP_WARNING_STACK_ATTACK</Tag>
+		<English>Attention, the stack attack option is active!</English>
+		<French>Attention, the stack attack option is active!</French>
+		<German>Achtung, der Stack-Angriff (= Angriff mit allen Einheiten eines Stacks) ist aktiviert!</German>
+		<Italian>Attention, the stack attack option is active!</Italian>
+		<Spanish>Attention, the stack attack option is active!</Spanish>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_MOD_</Tag>
 		<English></English>
 		<French></French>
