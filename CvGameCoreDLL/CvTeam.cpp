@@ -35,6 +35,8 @@ CvTeam::CvTeam()
 	m_aiEspionagePointsAgainstTeam = new int[MAX_TEAMS];
 	m_aiCounterespionageTurnsLeftAgainstTeam = new int[MAX_TEAMS];
 	m_aiCounterespionageModAgainstTeam = new int[MAX_TEAMS];
+	//RtR Charriu No Immediate Peace Game Option
+	m_AtWarCounter = new int[MAX_TEAMS];
 
 	m_abAtWar = new bool[MAX_TEAMS];
 	m_abHasMet = new bool[MAX_TEAMS];
@@ -80,6 +82,8 @@ CvTeam::~CvTeam()
 	SAFE_DELETE_ARRAY(m_aiEspionagePointsAgainstTeam);
 	SAFE_DELETE_ARRAY(m_aiCounterespionageTurnsLeftAgainstTeam);
 	SAFE_DELETE_ARRAY(m_aiCounterespionageModAgainstTeam);
+	//RtR Charriu No Immediate Peace Game Option
+	SAFE_DELETE_ARRAY(m_AtWarCounter);
 	SAFE_DELETE_ARRAY(m_abAtWar);
 	SAFE_DELETE_ARRAY(m_abHasMet);
 	SAFE_DELETE_ARRAY(m_abPermanentWarPeace);
@@ -189,6 +193,8 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 		m_aiEspionagePointsAgainstTeam[iI] = 0;
 		m_aiCounterespionageTurnsLeftAgainstTeam[iI] = 0;
 		m_aiCounterespionageModAgainstTeam[iI] = 0;
+		//RtR Charriu No Immediate Peace Game Option
+		m_AtWarCounter[iI] = 0;
 		m_abHasMet[iI] = false;
 		m_abAtWar[iI] = false;
 		m_abPermanentWarPeace[iI] = false;
@@ -206,6 +212,8 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 			kLoopTeam.m_aiEspionagePointsAgainstTeam[getID()] = 0;
 			kLoopTeam.m_aiCounterespionageTurnsLeftAgainstTeam[getID()] = 0;
 			kLoopTeam.m_aiCounterespionageModAgainstTeam[getID()] = 0;
+			//RtR Charriu No Immediate Peace Game Option
+			kLoopTeam.m_AtWarCounter[getID()] = 0;
 			kLoopTeam.m_abHasMet[getID()] = false;
 			kLoopTeam.m_abAtWar[getID()] = false;
 			kLoopTeam.m_abPermanentWarPeace[getID()] = false;
@@ -603,6 +611,8 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			GET_TEAM((TeamTypes)iI).setWarWeariness(getID(), ((GET_TEAM((TeamTypes)iI).getWarWeariness(getID()) + GET_TEAM((TeamTypes)iI).getWarWeariness(eTeam)) / 2));
 			GET_TEAM((TeamTypes)iI).setStolenVisibilityTimer(getID(), ((GET_TEAM((TeamTypes)iI).getStolenVisibilityTimer(getID()) + GET_TEAM((TeamTypes)iI).getStolenVisibilityTimer(eTeam)) / 2));
 			GET_TEAM((TeamTypes)iI).AI_setAtWarCounter(getID(), ((GET_TEAM((TeamTypes)iI).AI_getAtWarCounter(getID()) + GET_TEAM((TeamTypes)iI).AI_getAtWarCounter(eTeam)) / 2));
+			//RtR Charriu No Immediate Peace Game Option
+			GET_TEAM((TeamTypes)iI).setAtWarCounter(getID(), ((GET_TEAM((TeamTypes)iI).getAtWarCounter(getID()) + GET_TEAM((TeamTypes)iI).getAtWarCounter(eTeam)) / 2));
 			GET_TEAM((TeamTypes)iI).AI_setAtPeaceCounter(getID(), ((GET_TEAM((TeamTypes)iI).AI_getAtPeaceCounter(getID()) + GET_TEAM((TeamTypes)iI).AI_getAtPeaceCounter(eTeam)) / 2));
 			GET_TEAM((TeamTypes)iI).AI_setHasMetCounter(getID(), ((GET_TEAM((TeamTypes)iI).AI_getHasMetCounter(getID()) + GET_TEAM((TeamTypes)iI).AI_getHasMetCounter(eTeam)) / 2));
 			GET_TEAM((TeamTypes)iI).AI_setDefensivePactCounter(getID(), ((GET_TEAM((TeamTypes)iI).AI_getDefensivePactCounter(getID()) + GET_TEAM((TeamTypes)iI).AI_getDefensivePactCounter(eTeam)) / 2));
@@ -727,6 +737,12 @@ void CvTeam::shareCounters(TeamTypes eTeam)
 				AI_setAtWarCounter(((TeamTypes)iI), GET_TEAM(eTeam).AI_getAtWarCounter((TeamTypes)iI));
 			}
 
+			//RtR Charriu No Immediate Peace Game Option
+			if (GET_TEAM(eTeam).getAtWarCounter((TeamTypes)iI) > getAtWarCounter((TeamTypes)iI))
+			{
+				setAtWarCounter(((TeamTypes)iI), GET_TEAM(eTeam).getAtWarCounter((TeamTypes)iI));
+			}
+
 			if (GET_TEAM(eTeam).AI_getAtPeaceCounter((TeamTypes)iI) > AI_getAtPeaceCounter((TeamTypes)iI))
 			{
 				AI_setAtPeaceCounter(((TeamTypes)iI), GET_TEAM(eTeam).AI_getAtPeaceCounter((TeamTypes)iI));
@@ -841,6 +857,7 @@ void CvTeam::doTurn()
 	FAssertMsg(isAlive(), "isAlive is expected to be true");
 
 	AI_doTurnPre();
+	doWarCounter();
 
 	if (isBarbarian())
 	{
@@ -909,6 +926,49 @@ void CvTeam::doTurn()
 	testCircumnavigated();
 
 	AI_doTurnPost();
+}
+
+//RtR Charriu No Immediate Peace Game Option
+void CvTeam::doWarCounter()
+{
+	int iI;
+
+	for (iI = 0; iI < MAX_TEAMS; iI++)
+	{
+		if (GET_TEAM((TeamTypes)iI).isAlive())
+		{
+			if (iI != getID())
+			{
+				if (isAtWar((TeamTypes)iI))
+				{
+					changeAtWarCounter(((TeamTypes)iI), 1);
+				}
+			}
+		}
+	}
+}
+
+//RtR Charriu No Immediate Peace Game Option
+int CvTeam::getAtWarCounter(TeamTypes eIndex) const
+{
+	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
+	FAssertMsg(eIndex < MAX_TEAMS, "eIndex is expected to be within maximum bounds (invalid Index)");
+	return m_AtWarCounter[eIndex];
+}
+
+//RtR Charriu No Immediate Peace Game Option
+void CvTeam::setAtWarCounter(TeamTypes eIndex, int iNewValue)
+{
+	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
+	FAssertMsg(eIndex < MAX_TEAMS, "eIndex is expected to be within maximum bounds (invalid Index)");
+	m_AtWarCounter[eIndex] = iNewValue;
+	FAssert(getAtWarCounter(eIndex) >= 0);
+}
+
+//RtR Charriu No Immediate Peace Game Option
+void CvTeam::changeAtWarCounter(TeamTypes eIndex, int iChange)
+{
+	setAtWarCounter(eIndex, (getAtWarCounter(eIndex) + iChange));
 }
 
 
@@ -1446,6 +1506,10 @@ void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits)
 
 		AI_setAtWarCounter(eTeam, 0);
 		GET_TEAM(eTeam).AI_setAtWarCounter(getID(), 0);
+
+		//RtR Charriu No Immediate Peace Game Option
+		setAtWarCounter(eTeam, 0);
+		GET_TEAM(eTeam).setAtWarCounter(getID(), 0);
 
 		AI_setWarSuccess(eTeam, 0);
 		GET_TEAM(eTeam).AI_setWarSuccess(getID(), 0);
@@ -5991,6 +6055,8 @@ void CvTeam::read(FDataStreamBase* pStream)
 	pStream->Read(NUM_COMMERCE_TYPES, m_aiCommerceFlexibleCount);
 	pStream->Read(NUM_DOMAIN_TYPES, m_aiExtraMoves);
 	pStream->Read(GC.getNumVoteSourceInfos(), m_aiForceTeamVoteEligibilityCount);
+	//RtR Charriu No Immediate Peace Game Option
+	pStream->Read(MAX_TEAMS, m_AtWarCounter);
 
 	pStream->Read(MAX_TEAMS, m_abHasMet);
 	pStream->Read(MAX_TEAMS, m_abAtWar);
@@ -6092,6 +6158,8 @@ void CvTeam::write(FDataStreamBase* pStream)
 	pStream->Write(NUM_COMMERCE_TYPES, m_aiCommerceFlexibleCount);
 	pStream->Write(NUM_DOMAIN_TYPES, m_aiExtraMoves);
 	pStream->Write(GC.getNumVoteSourceInfos(), m_aiForceTeamVoteEligibilityCount);
+	//RtR Charriu No Immediate Peace Game Option
+	pStream->Write(MAX_TEAMS, m_AtWarCounter);
 
 	pStream->Write(MAX_TEAMS, m_abHasMet);
 	pStream->Write(MAX_TEAMS, m_abAtWar);

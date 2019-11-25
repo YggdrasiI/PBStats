@@ -13,11 +13,9 @@
 			<iPeakChange>0</iPeakChange>
 			<iLakeChange>1</iLakeChange>
 			<iCityChange>0</iCityChange>
-			<iCapitalChange>0</iCapitalChange>
 			<iPopulationChangeOffset>0</iPopulationChangeOffset>
 			<iPopulationChangeDivisor>0</iPopulationChangeDivisor>
 			<iMinCity>2</iMinCity>
-			<iMinCapital>2</iMinCapital>
 			<iTradeModifier>0</iTradeModifier>
 			<iGoldenAgeYield>0</iGoldenAgeYield>
 			<iGoldenAgeYieldThreshold>0</iGoldenAgeYieldThreshold>
@@ -38,11 +36,9 @@
 			<iPeakChange>0</iPeakChange>
 			<iLakeChange>0</iLakeChange>
 			<iCityChange>0</iCityChange>
-			<iCapitalChange>0</iCapitalChange>
 			<iPopulationChangeOffset>0</iPopulationChangeOffset>
 			<iPopulationChangeDivisor>0</iPopulationChangeDivisor>
 			<iMinCity>1</iMinCity>
-			<iMinCapital>2</iMinCapital>
 			<iTradeModifier>0</iTradeModifier>
 			<iGoldenAgeYield>1</iGoldenAgeYield>
 			<iGoldenAgeYieldThreshold>1</iGoldenAgeYieldThreshold>
@@ -63,11 +59,9 @@
 			<iPeakChange>0</iPeakChange>
 			<iLakeChange>0</iLakeChange>
 			<iCityChange>0</iCityChange>
-			<iCapitalChange>0</iCapitalChange>
 			<iPopulationChangeOffset>0</iPopulationChangeOffset>
 			<iPopulationChangeDivisor>0</iPopulationChangeDivisor>
 			<iMinCity>1</iMinCity>
-			<iMinCapital>1</iMinCapital>
 			<iTradeModifier>100</iTradeModifier>
 			<iGoldenAgeYield>1</iGoldenAgeYield>
 			<iGoldenAgeYieldThreshold>1</iGoldenAgeYieldThreshold>

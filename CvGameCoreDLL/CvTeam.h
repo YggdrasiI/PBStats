@@ -368,6 +368,11 @@ public:
 	virtual bool AI_isSneakAttackReady(TeamTypes eIndex) const = 0;
 	virtual void AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar = true) = 0;
 
+	//RtR Charriu No Immediate Peace Game Option
+	int getAtWarCounter(TeamTypes eIndex) const;
+	void setAtWarCounter(TeamTypes eIndex, int iNewValue);
+	void changeAtWarCounter(TeamTypes eIndex, int iChange);
+
 protected:
 
 	int m_iNumMembers;
@@ -453,6 +458,10 @@ protected:
 
 	void cancelDefensivePacts();
 	void announceTechToPlayers(TechTypes eIndex, bool bPartial = false);
+
+	//RtR Charriu No Immediate Peace Game Option
+	int* m_AtWarCounter;
+	void doWarCounter();
 
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);

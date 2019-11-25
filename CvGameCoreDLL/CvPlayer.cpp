@@ -3976,7 +3976,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		break;
 
 	case TRADE_PEACE:
-		if (!(GET_TEAM(getTeam()).isHuman()))
+		if (!(GET_TEAM(getTeam()).isHuman()) || GC.getGame().isOption(GAMEOPTION_TRUE_AI_DIPLO))
 		{
 			if (!(GET_TEAM(getTeam()).isAVassal()))
 			{
@@ -3992,7 +3992,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		break;
 
 	case TRADE_WAR:
-		if (!(GET_TEAM(getTeam()).isHuman()))
+		if (!(GET_TEAM(getTeam()).isHuman()) || GC.getGame().isOption(GAMEOPTION_TRUE_AI_DIPLO))
 		{
 			if (!(GET_TEAM(getTeam()).isAVassal()))
 			{
@@ -4011,7 +4011,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		break;
 
 	case TRADE_EMBARGO:
-		if (!(GET_TEAM(getTeam()).isHuman()))
+		if (!(GET_TEAM(getTeam()).isHuman()) || GC.getGame().isOption(GAMEOPTION_TRUE_AI_DIPLO))
 		{
 			if (GET_TEAM(getTeam()).isHasMet((TeamTypes)(item.m_iData)) && GET_TEAM(GET_PLAYER(eWhoTo).getTeam()).isHasMet((TeamTypes)(item.m_iData)))
 			{
@@ -4024,7 +4024,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		break;
 
 	case TRADE_CIVIC:
-		if (!(GET_TEAM(getTeam()).isHuman()))
+		if (!(GET_TEAM(getTeam()).isHuman()) || GC.getGame().isOption(GAMEOPTION_TRUE_AI_DIPLO))
 		{
 			if (GET_PLAYER(eWhoTo).isCivic((CivicTypes)(item.m_iData)))
 			{
@@ -4040,7 +4040,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		break;
 
 	case TRADE_RELIGION:
-		if (!(GET_TEAM(getTeam()).isHuman()))
+		if (!(GET_TEAM(getTeam()).isHuman()) || GC.getGame().isOption(GAMEOPTION_TRUE_AI_DIPLO))
 		{
 			if (GET_PLAYER(eWhoTo).getStateReligion() == ((ReligionTypes)(item.m_iData)))
 			{
@@ -18031,7 +18031,8 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 					CvPlot* pPlot = GC.getMapINLINE().plotByIndexINLINE(iPlot);
 					if (NULL != pPlot && pPlot->getOwnerINLINE() == getID() && pPlot->isCity())
 					{
-						if (NO_IMPROVEMENT != pPlot->getImprovementType() && !GC.getImprovementInfo(pPlot->getImprovementType()).isPermanent())
+						//Permanent/Pillage split by Charriu for RtR
+						if (NO_IMPROVEMENT != pPlot->getImprovementType() && !GC.getImprovementInfo(pPlot->getImprovementType()).isNotPillage())
 						{
 							CvWString szBuffer = gDLL->getText("TXT_KEY_EVENT_CITY_IMPROVEMENT_DESTROYED", GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide());
 							gDLL->getInterfaceIFace()->addMessage(getID(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, GC.getImprovementInfo(pPlot->getImprovementType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
@@ -20777,7 +20778,7 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 			break;
 
 		case TRADE_PEACE:
-			if (!isHuman())
+			if (!isHuman() || GC.getGame().isOption(GAMEOPTION_TRUE_AI_DIPLO))
 			{
 				for (int j = 0; j < MAX_CIV_TEAMS; j++)
 				{
@@ -20798,7 +20799,7 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 			break;
 
 		case TRADE_WAR:
-			if (!isHuman())
+			if (!isHuman() || GC.getGame().isOption(GAMEOPTION_TRUE_AI_DIPLO))
 			{
 				for (int j = 0; j < MAX_CIV_TEAMS; j++)
 				{
@@ -20819,7 +20820,7 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 			break;
 
 		case TRADE_EMBARGO:
-			if (!isHuman())
+			if (!isHuman() || GC.getGame().isOption(GAMEOPTION_TRUE_AI_DIPLO))
 			{
 				for (int j = 0; j < MAX_CIV_TEAMS; j++)
 				{
@@ -21082,6 +21083,16 @@ void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 			if (pNode->m_data.m_eItemType == TRADE_PEACE_TREATY || pNode->m_data.m_eItemType == TRADE_SURRENDER)
 			{
 				pNode->m_data.m_bHidden = true;
+			}
+		}
+
+		// Charriu for RB Gameoption No Immediate Peace Treaties
+		else if (GC.getGame().isOption(GAMEOPTION_NO_IMMEDIATE_PEACE))
+		{
+			if (pNode->m_data.m_eItemType == TRADE_PEACE_TREATY || pNode->m_data.m_eItemType == TRADE_SURRENDER)
+			{
+				if (GET_TEAM(getTeam()).getAtWarCounter(GET_PLAYER(eOtherPlayer).getTeam()) < GC.getDefineINT("PEACE_TREATY_NEGOTIATIONS"))
+					pNode->m_data.m_bHidden = true;
 			}
 		}
 

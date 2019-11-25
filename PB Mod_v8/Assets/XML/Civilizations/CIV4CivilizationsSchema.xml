@@ -433,7 +433,6 @@
 	<ElementType name="CivilizationActionSound" content="textOnly"/>
 	<ElementType name="UnitArtStyleType" content="textOnly"/>
 	<ElementType name="CivilizationInfo" content="eltOnly">
-		<element type="Traits"/>
 		<element type="Type"/>
 		<element type="Description"/>
 		<element type="ShortDescription"/>
