@@ -141,9 +141,49 @@
 		<Tag>TXT_KEY_MOD_POPUP_WARNING_STACK_ATTACK</Tag>
 		<English>Attention, the stack attack option is active!</English>
 		<French>Attention, the stack attack option is active!</French>
-		<German>Achtung, der Stack-Angriff (= Angriff mit allen Einheiten eines Stacks) ist aktiviert!</German>
+		<German>Achtung, der Stack-Angriff (=Angriff mit allen Einheiten eines Stacks) ist aktiviert!</German>
 		<Italian>Attention, the stack attack option is active!</Italian>
 		<Spanish>Attention, the stack attack option is active!</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MOD_CORP_FACTOR1</Tag>
+		<English>Corp. output modificator</English>
+		<French>Corp. output modificator</French>
+		<German>KG-Ertragsmodifikator</German>
+		<Italian>Corp. output modificator</Italian>
+		<Spanish>Corp. output modificator</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MOD_CORP_FACTOR2</Tag>
+		<English>Distribution in own</English>
+		<French>Distribution in own</French>
+		<German>Verbreitung in eigenen</German>
+		<Italian>Distribution in own</Italian>
+		<Spanish>Distribution in own</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MOD_CORP_FACTOR3</Tag>
+		<English>and foreign cities</English>
+		<French>and foreign cities</French>
+		<German>und fremden St&#228;dten</German>
+		<Italian>and foreign cities</Italian>
+		<Spanish>and foreign cities</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MOD_CORP_FACTOR4</Tag>
+		<English>influence output of corporation.</English>
+		<French>influence output of corporation.</French>
+		<German>beinflusst den Ertrag der KG</German>
+		<Italian>influence output of corporation.</Italian>
+		<Spanish>influence output of corporation.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MOD_CORP_FACTOR5</Tag>
+		<English>Cities with corp.</English>
+		<French>Cities with corp.</French>
+		<German>St&#228;dte mit KG</German>
+		<Italian>Cities with corp.</Italian>
+		<Spanish>Cities with corp.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MOD_</Tag>

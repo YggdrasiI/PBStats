@@ -285,6 +285,8 @@ public:
 	int delayedPythonCall(int milliseconds, int arg1, int arg2);
 	int setAdminPassword(const char *pNewAdminPw, const char *pAdminPw);
 	void fixTradeRoutes();
+	int getCorporationFactor100_(int numCorpLocationsOfPlayer, int numPlayersWithCorp,
+				int /*CorporationTypes*/ eCorporation) const;
 
 protected:
 	CvGame* m_pGame;

@@ -190,6 +190,8 @@ CvGame::CvGame()
 	m_aiShrineBuilding = NULL;
 	m_aiShrineReligion = NULL;
 
+  m_piCorpNumAlivePlayers = NULL;
+
 	reset(NO_HANDICAP, true);
 }
 
@@ -493,6 +495,8 @@ void CvGame::regenerateMap()
 
 void CvGame::uninit()
 {
+  SAFE_DELETE_ARRAY(m_piCorpNumAlivePlayers);
+
 	SAFE_DELETE_ARRAY(m_aiShrineBuilding);
 	SAFE_DELETE_ARRAY(m_aiShrineReligion);
 	SAFE_DELETE_ARRAY(m_paiUnitCreatedCount);
@@ -710,6 +714,15 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 			m_aiSecretaryGeneralTimer[iI] = 0;
 			m_aiVoteTimer[iI] = 0;
 		}
+
+		// PB Mod
+		FAssertMsg(m_piCorpNumAlivePlayers==NULL, "about to leak memory, CvGame::m_piCorpNumAlivePlayers");
+		m_piCorpNumAlivePlayers = new int[GC.getNumCorporationInfos()];
+		for (iI = 0; iI < GC.getNumCorporationInfos(); iI++)
+		{
+			m_piCorpNumAlivePlayers[iI] = 0;
+		}
+		// PB Mod END
 	}
 
 	m_deals.removeAll();
@@ -7848,6 +7861,7 @@ void CvGame::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iShrineBuildingCount);
 	pStream->Read(GC.getNumBuildingInfos(), m_aiShrineBuilding);
 	pStream->Read(GC.getNumBuildingInfos(), m_aiShrineReligion);
+	pStream->Read(GC.getNumCorporationInfos(), m_piCorpNumAlivePlayers);
 	pStream->Read(&m_iNumCultureVictoryCities);
 	pStream->Read(&m_eCultureVictoryCultureLevel);
 }
@@ -8004,6 +8018,7 @@ void CvGame::write(FDataStreamBase* pStream)
 	pStream->Write(m_iShrineBuildingCount);
 	pStream->Write(GC.getNumBuildingInfos(), m_aiShrineBuilding);
 	pStream->Write(GC.getNumBuildingInfos(), m_aiShrineReligion);
+	pStream->Write(GC.getNumCorporationInfos(), m_piCorpNumAlivePlayers);
 	pStream->Write(m_iNumCultureVictoryCities);
 	pStream->Write(m_eCultureVictoryCultureLevel);
 }
@@ -9235,4 +9250,77 @@ void CvGame::fixTradeRoutes()
 		gDLL->messageControlLog(szOut);
 	}
 }
+
+void CvGame::changeCorporationCountPlayers(CorporationTypes eCorporation, PlayerTypes ePlayer, int iChange)
+{
+		if( iChange == 0 ){
+				return;
+		}
+
+		m_piCorpNumAlivePlayers[eCorporation] += iChange;
+		FAssertMsg(m_piCorpNumAlivePlayers[eCorporation] >= 0, "Corporation player count below 0");
+
+		// call updateCorporation() all cities of other players with this Corporation.
+		for (int iI = 0; iI < MAX_PLAYERS; iI++)
+		{
+				if( (PlayerTypes) iI == ePlayer ){
+						continue;
+				}
+				CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iI);
+				if (kPlayer.isAlive() &&
+								kPlayer.getHasCorporationCount(eCorporation) > 0)
+				{
+						int iLoop;
+						for (CvCity* pCity = kPlayer.firstCity(&iLoop); NULL != pCity; pCity = kPlayer.nextCity(&iLoop))
+						{
+								if (pCity->isHasCorporation(eCorporation)){
+										pCity->updateCorporation();
+								}
+						}
+				}
+		}
+}
+
+int CvGame::getCorporationCountPlayers(CorporationTypes eCorporation) const
+{
+		FAssertMsg(eCorporation >= 0, "eCorporation expected to be >= 0");
+		FAssertMsg(eCorporation < GC.getNumCorporationInfos(), "GC.getNumCorporationInfos expected to be >= 0");
+
+		return m_piCorpNumAlivePlayers[eCorporation];
+}
+
+// PB Mod  Reduce income if corporation is spreaded wide
+int CvGame::getCorporationFactor100(PlayerTypes ePlayer, CorporationTypes eCorporation, bool valForNextLocation) const
+{
+		return getCorporationFactor100_(
+						GET_PLAYER(ePlayer).getHasCorporationCount(eCorporation)
+						+ (valForNextLocation?1:0),
+						getCorporationCountPlayers(eCorporation),
+						eCorporation);
+}
+
+int CvGame::getCorporationFactor100_(int numCorpLocationsOfPlayer, int numPlayersWithCorp, CorporationTypes eCorporation) const
+{
+		const int WZ = GC.getMapINLINE().getWorldSize();
+		//const int cPl = GET_PLAYER(ePlayer).getHasCorporationCount(eCorporation);
+		const int cPl = numCorpLocationsOfPlayer; // #corporation
+		const int cMin = 1 + WZ;  // Maximal income for cPl <= cMin
+		const int cMax = 3 + WZ * (1 +
+				/* Increase upper bound cMax for each player with the same corporation.
+				 */
+				numPlayersWithCorp);
+
+    const lowerBound = GC.getDefineINT("CORPORATION_PBMOD_MINIMAL_FACTOR");
+	
+		int factor100 = 100 - (100*(cPl - cMin))/(cMax - cMin);
+		if( factor100 > 100 ) factor100 = 100; // clip at 100%
+		if( factor100 < lowerBound) factor100 = lowerBound;  // at least 20%
+
+		//TCHAR szOut[128];
+		//sprintf(szOut, "cMin %d cPl %d cMax %d factor100 %d\n", cMin, cPl, cMax, factor100);
+		//gDLL->messageControlLog(szOut);
+
+    	return factor100;
+}
+
 // PB Mod END

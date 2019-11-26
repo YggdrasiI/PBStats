@@ -11353,8 +11353,19 @@ void CvPlayer::changeHasCorporationCount(CorporationTypes eIndex, int iChange)
 
 	if (iChange != 0)
 	{
+		const int prevVal = m_paiHasCorporationCount[eIndex]; // PB Mod
+
 		m_paiHasCorporationCount[eIndex] += iChange;
 		FAssert(getHasCorporationCount(eIndex) >= 0);
+
+		// PB Mod
+		const int curVal = m_paiHasCorporationCount[eIndex];
+	if( (curVal > 0) && (prevVal == 0) ){
+				GC.getGameINLINE().changeCorporationCountPlayers(eIndex, m_eID, 1);
+	}else if( (curVal == 0) && (prevVal > 0) ){
+				GC.getGameINLINE().changeCorporationCountPlayers(eIndex, m_eID, -1);
+	}
+		// PB Mod END
 
 		GC.getGameINLINE().updateBuildingCommerce();
 
