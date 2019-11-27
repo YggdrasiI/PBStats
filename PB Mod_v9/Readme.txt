@@ -96,3 +96,11 @@ New in version 8 (PB Mod_v8)
 	• Integrated path detection of Mod folder (CyGame().getModPath())
 	• Integrated Mod Updater (see tests/Updater for minimal example)
 	• http-Links in [LINK=...]...[/LINK] open websites in browser.
+
+New in version 9 (PB Mod_v9)
+  • Alt+[Click on Playername] now shows popup, but not declare war directly.
+  • Ctrl+Q not retire from the game anymore.
+  • Stack attack option triggers warning if pitboss game is entered.
+  • Pyconsole feature improved
+  • Add improved szenario loader (pyWB). It can now handle szenario files
+    for different number of players.

@@ -34,7 +34,7 @@ ALTROOT_BASEDIR="$HOME/PBStats/PBs"
 # Defaut mod name. 
 # Can be overwritten in selectAltroot. Moreover, the modname
 # will be changed automatically if the save contains an other mod name.
-MOD="PB Mod_v8"
+MOD="PB Mod_v9"
 
 # Insert the names of your games here.
 START_MENU="""
@@ -54,11 +54,11 @@ selectAltroot() {
 	case "$1" in
 		1)
 			ALTROOT="$ALTROOT_BASEDIR/PB1"
-			MOD="PB Mod_v8"
+			MOD="PB Mod_v9"
 			;;
 		2)
 			ALTROOT="$ALTROOT_BASEDIR/PB2"
-			MOD="PB Mod_v8"
+			MOD="PB Mod_v9"
 			;;
 		help)
 			printHelp

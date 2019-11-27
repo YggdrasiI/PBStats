@@ -81,7 +81,7 @@ IF not exist "%ALTROOT%" (
 )
 
 rem Start server
-"%CIV4BTS_EXE%" mod= "PB Mod_v8"\" /ALTROOT=%ALTROOT%
+"%CIV4BTS_EXE%" mod= "PB Mod_v9"\" /ALTROOT=%ALTROOT%
 
 rem Sleep some time to allow quitting of script
 ping -n 3 127.0.0.1 > NUL
