@@ -1096,7 +1096,8 @@ def check_stack_attack():
 	iPlayer = gc.getGame().getActivePlayer()
 	if (iPlayer != -1
 			and not CyGame().isPitbossHost() and CyGame().isPitboss()
-			and gc.getPlayer(iPlayer).isOption(PlayerOptionTypes.PLAYEROPTION_QUICK_ATTACK)
+			and
+     gc.getPlayer(iPlayer).isOption(PlayerOptionTypes.PLAYEROPTION_STACK_ATTACK)
 			):
 		szBody = localText.getText("TXT_KEY_MOD_POPUP_WARNING_STACK_ATTACK", ())
 		popupInfo = CyPopupInfo()
