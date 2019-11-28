@@ -11,11 +11,11 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_UPDATER_SEARCH2</Tag>
-		<English>Click here to search updates</English>
-		<French>Click here to search updates</French>
+		<English>Click on title to search updates</English>
+		<French>Click on title to search updates</French>
 		<German>Auf Titel klicken um nach Updates zu suchen.</German>
-		<Italian>Click here to search updates</Italian>
-		<Spanish>Click here to search updates</Spanish>
+		<Italian>Click on title to search updates</Italian>
+		<Spanish>Click on title to search updates</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_UPDATER_AVAIL</Tag>
