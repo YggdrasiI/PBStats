@@ -683,18 +683,20 @@ def action_mod_update(inputdata, server, wfile):
             PbSettings.load(False)
             PbSettings.lock.acquire()
             PbSettings["save"]["oneOffAutostart"] = 1
+            PbSettings["save"]["adminpw"] = adminPW
             PbSettings["startUpdate"] = 1
             PbSettings.lock.release()
             PbSettings.save()
             wfile.write(gen_answer(
-                "(Mod Updateing) Update prepared. Restart with the passsword "
-                "free save '%s'. "
-                "The next server start with 'startPitboss.py' "
-                "should invoke mod updating process. " % (filename,)))
+                "(Mod Updating) Update prepared. Restart with the passswordless "
+                "save '%s'. \n"
+                "The next server start by 'startPitboss.py' "
+                "invokes mod updating process. " % (filename,)))
 
-    except:
+    except Exception, e:  # Old Python 2.4 syntax!
         if wfile:
-            wfile.write(gen_answer("Error description", "fail"))
+            wfile.write(gen_answer("Preparing of mod update failed. Error: "
+                                   + str(e), "fail"))
 
 
 @action_args_decorator

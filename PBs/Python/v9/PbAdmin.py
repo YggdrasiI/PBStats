@@ -98,7 +98,10 @@ class AdminFrame(wx.Frame):
             adminPwd = str(PbSettings.get("save", {}).get("adminpw", ""))
             if hasattr(E.CyGame(), "setAdminPassword"):
                 E.CyGame().setAdminPassword(adminPwd, "")
+                PbSettings.createSave("PostUpdate.CivBeyondSwordSave")
+                PbSettings.lock.acquire()
                 PbSettings.pop("restorePassword", None)
+                PbSettings.lock.release()
                 PbSettings.save()
             else:
                 PB.consoleOut("restorePassword-Flag is set in pbSettings, "
