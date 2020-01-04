@@ -35,8 +35,8 @@ Usage:
       On *nix systems use 'md5sum [Zip file]' to get the md5 checksum.
 
    If you use git for your mod development you could automatize above steps with
-   following script:
-      generate_update_package.py (TODO)
+   following script: 
+     createUpdate.py (for Linux, Windows with Git Bash Shell+7z)
 
 
 Requirements:
@@ -127,8 +127,6 @@ Issues:
 
 Extras:
  • To automate the update zip creation, the 'createUpdate.py' script can be used (Linux/Mac only).
-   Just copy it into a git repository of your Mod and generate Zip files as difference between
-   two brances.
 
 
 Thanks:
