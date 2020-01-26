@@ -18,6 +18,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='game',
             name='_victory_player_id',
-            field=models.OneToOneField(null=True, to='pbspy.Player', blank=True, related_name='+'),
+            field=models.OneToOneField(null=True, to='pbspy.Player', on_delete=models.CASCADE, blank=True, related_name='+'),
         ),
     ]
