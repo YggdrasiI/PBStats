@@ -1,10 +1,7 @@
 bleach
-Django~=1.11.15
+Django~=2.2
 django-bleach
-django-crispy-forms
-django-debug-toolbar~=1.11
-django-erroneous
-django-floppyforms
+django-debug-toolbar
 django-polymorphic
 django-registration-redux
 django-static-precompiler
