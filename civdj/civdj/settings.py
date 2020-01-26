@@ -41,18 +41,22 @@ INSTALLED_APPS = (
     'pbspy',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
+    # 2.2 defaults
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # additional core
+    'django.middleware.locale.LocaleMiddleware',
+    # modules
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # custom
     'pbspy.middleware.timezone.TimezoneMiddleware',
-)
+]
 
 ROOT_URLCONF = 'civdj.urls'
 
