@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogCurrentTimerChanged',
             fields=[
-                ('gamelog_ptr', models.OneToOneField(auto_created=True, parent_link=True, to='pbspy.GameLog', primary_key=True, serialize=False)),
+                ('gamelog_ptr', models.OneToOneField(auto_created=True, parent_link=True, to='pbspy.GameLog', on_delete=models.CASCADE, primary_key=True, serialize=False)),
                 ('from_4s', models.PositiveSmallIntegerField(null=True, blank=True)),
                 ('to_4s', models.PositiveSmallIntegerField(null=True, blank=True)),
             ],
