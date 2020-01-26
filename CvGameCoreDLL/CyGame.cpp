@@ -1287,3 +1287,12 @@ void CyGame::fixTradeRoutes()
     m_pGame->fixTradeRoutes();
   }
 }
+
+int CyGame::getCorporationFactor100_(int numCorpLocationsOfPlayer, int numPlayersWithCorp,
+        int /*CorporationTypes*/ eCorporation) const
+{
+  if(m_pGame){
+    return m_pGame->getCorporationFactor100_(numCorpLocationsOfPlayer, numPlayersWithCorp, (CorporationTypes) eCorporation);
+  }
+  return 0;
+}

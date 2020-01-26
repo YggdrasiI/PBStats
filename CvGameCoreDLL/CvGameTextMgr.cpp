@@ -9187,6 +9187,12 @@ void CvGameTextMgr::setCorporationHelp(CvWStringBuffer &szBuffer, CorporationTyp
 		szBuffer.append(CvWString::format(SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), kCorporation.getDescription()));
 	}
 
+	int factor100 = 100;
+	if (NO_PLAYER != GC.getGameINLINE().getActivePlayer()){
+			factor100 = GC.getGameINLINE().getCorporationFactor100(
+							GC.getGameINLINE().getActivePlayer(), eCorporation);
+	}
+
 	szTempBuffer.clear();
 	for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
 	{
@@ -9199,6 +9205,12 @@ void CvGameTextMgr::setCorporationHelp(CvWStringBuffer &szBuffer, CorporationTyp
 
 		if (iYieldProduced != 0)
 		{
+			iYieldProduced *= factor100;
+			iYieldProduced /= 100;
+
+			//iYieldProduced = (iYieldProduced + 99) / 100;  // round up
+
+
 			if (!szTempBuffer.empty())
 			{
 				szTempBuffer += L", ";
@@ -9238,6 +9250,11 @@ void CvGameTextMgr::setCorporationHelp(CvWStringBuffer &szBuffer, CorporationTyp
 		}
 		if (iCommerceProduced != 0)
 		{
+			iCommerceProduced *= factor100;
+			iCommerceProduced /= 100;
+
+			//iCommerceProduced = (iCommerceProduced + 99) / 100;  // round up
+
 			if (!szTempBuffer.empty())
 			{
 				szTempBuffer += L", ";
@@ -9403,17 +9420,23 @@ void CvGameTextMgr::setCorporationHelpCity(CvWStringBuffer &szBuffer, Corporatio
 	bool bActive = (pCity->isActiveCorporation(eCorporation) || (bForceCorporation && iNumResources > 0));
 	
 	bool bHandled = false;
+	// Definition here because factor constant for all yields/commerce
+	int factor100 = GC.getGameINLINE().getCorporationFactor100(pCity->getOwner(), eCorporation, !bCityScreen);
+
 	for (int i = 0; i < NUM_YIELD_TYPES; ++i)
 	{
 		int iYield = 0;
 
 		if (bActive)
 		{
-			iYield += (kCorporation.getYieldProduced(i) * iNumResources * GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getCorporationMaintenancePercent()) / 100;
+			iYield += (kCorporation.getYieldProduced(i) * iNumResources * GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getCorporationMaintenancePercent())/ (100);
 		}
 
 		if (iYield != 0)
 		{
+			iYield *= factor100;
+			iYield /= 100;
+
 			if (bHandled)
 			{
 				szBuffer.append(L", ");
@@ -9433,11 +9456,14 @@ void CvGameTextMgr::setCorporationHelpCity(CvWStringBuffer &szBuffer, Corporatio
 		
 		if (bActive)
 		{
-			iCommerce += (kCorporation.getCommerceProduced(i) * iNumResources * GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getCorporationMaintenancePercent()) / 100;
+			iCommerce += (kCorporation.getCommerceProduced(i) * iNumResources * GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getCorporationMaintenancePercent()) / (100);
 		}
 
 		if (iCommerce != 0)
 		{
+			iCommerce *= factor100;
+			iCommerce /= 100;
+
 			if (bHandled)
 			{
 				szBuffer.append(L", ");

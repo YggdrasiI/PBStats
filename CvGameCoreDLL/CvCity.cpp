@@ -8294,9 +8294,15 @@ int CvCity::getCorporationYieldByCorporation(YieldTypes eIndex, CorporationTypes
 				iYield += (GC.getCorporationInfo(eCorporation).getYieldProduced(eIndex) * getNumBonuses(eBonus) * GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getCorporationMaintenancePercent()) / 100;
 			}
 		}
+
+    if( iYield ){
+        int factor100 = GC.getGameINLINE().getCorporationFactor100(getOwnerINLINE(), eCorporation);
+        iYield *= factor100;
+        iYield /= 100;
+    }
 	}
 
-	return (iYield + 99) / 100;
+	return (iYield + 99) / 100;  // round up;
 }
 
 int CvCity::getCorporationCommerceByCorporation(CommerceTypes eIndex, CorporationTypes eCorporation) const
@@ -8318,9 +8324,18 @@ int CvCity::getCorporationCommerceByCorporation(CommerceTypes eIndex, Corporatio
 				iCommerce += (GC.getCorporationInfo(eCorporation).getCommerceProduced(eIndex) * getNumBonuses(eBonus) * GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getCorporationMaintenancePercent()) / 100;
 			}
 		}
+
+		// PB Mod  Reduce income if corporation is spreaded wide
+    if( iCommerce ){
+        int factor100 = GC.getGameINLINE().getCorporationFactor100(getOwnerINLINE(), eCorporation);
+        iCommerce *= factor100;
+        iCommerce /= 100;
+    }
+		// PB Mod END
+
 	}
 
-	return (iCommerce + 99) / 100;
+	return (iCommerce + 99) / 100;  // round up;
 }
 
 void CvCity::updateCorporationCommerce(CommerceTypes eIndex)
@@ -10335,6 +10350,7 @@ void CvCity::setHasCorporation(CorporationTypes eIndex, bool bNewValue, bool bAn
 
 		GET_PLAYER(getOwnerINLINE()).changeHasCorporationCount(eIndex, ((isHasCorporation(eIndex)) ? 1 : -1));
 
+#if 0
 		CvCity* pHeadquarters = GC.getGameINLINE().getHeadquarters(eIndex);
 
 		if (NULL != pHeadquarters)
@@ -10343,6 +10359,17 @@ void CvCity::setHasCorporation(CorporationTypes eIndex, bool bNewValue, bool bAn
 		}
 
 		updateCorporation();
+#else
+		// Update all player cities, including this one, with this corporation.
+		CvPlayer& kPlayer = GET_PLAYER(getOwnerINLINE());
+		int iLoop;
+		for (CvCity* pCity = kPlayer.firstCity(&iLoop); NULL != pCity; pCity = kPlayer.nextCity(&iLoop))
+		{
+				if (pCity->isHasCorporation(eIndex)){
+						pCity->updateCorporation();
+				}
+		}
+#endif
 
 		AI_setAssignWorkDirty(true);
 

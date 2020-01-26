@@ -1,0 +1,7 @@
+{
+    "update_urls": ["http://localhost:8000/[MODNAME]"],
+    "visit_url": "http://Your_Mod_homepage",
+    "current_version": "__vanilla__",
+    "check_at_startup": 0,
+    "startup_delay": -1
+}

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by lcollins (Firaxis Games) -->
+<Civ4GameText xmlns="http://www.firaxis.com">
+	<TEXT>
+		<Tag>TXT_KEY_UPDATER_SEARCH</Tag>
+		<English>Search Mod Updates</English>
+		<French>Search Mod Updates</French>
+		<German>Suche Mod-Updates</German>
+		<Italian>Search Mod Updates</Italian>
+		<Spanish>Search Mod Updates</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UPDATER_SEARCH2</Tag>
+		<English>Click here to search updates</English>
+		<French>Click here to search updates</French>
+		<German>Auf Titel klicken um nach Updates zu suchen.</German>
+		<Italian>Click here to search updates</Italian>
+		<Spanish>Click here to search updates</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UPDATER_AVAIL</Tag>
+		<English>%d1 [NUM1:Update:Updates] available!</English>
+		<French>%d1 [NUM1:Update:Updates] available!</French>
+		<German>%d1 [NUM1:Update:Updates] verf&#252;gbar!</German>
+		<Italian>%d1 [NUM1:Update:Updates] available!</Italian>
+		<Spanish>%d1 [NUM1:Update:Updates] available!</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UPDATER_AVAIL_WORKAROUND</Tag>
+    <English>{Update:Updates} available!</English>
+		<French>{Update:Updates} available!</French>
+    <German>{Update:Updates} verf&#252;gbar!</German>
+		<Italian>{Update:Updates} available!</Italian>
+		<Spanish>{Update:Updates} available!</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UPDATER_START</Tag>
+		<English>Install Updates</English>
+		<French>Install Updates</French>
+		<German>Installiere Updates</German>
+		<Italian>Install Updates</Italian>
+		<Spanish>Install Updates</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UPDATER_SUCCESSFUL</Tag>
+		<English>Updating successful. Please restart Civ4 to apply changes.</English>
+		<French>Updating successful. Please restart Civ4 to apply changes.</French>
+		<German>Aktualisierung erfolgreich. Es ist ein Neustart erforderlich um die &#196;nderungen zu &#252;bernehmen.</German>
+		<Italian>Updating successful. Please restart Civ4 to apply changes.</Italian>
+		<Spanish>Updating successful. Please restart Civ4 to apply changes.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UPDATER_FAILED</Tag>
+		<English>Updating failed. [NEWLINE]Visit [LINK=%s1_url]mod homepage[\LINK] for manual installation.</English>
+		<French>Updating failed. [NEWLINE]Visit [LINK=%s1_url]mod homepage[\LINK] for manual installation.</French>
+    <German>Update fehlgeschlagen. [NEWLINE]Bitte [LINK=%s1_url]Mod-Webseite[\LINK] besuchen und manuell aktualisieren.</German>
+		<Italian>Updating failed. [NEWLINE]Visit [LINK=%s1_url]mod homepage[\LINK] for manual installation.</Italian>
+		<Spanish>Updating failed. [NEWLINE]Visit [LINK=%s1_url]mod homepage[\LINK] for manual installation.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UPDATER_FAILED_POPUP</Tag>
+		<English>Updating failed.</English>
+		<French>Updating failed.</French>
+		<German>Aktualisierung fehlgeschlagen.</German>
+		<Italian>Updating failed.</Italian>
+		<Spanish>Updating failed.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UPDATER_RUN</Tag>
+		<English>Update Mod...</English>
+		<French>Update Mod...</French>
+		<German>Aktualisiere Mod...</German>
+		<Italian>Update Mod...</Italian>
+		<Spanish>Update Mod...</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UPDATER_NONE</Tag>
+		<English>Mod is up to date</English>
+		<French>Mod is up to date</French>
+		<German>Mod aktuell</German>
+		<Italian>Mod is up to date</Italian>
+		<Spanish>Mod is up to date</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UPDATER_NO_INFO</Tag>
+		<English>Can not fetch Mod info</English>
+		<French>Can not fetch Mod info</French>
+		<German>Keine Aktualisierungsinfo verf&#252;gbar</German>
+		<Italian>Can not fetch Mod info</Italian>
+		<Spanish>Can not fetch Mod info</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UPDATER_STARTUP_ENABLE</Tag>
+		<English>Enable search at startup</English>
+		<French>Enable search at startup</French>
+		<German>Bei Civ4-Start suchen</German>
+		<Italian>Enable search at startup</Italian>
+		<Spanish>Enable search at startup</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UPDATER_STARTUP_DISABLE</Tag>
+		<English>Disable search at startup</English>
+		<French>Disable search at startup</French>
+		<German>Deaktiviere autom. Suche</German>
+		<Italian>Disable search at startup</Italian>
+		<Spanish>Disable search at startup</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MOD_</Tag>
+		<English></English>
+		<French></French>
+		<German></German>
+		<Italian></Italian>
+		<Spanish></Spanish>
+	</TEXT>
+</Civ4GameText>

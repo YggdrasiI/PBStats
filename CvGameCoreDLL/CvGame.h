@@ -562,6 +562,11 @@ public:
 	DllExport int delayedPythonCall(int milliseconds, int arg1 = -1, int arg2 = -1); // Starts new thread
 	int delayedPythonCall2(); // Called by other thread
 	void fixTradeRoutes();
+	void changeCorporationCountPlayers(CorporationTypes eCorporation, PlayerTypes ePlayer, int iChange);
+	int getCorporationCountPlayers(CorporationTypes eCorporation) const;
+	int getCorporationFactor100(PlayerTypes ePlayer, CorporationTypes eCorporation,
+					bool valForNextLocation = false) const;
+	int getCorporationFactor100_(int numCorpLocationsOfPlayer, int numPlayersWithCorp, CorporationTypes eCorporation) const;
 	// PB Mod END
 
 protected:
@@ -667,6 +672,8 @@ protected:
 	int		m_eCultureVictoryCultureLevel;
 
 // PB Mod
+	int* m_piCorpNumAlivePlayers; // Number of alive players for each corporation
+
 #ifdef WITH_TIMER
 	Timer *m_pTimer;
 	HANDLE m_pMainThreadDup;

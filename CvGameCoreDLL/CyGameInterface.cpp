@@ -274,6 +274,7 @@ void CyGamePythonInterface()
 		.def("delayedPythonCall", &CyGame::delayedPythonCall, "int (int milliseconds, int arg1, int arg2) - Call function delayed (unblocked).")
 		.def("setAdminPassword", &CyGame::setAdminPassword, "int (const char *szNewPw, const char *szAdminPw) - Allows change of admin password over webinterface")
 		.def("fixTradeRoutes", &CyGame::fixTradeRoutes, "void (void) - Re-evauate used cities in trade routes.")
+		.def("getCorporationFactor100", &CyGame::getCorporationFactor100_, "int (int numCorpLocationsOfPlayer, int numPlayersWithCorp, int (CorporationTypes) eCorporation) - Percent modifier for corporation yield in relation to its distribution.")
 		;
 
 	python::class_<CyDeal>("CyDeal")

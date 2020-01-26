@@ -4,7 +4,7 @@ import os.path
 
 CIV4BTS_PATH = r"/opt/spiele/Civ4/Beyond the Sword"
 ALTROOT_BASEDIR = os.path.abspath(".")
-MOD = "PB Mod_v8"  # Default value
+MOD = "PB Mod_v9"  # Default value
 
 GAMES = {
     "1": {"name": "Pitboss 1", "mod": MOD,
