@@ -41,18 +41,22 @@ INSTALLED_APPS = (
     'pbspy',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
+    # 2.2 defaults
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # additional core
+    'django.middleware.locale.LocaleMiddleware',
+    # modules
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # custom
     'pbspy.middleware.timezone.TimezoneMiddleware',
-)
+]
 
 ROOT_URLCONF = 'civdj.urls'
 
@@ -116,7 +120,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     # other finders..
-    # 'static_precompiler.finders.StaticPrecompilerFinder',
+    'static_precompiler.finders.StaticPrecompilerFinder',
 )
 
 # Which HTML tags are allowed
@@ -144,12 +148,4 @@ compile_target_dirs = ['pbspy/less/defaultstyle']
 for d in compile_target_dirs:
     out_d = os.path.join(STATIC_ROOT, 'COMPILED', d)
     if not os.path.exists(out_d):
-        print('CREATE ' + str(out_d))
         os.makedirs(out_d)
-
-
-# Workaround for missing directory 'civdj/static' as
-# source for static files
-if DEBUG:
-    if len(sys.argv) > 1 and sys.argv[1] != "collectstatic":
-        INSTALLED_APPS = INSTALLED_APPS + ('collectstatic_target',)

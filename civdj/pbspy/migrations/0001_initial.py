@@ -75,13 +75,13 @@ class Migration(migrations.Migration):
                 ('civilization', models.TextField(max_length=200)),
                 ('leader', models.TextField(max_length=200)),
                 ('color_rgb', models.TextField(max_length=11)),
-                ('game', models.ForeignKey(to='pbspy.Game')),
+                ('game', models.ForeignKey(to='pbspy.Game', on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
             name='GameLogAdminAction',
             fields=[
-                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
@@ -91,7 +91,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogForceDisconnect',
             fields=[
-                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
@@ -101,7 +101,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogMetaChange',
             fields=[
-                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
                 ('pb_name_old', models.CharField(null=True, max_length=200)),
                 ('pb_name', models.CharField(max_length=200)),
                 ('player_count_old', models.SmallIntegerField()),
@@ -115,7 +115,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogMissedTurn',
             fields=[
-                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
                 ('missed_turn_names', models.CharField(max_length=2000)),
                 ('missed_turn_ids', models.CommaSeparatedIntegerField(max_length=200)),
             ],
@@ -127,7 +127,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogPause',
             fields=[
-                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
                 ('paused', models.BooleanField(default=None)),
             ],
             options={
@@ -138,7 +138,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogPlayer',
             fields=[
-                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
                 ('player_name', models.CharField(max_length=200)),
             ],
             options={
@@ -149,7 +149,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogReload',
             fields=[
-                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
@@ -159,7 +159,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogServerTimeout',
             fields=[
-                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
@@ -169,7 +169,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogTimerChanged',
             fields=[
-                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
                 ('timer_max_h', models.PositiveSmallIntegerField(null=True, blank=True)),
             ],
             options={
@@ -180,7 +180,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogTurn',
             fields=[
-                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelog_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLog', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
@@ -190,17 +190,17 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='gamelog',
             name='game',
-            field=models.ForeignKey(to='pbspy.Game'),
+            field=models.ForeignKey(to='pbspy.Game', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='gamelog',
             name='polymorphic_ctype',
-            field=models.ForeignKey(related_name='polymorphic_pbspy.gamelog_set+', to='contenttypes.ContentType', null=True, editable=False),
+            field=models.ForeignKey(related_name='polymorphic_pbspy.gamelog_set+', to='contenttypes.ContentType', on_delete=models.CASCADE, null=True, editable=False),
         ),
         migrations.CreateModel(
             name='GameLogAdminEndTurn',
             fields=[
-                ('gamelogadminaction_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogAdminAction', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelogadminaction_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogAdminAction', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
@@ -210,7 +210,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogAdminPause',
             fields=[
-                ('gamelogadminaction_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogAdminAction', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelogadminaction_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogAdminAction', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
                 ('paused', models.BooleanField(default=None)),
             ],
             options={
@@ -221,7 +221,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogAdminSave',
             fields=[
-                ('gamelogadminaction_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogAdminAction', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelogadminaction_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogAdminAction', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
                 ('filename', models.CharField(max_length=200)),
             ],
             options={
@@ -232,7 +232,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogAI',
             fields=[
-                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
@@ -242,7 +242,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogClaimed',
             fields=[
-                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
@@ -252,7 +252,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogEliminated',
             fields=[
-                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
@@ -262,7 +262,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogFinish',
             fields=[
-                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
@@ -272,7 +272,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogLogin',
             fields=[
-                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
@@ -282,7 +282,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogLogout',
             fields=[
-                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
             ],
             options={
                 'abstract': False,
@@ -292,7 +292,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogNameChange',
             fields=[
-                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
                 ('player_name_new', models.CharField(max_length=200)),
             ],
             options={
@@ -303,7 +303,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameLogScore',
             fields=[
-                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', serialize=False, auto_created=True, parent_link=True)),
+                ('gamelogplayer_ptr', models.OneToOneField(primary_key=True, to='pbspy.GameLogPlayer', on_delete=models.CASCADE, serialize=False, auto_created=True, parent_link=True)),
                 ('score', models.PositiveIntegerField()),
                 ('delta', models.IntegerField(default=0)),
             ],
@@ -323,11 +323,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='gamelogplayer',
             name='player',
-            field=models.ForeignKey(to='pbspy.Player'),
+            field=models.ForeignKey(to='pbspy.Player', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='gamelogadminaction',
             name='user',
-            field=models.ForeignKey(to=settings.AUTH_USER_MODEL, null=True, blank=True),
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True),
         ),
     ]
