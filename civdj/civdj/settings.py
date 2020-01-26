@@ -120,7 +120,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     # other finders..
-    # 'static_precompiler.finders.StaticPrecompilerFinder',
+    'static_precompiler.finders.StaticPrecompilerFinder',
 )
 
 # Which HTML tags are allowed
@@ -148,12 +148,4 @@ compile_target_dirs = ['pbspy/less/defaultstyle']
 for d in compile_target_dirs:
     out_d = os.path.join(STATIC_ROOT, 'COMPILED', d)
     if not os.path.exists(out_d):
-        print('CREATE ' + str(out_d))
         os.makedirs(out_d)
-
-
-# Workaround for missing directory 'civdj/static' as
-# source for static files
-if DEBUG:
-    if len(sys.argv) > 1 and sys.argv[1] != "collectstatic":
-        INSTALLED_APPS = INSTALLED_APPS + ('collectstatic_target',)
