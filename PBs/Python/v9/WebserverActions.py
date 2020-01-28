@@ -89,21 +89,34 @@ def action_gamedata(inputdata, server, wfile):
 
 @action_args_decorator
 def action_chat(inputdata, server, wfile):
-    msg_in = inputdata.get("msg",
-                           u"Default message. Missing msg argument?!")
+    msg_in = inputdata.get("msg", u"")
     try:
-        # type(msg_in) is unicode, but the content are bytes or a basestr!
-        # Convert manually.
-        #msg = "".join([latin1(ord(c)) for c in msg_in])
-        msg = msg_in.encode('latin1', 'replace')
+        # type(msg_in) is unicode, but we need a bytestr with
+        # an encoding which can Civ4 handle.
+        msg_cp1252 = msg_in.encode('cp1252', 'replace')
 
-        PB.sendChat(msg)
-        msg = msg.replace('&', '&amp;')
-        msg = msg.replace('<', '&lt;')
-        msg = msg.replace('>', '&gt;')
-        #wfile.write(gen_answer(u'' + msg.decode('latin1')))
-        wfile.write(gen_answer({'info': 'Chat message send.',
-                                'msg': msg.decode('latin1')}))
+        # Convert text back to unicode. This will used to
+        # store the text in pbSettings.json which is utf-8 encoded.
+        # Moreover, msg is without critical chars, msg_in not.
+        msg = msg_cp1252.decode('cp1252')
+
+        if len(msg_in) > 0:
+            PB.sendChat(msg_cp1252)
+            msg = msg.replace('&', '&amp;')
+            msg = msg.replace('<', '&lt;')
+            msg = msg.replace('>', '&gt;')
+            wfile.write(gen_answer({'info': 'Chat message send.',
+                                    'msg': msg}))
+        else:  # Empty chat message: Return latest chat messages.
+            if server.pbAdminApp is not None:
+                chat_log = server.pbAdminApp.chat_log
+            else:
+                chat_log = []
+            
+            wfile.write(gen_answer({
+                'info': 'Latest %i chat messages' % (len(chat_log),),
+                'log': chat_log}))
+
     except Exception, e:  # Old Python 2.4 syntax!
         wfile.write(gen_answer(
             'Some error occured trying to send the message. '
@@ -202,7 +215,7 @@ def action_end_turn(inputdata, server, wfile):
     # Create Backup save in auto-Folder
     filename = "Auto_" + PB.getGamename() + "_R" + str(PB.getGameturn()) + \
             "end_" + PB.getGamedate(False) + ".CivBeyondSwordSave"
-    PbSettings.createSave(str(filename), 1)
+    PbSettings.createSave(filename, 1)
 
     if PB.getTurnTimer():
         gc.getGame().incrementTurnTimer(-PB.getTurnTimeLeft() + 4 * 20)
@@ -395,17 +408,19 @@ def action_player_color(inputdata, server, wfile):
 @action_args_decorator
 def action_get_motd(inputdata, server, wfile):
     try:
-        motd = ""
         if server.pbAdminApp is not None:
             motd = server.pbAdminApp.getMotD()
+        else:
+            motd = PbSettings.get('MotD', u'')
 
         motd = motd.replace('&', '&amp;')
         motd = motd.replace('<', '&lt;')
         motd = motd.replace('>', '&gt;')
         wfile.write(gen_answer({'info': 'Return MotD.',
-                                'msg': motd.decode('latin1')}))
+                                'msg': motd}).decode('utf-8'))
+                                # 'msg': motd}).decode('cp1252'))
     except Exception, e:  # Old Python 2.4 syntax!
-        wfile.write(gen_answer("Some error occured trying to get the MotD."
+        wfile.write(gen_answer("Some error occured trying to get the MotD. "
                                # "Error msg: %s" % (str(e),), "fail"))
                                "Error msg: %s\n%s" % (str(e), str(type(server))), "fail"))
 
@@ -493,26 +508,32 @@ def action_set_motd(inputdata, server, wfile):
     msg_in = inputdata.get("msg",
                            u"No MotD given. Missing msg argument?!")
     try:
-        # type(msg_in) is unicode, but the content are bytes or a basestr!
-        # Convert manually.
-        #msg = "".join([latin1(ord(c)) for c in msg_in])
-        msg = msg_in.encode('latin1', 'replace')
+        # type(msg_in) is unicode, but we need a bytestr with
+        # an encoding which can Civ4 handle.
+        msg_cp1252 = msg_in.encode('cp1252', 'replace')
+
+        # Convert text back to unicode. This will used to
+        # store the text in pbSettings.json which is utf-8 encoded.
+        # Moreover, msg is without critical chars, msg_in not.
+        msg = msg_cp1252.decode('cp1252')
 
         PbSettings.load(False)
         PbSettings.lock.acquire()
-        PbSettings["MotD"] = msg.decode('latin1')
+        PbSettings["MotD"] = msg
         PbSettings.lock.release()
         PbSettings.save()
 
         if server.pbAdminApp is not None:
+            # server.pbAdminApp.setMotD(msg_cp1252) # cryptic
             server.pbAdminApp.setMotD(msg)
 
+        # Prepare output for output on Webfronted.
         msg = msg.replace('&', '&amp;')
         msg = msg.replace('<', '&lt;')
         msg = msg.replace('>', '&gt;')
         #wfile.write(gen_answer(u'New MotD: %s' % (msg.decode('latin1'),)))
         wfile.write(gen_answer({'info': 'New MotD set.',
-                                'msg': msg.decode('latin1')}))
+                                'msg': msg}))
     except Exception, e:  # Old Python 2.4 syntax!
         wfile.write(gen_answer("Some error occured trying to set the MotD. "
                                "Probably a character that cannot be encoded. "
@@ -737,14 +758,6 @@ Action_Handlers = {
     "modUpdate": action_mod_update,
 }
 
-
-def latin1(ordinal):
-    # Hepler function for sendChat and setMotD
-    # 2.4 does not support "A if BOOL else B" syntax
-    if ordinal > 255:
-        return "?"
-    else:
-        return chr(ordinal)
 
 def createGameData():
     # Collect all available data

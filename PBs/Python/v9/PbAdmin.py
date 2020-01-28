@@ -121,30 +121,6 @@ class AdminFrame(wx.Frame):
         else:
             self.bShell = False
 
-    """ Approach with global variable and re-use if shell already exists
-    def init_shell(self):
-        global Civ4Shell
-        if not Civ4Shell:
-            Civ4Shell = {
-                "glob": globals(),
-                "loc": locals(),
-                "shell": start_shell(PbSettings.get("shell", {}), "pb_admin")
-            }
-            if Civ4Shell["shell"]:
-                PB.consoleOut("Init shell interface in PbAdmin")
-                Civ4Shell["shell"].set_admin_frame(self)
-                Civ4Shell["shell"].init()
-            else:
-                self.bShell = False
-        else:
-            PB.consoleOut("Re-use shell interface in PbAdmin")
-            Civ4Shell["shell"].set_admin_frame(self)
-            # Already initialized in PbWizard
-            Civ4Shell["glob"] = globals()  # Ness?!
-            Civ4Shell["loc"] = locals()  # Ness?!
-    """
-
-
     def createGui(self, parent, ID, title):
         # Create the menu
         wx.Frame.__init__(self, parent, ID, title,
@@ -285,13 +261,14 @@ class AdminFrame(wx.Frame):
 
         # Check box whether to use MotD or not
         self.motdCheckBox = wx.CheckBox(self, -1, LT.getText("TXT_KEY_PITBOSS_MOTD_TOGGLE", ()))
-        self.motdCheckBox.SetValue(len(PbSettings.get('MotD', '')) > 0)
+        self.motdCheckBox.SetValue(len(PbSettings.get('MotD', u'')) > 0)
         motdSizer.Add(self.motdCheckBox, 0, wx.TOP, 5)
 
         # Add edit box displaying current MotD
         self.motdDisplayBox = wx.TextCtrl(self, -1, "", size=(225, 50), style=wx.TE_MULTILINE | wx.TE_READONLY)
         self.motdDisplayBox.SetHelpText(LT.getText("TXT_KEY_PITBOSS_MOTD_HELP", ()))
-        self.motdDisplayBox.SetValue(PbSettings.get('MotD', ''))
+        msg_unicode = PbSettings.get('MotD', u'')
+        self.motdDisplayBox.SetValue(msg_unicode.encode('cp1252'))
         motdSizer.Add(self.motdDisplayBox, 0, wx.ALL, 5)
         # Add a button to allow motd modification
         motdChangeButton = wx.Button(self, -1, LT.getText("TXT_KEY_PITBOSS_MOTD_CHANGE", ()))
@@ -401,7 +378,12 @@ class AdminFrame(wx.Frame):
                     nameDisplay = ""
                     if (not playerData.bTurnActive):
                         nameDisplay += "*"
-                    nameDisplay += playerData.getName()  # Produce ascii decoding error?!
+
+                    # Produce ascii decoding error?!
+                    # nameDisplay += playerData.getName()
+                    # .getName()-function returns unicode string
+                    nameDisplay += playerData.getName().encode('cp1252')
+
                     #nameDisplay += "Player %i" % (rowNum+1)
                     if (nameDisplay != self.nameArray[rowNum].GetLabel()):
                         self.nameArray[rowNum].SetLabel(nameDisplay)
@@ -425,7 +407,7 @@ class AdminFrame(wx.Frame):
             # gcPlayer = gc.getPlayer(rowNum)
             bOnline = (PB.getPlayerAdminData(rowNum).getPing()[1] == "[")
             if (bOnline != playerWasOnline[rowNum]):
-                playerName = PB.getPlayerAdminData(rowNum).getName()
+                playerName = PB.getPlayerAdminData(rowNum).getName().encode('cp1252')
                 PbSettings.createPlayerRecoverySave(rowNum, playerName, bOnline)
                 playerWasOnline[rowNum] = bOnline
 
@@ -478,7 +460,8 @@ class AdminFrame(wx.Frame):
         "'save' event handler"
         dlg = wx.FileDialog(
             self, message=(LT.getText("TXT_KEY_PITBOSS_SAVE_AS", ())),
-            defaultDir=r".\Saves\multi",
+            # defaultDir=r".\Saves\multi",
+            defaultDir=(gc.getAltrootDir() + r".\Saves\multi"),
             defaultFile="Pitboss_"+PB.getGamedate(True)+".CivBeyondSwordSave",
             wildcard=(LT.getText("TXT_KEY_PITBOSS_SAVE_AS_TEXT", ())) +
             " (*.CivBeyondSwordSave)|*.CivBeyondSwordSave",
@@ -515,11 +498,13 @@ class AdminFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             # Set the MotD
             self.motdDisplayBox.SetValue(dlg.GetValue())
+            # DiplayBox contains str obj 
+            PbSettings['MotD'] = self.motdDisplayBox.GetValue().decode('utf-8')
 
     def OnChangePause(self, event):
         "Turn pause event handler"
         if gc.getGame().isPaused():
-            # gc.sendPause(-1)
+            # gc.sendPause(-1)  # effect not as expected
             gc.sendChat("RemovePause", E.ChatTargetTypes.CHATTARGET_ALL)
         else:
             gc.sendPause(0)
@@ -599,6 +584,7 @@ class AdminFrame(wx.Frame):
 class AdminIFace(wx.App):
 
     adminFrame = None
+    chat_log = []
 
     # def __init__(self, arg1):   # Required if not derived from wx.App
     #     self.OnInit()
@@ -650,20 +636,23 @@ class AdminIFace(wx.App):
     def getMotD(self):
         "Message of the day retrieval"
         if self.adminFrame.bGui and self.adminFrame.motdCheckBox.GetValue():
-            PbSettings["MotD"] = self.adminFrame.motdDisplayBox.GetValue()
-            return self.adminFrame.motdDisplayBox.GetValue()
-        else:
-            return PbSettings.get('MotD', '')
+            msg = self.adminFrame.motdDisplayBox.GetValue()  # Which type?
+            PbSettings["MotD"] = msg.decode('cp1252')
+
+        msg = PbSettings.get('MotD', u'')  # type is unicode
+        return msg.encode('utf-8')  # return type is str/bytes
 
     def setMotD(self, msg):
         if not self.adminFrame.bGui:
             return
-        self.adminFrame.motdDisplayBox.SetValue(msg)
+        self.adminFrame.motdDisplayBox.SetValue(msg.encode('cp1252'))
 
     def addChatMessage(self, message):
+        message = LT.stripHTML(message)
+        self.chat_log = self.chat_log[0:9]
+        self.chat_log.append(messages)
         if not self.adminFrame.bGui:
             return
-        message = LT.stripHTML(message)
         self.adminFrame.chatLog.AppendText("\n")
         self.adminFrame.chatLog.AppendText(message)
 

@@ -81,7 +81,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
                     parseddata = cgi.parse_qs(rawdata, keep_blank_values=1)
                     inputdata = dict(simplejson.loads(
-                        parseddata.keys()[0]))
+                        parseddata.keys()[0], encoding='utf-8'))
                     # PB.consoleOut(str(inputdata))
 
                     if self.check_password(inputdata.get("password", "")):
@@ -477,6 +477,9 @@ def isLoadableSave(filename, folderIndex=0, pwdCandidates=None):
 
         for fp in folderpaths:
             tmpFilePath = os.path.join(fp[0], filename)
+            # Convert into unicode because otherwise files
+            # with umlaut/etc aren't found
+            tmpFilePath = tmpFilePath.decode('utf-8')
             if os.path.isfile(tmpFilePath):
                 filepath = tmpFilePath
                 break

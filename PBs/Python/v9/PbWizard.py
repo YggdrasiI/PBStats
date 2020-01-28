@@ -410,7 +410,9 @@ class LoadSelectPage(wx.wizard.PyWizardPage):
                 bScenario = False
                 dlg = wx.FileDialog(
                     self, message=(LT.getText("TXT_KEY_PITBOSS_CHOOSE_SAVE", ())),
-                    defaultDir=r".\Saves\multi", defaultFile="",
+                    # defaultDir=r".\Saves\multi",
+                    defaultDir=(gc.getAltrootDir() + r".\Saves\multi"),
+                    defaultFile="",
                     wildcard=LT.getText(
                         "TXT_KEY_PITBOSS_SAVE_FILES",
                         ("(*.CivBeyondSwordSave)|*.CivBeyondSwordSave",)),
@@ -1441,7 +1443,7 @@ class StartupIFace(wx.App):
         self.bGui = (int(PbSettings.get("gui", 1)) != 0)
         self.bAutostart = (int(PbSettings.get("autostart", 0)) != 0)
         self.bShell = (int(PbSettings.get("shell", {}).get("enable", 0)) != 0)
-        self.bShell = False  # Required for BASE game (Because of old DLL code?!) 
+        # self.bShell = False  # Required for BASE-mod (because of old DLL code?!) 
         self.civ4Shell = {}  #  Holds shell object and some extra variables
 
         self.bQuitWizard = False
@@ -1496,21 +1498,18 @@ class StartupIFace(wx.App):
         if self.bAutostart and self.load_by_config():
             stop_shell(self.civ4Shell)
             # return False  # Would quit civ
-            return True
 
-        if self.bGui:
-            #if self.bAutostart and self.load_by_config():
-            if False:
-                # return False  # Would quit civ
-                # NOTE: Without Binding timer Civ4 will crash...
+            if self.bGui:
+                # Attention: Do not remove timer initialization
+                # Without, Civ4 crashs in autostart=1,gui=1-case.
                 timerID = wx.NewId()
                 self.updateTimer = wx.Timer(self, timerID)
                 self.Bind(wx.EVT_TIMER, self.OnTimedUpdate, id=timerID)
                 self.updateTimer.Start(250)
                 self.updateTimer.Stop()
-                stop_shell(self.civ4Shell)
-                return True
+            return True
 
+        if self.bGui:
             # Autostart not enabled or failed...
             self.create_wizard_pages()
             curPage = self.modSelect
@@ -1585,13 +1584,18 @@ class StartupIFace(wx.App):
     """
 
     def load_by_config(self):
-        # global bSaved
+        global bSaved
         global bPublic
         global bScenario
 
         adminPwd = str(PbSettings.get("save", {}).get("adminpw", ""))
         folderIndex = int(PbSettings.get("save", {}).get("folderIndex", 0))
-        filename = str(PbSettings["save"]["filename"])
+
+        filename = PbSettings["save"]["filename"]
+        # filename is unicode, but PB.load needs str
+        # filename = filename.encode('utf-8')  # fails for umlauts
+        filename = filename.encode('cp1252')  # ok
+
         (iResult, filepath) = loadSavegame(filename, folderIndex, adminPwd)
 
         if iResult == 0:
@@ -1600,33 +1604,7 @@ class StartupIFace(wx.App):
                 PB.reset()
                 return False
             else:
-                # bSaved = True
-                PB.getDone()
-                PB.launch()
-                return True
-        else:
-            # Loading of savegame failed. Thus, autostart was not possible
-            # Missing error message for user here...
-            PB.quit()
-            return True  # False would restart updateTimer, but we want quit.
-
-    def load_by_config2(self):
-        global bPublic
-        global bScenario
-
-        adminPwd = str(PbSettings.get("save", {}).get("adminpw", ""))
-        folderIndex = int(PbSettings.get("save", {}).get("folderIndex", 0))
-        filename = str(PbSettings["save"]["filename"])
-        (iResult, filepath) = loadSavegame(filename, folderIndex, adminPwd)
-
-        if iResult == 0:
-            PB.setLoadFileName(filepath)
-            if not PB.host(True, False):
-                PB.reset()
-                return False
-            else:
-                return True
-                # Zu viel des guten?!
+                bSaved = True
                 PB.getDone()
                 PB.launch()
                 return True
@@ -1699,6 +1677,7 @@ class StartupIFace(wx.App):
                 self.wizard.ShowPage(None, True)  # Finishes Wizard without restart
             PB.consoleOut("Load save given by config: " +
                           str(self.load_by_config()))
+            return
 
         if self.bShell:
             try:

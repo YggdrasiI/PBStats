@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# Encoding note: This file is encoded in utf-8, but
+# some strings, which are passed to Civ4 functions,
+# should be encoded as cp1252, because this is the base
+# for drawing characters ingame.
+#
 
 import socket
 
@@ -34,7 +40,7 @@ class Server:
         self.pbAdminFrame = None    # PbAdmin.py
 
     def __del__(self):
-        print("Civ4Shell __del__")
+        print("(Civ4Shell) __del__")
         # Stop server
         self.run = False
         self.close()
@@ -43,13 +49,25 @@ class Server:
         if not self.run:
             return
 
-        print("Civ4Shell close")
+        print("(Civ4Shell) close")
         self.run = False
+
+        if self.conn:
+            print("(Civ4Shell) Conn is socket")
+            self.conn.shutdown(socket.SHUT_RD)
+            self.conn.close()
+        #    self.s.close()  # problematic for .getsockname() later
+        #else:
+        #    print("(Civ4Shell) Conn is None, because accept() blocks")
+        #    print(self.s.getsockname())
+        #    self.s.close()  # Should kill accept, but doesn't
+
         # Hm, only a request release the lock on the listen socket...
         # How to avoid this ugly hack?!
-        # Comment out because it fails on Windows
-        # socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
-        #    (self.tcp_ip, self.tcp_port))
+        # Fails on Windows TODO
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(
+            self.s.getsockname())
+            # (self.tcp_ip, self.tcp_port))
 
     def start(self):
         self.run = True
@@ -57,13 +75,21 @@ class Server:
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.s.bind((self.tcp_ip, self.tcp_port))
         self.s.listen(1)
-        self.conn, self.addr = self.s.accept()
+        self.conn, self.addr = self.s.accept()  # Blocks until someone connects
 
         while self.run:
             data = self.conn.recv(BUFFER_SIZE)
+            if not self.run:  # Socket shutdown in other thread
+                print("(Civ4Shell) Revc returned, but run is False.")
+                break
+
             if not data:
                 print("(Civ4Shell) Client disconnects")
-                self.conn, self.addr = self.s.accept()
+                self.conn, self.addr = None, None
+                self.conn, self.addr = self.s.accept()  # Blocks
+                if not self.run:
+                    break
+
                 continue
 
             while data[-1] != EOF:
@@ -104,8 +130,9 @@ class Server:
         """ Should be called by game loop thread. """
 
         while len(self.code_store) > 0:
+            # type(data) = 'str/bytes'
             data = self.code_store.pop(0)
-            if data[0:2].lower() == "p:":  # Call code
+            if data[0:2] in ["P:","p:"]:  # Call code
                 glob["adminFrame"] = self.pbAdminFrame
                 # Execute input
                 (out, err) = self.run_code(data[2:], glob, loc)
@@ -156,7 +183,7 @@ class Server:
                 ws = glob.get("Webserver")
                 tmp_str = StringIO()
                 try:
-                    s = json.loads(data[2:])
+                    s = json.loads(data[2:], encoding='utf-8')
                     action = s["action"]
                     args = s.get("args", None)
                     # ws.Action_Handlers[action](inputdata=args, wfile=tmp_str)
@@ -167,10 +194,10 @@ class Server:
 
                     ws.Action_Handlers[action](inputdata=args,
                                                server=server, wfile=tmp_str)
-                    # escaped_str = json.dumps(tmp_str.getvalue())
                     self.output_store.append(tmp_str.getvalue())
                 except Exception, e:
-                    err_msg = json.dumps(str(e))
+                    err_msg = json.dumps(str(e),
+                                         encoding='utf-8')
                     self.output_store.append(
                         "{'info': 'Error: %s', 'return': 'fail'}" % (err_msg,))
 
@@ -251,12 +278,12 @@ class Server:
             return {"error": "No Webserver module available."}
         dSave = ws.PbSettings.get("save")
         sName = dSave["filename"]
-        preferedIdx = dSave.get("folderIndex", 0)
+        preferredIdx = dSave.get("folderIndex", 0)
         # pbPasswords = []
         # pbPasswords.append(dSave.get("adminpw", ""))
         pbPasswords = ws.PbSettings.getPbPasswords()
         ret = {"loadable":
-               ws.isLoadableSave(sName, preferedIdx, pbPasswords),
+               ws.isLoadableSave(sName, preferredIdx, pbPasswords),
                "name": sName}
         return ret
 
