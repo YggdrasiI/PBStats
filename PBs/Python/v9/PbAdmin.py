@@ -387,9 +387,9 @@ class AdminFrame(wx.Frame):
                     if (not playerData.bTurnActive):
                         nameDisplay += "*"
 
-                    # Produce ascii decoding error?!
-                    # nameDisplay += playerData.getName()
+                    # PB Mod: Fix Non-ASCII decoding error
                     # .getName()-function returns unicode string
+                    # which needs to be proper encoded.
                     nameDisplay += playerData.getName().encode('cp1252')
 
                     #nameDisplay += "Player %i" % (rowNum+1)

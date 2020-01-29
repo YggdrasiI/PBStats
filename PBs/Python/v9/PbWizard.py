@@ -1443,14 +1443,16 @@ class StartupIFace(wx.App):
         self.bGui = (int(PbSettings.get("gui", 1)) != 0)
         self.bAutostart = (int(PbSettings.get("autostart", 0)) != 0)
         self.bShell = (int(PbSettings.get("shell", {}).get("enable", 0)) != 0)
-        # self.bShell = False  # Required for BASE-mod (because of old DLL code?!) 
+        # self.bShell = False  # This prevents startup of shell in
+                               # twice, Wizard window and Admin window.
+                               # Useful if socket.accept() hangs... (Windows)
         self.civ4Shell = {}  #  Holds shell object and some extra variables
 
         self.bQuitWizard = False
         self.updateTimer = None
         self.wizard = None
         # Made syntax checker happy...
-        self.modSelect = None 
+        self.modSelect = None
         self.smtpLogin = None
         self.netSelect = None
         self.login = None

@@ -178,7 +178,7 @@ class Settings(dict):
         # every input string to unicode.
         #
         # If this fails by wrong encoding type
-        # convert input strings manually to 
+        # convert input strings manually to
         # unicode before you call __setitem__/[].
         def recursive_update(d, item, value):
             # print(u"recursive_update called for '%s'='%s'" %(item, value))
@@ -377,10 +377,10 @@ class Settings(dict):
         filepath = os.path.join(self.getSaveFolder(folderIndex), filename)
         # filepath is unicode because filename is it.
         # PB.save needs string with proper encoding
-        filepath = filepath.encode('cp1252')
+        filepath_cp1252 = filepath.encode('cp1252')
 
         if (filename != u""):
-            if (not PB.save(filepath)):
+            if (not PB.save(filepath_cp1252)):
                 ret = {'return': 'fail',
                        'info': 'Saving of "%s" failed.' % (filepath,)}
             else:

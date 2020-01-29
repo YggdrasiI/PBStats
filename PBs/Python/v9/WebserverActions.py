@@ -158,13 +158,14 @@ def action_headless(inputdata, server, wfile):
 def action_save(inputdata, server, wfile):
     defaultFile = "Pitboss_" + PB.getGamedate(True)
     filename = "%s.CivBeyondSwordSave" % (
-        str(inputdata.get("filename", defaultFile)),)
+        inputdata.get("filename", defaultFile),)
     # remove "\ or /" chars to cut of directory changes
     filename = filename[
         max(filename.rfind("/"), filename.rfind("\\")) + 1:
         len(filename)]
 
     ret = PbSettings.createSave(filename)
+    # ret = PbSettings.createSave(filename.encode('utf-8'))
     wfile.write(gen_answer(ret))
 
 
@@ -238,7 +239,7 @@ def action_restart(inputdata, server, wfile):
     # filename is given
     bReload = True
 
-    filename = str(inputdata.get("filename", ""))
+    filename = inputdata.get("filename", u"")  # unicode
     folderIndex = int(inputdata.get("folderIndex", 0))
     # remove "\ or /" chars to cut of directory changes
     filename = filename[
@@ -467,6 +468,7 @@ def action_get_replay(inputdata, server, wfile):
                 # Why does this not work?!
                 # msgText = replayInfo.getReplayMessageText(i).decode('ascii', 'replace')
                 msgText = replayInfo.getReplayMessageText(i)
+                # TODO: Fix this encoding stuff.
                 # filtering (generator syntax)
                 msgText = ''.join(i for i in msgText if ord(i) < 128)
                 replayMessages.append({'id': i, 'turn': iTurn,
