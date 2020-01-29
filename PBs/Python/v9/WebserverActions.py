@@ -117,6 +117,8 @@ def action_chat(inputdata, server, wfile):
                 'info': 'Latest %i chat messages' % (len(chat_log),),
                 'log': chat_log}))
 
+            chat_log.clear()
+
     except Exception, e:  # Old Python 2.4 syntax!
         wfile.write(gen_answer(
             'Some error occured trying to send the message. '

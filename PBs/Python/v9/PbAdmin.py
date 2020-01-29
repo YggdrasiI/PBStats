@@ -28,7 +28,7 @@ if pythonDir not in sys.path:
 from Settings import Settings
 
 PbSettings = Settings() #.instance()
-CHAT_LOG_MAX_LEN = 10
+CHAT_LOG_MAX_LEN = 50
 
 # Pipe error messages into a file to avoid popup windows
 errorLogFile = PbSettings.get("errorLogFile", None)

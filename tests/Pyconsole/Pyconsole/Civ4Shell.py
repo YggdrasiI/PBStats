@@ -541,12 +541,19 @@ else:
     def do_status(self, arg):
         """ Return some status information.
 
-        status [all]
+        status [full] [sort={id|score|conn}] [reverse]
 
         With all, the list of players contains gold, #units and #cities.
         """
         args = arg.split(" ")
-        bAll = "all" in args
+        bAll = "full" in args
+        bReverse = "reverse" in args
+        sort_type = "id"
+        for a in args:
+            if a.startswith("sort="):
+                sort_type = a.split("=")[1]
+            if a in ["conn", "score", "id"]:
+                sort_type = a
 
         result = str(self.send("s:"))
         try:
@@ -594,11 +601,24 @@ else:
             return s
 
         if mode == "pb_admin" and "players" in status:
+
+            players = status.get("players", [])
+            if sort_type == "conn":
+                players_sorted = sorted(players, key=lambda pl:
+                                        hash(pl.get("ping", "")) & 0xFF00 + int(pl.get("id", 0)),
+                                        reverse=not bReverse)
+            elif sort_type == "score":
+                players_sorted = sorted(players, key=lambda pl:
+                                        int(pl.get("score", 0))*100 + int(pl.get("id", 0)),
+                                        reverse=not bReverse)
+            else:
+                players_sorted = players.__reversed__() if bReverse else players
+
             gcu_head = "%s %s %s " % ("Gold", "Cities", "Units") if bAll else ""
             print("\n%c %s %12.12s %s %12.12s %12.12s %s%s" % (
                 "X", "Id", "Player", "Score", "Leader",
                 "Nation", gcu_head, "Status"))
-            for pl in status.get("players", []):
+            for pl in players_sorted:
                 gcu = "%4i %6i %5i " % (
                     pl.get("gold", -1),
                     pl.get("nCities", -1),
