@@ -156,8 +156,8 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         # super(ThreadedHTTPServer, self).__init__(args, kwargs)  # super-on-old-class
         HTTPServer.__init__(self, *args, **kwargs)
         self.oldGamestate = {}
-        self.pbAdminApp = None
-        self.pbAdminFrame = None
+        self.adminApp = None
+        self.adminFrame = None  # Required in some functions in WebserverActions.py
         # Mutex for write operation, i.e. (WB)Saves
         self.lock = thread.allocate_lock()
 
@@ -169,8 +169,8 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         # HTTPServer.shutdown(self)
 
     def setPbApp(self, adminApp):
-        self.pbAdminApp = adminApp  # class AdminIFace(wx.App)
-        self.pbAdminFrame = adminApp.adminFrame  # class AdminFrame(wx.Frame)
+        self.adminApp = adminApp               # class AdminIFace(wx.App)
+        self.adminFrame = adminApp.adminFrame  # class AdminFrame(wx.Frame)
 
         # Setup some extra Values in the DLL
         shortnames = PbSettings.setdefault(
