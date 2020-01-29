@@ -117,7 +117,7 @@ def action_chat(inputdata, server, wfile):
                 'info': 'Latest %i chat messages' % (len(chat_log),),
                 'log': chat_log}))
 
-            chat_log.clear()
+            chat_log[:] = []  # Don't print messages twice
 
     except Exception, e:  # Old Python 2.4 syntax!
         wfile.write(gen_answer(
@@ -419,7 +419,7 @@ def action_get_motd(inputdata, server, wfile):
         motd = motd.replace('<', '&lt;')
         motd = motd.replace('>', '&gt;')
         wfile.write(gen_answer({'info': 'Return MotD.',
-                                'msg': motd}).decode('utf-8'))
+                                'msg': motd}))
                                 # 'msg': motd}).decode('cp1252'))
     except Exception, e:  # Old Python 2.4 syntax!
         wfile.write(gen_answer("Some error occured trying to get the MotD. "

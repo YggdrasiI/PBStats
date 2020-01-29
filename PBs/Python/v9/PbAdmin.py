@@ -656,7 +656,7 @@ class AdminIFace(wx.App):
             return msg
 
         msg = PbSettings.get('MotD', u'')  # here, type is unicode
-        return msg.encode('cp1252')  # return type is str/bytes
+        return msg
 
     def setMotD(self, msg):
         if not self.adminFrame.bGui:
@@ -670,7 +670,8 @@ class AdminIFace(wx.App):
 
         # PB Mod: Store text in log as unicode
         self.chat_log = self.chat_log[0:CHAT_LOG_MAX_LEN-1]
-        self.chat_log.append(message.decode('cp1252'))
+        # self.chat_log.append(message.decode('cp1252'))
+        self.chat_log.append(message)  # already decoded
 
         if not self.adminFrame.bGui:
             return
