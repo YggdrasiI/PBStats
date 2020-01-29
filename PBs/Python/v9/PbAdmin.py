@@ -28,6 +28,7 @@ if pythonDir not in sys.path:
 from Settings import Settings
 
 PbSettings = Settings() #.instance()
+CHAT_LOG_MAX_LEN = 10
 
 # Pipe error messages into a file to avoid popup windows
 errorLogFile = PbSettings.get("errorLogFile", None)
@@ -62,8 +63,13 @@ ID_EXIT = 103
 class AdminFrame(wx.Frame):
     bShellInit = False
 
-    def __init__(self, parent, ID, title):
+    # def __init__(self, parent, ID, title):  # Orig
+    def __init__(self, parent, ID, title, adminApp):
         "constructor"
+
+        super(AdminFrame, self).__init__(parent, ID, title)
+        self.adminApp = adminApp
+
         # self.bGui = (0 == int(PbSettings.get("noGui", 0)))  # Old key name
         self.bGui = (int(PbSettings.get("gui", 1)) != 0)
         self.bAutostart = (int(PbSettings.get("autostart", 0)) != 0)
@@ -116,7 +122,7 @@ class AdminFrame(wx.Frame):
         }
         if self.civ4Shell.get("shell"):
             PB.consoleOut("Init shell interface in PbAdmin")
-            self.civ4Shell["shell"].set_admin_frame(self)
+            self.civ4Shell["shell"].set_admin_iface(self.adminApp)
             self.civ4Shell["shell"].init()
         else:
             self.bShell = False
@@ -267,8 +273,10 @@ class AdminFrame(wx.Frame):
         # Add edit box displaying current MotD
         self.motdDisplayBox = wx.TextCtrl(self, -1, "", size=(225, 50), style=wx.TE_MULTILINE | wx.TE_READONLY)
         self.motdDisplayBox.SetHelpText(LT.getText("TXT_KEY_PITBOSS_MOTD_HELP", ()))
+
         msg_unicode = PbSettings.get('MotD', u'')
         self.motdDisplayBox.SetValue(msg_unicode.encode('cp1252'))
+
         motdSizer.Add(self.motdDisplayBox, 0, wx.ALL, 5)
         # Add a button to allow motd modification
         motdChangeButton = wx.Button(self, -1, LT.getText("TXT_KEY_PITBOSS_MOTD_CHANGE", ()))
@@ -497,15 +505,16 @@ class AdminFrame(wx.Frame):
         # Show the modal dialog and get the response
         if dlg.ShowModal() == wx.ID_OK:
             # Set the MotD
-            self.motdDisplayBox.SetValue(dlg.GetValue())
-            # DiplayBox contains str obj 
-            PbSettings['MotD'] = self.motdDisplayBox.GetValue().decode('utf-8')
+            msg = dlg.GetValue()  # GetValue is str in cp1252 enc
+            self.motdDisplayBox.SetValue(msg)
+            PbSettings['MotD'] = msg.decode('cp1252')
 
     def OnChangePause(self, event):
         "Turn pause event handler"
         if gc.getGame().isPaused():
             # gc.sendPause(-1)  # effect not as expected
-            gc.sendChat("RemovePause", E.ChatTargetTypes.CHATTARGET_ALL)
+            # gc.sendChat("RemovePause", E.ChatTargetTypes.CHATTARGET_ALL)
+            PB.sendChat("RemovePause")
         else:
             gc.sendPause(0)
             self.timerDisplay.SetLabel("Game paused.")
@@ -545,10 +554,14 @@ class AdminFrame(wx.Frame):
         "'Chat Send' event handler"
 
         # Verify we have text to send
-
-        if (len(self.chatEdit.GetValue())):
-            PB.sendChat(self.chatEdit.GetValue())
+        chat_msg = self.chatEdit.GetValue()
+        if (len(chat_msg)):
+            PB.sendChat(chat_msg)
             self.chatEdit.SetValue("")
+
+            # PB Mod: Store text in log as unicode
+            self.chat_log = self.chat_log[0:CHAT_LOG_MAX_LEN-1]
+            self.adminApp.chat_log.append(message.decode('cp1252'))
 
     def OnExit(self, event):
         "'exit' event handler"
@@ -592,7 +605,9 @@ class AdminIFace(wx.App):
 
     def OnInit(self):
         "create the admin frame"
-        self.adminFrame = AdminFrame(None, -1, (LT.getText("TXT_KEY_PITBOSS_SAVE_SUCCESS", (PB.getGamename(), ))))
+        self.adminFrame = AdminFrame(None, -1,
+                                     LT.getText("TXT_KEY_PITBOSS_SAVE_SUCCESS", (PB.getGamename(), )),
+                                     self)
         if self.adminFrame.bGui:
             self.adminFrame.Show(True)
             self.SetTopWindow(self.adminFrame)
@@ -636,21 +651,27 @@ class AdminIFace(wx.App):
     def getMotD(self):
         "Message of the day retrieval"
         if self.adminFrame.bGui and self.adminFrame.motdCheckBox.GetValue():
-            msg = self.adminFrame.motdDisplayBox.GetValue()  # Which type?
+            msg = self.adminFrame.motdDisplayBox.GetValue()  # str in cp1252 enc
             PbSettings["MotD"] = msg.decode('cp1252')
+            return msg
 
-        msg = PbSettings.get('MotD', u'')  # type is unicode
-        return msg.encode('utf-8')  # return type is str/bytes
+        msg = PbSettings.get('MotD', u'')  # here, type is unicode
+        return msg.encode('cp1252')  # return type is str/bytes
 
     def setMotD(self, msg):
         if not self.adminFrame.bGui:
             return
+
+        # msg is unicode
         self.adminFrame.motdDisplayBox.SetValue(msg.encode('cp1252'))
 
     def addChatMessage(self, message):
         message = LT.stripHTML(message)
-        self.chat_log = self.chat_log[0:9]
-        self.chat_log.append(messages)
+
+        # PB Mod: Store text in log as unicode
+        self.chat_log = self.chat_log[0:CHAT_LOG_MAX_LEN-1]
+        self.chat_log.append(message.decode('cp1252'))
+
         if not self.adminFrame.bGui:
             return
         self.adminFrame.chatLog.AppendText("\n")

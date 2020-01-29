@@ -108,11 +108,11 @@ def action_chat(inputdata, server, wfile):
             wfile.write(gen_answer({'info': 'Chat message send.',
                                     'msg': msg}))
         else:  # Empty chat message: Return latest chat messages.
-            if server.pbAdminApp is not None:
-                chat_log = server.pbAdminApp.chat_log
+            if server.adminApp is not None:
+                chat_log = server.adminApp.chat_log
             else:
                 chat_log = []
-            
+
             wfile.write(gen_answer({
                 'info': 'Latest %i chat messages' % (len(chat_log),),
                 'log': chat_log}))
@@ -301,12 +301,12 @@ def action_restart(inputdata, server, wfile):
     if bReload:
         # Quit server. The loop in the batch file should
         # restart the server....
-        if server.pbAdminFrame is not None:
+        if server.adminFrame is not None:
             wfile.write(gen_answer('Set loaded file on "%s" and quit PB server'
                                    ' window.' % (filename,)))
             try:
                 # Required because OnExit throws error for gui=0...
-                server.pbAdminFrame.OnExit(None)
+                server.adminFrame.OnExit(None)
             except Exception, e:  # Old Python 2.4 syntax!
                 PB.consoleOut("Error during shutdown: " + str(e))
 
@@ -408,8 +408,8 @@ def action_player_color(inputdata, server, wfile):
 @action_args_decorator
 def action_get_motd(inputdata, server, wfile):
     try:
-        if server.pbAdminApp is not None:
-            motd = server.pbAdminApp.getMotD()
+        if server.adminApp is not None:
+            motd = server.adminApp.getMotD()
         else:
             motd = PbSettings.get('MotD', u'')
 
@@ -523,9 +523,9 @@ def action_set_motd(inputdata, server, wfile):
         PbSettings.lock.release()
         PbSettings.save()
 
-        if server.pbAdminApp is not None:
-            # server.pbAdminApp.setMotD(msg_cp1252) # cryptic
-            server.pbAdminApp.setMotD(msg)
+        if server.adminApp is not None:
+            # server.adminApp.setMotD(msg_cp1252) # Kauderwelsch
+            server.adminApp.setMotD(msg)  # Übergabe als unicode-type
 
         # Prepare output for output on Webfronted.
         msg = msg.replace('&', '&amp;')

@@ -543,7 +543,7 @@ else:
 
         status [all]
 
-        With all, the list of players contains gold, #units and #cities. 
+        With all, the list of players contains gold, #units and #cities.
         """
         args = arg.split(" ")
         bAll = "all" in args
@@ -761,15 +761,15 @@ else:
                 # Note that setActivePlayer(...) could crash the game if
                 # the player id is to big.
             except ValueError:
-                self.warn("Input argument no integer.")
+                self.warn("Input argument is no integer.")
         else:
             self.warn("Argument for Player id missing.")
 
         if d:
-            result = str(self.send("p:"+d))
-            if result.strip() == "0":
+            result = str(self.send("p:"+d)).strip()
+            if result == "0":
                 self.feedback("End turn of player {0} successful.".format(iPlayer))
-            elif result.strip() == "-1":
+            elif result == "-1":
                 self.warn("Turn of player {0} is already finished.".format(iPlayer))
             else:
                 self.warn("End turn of player {0} failed. Server returns '{1}'".format(iPlayer, result))
@@ -786,7 +786,7 @@ else:
             self.send("p:"+d)
             self.feedback("Set timer on %i" % (iHours,))
         except ValueError:
-            self.warn("Input no integer.")
+            self.warn("Input is no integer.")
 
     def do_pb_set_current_timer(self, args):
         """ Set timer for current round.
@@ -858,6 +858,235 @@ else:
             print("MotD: " + result_json.get("msg", ""))
         else:
             print(str(result_json))
+
+    def do_list_cities(self, arg):
+        """List all cities of a player.
+
+        Usage: list_cities {Player id}
+
+        The id can be used in 'rename_city'.
+        """
+        if len(arg) < 1:
+            print(self.do_list_cities.__doc__)
+            return
+
+        d = None
+        try:
+            args = arg.split(" ")
+            iPlayer = int(args[0])
+            d = '''\
+if( gc.getMAX_CIV_PLAYERS() > {iPlayer} and {iPlayer} > -1):
+    __pPl = gc.getPlayer({iPlayer})
+    (__c, __iterOut) = __pPl.firstCity(False)
+    __cNames = []
+    while __c is not None:
+        __cNames.append(__c.getName().encode("utf-8"))
+        (__c, __iterOut) = __pPl.nextCity(__iterOut, False)
+
+    print("\\n".join(__cNames))
+'''.format(iPlayer=iPlayer)
+
+        except ValueError:
+            self.warn("First argument is no integer.")
+
+        if d:
+            # Avoid contamination with string 'load_module encodings.utf_8'
+            self.send("p:"+"encodings.utf_8")
+
+            result = str(self.send("p:"+d)).strip()
+            if len(result) > 0:
+                self.feedback("Cities of player {0}:".format(iPlayer))
+                cNames = result.split("\n")
+                cID = 0
+                for cName in cNames:
+                    self.feedback("{:3d} {}".format(cID, cName))
+                    cID += 1
+            else:
+                self.warn("Player {0} has no city.".format(iPlayer))
+
+    def do_list_units(self, arg):
+        """List all units of a player.
+
+        Usage: list_units {Player id}
+
+        The id can be used in 'rename_unit'.
+        """
+        if len(arg) < 1:
+            print(self.do_list_units.__doc__)
+            return
+
+        d = None
+        try:
+            args = arg.split(" ")
+            iPlayer = int(args[0])
+            d = '''\
+if( gc.getMAX_CIV_PLAYERS() > {iPlayer} and {iPlayer} > -1):
+    __pPl = gc.getPlayer({iPlayer})
+    (__u, __iterOut) = __pPl.firstUnit(False)
+    __uNames = []
+    while __u is not None:
+        if  __u.plot().isCity():
+            __pos = __u.plot().getPlotCity().getName().encode("utf-8")
+        else:
+            __pos = "(%i,%i)" % (__u.plot().getX(),__u.plot().getY())
+        __uNames.append("%3i %-30s %s" % (
+          __u.getID(),
+          __u.getName().encode("utf-8"),
+          __pos)
+          )
+        (__u, __iterOut) = __pPl.nextUnit(__iterOut, False)
+
+    print("\\n".join(__uNames))
+'''.format(iPlayer=iPlayer)
+
+        except ValueError:
+            self.warn("First argument is no integer.")
+
+        if d:
+            # Avoid contamination with string 'load_module encodings.utf_8'
+            self.send("p:"+"encodings.utf_8")
+
+            result = str(self.send("p:"+d)).strip()
+            if len(result) > 0:
+                self.feedback("Units of player {0}:".format(iPlayer))
+                uNames = result.split("\n")
+                for uName in uNames:
+                    self.feedback(uName)
+            else:
+                self.warn("Player {0} has no units?!".format(iPlayer))
+
+    def do_rename_player(self, arg):
+        """Allows renaming with respect to some Non-ASCII characters (cp1252 encoding).
+
+        Usage rename_player {Player id} {New name}
+
+        Note that Civ4's functions .setName(...) and .getName() are tricky because
+        the return values are from type unicode.
+        Crash: print(pPlayer.getName())
+           Ok: print(pPlayer.getName.encode('utf-8'))
+        """
+
+        if len(arg) < 2:
+            print(self.do_rename_player.__doc__)
+            return
+
+        d = None
+        try:
+            args = arg.split(" ")
+            iPlayer = int(args[0])
+            sName = " ".join(args[1:])
+            sName.replace('"', " ")
+            d = '''\
+if( gc.getMAX_CIV_PLAYERS() > {iPlayer} and {iPlayer} > -1):
+    __name = """{sName}"""
+    if gc.getPlayer({iPlayer}).setName(__name.decode("utf-8")) is None:
+        print("0")
+    else:
+        print("-1")
+else:
+    print("-2")
+'''.format(iPlayer=iPlayer, sName=sName)
+
+        except ValueError:
+            self.warn("First input argument is no integer.")
+
+        if d:
+            result = str(self.send("p:"+d)).strip()
+            # Note: Possible return value is 'load_module encodings.utf_8\n0'
+            if result.endswith("0"):
+                self.feedback("Renaming of player {0} successful.".format(iPlayer))
+            else:
+                self.warn("Renaming of player {0} failed. Server returns '{1}'".format(iPlayer, result))
+
+    def do_rename_city(self, arg):
+        """Allows renaming with respect to some Non-ASCII characters (cp1252 encoding).
+
+        Usage rename_city {Player id} {City id} {New name}
+
+        Fetch the city id with list_cities.
+        """
+
+        if len(arg) < 3:
+            print(self.do_rename_city.__doc__)
+            return
+
+        d = None
+        try:
+            args = arg.split(" ")
+            iPlayer = int(args[0])
+            iCity = int(args[1])
+            sName = " ".join(args[2:])
+            sName.replace('"', " ")
+            d = '''\
+if( gc.getMAX_CIV_PLAYERS() > {iPlayer} and {iPlayer} > -1):
+    __name = """{sName}"""
+    __iCity = int("{iCity}")
+    __pPl = gc.getPlayer({iPlayer})
+    (__c, __iterOut) = __pPl.firstCity(False)
+    while __iCity > 0:
+        __iCity -= 1
+        (__c, __iterOut) = __pPl.nextCity(__iterOut, False)
+
+    if __c and __c.setName(__name.decode("utf-8"), False) is None:
+        print("0")
+    else:
+        print("-1")
+else:
+    print("-2")
+'''.format(iPlayer=iPlayer, iCity=iCity, sName=sName)
+
+        except ValueError:
+            self.warn("First or second argument is no integer.")
+
+        if d:
+            result = str(self.send("p:"+d)).strip()
+            # Note: Possible return value is 'load_module encodings.utf_8\n0'
+            if result.endswith("0"):
+                self.feedback("Renaming of city {0} successful.".format(iCity))
+            else:
+                self.warn("Renaming of city {0} failed. Server returns '{1}'".format(iCity, result))
+
+    def do_rename_unit(self, arg):
+        """Allows renaming with respect to some Non-ASCII characters (cp1252 encoding).
+
+        Usage rename_unit {Player id} {Unit id} {New name}
+
+        Fetch the unit id with list_units.
+        """
+
+        if len(arg) < 3:
+            print(self.do_rename_unit.__doc__)
+            return
+
+        d = None
+        try:
+            args = arg.split(" ")
+            iPlayer = int(args[0])
+            iUnit = int(args[1])
+            sName = " ".join(args[2:])
+            sName.replace('"', " ")
+            d = '''\
+if( gc.getMAX_CIV_PLAYERS() > {iPlayer} and {iPlayer} > -1):
+    __name = """{sName}"""
+    __unit = gc.getPlayer({iPlayer}).getUnit({eID})
+    if not __unit.isNone() and __unit.setName(__name.decode("utf-8")) is None:
+        print("0")
+    else:
+        print("-1")
+else:
+    print("-2")
+'''.format(iPlayer=iPlayer, eID=iUnit, sName=sName)
+
+        except ValueError:
+            self.warn("First or second argument is no integer.")
+
+        if d:
+            result = str(self.send("p:"+d)).strip()
+            # Note: Possible return value is 'load_module encodings.utf_8\n0'
+            if result.endswith("0"):
+                self.feedback("Renaming of unit {0} successful.".format(iUnit))
+            else:
+                self.warn("Renaming of unit {0} failed. Server returns '{1}'".format(iUnit, result))
 
     def do_enable_dark_mode(self, arg):
         """ Swap used colors used by Pyconsole

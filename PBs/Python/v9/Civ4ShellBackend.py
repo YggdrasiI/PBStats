@@ -36,8 +36,9 @@ class Server:
         self.run = False
         self.tcp_ip = tcp_ip
         self.tcp_port = tcp_port
-        self.pbStartupIFace = None  # PbWizard.py
-        self.pbAdminFrame = None    # PbAdmin.py
+        self.startupApp = None   # class StartupIFace(wx.App) in PbWizard.py
+        self.adminApp = None     # class AdminIFace(wx.App) in PbAdmin.py
+        self.adminFrame = None   # class AdminFrame in PbAdmin.py
 
     def __del__(self):
         print("(Civ4Shell) __del__")
@@ -133,7 +134,11 @@ class Server:
             # type(data) = 'str/bytes'
             data = self.code_store.pop(0)
             if data[0:2] in ["P:","p:"]:  # Call code
-                glob["adminFrame"] = self.pbAdminFrame
+                # Made some objects available for easier debugging
+                glob["adminFrame"] = self.adminFrame
+                glob["adminFrame"] = self.adminFrame
+                glob["adminApp"] = self.adminApp
+
                 # Execute input
                 (out, err) = self.run_code(data[2:], glob, loc)
 
@@ -145,18 +150,18 @@ class Server:
                 else:  # Without stderr
                     self.output_store.append("%s%c" % (out, EOF))
             elif data[0:2] == "q:":  # Quit shell and ( wizard or admin frame)
-                if self.pbAdminFrame:
-                    self.pbAdminFrame.OnExit(None)
-                elif self.pbStartupIFace:
-                    self.pbStartupIFace.bQuitWizard = True
+                if self.adminFrame:
+                    self.adminFrame.OnExit(None)
+                elif self.startupApp:
+                    self.startupApp.bQuitWizard = True
                 self.run = False
                 return False
             elif data[0:2] == "Q:":  # Quit PB_Server
                 # gc = glob.get("gc")
                 PB = glob.get("PB")
-                if self.pbAdminFrame:
-                    self.pbAdminFrame.OnExit(None)
-                elif self.pbStartupIFace:
+                if self.adminFrame:
+                    self.adminFrame.OnExit(None)
+                elif self.startupApp:
                     # Should not be reached. (see 'q:' branch)
                     PB.quit()
                 else:
@@ -188,7 +193,7 @@ class Server:
                     args = s.get("args", None)
                     # ws.Action_Handlers[action](inputdata=args, wfile=tmp_str)
                     try:
-                        server = self.pbAdminFrame.webserver
+                        server = self.adminFrame.webserver
                     except:
                         server = None
 
@@ -246,13 +251,15 @@ class Server:
     def get_mode(self):
         return str(self.mode_desc)
 
-    def set_startup_iface(self, wiz):
-        self.pbStartupIFace = wiz
-        self.pbAdminFrame = None
+    def set_startup_iface(self, startupApp):
+        self.startupApp = startupApp
+        self.adminFrame = None
+        self.adminApp = None
 
-    def set_admin_frame(self, admin):
-        self.pbStartupIFace = None
-        self.pbAdminFrame = admin
+    def set_admin_iface(self, adminApp):
+        self.startupApp = None
+        self.adminFrame = adminApp.adminFrame
+        self.adminApp = adminApp
 
     def gen_status_infos(self, glob):
         ws = glob.get("Webserver")
