@@ -60,7 +60,7 @@ RESTART = True
 RESTART_TIMEOUT = 3
 
 # Start command templates
-START_WINDOWS = '"{CIV4BTS_EXE}" mod= "{MOD}"\" /ALTROOT={ALTROOT}"'
+START_WINDOWS = '{CIV4BTS_EXE} mod= "{MOD}"\\" /ALTROOT={ALTROOT}"'
 START_LINUX = 'wine "{CIV4BTS_EXE}" mod= "{MOD}"\\\" /ALTROOT="{ALTROOT_W}"'
 
 # Update command (For mods with ModUpdater.py)
@@ -559,7 +559,7 @@ def setupGame(gameid, save_pat=None, password=None):
     pre_start_cmd = None
     if os.path.sep == "\\":  # Windows
         start_cmd = START_WINDOWS.format(
-            CIV4BTS_EXE=civ4bts_exe,
+            CIV4BTS_EXE=os.path.basename(civ4bts_exe),
             MOD=mod_name,
             ALTROOT=altroot)
     else:
