@@ -146,6 +146,30 @@
 		<Spanish>Attention, the stack attack option is active!</Spanish>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_MOD_F9_DESELECT_OPPONENTS</Tag>
+		<English>Unselect graphs of other players.</English>
+		<French>Unselect graphs of other players.</French>
+		<German>Alle anderen Graphen ausblenden.</German>
+		<Italian>Unselect graphs of other players.</Italian>
+		<Spanish>Unselect graphs of other players.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MOD_F9_SELECT_ALL</Tag>
+		<English>Select all graphs.</English>
+		<French>Select all graphs.</French>
+		<German>Alle Graphen einblenden.</German>
+		<Italian>Select all graphs.</Italian>
+		<Spanish>Select all graphs.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MOD_F9_SELECT_BY_F4</Tag>
+		<English>Reduce graphs on selected nations on Foreign Advisor [COLOR_HIGHLIGHT_TEXT]&lt;F4&gt;[COLOR_REVERT].</English>
+		<French>Reduce graphs on selected nations on Foreign Advisor [COLOR_HIGHLIGHT_TEXT]&lt;F4&gt;[COLOR_REVERT].</French>
+		<German>Auf im Auslandsberater [COLOR_HIGHLIGHT_TEXT]&lt;F4&gt;[COLOR_REVERT] ausgew&#228;hlte Nationen einschr&#228;nken.</German>
+		<Italian>Reduce graphs on selected nations on Foreign Advisor [COLOR_HIGHLIGHT_TEXT]&lt;F4&gt;[COLOR_REVERT].</Italian>
+		<Spanish>Reduce graphs on selected nations on Foreign Advisor [COLOR_HIGHLIGHT_TEXT]&lt;F4&gt;[COLOR_REVERT].</Spanish>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_MOD_CORP_FACTOR1</Tag>
 		<English>Corp. output modificator</English>
 		<French>Corp. output modificator</French>
