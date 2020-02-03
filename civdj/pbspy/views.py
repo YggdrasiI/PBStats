@@ -27,7 +27,8 @@ from django.utils.html import escape, strip_tags
 from django.utils import timezone
 from django.utils import formats
 
-from pbspy.models import Game, GameLog, Player, InvalidPBResponse
+from pbspy.models import Game, GameLog, Player,\
+        InvalidPBResponse, InvalidCharacterError
 from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm,\
         GameManagementTimerForm, GameManagementCurrentTimerForm, GameManagementLoadForm, GameManagementSetPlayerPasswordForm,\
         GameManagementSaveForm, GameLogTypesForm, GameLogSaveFilterForm, GameManagementShortNamesForm,\
@@ -466,8 +467,15 @@ def game_manage(request, game_id, action=""):
         elif action == 'save':
             form = GameManagementSaveForm(request.POST)
             if form.is_valid():
-                game.pb_save(form.cleaned_data['filename'], user=request.user)
-                return HttpResponse('game saved.', status=200)
+                try:
+                    game.pb_save(form.cleaned_data['filename'],
+                                 user=request.user)
+                except InvalidCharacterError:
+                    return HttpResponseBadRequest(
+                        "The filename '{}' contains invalid characters!".format(
+                            form.cleaned_data['filename']))
+                else:
+                    return HttpResponse('game saved.', status=200)
             context['save_form'] = form
         elif action == 'load':
             form = GameManagementLoadForm(load_choices, request.POST)

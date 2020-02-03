@@ -443,7 +443,19 @@ class Game(models.Model):
         return self.pb_action(action='modUpdate')
 
     def pb_save(self, filename, user=None):
-        if not savegame_allowed_name_re.match(filename):
+        def check_proper_filename(s):
+            try:
+                s.encode('cp1252')
+            except UnicodeEncodeError:
+                return False
+
+            # Old, more restricted case
+            # if not savegame_allowed_name_re.match(filename):
+            #    return False
+
+            return True
+
+        if not check_proper_filename(filename):
             raise InvalidCharacterError()
         result = self.pb_action(action='save', filename=filename)
         GameLogAdminSave(game=self, user=user, date=timezone.now(),

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """ Shell to Civ4.
@@ -33,10 +33,12 @@ else:
 # Default values for connection
 PYCONSOLE_PORT = 3333
 # PYCONSOLE_HOSTNAME = "0.0.0.0" # Invalid on windows
-PYCONSOLE_HOSTNAME = "127.0.0.1"
+# PYCONSOLE_HOSTNAME = "127.0.0.1" Ok on windows
+PYCONSOLE_HOSTNAME = "localhost"
 
 # MY_HOSTNAME = "0.0.0.0"  # Invalid on windows
-MY_HOSTNAME = "127.0.0.1"  # or
+# MY_HOSTNAME = "127.0.0.1"  # Ok on windows
+MY_HOSTNAME = "localhost"  #
 # MY_HOSTNAME = gethostname()  # or
 # MY_HOSTNAME = "192.168.X.X"
 
@@ -55,6 +57,15 @@ RESULT_LINE_SPLIT = (160, '  ')
 
 BUFFER_SIZE = 1024
 EOF = '\x04'
+
+# Civ4 3D font rendering is not utf-8-ready, but uses
+# predifined char images.
+# The latin1-encoding uses 7 bits, only and  suffers from
+# the 'ß'-char, etc.
+# cp1252 aka windows-1252 is the best choice in terms
+# of compatibility.
+ENCODING = 'cp1252'
+ENCODING2 = 'utf-8'
 
 ################################################
 ColorOut = ""
@@ -82,13 +93,13 @@ class Client:
             self.s = None
 
     def send(self, msg, bRecv=True):
-        self.s.send(msg + EOF)
+        self.s.send((msg + EOF).encode(ENCODING2))  # Python3: str->bytes
         ret = ""
         if bRecv:
-            recv = self.s.recv(BUFFER_SIZE)
+            recv = self.s.recv(BUFFER_SIZE).decode(ENCODING2)  # Python3: bytes->str
             while len(recv) == BUFFER_SIZE and recv[-1] != EOF:
                 ret += recv
-                recv = self.s.recv(BUFFER_SIZE)
+                recv = self.s.recv(BUFFER_SIZE).decode(ENCODING2)  # Python3: bytes->str
 
             recv = recv.strip(EOF)
             # sys.stdout.write(recv)
@@ -140,8 +151,17 @@ class Civ4Shell(cmd.Cmd):
         self.remote_server_adr = (
             kwargs.get("host", self.remote_server_adr[0]),
             kwargs.get("port", self.remote_server_adr[1]))
-        print(kwargs)
-        print(self.remote_server_adr)
+        # print(kwargs)
+        print("Remote machine: {}".format(str(self.remote_server_adr)))
+
+        if "host" in kwargs:
+            # Replace 'localhost' by value accessable from
+            # other machines
+            self.local_server_adr = (gethostname(),
+                                     self.local_server_adr[1])
+            print("This machine: {}".format(str(self.local_server_adr)))
+
+        print("")
         # Start client
         self.init()
 
@@ -201,8 +221,9 @@ class Civ4Shell(cmd.Cmd):
         action = {"action": action_name, "args": action_args}
         result = str(self.send("A:"+json.dumps(action)))
         try:
-            result_json = json.loads(result)
-        except ValueError:
+            # result_json = json.loads(result, encoding=ENCODING2)
+            result_json = json.loads(result, encoding=ENCODING)
+        except ValueError as e:
             print(result)
             result_json = {"info" : "Can not decode PB reply.", 'return': 'fail'}
 
@@ -377,7 +398,7 @@ else:
             self.warn("No file name given.")
 
     def do_start(self, arg):
-        """ Synonym for 'pb_start'. """
+        """ Alias for 'pb_start'. """
         self.do_pb_start(arg)
 
     def do_pb_start(self, arg):
@@ -406,7 +427,7 @@ else:
                 result = result[result.find("{"):result.rfind("}")+1]
 
             try:
-                loadable_check = json.loads(result)
+                loadable_check = json.loads(result, encoding=ENCODING2)
             except ValueError:
                 print("Can not decode result of loadable check.")
                 return
@@ -442,12 +463,12 @@ else:
         # return True
 
         print("Wait a few seconds...")
-        for _ in xrange(10):
+        for _ in range(10):
             sleep(1)
             sys.stdout.write(".")
             sys.stdout.flush()
 
-        for _ in xrange(60):
+        for _ in range(60):
             sleep(2)
             sys.stdout.write(":")
             sys.stdout.flush()
@@ -485,7 +506,7 @@ else:
         # self.send("p:PB.quit()")
         result = str(self.send("U:"))
         try:
-            update_status = json.loads(result)
+            update_status = json.loads(result, encoding=ENCODING2)
         except ValueError:
             update_status = {"info" : "Can not decode PB reply.", 'return': 'fail'}
 
@@ -520,12 +541,23 @@ else:
     def do_status(self, arg):
         """ Return some status information.
 
-        Should return list of player (points/gold/num units/num cities)
-        Uptime, Mode, etc
+        status [full] [sort={id|score|conn}] [reverse]
+
+        With all, the list of players contains gold, #units and #cities.
         """
+        args = arg.split(" ")
+        bAll = "full" in args
+        bReverse = "reverse" in args
+        sort_type = "id"
+        for a in args:
+            if a.startswith("sort="):
+                sort_type = a.split("=")[1]
+            if a in ["conn", "score", "id"]:
+                sort_type = a
+
         result = str(self.send("s:"))
         try:
-            status = json.loads(result)
+            status = json.loads(result, encoding=ENCODING2)
         except ValueError:
             status = {"error" : "Can not decode status."}
 
@@ -534,27 +566,33 @@ else:
             m = status["modName"]
             status["modName"] = m.replace("Mods", "").strip("\\")
 
-        keys = ["error", "gameName", "gameTurn", "gameYear",
-                "modName", "bAutostart", "bPaused", "mode"]
+        mode = status.get("mode", "")
+        if mode == "pb_wizard":
+            keys = ["error", "modName", "bAutostart", "mode"]
+        else:
+            keys = ["error", "gameName", "gameTurn", "gameYear",
+                    "modName", "bAutostart", "bPaused", "mode"]
+
         for k in keys:
             if k in status:
                 print(" %14s: %s" % (k, status[k]))
 
-        from datetime import timedelta
-        upt = status.get("uptime")
-        if upt:
-            upt = str(timedelta(minutes=int(upt)))
-            print(" %14s: %s" % ("Total uptime", upt))
+        if mode == "pb_admin":
+            from datetime import timedelta
+            upt = status.get("uptime")
+            if upt:
+                upt = str(timedelta(minutes=int(upt)))
+                print(" %14s: %s" % ("Total uptime", upt))
 
-        ttv = status.get("turnTimerValue")
-        if ttv:
-            ttv = str(timedelta(seconds=int(ttv)/4))
-            print(" %14s: %s" % ("Current timer", ttv))
+            ttv = status.get("turnTimerValue")
+            if ttv:
+                ttv = str(timedelta(seconds=int(ttv)/4))
+                print(" %14s: %s" % ("Current timer", ttv))
 
-        ttm = status.get("turnTimerMax")
-        if ttm:
-            ttm = str(timedelta(hours=int(ttm)))
-            print(" %14s: %s" % ("Next timer", ttm))
+            ttm = status.get("turnTimerMax")
+            if ttm:
+                ttm = str(timedelta(hours=int(ttm)))
+                print(" %14s: %s" % ("Next timer", ttm))
 
         def player_status(pl):
             s = pl.get("ping", "")
@@ -562,23 +600,54 @@ else:
                 return ""
             return s
 
-        print("\n%c %s %12.12s %s %12.12s %12.12s %s %s %s %s" % (
-            "X", "Id", "Player", "Score", "Leader", "Nation", "Gold",
-            "Cities", "Units", "Status"))
-        for pl in status.get("players", []):
-            print("%c %2i %12.12s %5.5s %12.12s %12.12s %4i %6i %5i %s" % (
-                "*" if pl.get("finishedTurn") else " ",
-                pl.get("id", -1),
-                pl.get("name", "?"),
-                pl.get("score", "-1"),
-                pl.get("leader", "?"),
-                pl.get("civilization", "?"),
-                pl.get("gold", -1),
-                pl.get("nCities", -1),
-                pl.get("nUnits", -1),
-                player_status(pl)))
+        if mode == "pb_admin" and "players" in status:
+
+            players = status.get("players", [])
+            if sort_type == "conn":
+                players_sorted = sorted(players, key=lambda pl:
+                                        hash(pl.get("ping", "")) & 0xFF00 + int(pl.get("id", 0)),
+                                        reverse=not bReverse)
+            elif sort_type == "score":
+                players_sorted = sorted(players, key=lambda pl:
+                                        int(pl.get("score", 0))*100 + int(pl.get("id", 0)),
+                                        reverse=not bReverse)
+            else:
+                players_sorted = players.__reversed__() if bReverse else players
+
+            gcu_head = "%s %s %s " % ("Gold", "Cities", "Units") if bAll else ""
+            print("\n%c %s %12.12s %s %12.12s %12.12s %s%s" % (
+                "X", "Id", "Player", "Score", "Leader",
+                "Nation", gcu_head, "Status"))
+            for pl in players_sorted:
+                gcu = "%4i %6i %5i " % (
+                    pl.get("gold", -1),
+                    pl.get("nCities", -1),
+                    pl.get("nUnits", -1),
+                ) if bAll else ""
+                print("%c %2i %12.12s %5.5s %12.12s %12.12s %s%s" % (
+                    "*" if pl.get("finishedTurn") else " ",
+                    pl.get("id", -1),
+                    pl.get("name", "?"),
+                    pl.get("score", "-1"),
+                    pl.get("leader", "?"),
+                    pl.get("civilization", "?"),
+                    gcu,
+                    player_status(pl)))
+
+        if mode == "pb_wizard":
+            print("""\n
+                  Currently, no game is loaded by the server
+                  because autostart is disabled or the save loading failed.
+
+                  Use 'list', 'load' and 'pb_start' to start a game.
+                  Saves with a different mod name requires a complete
+                  restart of the program.""")
 
         print("")
+
+    def do_ls(self, sArgs):
+        """ Alias for 'list' """
+        return self.do_list(sArgs)
 
     def do_list(self, sArgs):
         """ List newest available saves.
@@ -712,15 +781,15 @@ else:
                 # Note that setActivePlayer(...) could crash the game if
                 # the player id is to big.
             except ValueError:
-                self.warn("Input argument no integer.")
+                self.warn("Input argument is no integer.")
         else:
             self.warn("Argument for Player id missing.")
 
         if d:
-            result = str(self.send("p:"+d))
-            if result.strip() == "0":
+            result = str(self.send("p:"+d)).strip()
+            if result == "0":
                 self.feedback("End turn of player {0} successful.".format(iPlayer))
-            elif result.strip() == "-1":
+            elif result == "-1":
                 self.warn("Turn of player {0} is already finished.".format(iPlayer))
             else:
                 self.warn("End turn of player {0} failed. Server returns '{1}'".format(iPlayer, result))
@@ -737,7 +806,7 @@ else:
             self.send("p:"+d)
             self.feedback("Set timer on %i" % (iHours,))
         except ValueError:
-            self.warn("Input no integer.")
+            self.warn("Input is no integer.")
 
     def do_pb_set_current_timer(self, args):
         """ Set timer for current round.
@@ -775,20 +844,269 @@ else:
         self.webserver_action("kickPlayer", kick_args, 1)
 
     def do_chat(self, arg):
-        """ Send chat message."""
-        self.webserver_action("setMotD", {"msg": str(arg)}, 1)
+        """ Send chat message.
+
+        Example usage: chat My message
+
+        Type text without any quotes.
+        Avoid special charatcers, Civ4 can't print out. The
+        text will be encoded as windows-1252.
+        """
+        msg = arg
+        result = self.webserver_action("chat", {"msg": msg}, 1)
+        if result.get('return') ==  'ok':
+            chat_log = result.get('log', [])
+            for chat_msg in chat_log:
+                self.feedback("|> {0}".format(chat_msg))
 
     def do_setMotD(self, arg):
-        """ Sets message of the day."""
-        self.webserver_action("setMotD", {"msg": str(arg)}, 2)
+        """ Sets message of the day.
+
+        Example usage: setMotD  My message
+
+        Type text without any quotes.
+        Avoid special charatcers, Civ4 can't print out. The
+        text will be encoded as windows-1252.
+        """
+        msg = arg
+        self.webserver_action("setMotD", {"msg": msg}, 2)
 
     def do_getMotD(self, arg):
         """ Gets message of the day."""
         result_json = self.webserver_action("getMotD", {}, 0)
-        if result_json.get('result') == 'ok':
+        if result_json.get('return') == 'ok':
             print("MotD: " + result_json.get("msg", ""))
         else:
             print(str(result_json))
+
+    def do_list_cities(self, arg):
+        """List all cities of a player.
+
+        Usage: list_cities {Player id}
+
+        The id can be used in 'rename_city'.
+        """
+        if len(arg) < 1:
+            print(self.do_list_cities.__doc__)
+            return
+
+        d = None
+        try:
+            args = arg.split(" ")
+            iPlayer = int(args[0])
+            d = '''\
+if( gc.getMAX_CIV_PLAYERS() > {iPlayer} and {iPlayer} > -1):
+    __pPl = gc.getPlayer({iPlayer})
+    (__c, __iterOut) = __pPl.firstCity(False)
+    __cNames = []
+    while __c is not None:
+        __cNames.append(__c.getName().encode("utf-8"))
+        (__c, __iterOut) = __pPl.nextCity(__iterOut, False)
+
+    print("\\n".join(__cNames))
+'''.format(iPlayer=iPlayer)
+
+        except ValueError:
+            self.warn("First argument is no integer.")
+
+        if d:
+            # Avoid contamination with string 'load_module encodings.utf_8'
+            self.send("p:"+"encodings.utf_8")
+
+            result = str(self.send("p:"+d)).strip()
+            if len(result) > 0:
+                self.feedback("Cities of player {0}:".format(iPlayer))
+                cNames = result.split("\n")
+                cID = 0
+                for cName in cNames:
+                    self.feedback("{:3d} {}".format(cID, cName))
+                    cID += 1
+            else:
+                self.warn("Player {0} has no city.".format(iPlayer))
+
+    def do_list_units(self, arg):
+        """List all units of a player.
+
+        Usage: list_units {Player id}
+
+        The id can be used in 'rename_unit'.
+        """
+        if len(arg) < 1:
+            print(self.do_list_units.__doc__)
+            return
+
+        d = None
+        try:
+            args = arg.split(" ")
+            iPlayer = int(args[0])
+            d = '''\
+if( gc.getMAX_CIV_PLAYERS() > {iPlayer} and {iPlayer} > -1):
+    __pPl = gc.getPlayer({iPlayer})
+    (__u, __iterOut) = __pPl.firstUnit(False)
+    __uNames = []
+    while __u is not None:
+        if  __u.plot().isCity():
+            __pos = __u.plot().getPlotCity().getName().encode("utf-8")
+        else:
+            __pos = "(%i,%i)" % (__u.plot().getX(),__u.plot().getY())
+        __uNames.append("%3i %-30s %s" % (
+          __u.getID(),
+          __u.getName().encode("utf-8"),
+          __pos)
+          )
+        (__u, __iterOut) = __pPl.nextUnit(__iterOut, False)
+
+    print("\\n".join(__uNames))
+'''.format(iPlayer=iPlayer)
+
+        except ValueError:
+            self.warn("First argument is no integer.")
+
+        if d:
+            # Avoid contamination with string 'load_module encodings.utf_8'
+            self.send("p:"+"encodings.utf_8")
+
+            result = str(self.send("p:"+d)).strip()
+            if len(result) > 0:
+                self.feedback("Units of player {0}:".format(iPlayer))
+                uNames = result.split("\n")
+                for uName in uNames:
+                    self.feedback(uName)
+            else:
+                self.warn("Player {0} has no units?!".format(iPlayer))
+
+    def do_rename_player(self, arg):
+        """Allows renaming with respect to some Non-ASCII characters (cp1252 encoding).
+
+        Usage rename_player {Player id} {New name}
+
+        Note that Civ4's functions .setName(...) and .getName() are tricky because
+        the return values are from type unicode.
+        Crash: print(pPlayer.getName())
+           Ok: print(pPlayer.getName.encode('utf-8'))
+        """
+
+        if len(arg) < 2:
+            print(self.do_rename_player.__doc__)
+            return
+
+        d = None
+        try:
+            args = arg.split(" ")
+            iPlayer = int(args[0])
+            sName = " ".join(args[1:])
+            sName.replace('"', " ")
+            d = '''\
+if( gc.getMAX_CIV_PLAYERS() > {iPlayer} and {iPlayer} > -1):
+    __name = """{sName}"""
+    if gc.getPlayer({iPlayer}).setName(__name.decode("utf-8")) is None:
+        print("0")
+    else:
+        print("-1")
+else:
+    print("-2")
+'''.format(iPlayer=iPlayer, sName=sName)
+
+        except ValueError:
+            self.warn("First input argument is no integer.")
+
+        if d:
+            result = str(self.send("p:"+d)).strip()
+            # Note: Possible return value is 'load_module encodings.utf_8\n0'
+            if result.endswith("0"):
+                self.feedback("Renaming of player {0} successful.".format(iPlayer))
+            else:
+                self.warn("Renaming of player {0} failed. Server returns '{1}'".format(iPlayer, result))
+
+    def do_rename_city(self, arg):
+        """Allows renaming with respect to some Non-ASCII characters (cp1252 encoding).
+
+        Usage rename_city {Player id} {City id} {New name}
+
+        Fetch the city id with list_cities.
+        """
+
+        if len(arg) < 3:
+            print(self.do_rename_city.__doc__)
+            return
+
+        d = None
+        try:
+            args = arg.split(" ")
+            iPlayer = int(args[0])
+            iCity = int(args[1])
+            sName = " ".join(args[2:])
+            sName.replace('"', " ")
+            d = '''\
+if( gc.getMAX_CIV_PLAYERS() > {iPlayer} and {iPlayer} > -1):
+    __name = """{sName}"""
+    __iCity = int("{iCity}")
+    __pPl = gc.getPlayer({iPlayer})
+    (__c, __iterOut) = __pPl.firstCity(False)
+    while __iCity > 0:
+        __iCity -= 1
+        (__c, __iterOut) = __pPl.nextCity(__iterOut, False)
+
+    if __c and __c.setName(__name.decode("utf-8"), False) is None:
+        print("0")
+    else:
+        print("-1")
+else:
+    print("-2")
+'''.format(iPlayer=iPlayer, iCity=iCity, sName=sName)
+
+        except ValueError:
+            self.warn("First or second argument is no integer.")
+
+        if d:
+            result = str(self.send("p:"+d)).strip()
+            # Note: Possible return value is 'load_module encodings.utf_8\n0'
+            if result.endswith("0"):
+                self.feedback("Renaming of city {0} successful.".format(iCity))
+            else:
+                self.warn("Renaming of city {0} failed. Server returns '{1}'".format(iCity, result))
+
+    def do_rename_unit(self, arg):
+        """Allows renaming with respect to some Non-ASCII characters (cp1252 encoding).
+
+        Usage rename_unit {Player id} {Unit id} {New name}
+
+        Fetch the unit id with list_units.
+        """
+
+        if len(arg) < 3:
+            print(self.do_rename_unit.__doc__)
+            return
+
+        d = None
+        try:
+            args = arg.split(" ")
+            iPlayer = int(args[0])
+            iUnit = int(args[1])
+            sName = " ".join(args[2:])
+            sName.replace('"', " ")
+            d = '''\
+if( gc.getMAX_CIV_PLAYERS() > {iPlayer} and {iPlayer} > -1):
+    __name = """{sName}"""
+    __unit = gc.getPlayer({iPlayer}).getUnit({eID})
+    if not __unit.isNone() and __unit.setName(__name.decode("utf-8")) is None:
+        print("0")
+    else:
+        print("-1")
+else:
+    print("-2")
+'''.format(iPlayer=iPlayer, eID=iUnit, sName=sName)
+
+        except ValueError:
+            self.warn("First or second argument is no integer.")
+
+        if d:
+            result = str(self.send("p:"+d)).strip()
+            # Note: Possible return value is 'load_module encodings.utf_8\n0'
+            if result.endswith("0"):
+                self.feedback("Renaming of unit {0} successful.".format(iUnit))
+            else:
+                self.warn("Renaming of unit {0} failed. Server returns '{1}'".format(iUnit, result))
 
     def do_enable_dark_mode(self, arg):
         """ Swap used colors used by Pyconsole
@@ -924,8 +1242,9 @@ except SyntaxError:
     def send(self, s, bRecv=True):
         try:
             return self.client.send(s, bRecv)
-        except:
-            self.warn("Sending of '%s' failed" % (s,))
+        except Exception as e:
+            self.warn("Sending of '{}' failed. Error: {}"
+                      "".format(s,e))
 
         return ""
 
@@ -969,15 +1288,17 @@ except SyntaxError:
 
 
     def getPbSettings(self):
-        d = "import simplejson as json; print(json.dumps(PbSettings))"
+        d = "import simplejson as json; print(" \
+                "json.dumps(PbSettings, encoding='{}'))".format(ENCODING2)
         result = str(self.send("p:"+d))
         # print(result)
         # Strip unwanted output (reason?!)
         if result:
             result = result[result.find("{"):result.rfind("}")+1]
 
+        # print(result)
         try:
-            settings = json.loads(result)
+            settings = json.loads(result, encoding=ENCODING2)
         except ValueError:
             print("Can not decode settings")
             settings = {}
@@ -989,8 +1310,8 @@ except SyntaxError:
             regPattern = ".*"
         d = """\
 import simplejson as json
-print(json.dumps({0}'saves':PbSettings.getListOfSaves('{2}','{3}', {4}){1}))
-""".format("{", "}", pattern, regPattern, sOptNum)
+print(json.dumps({0}'saves':PbSettings.getListOfSaves('{2}','{3}', {4}){1},
+encoding='{5}'))""".format("{", "}", pattern, regPattern, sOptNum, ENCODING2)
 
         # print(d)
         result = str(self.send("p:"+d))
@@ -998,7 +1319,7 @@ print(json.dumps({0}'saves':PbSettings.getListOfSaves('{2}','{3}', {4}){1}))
             json_str = result[result.find("{"):result.rfind("}")+1]
 
             try:
-                saves = json.loads(json_str)
+                saves = json.loads(json_str, encoding=ENCODING2)
                 return saves.get("saves", [])
             except ValueError:
                 self.warn("Can not decode list of saves.")

@@ -41,7 +41,7 @@ import time
 # Path to Civ4:BTS folder (without executable name)
 # CIV4BTS_PATH = "$HOME/Civ4/Beyond the Sword"
 CIV4BTS_PATH = r"C:\Program Files (x86)\2K Games\Firaxis Games\\"\
-        r"Sid Meiers Civilization 4 Complete\Beyond the Sword"
+    r"Sid Meiers Civilization 4 Complete\Beyond the Sword"
 
 # Folder which will be used as container for all ALTROOT directories.
 # It should contains the configuration seed folder (seed)
@@ -60,7 +60,7 @@ RESTART = True
 RESTART_TIMEOUT = 3
 
 # Start command templates
-START_WINDOWS = '"{CIV4BTS_EXE}" mod= "{MOD}"\" /ALTROOT={ALTROOT}"'
+START_WINDOWS = '{CIV4BTS_EXE} mod= "{MOD}"\\" /ALTROOT={ALTROOT}"'
 START_LINUX = 'wine "{CIV4BTS_EXE}" mod= "{MOD}"\\\" /ALTROOT="{ALTROOT_W}"'
 
 # Update command (For mods with ModUpdater.py)
@@ -71,7 +71,7 @@ UPDATE_SCRIPT = 'ModUpdater.py'
 # Variant with cleaned output
 UNBUFFER = False
 START_LINUX_UNBUFFER = r'unbuffer wine "{CIV4BTS_EXE}" mod= "{MOD}"\\\" '\
-        r'/ALTROOT="{ALTROOT_W}" | grep -v "^FTranslator::AddText\|fixme:\|err:"'
+    r'/ALTROOT="{ALTROOT_W}" | grep -v "^FTranslator::AddText\|fixme:\|err:"'
 
 # (Linux only)Path for xvfb-run framebuffer.
 # Screenshot available via 'xwud --id $XVFB_DIR'
@@ -81,7 +81,7 @@ XVFB_MCOOKIE = "/tmp/{GAMEID}"
 XVFB_CMD = 'xvfb-run -a -e /dev/shm/xvfb.{GAMEID}.err --auth-file={COOKIE} '\
     '-s "-fbdir {DIR} -screen 0 640x480x24"'\
     'wine "{CIV4BTS_EXE}" mod= "{MOD}"\\\" /ALTROOT="{ALTROOT_WIN}" &'
-XVFB_PRE_CMD = '$(sleep 3; xauth merge {COOKIE}) &'  #; fg'
+XVFB_PRE_CMD = '$(sleep 3; xauth merge {COOKIE}) &'  # ; fg'
 
 # Seed directory
 # ALTROOT_SEED = os.path.join(ALTROOT_BASEDIR, "seed")
@@ -115,12 +115,14 @@ if "GAMES" not in globals():
     }
 ###################
 
+
 def my_input(t=""):
     # Branch for Python2/3
     if int(sys.version[0]) < 3:
         return raw_input(t)
     else:
         return input(t)
+
 
 def init():
     # Expand environment variables
@@ -149,8 +151,8 @@ def checkIniFile(gameid):
         ini = fp.readlines()
         fp.close()
     else:
-        # print("%s not found." % (iniFn[iniFn.rfind(os.path.sep)+1:]))
-        print("%s not found." % (iniFn))
+        # print("{} not found.".format(iniFn[iniFn.rfind(os.path.sep)+1:]))
+        print("{} not found.".format(iniFn))
         return None
 
     for line in ini:
@@ -174,12 +176,12 @@ def fixIniFile(gameid):
     if os.path.isfile(iniFn):
         for line in fileinput.input(iniFn, inplace=True, backup=".pybak"):
             if line.startswith(opt):
-                print("%s%s" % (opt, altroot_w))
+                print("{}{}".format(opt, altroot_w))
             else:
                 print(line.strip())
 
     else:
-        print("%s not found." % (iniFn[iniFn.rfind(os.path.sep)+1:]))
+        print("{} not found.".format(iniFn[iniFn.rfind(os.path.sep)+1:]))
         return False
 
     return True
@@ -203,8 +205,8 @@ def saveSettings(gameid, pbSettings):
     pbFn = os.path.join(altroot, "pbSettings.json")
     try:
         fp = open(pbFn, mode="w")
-        # Note that it's necessary to use the old syntax (integer value) for indent
-        # argument!
+        # Note that it's necessary to use the old syntax (integer value)
+        # for indent argument!
         json.dump(pbSettings, fp, indent=1)
     except Exception:
         print("Write of json file fails!")
@@ -216,12 +218,12 @@ def printSelectionMenu():
 ID - Description
           """)
     for g in sorted(GAMES.keys()):
-        print("  %10.10s - %s" % (g, GAMES[g]["name"]))
+        print("  {:10.10} - {}".format(g, GAMES[g]["name"]))
 
-    print("  %10.10s %s - %s" % ("list", "[id] [save pattern]",
-                                 "Print out names of 20 youngest saves."))
-    print("  %10.10s - %s" % ("help",
-                              "Print help and exit"))
+    print("  {:10.10} {} - {}".format("list", "[id] [save pattern]",
+                                      "Print out names of 20 youngest saves."))
+    print("  {:10.10} - {}".format("help",
+                                   "Print help and exit"))
 
 
 def printHelp():
@@ -247,6 +249,43 @@ Without args: Show list of games and wait for further user input.
           """.format(sys.argv[0]))
 
 
+def _add_auto_subfolders(folders):
+    # Add 'PATH/auto' for each PATH
+    # and convert path separators...
+    folders_with_auto = []
+    for s in folders:
+        if os.path.sep == "/":
+            s = s.replace("\\\\", "/").replace("\\", "/")
+        folders_with_auto.append(s)
+        folders_with_auto.append(os.path.join(s, "auto"))
+
+    return folders_with_auto
+
+
+def _made_case_insensitive(folders):
+    # Made pattern case insensitive
+    # (prevents 'saves/multi' vs. 'Saves/multi' struggle)
+
+    def insensitive(text):
+        a = ["[{}{}]".format(c.lower(), c.upper()) if
+             c.lower() != c.upper() else c for c in text]
+        return ''.join(a)
+
+    folders = [insensitive(f) for f in folders]
+    return folders
+
+
+def _remove_duplicates(filenames):
+    # Remove duplicates, but do not change order
+
+    filenames_no_dup = []
+    for s in filenames:
+        if s not in filenames_no_dup:
+            filenames_no_dup.append(s)
+
+    return filenames_no_dup
+
+
 def findSaves(gameid, pbSettings, reg_pattern=None, pattern="*"):
     """ Return list of tuples (path, creation_date) of given pattern. """
     altroot = GAMES[gameid]["altroot"]
@@ -256,16 +295,8 @@ def findSaves(gameid, pbSettings, reg_pattern=None, pattern="*"):
     subfolders.extend(pbSettings.get("save", {}).get("readfolders", []))
     subfolders.append(os.path.join("Saves", "pitboss"))
 
-    # Extend by auto subfolders...
-    # and convert path separators...
-    subfolder_with_auto = []
-    for s in subfolders:
-        if os.path.sep == "/":
-            s = s.replace("\\\\", "/").replace("\\", "/")
-        subfolder_with_auto.append(s)
-        subfolder_with_auto.append(os.path.join(s, "auto"))
-    subfolders = subfolder_with_auto
-    # print(str(subfolders))
+    subfolders = _add_auto_subfolders(subfolders)
+    subfolders = _made_case_insensitive(subfolders)
 
     if not pattern.lower().endswith(EXTENSION.lower()):
         pattern += EXTENSION
@@ -276,11 +307,13 @@ def findSaves(gameid, pbSettings, reg_pattern=None, pattern="*"):
         saves.extend(glob.glob(ss1))
         ss2 = os.path.join(CIV4BTS_PATH, x, pattern)
         saves.extend(glob.glob(ss2))
-        # print("%s, %s" % (ss1, ss2))
+        # print("{}, {}".format(ss1, ss2))
 
     if reg_pattern:
         reg = re.compile(reg_pattern)
         saves = [x for x in saves if reg.search(x)]
+
+    saves = _remove_duplicates(saves)
 
     savesWithTimestamps = [(x, os.path.getctime(x)) for x in saves]
     # Sort by timestamp
@@ -288,7 +321,6 @@ def findSaves(gameid, pbSettings, reg_pattern=None, pattern="*"):
     # Remove oldest
     while len(savesWithTimestamps) >= 20:
         savesWithTimestamps.pop(0)
-
 
     # Shift current selected save of pbSettings.json on top, but
     # warn if save was not found.
@@ -302,7 +334,7 @@ def findSaves(gameid, pbSettings, reg_pattern=None, pattern="*"):
             break
 
     if bMissing and reg_pattern is None:
-        print("\nWarning: Currently selected save '{0}' "\
+        print("\nWarning: Currently selected save '{0}' "
               "can not be found!\n".format(currenty_selected))
 
     savesWithTimestamps.reverse()
@@ -440,7 +472,7 @@ def parseModName(filename):
 def getAltrootWin(altroot):
     """ Convert path with slashes into usable form as wine argument. """
     if os.path.sep == "/":
-        return "Z:%s" % (altroot.replace("/", "\\\\"))
+        return "Z:{}".format(altroot.replace("/", "\\\\"))
     else:
         return altroot
 
@@ -456,7 +488,7 @@ def setupGame(gameid, save_pat=None, password=None):
     one of the passwords in pbPasswords.json not matches with
     the save password. (TODO)
     """
-    print("\n==== Start %s ====\n" % GAMES[gameid]["name"])
+    print("\n==== Start {} ====\n".format(GAMES[gameid]["name"]))
 
     pbSettings = loadSettings(gameid)
     if save_pat:
@@ -474,16 +506,16 @@ def setupGame(gameid, save_pat=None, password=None):
             (pbSettings.get("save", {}).get("filename", "?"))))
 
     if bAutostart and len(lSaves) == 0:
-        print("No save found for pattern '%s'." % (save_pat))
+        print("No save found for pattern '{}'.".format(save_pat))
         return -1
 
     if bAutostart:
         mod_name = parseModName(lSaves[0][0])
     else:
         mod_name = select_mod_manually(GAMES[gameid]["mod"])
-        #mod_name = GAMES[gameid]["mod"]
+        # mod_name = GAMES[gameid]["mod"]
 
-    print("Mod name: %s" % (mod_name))
+    print("Mod name: {}".format(mod_name))
 
     civ4bts_exe = os.path.join(CIV4BTS_PATH,
                                "Civ4BeyondSword_PitBoss.exe")
@@ -500,13 +532,13 @@ def setupGame(gameid, save_pat=None, password=None):
     altroot_w = getAltrootWin(altroot)
 
     if not os.path.exists(civ4bts_exe):
-        print("Executeable not found. Is the path correctly?\n'%s'\n" %
-              (civ4bts_exe))
+        print("Executeable not found. Is the path correctly?\n'{}'\n"
+              "".format(civ4bts_exe))
         return
 
     if not os.path.exists(altroot):
-        print("Altroot directory found. Is the path correctly?\n'%s'\n"\
-              "Copy 'seed' if you want create a new game." % (altroot))
+        print("Altroot directory found. Is the path correctly?\n'{}'\n"
+              "Copy 'seed' if you want create a new game.".format(altroot))
         return
 
     if XVFB:
@@ -527,7 +559,7 @@ def setupGame(gameid, save_pat=None, password=None):
     pre_start_cmd = None
     if os.path.sep == "\\":  # Windows
         start_cmd = START_WINDOWS.format(
-            CIV4BTS_EXE=civ4bts_exe,
+            CIV4BTS_EXE=os.path.basename(civ4bts_exe),
             MOD=mod_name,
             ALTROOT=altroot)
     else:
@@ -545,7 +577,7 @@ def setupGame(gameid, save_pat=None, password=None):
                 MOD=mod_name,
                 ALTROOT_W=altroot_w)
 
-    print("Start Command:\n%s" % (start_cmd,))
+    print("Start Command:\n{}".format(start_cmd))
 
     # Start infinite loop for the selected game
     os.chdir(CIV4BTS_PATH)
@@ -565,7 +597,8 @@ def setupGame(gameid, save_pat=None, password=None):
             if not RESTART:
                 break
 
-            sys.stdout.write("\nRestart server in %i seconds." % RESTART_TIMEOUT)
+            sys.stdout.write("\nRestart server in {} seconds.".format(
+                RESTART_TIMEOUT))
             sys.stdout.flush()
             for _ in range(RESTART_TIMEOUT):
                 time.sleep(1)
@@ -573,8 +606,13 @@ def setupGame(gameid, save_pat=None, password=None):
                 sys.stdout.flush()
 
             sys.stdout.write("\n")
+
+            # Refresh settings
+            pbSettings = loadSettings(gameid)
+
     except KeyboardInterrupt:
         print("\nQuit script")
+
 
 def select_mod_manually(default):
     """ Show list of directories of 'BTS/Mods' """
@@ -595,7 +633,7 @@ def select_mod_manually(default):
     def get_list(folder):
         ret = {}
         ret[0] = "None"
-        mod_names = [os.path.basename(x) for x in glob.glob(folder) \
+        mod_names = [os.path.basename(x) for x in glob.glob(folder)
                      if os.path.isdir(x)]
         mod_names.sort()
         for x in mod_names:
@@ -627,6 +665,7 @@ def select_mod_manually(default):
             mod=default, user_in=user_in))
         return default
 
+
 def prepare_update(gameid, pbSettings, mod_name):
     cur_folder = os.curdir
     mod_folder = os.path.join(CIV4BTS_PATH, "Mods", mod_name)
@@ -642,8 +681,8 @@ def prepare_update(gameid, pbSettings, mod_name):
             ARGS="--force" if isForcedAutostart(pbSettings) else "")
 
     if not os.path.isdir(mod_folder):
-        print("(ModUpdater) Mod folder not found. Is the path correctly?\n'%s'\n" %
-              (mod_folder))
+        print("(ModUpdater) Mod folder not found. Is the path correctly?\n"
+              "'{}'\n".format(mod_folder))
         return -3
     elif not os.path.isfile(os.path.join(mod_folder, script_rel_path)):
         print("(ModUpdater) Update script not included. Does this mod"
@@ -658,7 +697,8 @@ def prepare_update(gameid, pbSettings, mod_name):
         if exit_status == 0:
             removeUpdateFlag(gameid, pbSettings)
         else:
-            print("Update process returns {0} != 0. Abort start".format(exit_status))
+            print("Update process returns {0} != 0. Abort start"
+                  "".format(exit_status))
             return -1
 
     return 0
@@ -689,7 +729,7 @@ if __name__ == "__main__":
         listSaves(args[0], args[2])
     else:
         if not fixIniFile(args[0]):
-            print("Error: The option '%s' in '%s' contain not the altroot path "
-                  "and the automated fix failed." % (INI_OPT, INI))
+            print("Error: The option '{}' in '{}' contain not the altroot "
+                  "path and the automated fix failed.".format(INI_OPT, INI))
         else:
             setupGame(*args)

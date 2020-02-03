@@ -89,21 +89,36 @@ def action_gamedata(inputdata, server, wfile):
 
 @action_args_decorator
 def action_chat(inputdata, server, wfile):
-    msg_in = inputdata.get("msg",
-                           u"Default message. Missing msg argument?!")
+    msg_in = inputdata.get("msg", u"")
     try:
-        # type(msg_in) is unicode, but the content are bytes or a basestr!
-        # Convert manually.
-        #msg = "".join([latin1(ord(c)) for c in msg_in])
-        msg = msg_in.encode('latin1', 'replace')
+        # type(msg_in) is unicode, but we need a bytestr with
+        # an encoding which can Civ4 handle.
+        msg_cp1252 = msg_in.encode('cp1252', 'replace')
 
-        PB.sendChat(msg)
-        msg = msg.replace('&', '&amp;')
-        msg = msg.replace('<', '&lt;')
-        msg = msg.replace('>', '&gt;')
-        #wfile.write(gen_answer(u'' + msg.decode('latin1')))
-        wfile.write(gen_answer({'info': 'Chat message send.',
-                                'msg': msg.decode('latin1')}))
+        # Convert text back to unicode. This will used to
+        # store the text in pbSettings.json which is utf-8 encoded.
+        # Moreover, msg is without critical chars, msg_in not.
+        msg = msg_cp1252.decode('cp1252')
+
+        if len(msg_in) > 0:
+            PB.sendChat(msg_cp1252)
+            msg = msg.replace('&', '&amp;')
+            msg = msg.replace('<', '&lt;')
+            msg = msg.replace('>', '&gt;')
+            wfile.write(gen_answer({'info': 'Chat message send.',
+                                    'msg': msg}))
+        else:  # Empty chat message: Return latest chat messages.
+            if server.adminApp is not None:
+                chat_log = server.adminApp.chat_log
+            else:
+                chat_log = []
+
+            wfile.write(gen_answer({
+                'info': 'Latest %i chat messages' % (len(chat_log),),
+                'log': chat_log}))
+
+            chat_log[:] = []  # Don't print messages twice
+
     except Exception, e:  # Old Python 2.4 syntax!
         wfile.write(gen_answer(
             'Some error occured trying to send the message. '
@@ -143,13 +158,14 @@ def action_headless(inputdata, server, wfile):
 def action_save(inputdata, server, wfile):
     defaultFile = "Pitboss_" + PB.getGamedate(True)
     filename = "%s.CivBeyondSwordSave" % (
-        str(inputdata.get("filename", defaultFile)),)
+        inputdata.get("filename", defaultFile),)
     # remove "\ or /" chars to cut of directory changes
     filename = filename[
         max(filename.rfind("/"), filename.rfind("\\")) + 1:
         len(filename)]
 
     ret = PbSettings.createSave(filename)
+    # ret = PbSettings.createSave(filename.encode('utf-8'))
     wfile.write(gen_answer(ret))
 
 
@@ -202,7 +218,7 @@ def action_end_turn(inputdata, server, wfile):
     # Create Backup save in auto-Folder
     filename = "Auto_" + PB.getGamename() + "_R" + str(PB.getGameturn()) + \
             "end_" + PB.getGamedate(False) + ".CivBeyondSwordSave"
-    PbSettings.createSave(str(filename), 1)
+    PbSettings.createSave(filename, 1)
 
     if PB.getTurnTimer():
         gc.getGame().incrementTurnTimer(-PB.getTurnTimeLeft() + 4 * 20)
@@ -223,7 +239,7 @@ def action_restart(inputdata, server, wfile):
     # filename is given
     bReload = True
 
-    filename = str(inputdata.get("filename", ""))
+    filename = inputdata.get("filename", u"")  # unicode
     folderIndex = int(inputdata.get("folderIndex", 0))
     # remove "\ or /" chars to cut of directory changes
     filename = filename[
@@ -288,12 +304,12 @@ def action_restart(inputdata, server, wfile):
     if bReload:
         # Quit server. The loop in the batch file should
         # restart the server....
-        if server.pbAdminFrame is not None:
+        if server.adminFrame is not None:
             wfile.write(gen_answer('Set loaded file on "%s" and quit PB server'
                                    ' window.' % (filename,)))
             try:
                 # Required because OnExit throws error for gui=0...
-                server.pbAdminFrame.OnExit(None)
+                server.adminFrame.OnExit(None)
             except Exception, e:  # Old Python 2.4 syntax!
                 PB.consoleOut("Error during shutdown: " + str(e))
 
@@ -395,17 +411,19 @@ def action_player_color(inputdata, server, wfile):
 @action_args_decorator
 def action_get_motd(inputdata, server, wfile):
     try:
-        motd = ""
-        if server.pbAdminApp is not None:
-            motd = server.pbAdminApp.getMotD()
+        if server.adminApp is not None:
+            motd = server.adminApp.getMotD()
+        else:
+            motd = PbSettings.get('MotD', u'')
 
         motd = motd.replace('&', '&amp;')
         motd = motd.replace('<', '&lt;')
         motd = motd.replace('>', '&gt;')
         wfile.write(gen_answer({'info': 'Return MotD.',
-                                'msg': motd.decode('latin1')}))
+                                'msg': motd}))
+                                # 'msg': motd}).decode('cp1252'))
     except Exception, e:  # Old Python 2.4 syntax!
-        wfile.write(gen_answer("Some error occured trying to get the MotD."
+        wfile.write(gen_answer("Some error occured trying to get the MotD. "
                                # "Error msg: %s" % (str(e),), "fail"))
                                "Error msg: %s\n%s" % (str(e), str(type(server))), "fail"))
 
@@ -450,6 +468,7 @@ def action_get_replay(inputdata, server, wfile):
                 # Why does this not work?!
                 # msgText = replayInfo.getReplayMessageText(i).decode('ascii', 'replace')
                 msgText = replayInfo.getReplayMessageText(i)
+                # TODO: Fix this encoding stuff.
                 # filtering (generator syntax)
                 msgText = ''.join(i for i in msgText if ord(i) < 128)
                 replayMessages.append({'id': i, 'turn': iTurn,
@@ -493,26 +512,32 @@ def action_set_motd(inputdata, server, wfile):
     msg_in = inputdata.get("msg",
                            u"No MotD given. Missing msg argument?!")
     try:
-        # type(msg_in) is unicode, but the content are bytes or a basestr!
-        # Convert manually.
-        #msg = "".join([latin1(ord(c)) for c in msg_in])
-        msg = msg_in.encode('latin1', 'replace')
+        # type(msg_in) is unicode, but we need a bytestr with
+        # an encoding which can Civ4 handle.
+        msg_cp1252 = msg_in.encode('cp1252', 'replace')
+
+        # Convert text back to unicode. This will used to
+        # store the text in pbSettings.json which is utf-8 encoded.
+        # Moreover, msg is without critical chars, msg_in not.
+        msg = msg_cp1252.decode('cp1252')
 
         PbSettings.load(False)
         PbSettings.lock.acquire()
-        PbSettings["MotD"] = msg.decode('latin1')
+        PbSettings["MotD"] = msg
         PbSettings.lock.release()
         PbSettings.save()
 
-        if server.pbAdminApp is not None:
-            server.pbAdminApp.setMotD(msg)
+        if server.adminApp is not None:
+            # server.adminApp.setMotD(msg_cp1252) # Kauderwelsch
+            server.adminApp.setMotD(msg)  # Übergabe als unicode-type
 
+        # Prepare output for output on Webfronted.
         msg = msg.replace('&', '&amp;')
         msg = msg.replace('<', '&lt;')
         msg = msg.replace('>', '&gt;')
         #wfile.write(gen_answer(u'New MotD: %s' % (msg.decode('latin1'),)))
         wfile.write(gen_answer({'info': 'New MotD set.',
-                                'msg': msg.decode('latin1')}))
+                                'msg': msg}))
     except Exception, e:  # Old Python 2.4 syntax!
         wfile.write(gen_answer("Some error occured trying to set the MotD. "
                                "Probably a character that cannot be encoded. "
@@ -683,18 +708,20 @@ def action_mod_update(inputdata, server, wfile):
             PbSettings.load(False)
             PbSettings.lock.acquire()
             PbSettings["save"]["oneOffAutostart"] = 1
+            PbSettings["save"]["adminpw"] = adminPW
             PbSettings["startUpdate"] = 1
             PbSettings.lock.release()
             PbSettings.save()
             wfile.write(gen_answer(
-                "(Mod Updateing) Update prepared. Restart with the passsword "
-                "free save '%s'. "
-                "The next server start with 'startPitboss.py' "
-                "should invoke mod updating process. " % (filename,)))
+                "(Mod Updating) Update prepared. Restart with the passswordless "
+                "save '%s'. \n"
+                "The next server start by 'startPitboss.py' "
+                "invokes mod updating process. " % (filename,)))
 
-    except:
+    except Exception, e:  # Old Python 2.4 syntax!
         if wfile:
-            wfile.write(gen_answer("Error description", "fail"))
+            wfile.write(gen_answer("Preparing of mod update failed. Error: "
+                                   + str(e), "fail"))
 
 
 @action_args_decorator
@@ -735,14 +762,6 @@ Action_Handlers = {
     "modUpdate": action_mod_update,
 }
 
-
-def latin1(ordinal):
-    # Hepler function for sendChat and setMotD
-    # 2.4 does not support "A if BOOL else B" syntax
-    if ordinal > 255:
-        return "?"
-    else:
-        return chr(ordinal)
 
 def createGameData():
     # Collect all available data

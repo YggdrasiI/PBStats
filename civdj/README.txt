@@ -17,13 +17,15 @@ functions to show the game status, a game log and to administrate the game.
 === Installation of Django + Django packages with pip ===
 
 == Dependencies ==
+Here, we assume python3 >= python3.8.
 
 sudo apt-get install python3-pip node-less
-sudo pip3 install Django==1.11
-sudo pip3 install --upgrade django-polymorphic django-debug-toolbar django-erroneous \
-django-registration-redux django-crispy-forms \
-django-floppyforms django-sendmail-backend django-static-precompiler \
-mysql-connector-python pytz setuptools six sqlparse
+pip3 install Django==2.2
+pip3 install --upgrade django-polymorphic django-debug-toolbar django-erroneous \
+			 django-registration-redux django-crispy-forms \
+			 django-floppyforms django-sendmail-backend django-static-precompiler \
+			 django_bleach \
+			 mysql-connector-python pytz setuptools six sqlparse
 
 
 == Configuration ==
@@ -34,7 +36,7 @@ Without changes PBSpy will use Sqlite 3 as database backend. Look into the Djang
 for other setups.
 
 
-== First run (Debug mode, Release mode require more steps) ==
+== First run (For Debug mode. Release mode requires more steps) ==
 
 python3 manage.py migrate
 python3 manage.py migrate static_precompiler

@@ -162,7 +162,6 @@ class Settings(dict):
     def __init__(self):
         if '_ready' not in dir(self):
             super(Settings, self).__init__()  # Removes lint waring
-            # _pbSettings = {}
             # Holds values which should not be saved.
             self.temp = {}
 
@@ -170,36 +169,53 @@ class Settings(dict):
             self.load(True)
             self._ready = True
 
-    """
-    def __get__(self, obj, _type=None):
-        return self._pbSettings.get(obj, _type)
+    def __setitem__disabled(self, item, value):
+        # return super(Settings, self).__setitem__(item, value)
 
-    def __set__(self, obj, value):
-        self._pbSettings.__set__(obj, value)
+        # simplejson.loads sets all strings to
+        # unicode type
+        # To avoid mixing of strings convert
+        # every input string to unicode.
+        #
+        # If this fails by wrong encoding type
+        # convert input strings manually to
+        # unicode before you call __setitem__/[].
+        def recursive_update(d, item, value):
+            # print(u"recursive_update called for '%s'='%s'" %(item, value))
+            if isinstance(item, str):
+                # print("Settings: convert key '%s' to unicode" %(item,))
+                try:
+                    item_unicode = item.decode('cp1252')
+                except UnicodeDecodeError:
+                    item_unicode = item.decode('utf-8')
 
-    def __delete__(self, obj):
-        self._pbSettings.__delete__(obj)
+                item = item_unicode
 
-    def setdefault(self, key, value):
-        return self._pbSettings.setdefault(key, value)
-    """
+            if isinstance(value, str):
+                # print("Settings: convert '%u' to unicode" %(value,))
+                try:
+                    value_unicode = value.decode('cp1252')
+                except UnicodeDecodeError:
+                    value_unicode = value.decode('utf-8')
 
-    """
-    def __init__(self):  # , *args, **kwargs):
-        # super(Settings, self).__init__(args, kwargs)
-        super(Settings, self).__init__()  # Removes lint waring
-        # _pbSettings = {}
-        # Holds values which should not be saved.
-        self.temp = {}
-        self.lock = thread.allocate_lock()
-        self.load(True)
-    """
+                d.__setitem__(item, value_unicode)
+
+            elif isinstance(value, dict):
+                for k in value:
+                    recursive_update(value, k, value[k])
+
+            else:
+                d.__setitem__(item, value)
+
+        recursive_update(super(Settings, self), item, value)
 
     def load(self, bFallbackToDefaults=False):
         if os.path.isfile(PbFn):
             fp = open(PbFn, "r")
             tmpSettings = dict(PbDefaultSettings)
-            nested_dict_update(tmpSettings, simplejson.load(fp), 1)
+            nested_dict_update(tmpSettings,
+                               simplejson.load(fp, encoding='utf-8'),
+                               1)
             fp.close()
         elif bFallbackToDefaults:
             tmpSettings = dict(PbDefaultSettings)
@@ -258,7 +274,8 @@ class Settings(dict):
             fp = open(PbFn, "w")
             # Note that it's ness. to use the old syntax (integer value)
             # for indent argument!
-            simplejson.dump(self, fp, indent=1)
+            simplejson.dump(self, fp, indent=1,
+                            encoding='utf-8')
         except Exception:
             pass
 
@@ -278,9 +295,8 @@ class Settings(dict):
 
         # Note: "path" is the deprecated name of "writefolder"
         userPath = str(self["save"].get(
-            "writefolder", self["save"].get(
-                "path",
-                "Saves\\multi\\")))
+            "writefolder",
+            self["save"].get( "path", "Saves\\multi\\")))
         folders = [
             AltrootDir + "\\" + userPath,
             AltrootDir + "\\" + userPath + "auto\\",
@@ -344,8 +360,8 @@ class Settings(dict):
 
         for savefile in existingWithTimestamps:
             saveList.append({
-                'name': os.path.basename(savefile[0]),
-                'folder': os.path.dirname(savefile[0]),
+                'name': os.path.basename(savefile[0]).decode('cp1252'),
+                'folder': os.path.dirname(savefile[0]).decode('cp1252'),
                 'folderIndex': savefile[1],
                 'date': time.ctime(savefile[2]),
                 'timestamp': savefile[2]
@@ -354,10 +370,17 @@ class Settings(dict):
         return saveList
 
     def createSave(self, filename, folderIndex=0):
-        filepath = os.path.join(self.getSaveFolder(folderIndex), filename)
+        # Normalize filename to unicode
+        if isinstance(filename, str):
+            filename = filename.decode('utf-8')
 
-        if (filename != ""):
-            if (not PB.save(filepath)):
+        filepath = os.path.join(self.getSaveFolder(folderIndex), filename)
+        # filepath is unicode because filename is it.
+        # PB.save needs string with proper encoding
+        filepath_cp1252 = filepath.encode('cp1252')
+
+        if (filename != u""):
+            if (not PB.save(filepath_cp1252)):
                 ret = {'return': 'fail',
                        'info': 'Saving of "%s" failed.' % (filepath,)}
             else:
@@ -403,7 +426,7 @@ class Settings(dict):
         filename = "%sP%i_%s_T%i.CivBeyondSwordSave" % (recoverPrefix,
                                                         playerId, playerName,
                                                         int(time.time()))
-        self.createSave(str(filename), 1)
+        self.createSave(filename, 1)
 
 
 def nested_dict_update(dBase, dUpdate, max_depth=-1):
