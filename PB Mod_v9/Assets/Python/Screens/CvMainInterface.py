@@ -139,6 +139,11 @@ class CvMainInterface:
 		if ( CyGame().isPitbossHost() ):
 			return
 
+		# PB Mod: Reset score board values in each loaded game
+		self.iScoreRows = 20
+		self.iScoreWidth = 100
+		self.iScoreRowsBackup = self.iScoreRows
+
 		# This is the main interface screen, create it as such
 		screen = CyGInterfaceScreen( "MainInterface", CvScreenEnums.MAIN_INTERFACE )
 		screen.setForcedRedraw(True)
@@ -2915,7 +2920,7 @@ class CvMainInterface:
 				self.iScoreRowsBackup = self.iScoreRows
 		else:
 			if self.iScoreRows < self.iScoreRowsBackup:
-				self.iScoreRows= self.iScoreRowsBackup
+				self.iScoreRows = self.iScoreRowsBackup
 				self.iScoreRowsBackup = 0
 			for iPlayerX in xrange(gc.getMAX_CIV_PLAYERS()):
 				pPlayerX = gc.getPlayer(iPlayerX)

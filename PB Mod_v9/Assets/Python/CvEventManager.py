@@ -31,6 +31,7 @@ PyPlayer = PyHelpers.PyPlayer
 PyInfo = PyHelpers.PyInfo
 
 bStackAttackCheck = False
+bResourceSymbolCheck = False
 
 # globals
 ###################################################
@@ -298,18 +299,16 @@ class CvEventManager:
         'Called when Civ starts up'
         CvUtil.pyPrint( 'OnInit' )
 
+        global bResourceSymbolCheck
+        bResourceSymbolCheck = True
+
+    # Note: Callback not called in this mod...
     def onUpdate(self, argsList):
         'Called every frame'
         fDeltaTime = argsList[0]
 
         # allow camera to be updated
         CvCameraControls.g_CameraControls.onUpdate( fDeltaTime )
-
-        global bStackAttackCheck
-        if bStackAttackCheck:
-            bStackAttackCheck = False
-            check_stack_attack()
-
 
     def onWindowActivation(self, argsList):
         'Called when the game window activates or deactivates'
@@ -339,7 +338,12 @@ class CvEventManager:
 
     def onLoadGame(self, argsList):
         CvAdvisorUtils.resetNoLiberateCities()
+
+        global bStackAttackCheck
         bStackAttackCheck = True
+
+        global bResourceSymbolCheck
+        bResourceSymbolCheck = True
         return 0
 
     def onGameStart(self, argsList):
@@ -949,6 +953,16 @@ class CvEventManager:
         genericArgs = argsList[0][0]    # tuple of tuple of my args
         turnSlice = genericArgs[0]
 
+        global bStackAttackCheck
+        if bStackAttackCheck:
+            bStackAttackCheck = False
+            check_stack_attack()
+
+        global bResourceSymbolCheck
+        if bResourceSymbolCheck:
+            bResourceSymbolCheck = False
+            CyGame().doControlWithoutWidget(ControlTypes.CONTROL_RESOURCE_ALL)  # Ctrl+r
+
     def onMouseEvent(self, argsList):
         'mouse handler - returns 1 if the event was consumed'
         eventType,mx,my,px,py,interfaceConsumed,screens = argsList
@@ -1098,7 +1112,7 @@ class CvEventManager:
 def check_stack_attack():
     iPlayer = gc.getGame().getActivePlayer()
     if (iPlayer != -1
-            and not CyGame().isPitbossHost() and CyGame().isPitboss()
+            # and not CyGame().isPitbossHost() and CyGame().isPitboss()
             and gc.getPlayer(iPlayer).isOption(PlayerOptionTypes.PLAYEROPTION_STACK_ATTACK)):
         szBody = localText.getText("TXT_KEY_MOD_POPUP_WARNING_STACK_ATTACK", ())
         popupInfo = CyPopupInfo()
