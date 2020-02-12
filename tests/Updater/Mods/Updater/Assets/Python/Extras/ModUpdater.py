@@ -470,7 +470,10 @@ class ModUpdater:
 
     def handle_info_json(self, dInfo):
         if not IN_CIV4:
-            print("Info file: " + str(dInfo))
+            print("Info file:")
+            print simplejson.dumps(dInfo, sort_keys=True,
+                             indent=4,
+                             separators=(',', ': '))
 
         # Check if update meta info provides list of files
         # which should be removed. (Note that they will be removed after
