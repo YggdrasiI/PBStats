@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """ Helper script to generate Update as difference of two git
@@ -20,21 +20,13 @@ def debug(s):
 
 MOD_NAME="Updater"
 TARGET_PATH= os.path.join(".", "server", MOD_NAME)
+MOD_PATH_IN_REPO="tests/Updater/Mods/Updater/"  # without leading './'!
 
-if False:
-    # Simple example where this script is directly placed in the folder
-    # of the mod
-    MOD_PATH_IN_REPO = "./"
-    RELATIVE_MOD_PATH = "./"
-    GIT_LIST = r"git diff --name-only {base_branch}"
-    GIT_TO_REMOVE = r'git diff {base_branch} ' \
-        '| grep -B 1 "^+++ /dev/null" ' \
-        '| sed -n "s/--- a\/\(.*\)/\1/p"'
-    ZIP = "echo '{files}' | zip -r \"{update_zip}\" -@"
-else:
+if True:
     # More complex example where the mod folder is just a subdirectory of
     # a git repo. Here, we just want respect changes of this subdirectory.
-    MOD_PATH_IN_REPO="tests/Updater/Mods/Updater/"
+    #
+    # Path is relative to root of git project.
 
     RELATIVE_MOD_PATH=os.path.join(
         os.popen("git rev-parse --show-cdup").read(-1).replace("\n", "").strip(),
@@ -44,7 +36,6 @@ else:
     GIT_TO_REMOVE = r'git diff {{base_branch}} "{rel_mod_path}" ' \
         r'| grep -B 1 "^+++ /dev/null" ' \
         r'| sed -n "s/--- a\/\(.*\)/\1/p"'.format(rel_mod_path=RELATIVE_MOD_PATH)
-
 
     # Es wird ins Mod-Verzeichnis gewechselt und die  Dateiliste wird um
     # das passende Prefix gekürzt. Außerdem muss der Ausgabepfad des Zips
@@ -57,13 +48,25 @@ else:
         "| zip -r \"{{update_zip}}\" -@".format(rmp=RELATIVE_MOD_PATH,
                                             mpir=MOD_PATH_IN_REPO)
 
-    # A variant for Windows with 7z instead of zip. 
-    '''    
+    # A variant for Windows with 7z instead of zip.
+    '''
     ZIP = r"cd '{rmp}' && echo '{{files}}' | sed -n 's#{mpir}[\/]*##p' " \
         "> ziplist.txt && 7z.exe a -r \"{{update_zip}}\" @ziplist.txt " \
         "&& rm ziplist.txt".format(rmp=RELATIVE_MOD_PATH,
                 mpir=MOD_PATH_IN_REPO)
-    '''            
+    '''
+
+else:
+    # Simple example where this script is directly placed in the folder
+    # of the mod
+    MOD_PATH_IN_REPO = "./"
+    RELATIVE_MOD_PATH = "./"
+    GIT_LIST = r"git diff --name-only {base_branch}"
+    GIT_TO_REMOVE = r'git diff {base_branch} ' \
+        '| grep -B 1 "^+++ /dev/null" ' \
+        '| sed -n "s/--- a\/\(.*\)/\1/p"'
+    ZIP = "echo '{files}' | zip -r \"{update_zip}\" -@"
+
 
 # End of environment setup
 # ===========================================================
@@ -111,7 +114,7 @@ def update_html(update_name, zip_file):
     if not os.path.isfile(html_file):
         print("Can not add new entry. File '{0}' not found.".format(html_file))
         if os.path.isfile(html_file_fallback):
-            print("Fall back on template file '{0}'.".format(html_file_fallback)) 
+            print("Fall back on template file '{0}'.".format(html_file_fallback))
             without_old_line =  os.open(html_file_fallback).read(-1)
         else:
             return False
@@ -223,10 +226,7 @@ if __name__ == "__main__":
                 os.rename(update_zip, update_zip + ".old")
 
             _zip_cmd = ZIP.format(files=full_list, update_zip=update_zip)
-            import pdb
-            pdb.set_trace()
             debug(_zip_cmd)
-            # ret = os.system(_zip_cmd)
             ret = os.popen(_zip_cmd).read(-1)
             print(ret)
 
