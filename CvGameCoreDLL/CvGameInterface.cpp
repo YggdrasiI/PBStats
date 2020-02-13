@@ -2872,6 +2872,16 @@ void CvGame::doControlWithoutWidget(ControlTypes eControl) const
 						gDLL->getEngineIFace()->toggleResourceLayer();
 						break;
 
+                #define CONTROL_RESOURCE_TRUE CONTROL_RESOURCE_ALL + 1001
+                #define CONTROL_RESOURCE_FALSE CONTROL_RESOURCE_ALL + 1000
+                case CONTROL_RESOURCE_TRUE:
+						gDLL->getEngineIFace()->setResourceLayer(1);
+						break;
+
+                case CONTROL_RESOURCE_FALSE:
+						gDLL->getEngineIFace()->setResourceLayer(0);
+						break;
+
 				case CONTROL_UNIT_ICONS:
 						gDLL->getEngineIFace()->toggleUnitLayer();
 						break;

@@ -30,8 +30,7 @@ localText = CyTranslator()
 PyPlayer = PyHelpers.PyPlayer
 PyInfo = PyHelpers.PyInfo
 
-bStackAttackCheck = False
-bResourceSymbolCheck = False
+iPlayerOptionCheck = 0  # Triggers for == 1, decrements for >= 0
 
 # globals
 ###################################################
@@ -299,9 +298,6 @@ class CvEventManager:
         'Called when Civ starts up'
         CvUtil.pyPrint( 'OnInit' )
 
-        global bResourceSymbolCheck
-        bResourceSymbolCheck = True
-
     # Note: Callback not called in this mod...
     def onUpdate(self, argsList):
         'Called every frame'
@@ -339,11 +335,11 @@ class CvEventManager:
     def onLoadGame(self, argsList):
         CvAdvisorUtils.resetNoLiberateCities()
 
-        global bStackAttackCheck
-        bStackAttackCheck = True
+        global iPlayerOptionCheck
+        # Attention, for iPlayerOptionCheck = 1 you will check aggainst
+        # the option values stored in the save file, but not the current one!
+        iPlayerOptionCheck = 8   # 1 = 1/4 sec
 
-        global bResourceSymbolCheck
-        bResourceSymbolCheck = True
         return 0
 
     def onGameStart(self, argsList):
@@ -953,15 +949,13 @@ class CvEventManager:
         genericArgs = argsList[0][0]    # tuple of tuple of my args
         turnSlice = genericArgs[0]
 
-        global bStackAttackCheck
-        if bStackAttackCheck:
-            bStackAttackCheck = False
-            check_stack_attack()
+        global iPlayerOptionCheck
+        if iPlayerOptionCheck > 0:
+            iPlayerOptionCheck -= 1
+            if iPlayerOptionCheck == 0:
+                check_stack_attack()
+                check_show_ressources()
 
-        global bResourceSymbolCheck
-        if bResourceSymbolCheck:
-            bResourceSymbolCheck = False
-            CyGame().doControlWithoutWidget(ControlTypes.CONTROL_RESOURCE_ALL)  # Ctrl+r
 
     def onMouseEvent(self, argsList):
         'mouse handler - returns 1 if the event was consumed'
@@ -1119,3 +1113,14 @@ def check_stack_attack():
         popupInfo.setButtonPopupType(ButtonPopupTypes.BUTTONPOPUP_TEXT)
         popupInfo.setText(szBody)
         popupInfo.addPopup(iPlayer)
+
+def check_show_ressources():
+    iPlayer = gc.getGame().getActivePlayer()
+    CvUtil.pyPrint('Foo')
+    if (iPlayer != -1
+        and gc.getPlayer(iPlayer).isOption(
+            PlayerOptionTypes.PLAYEROPTION_MODDER_1)
+       ):
+        CvUtil.pyPrint('toggle resource symbols on')
+        bResourceOn = ControlTypes.CONTROL_RESOURCE_ALL + 1001
+        CyGame().doControlWithoutWidget(bResourceOn)  # Ctrl+r
