@@ -169,11 +169,16 @@ class ModUpdater:
 
     def check_for_updates(self):
         config = self.get_config()
-        available = [None]  # Dummy for "__vanilla__"
-        # installed_names = config.get("installed_updates", [])
+
+        # This list will be extend for each update found.
+        available = [None]  # Dummy entry for "__vanilla__"
         available_names = ["__vanilla__"]
 
-        # Should equals installed_updates[-1]
+        # This are the names of all instaled updates
+        # by this script.
+        installed_names = config.get("installed_updates", [])
+
+        # This string should equals installed_updates[-1]
         current_version = config.get("current_version", "")
 
         # If users install updates manually, an other update could be
@@ -205,11 +210,15 @@ class ModUpdater:
                         continue
 
                     # Skip lines without proper filename
-                    if not update["name"].endswith(".zip"):
+                    if not update["url"].endswith(".zip"):
                         continue
                     for c in " <>":
                         if c in update["name"]:
                             continue
+
+                    # Add .zip extension because name will used as filename.
+                    update["name"] = (update["name"] + ".zip").replace(
+                        ".zip.zip", ".zip")
 
                     available.append(update)
                     available_names.append(update["name"])
@@ -244,7 +253,11 @@ class ModUpdater:
         return True  # Website lookup ok
 
     def parse_update_link(self, line, url_prefix):
-        # Return dict with founded parameter
+        # Return dict with found parameter
+
+        # Strip <!-- --> sections.
+        line = re.sub(r'<!--.*?-->', "X", line)
+
         m = re.match('^.*<a[^>]* href="([^"]*)"[^>]*>([^<]*)</a>.*$', line)
         if m:
             name = m.group(2)
