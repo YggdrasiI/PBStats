@@ -6,6 +6,14 @@ SECRET_KEY = 'your_key'
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
+# Add new languages here and create with 
+# 'python3 manage.py makemessages --locale {your language code}'
+# translation file in civdj/pbspy/locale/...
+LANGUAGES = (
+    ("en", ("English")),
+    ("de", ("Deutsch")),
+)
+
 # Permanent storage of static files
 if not DEBUG:
     # Set STATIC_ROOT permissions such that

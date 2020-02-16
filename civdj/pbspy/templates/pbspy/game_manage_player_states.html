@@ -4,78 +4,80 @@
 {% block content %}
     <div id="game_management">
         <h1 id="game_name">Management for {{ game.name }}</h1>
-				(<a href="{% url 'game_detail' game.id %}">game overview</a>)
-				(<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
-				(<a href="{% url 'game_change' game.id %}">edit game</a>)
-				{% if players_online|length > 0  %}
+        <a href="{% url 'game_detail' game.id %}">game overview</a>
+        | <a href="{% url 'game_manage' game.id "" %}">manage game</a>
+        | <a href="{% url 'game_change' game.id %}">edit game</a>
+        {% if players_online|length > 0  %}
         <div class="game_management_section">
-					<h2>{% trans "Warning" %}</h2>
-					<p>
-					{% blocktrans with num_players=players_online|length plural=players_online|length|pluralize:" is,s are" %}
-					Currently, {{ num_players }} player{{ plural }} logged in.<br\>
-					{% endblocktrans %}
-					</p>
-				</div>
-				{% endif %}
-				{% if show_end_turn_table %}
-        <div class="game_management_section">
-          <h2>{% trans "end turn of player" %}</h2>
-					<span class="description">{% trans "Call sendTurnComplete() for given player." %}</span>
-					<table class='game_list' border="3">
-						<tr>
-							<th class="colId">Id</th>
-							<th class="colName">Player</th>
-              <th class="colStatus"  >{% trans "Status" %}</th>
-							<th class="colFinish"></th>
-						</tr>
-						{% for player in players %}
-						<tr>
-							<td class="colId">{{ player.ingame_id }}</td>
-							<td class="colName">{{ player.name }}</td>
-              <td class="colStatus"  >{{ player.status }}</td>
-							<td class="colFinish">
-                  <form method="post" action="{% url 'game_manage' game.id 'end_player_turn' %}">
-                      {% csrf_token %}
-                      <span>
-                          <input type="hidden" value="{{ player.ingame_id }}" name="id" />
-                          <input type="submit" value="{% trans "finish" %}" />
-                      </span>
-                  </form>
-							</td>
-						</tr>
-						{% endfor %}
-					</table>
+            <h2>{% trans "Warning" %}</h2>
+						<p>
+						{% blocktrans trimmed count n=players_online|length with num_players=players_online|length %}
+						Currently, one player is logged in.
+						{% plural %}
+						Currently, {{ num_players }} players are logged in.
+						{% endblocktrans %}<br\>
+						</p>
         </div>
-				{% endif %}
-				{% if show_kick_table %}
+        {% endif %}
+        {% if show_end_turn_table %}
         <div class="game_management_section">
-          <h2>{% trans "kick player" %}</h2>
-					<span class="description">{% trans "Convert slot status to AI." %}</span>
-					<table class='game_list' border="3">
-						<tr>
-							<th class="colId">Id</th>
-							<th class="colName">Player</th>
-              <th class="colStatus"  >{% trans "Status" %}</th>
-							<th class="colFinish"></th>
-						</tr>
-						{% for player in players %}
-						<tr>
-							<td class="colId">{{ player.ingame_id }}</td>
-							<td class="colName">{{ player.name }}</td>
-              <td class="colStatus"  >{{ player.status }}</td>
-							<td class="colFinish">
-                  <form method="post" action="{% url 'game_manage' game.id 'kick' %}">
-                      {% csrf_token %}
-                      <span>
-                          <input type="hidden" value="{{ player.ingame_id }}" name="id" />
-                          <input type="submit" value="{% trans "kick" %}" />
-                      </span>
-                  </form>
-							</td>
-						</tr>
-						{% endfor %}
-					</table>
+            <h2>{% trans "end turn of player" %}</h2>
+            <span class="description">{% trans "Call sendTurnComplete() for given player." %}</span>
+            <table class='game_list' border="3">
+                <tr>
+                    <th class="colId">Id</th>
+                    <th class="colName">Player</th>
+                    <th class="colStatus"  >{% trans "Status" %}</th>
+                    <th class="colFinish"></th>
+                </tr>
+                {% for player in players %}
+                <tr>
+                    <td class="colId">{{ player.ingame_id }}</td>
+                    <td class="colName">{{ player.name }}</td>
+                    <td class="colStatus"  >{{ player.status }}</td>
+                    <td class="colFinish">
+                        <form method="post" action="{% url 'game_manage' game.id 'end_player_turn' %}">
+                            {% csrf_token %}
+                            <span>
+                                <input type="hidden" value="{{ player.ingame_id }}" name="id" />
+                                <input type="submit" value="{% trans "finish" %}" />
+                            </span>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
         </div>
-				{% endif %}
+        {% endif %}
+        {% if show_kick_table %}
+        <div class="game_management_section">
+            <h2>{% trans "kick player" %}</h2>
+            <span class="description">{% trans "Convert slot status to AI." %}</span>
+            <table class='game_list' border="3">
+                <tr>
+                    <th class="colId">Id</th>
+                    <th class="colName">Player</th>
+                    <th class="colStatus"  >{% trans "Status" %}</th>
+                    <th class="colFinish"></th>
+                </tr>
+                {% for player in players %}
+                <tr>
+                    <td class="colId">{{ player.ingame_id }}</td>
+                    <td class="colName">{{ player.name }}</td>
+                    <td class="colStatus"  >{{ player.status }}</td>
+                    <td class="colFinish">
+                        <form method="post" action="{% url 'game_manage' game.id 'kick' %}">
+                            {% csrf_token %}
+                            <span>
+                                <input type="hidden" value="{{ player.ingame_id }}" name="id" />
+                                <input type="submit" value="{% trans "kick" %}" />
+                            </span>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %}
     </div>
 {% endblock %}

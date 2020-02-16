@@ -23,6 +23,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from django.core.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 from django.utils.html import escape, strip_tags
 from django.utils import timezone
 from django.utils import formats
@@ -293,7 +294,7 @@ class GameDetailView(FormMixin, DetailView):
 
         if form.is_valid():
             # Save previous filter values
-            save_current_filter(request.session, game, "Previous")
+            save_current_filter(request.session, game, _("Previous"))
 
             log_type_filter = form.cleaned_data.get('log_type_filter')
             self.request.session['log_type_filter'] = log_type_filter
@@ -816,7 +817,7 @@ def game_remove_filter(request, game_id, filter_name=""):
 
 
 def save_default_filter(session, game):
-    filter_name = "Default"
+    filter_name = _("Default")
     player_ids = None
     log_keys = GameDetailView.log_keys
     filter_definition = {

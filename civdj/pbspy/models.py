@@ -978,8 +978,8 @@ class GameLogCurrentTimerChanged(GameLog):
                 "delta_h": int(delta_time.total_seconds()/3600),
                 "delta_m": int((delta_time.total_seconds() % 3600)/60),
             }
-            return _("current turn timer changed by {delta_h}h {delta_m}m\
-                     to {remaining_h}h {remaining_m}m.").\
+            return _("current turn timer changed by {delta_h}h {delta_m}m "\
+                     "to {remaining_h}h {remaining_m}m.").\
                 format(**timeargs)
         return _("remaining time of current turn has changed.")
 

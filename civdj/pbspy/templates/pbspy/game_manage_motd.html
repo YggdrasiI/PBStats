@@ -4,17 +4,17 @@
 {% block content %}
     <div id="game_management">
         <h1 id="game_name">Management for {{ game.name }}</h1>
-				(<a href="{% url 'game_detail' game.id %}">game overview</a>)
-				(<a href="{% url 'game_manage' game.id "" %}">manage game</a>)
-				(<a href="{% url 'game_change' game.id %}">edit game</a>)
-				<div class="game_management_section">
+        <a href="{% url 'game_detail' game.id %}">game overview</a>
+        | <a href="{% url 'game_manage' game.id "" %}">manage game</a>
+        | <a href="{% url 'game_change' game.id %}">edit game</a>
+        <div class="game_management_section">
           <h2>{% trans "set message of the day" %}</h2>
-						 <span class="description">{% trans "Change message of the day (MotD). It will be shown every player after the login." %}</span>
-             <form method="post" action="{% url 'game_manage' game.id 'motd' %}">
-							 {% csrf_token %}
-							 <table>{{ motd_form }}</table>
-							 <span><input type="submit" value="{% trans "set motd" %}" /></span>
-						</form>
+          <span class="description">{% trans "Change message of the day (MotD). It will be shown every player after the login." %}</span>
+          <form method="post" action="{% url 'game_manage' game.id 'motd' %}">
+            {% csrf_token %}
+            <table>{{ motd_form }}</table>
+            <span><input type="submit" value="{% trans "set motd" %}" /></span>
+          </form>
         </div>
     </div>
 {% endblock %}
