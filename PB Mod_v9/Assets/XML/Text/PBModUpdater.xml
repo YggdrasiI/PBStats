@@ -51,11 +51,11 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_UPDATER_FAILED</Tag>
-		<English>Updating failed. [NEWLINE]Visit [LINK=%s1_url]mod homepage[\LINK] for manual installation.</English>
-		<French>Updating failed. [NEWLINE]Visit [LINK=%s1_url]mod homepage[\LINK] for manual installation.</French>
-    <German>Update fehlgeschlagen. [NEWLINE]Bitte [LINK=%s1_url]Mod-Webseite[\LINK] besuchen und manuell aktualisieren.</German>
-		<Italian>Updating failed. [NEWLINE]Visit [LINK=%s1_url]mod homepage[\LINK] for manual installation.</Italian>
-		<Spanish>Updating failed. [NEWLINE]Visit [LINK=%s1_url]mod homepage[\LINK] for manual installation.</Spanish>
+		<English>Updating failed. [NEWLINE]Visit [LINK=%s1_url]mod homepage[\LINK] for manual installation.[NEWLINE][NEWLINE]If you use Linux/Wine:[NEWLINE]Unzipping the update manually will resolve the issue in most cases.</English>
+		<French>Updating failed. [NEWLINE]Visit [LINK=%s1_url]mod homepage[\LINK] for manual installation.[NEWLINE][NEWLINE]If you use Linux/Wine:[NEWLINE]Unzipping the update manually will resolve the issue in most cases.</French>
+    <German>Update fehlgeschlagen. [NEWLINE]Bitte [LINK=%s1_url]Mod-Webseite[\LINK] besuchen und manuell aktualisieren.[NEWLINE][NEWLINE]Falls du Linux/Wine benutzt:[NEWLINE]Rufe das Verzeichnis dieser Mod auf und entpacke das Update-Zip manuell.</German>
+		<Italian>Updating failed. [NEWLINE]Visit [LINK=%s1_url]mod homepage[\LINK] for manual installation.[NEWLINE][NEWLINE]If you use Linux/Wine:[NEWLINE]Unzipping the update manually will resolve the issue in most cases.</Italian>
+		<Spanish>Updating failed. [NEWLINE]Visit [LINK=%s1_url]mod homepage[\LINK] for manual installation.[NEWLINE][NEWLINE]If you use Linux/Wine:[NEWLINE]Unzipping the update manually will resolve the issue in most cases.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_UPDATER_FAILED_POPUP</Tag>

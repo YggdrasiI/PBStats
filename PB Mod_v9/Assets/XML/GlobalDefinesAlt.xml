@@ -10,4 +10,8 @@
 		<iDefineIntVal>100</iDefineIntVal>
     <!-- 100 percent means disabling of feature -->
 	</Define>
+	<Define>
+		<DefineName>USE_MODDERS_PLAYEROPTION_1</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
 </Civ4Defines>

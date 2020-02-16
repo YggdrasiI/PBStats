@@ -1206,6 +1206,13 @@ bool CyGame::isDiploScreenUp() const
 	return (NULL != m_pGame ? m_pGame->isDiploScreenUp() : false);
 }
 
+void CyGame::doControlWithoutWidget(int /*ControlTypes*/ eControl) const
+{
+    if( m_pGame ){
+        m_pGame->doControlWithoutWidget((ControlTypes) eControl);
+    }
+}
+
 void CyGame::sendTurnCompletePB(int iPlayer){
 	if( m_pGame != NULL ){
     GC.getInitCore().sendTurnCompletePB((PlayerTypes) iPlayer);
@@ -1215,7 +1222,7 @@ void CyGame::sendTurnCompletePB(int iPlayer){
 std::wstring __mod_path__; // static variable to avoid local one.
 std::wstring CyGame::getModPath()
 {
-  const char *path = get_dll_folder();  
+  char *path = strdup(get_dll_folder());  
 
   // Remove lowest folder (\Assets)
   char *last_slash = strrchr(path, '\\');
@@ -1223,6 +1230,7 @@ std::wstring CyGame::getModPath()
 
   __mod_path__.clear();
   int status = CharToWString(__mod_path__, path);
+  free(path);
   return status == 0 ? __mod_path__ : L"";
 }
 

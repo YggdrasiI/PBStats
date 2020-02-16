@@ -2837,3 +2837,61 @@ bool CvGame::isDiploScreenUp() const
 {
 	return (gDLL->isDiplomacy() || gDLL->isMPDiplomacyScreenUp());
 }
+
+/* To invoke some controls where CyGame().doControl() not work.
+ *
+ * Some controls requires widgets to be called (otherwise 
+ *  gDLL->getInterfaceIFace()->isFocusedWidget() is false)
+ *
+ * This allowing to call them directy over Python without widget.
+ */
+void CvGame::doControlWithoutWidget(ControlTypes eControl) const
+{
+		switch (eControl){
+				case CONTROL_PING:
+						gDLL->getInterfaceIFace()->setInterfaceMode(INTERFACEMODE_PING);
+						break;
+
+				case CONTROL_SIGN:
+						gDLL->getInterfaceIFace()->setInterfaceMode(INTERFACEMODE_SIGN);
+						break;
+
+				case CONTROL_GRID:
+						gDLL->getEngineIFace()->SetGridMode(!(gDLL->getEngineIFace()->GetGridMode()));
+						break;
+
+				case CONTROL_BARE_MAP:
+						gDLL->getInterfaceIFace()->toggleBareMapMode();
+						break;
+
+				case CONTROL_YIELDS:
+						gDLL->getInterfaceIFace()->toggleYieldVisibleMode();
+						break;
+
+				case CONTROL_RESOURCE_ALL:
+						gDLL->getEngineIFace()->toggleResourceLayer();
+						break;
+
+                #define CONTROL_RESOURCE_TRUE CONTROL_RESOURCE_ALL + 1001
+                #define CONTROL_RESOURCE_FALSE CONTROL_RESOURCE_ALL + 1000
+                case CONTROL_RESOURCE_TRUE:
+						gDLL->getEngineIFace()->setResourceLayer(1);
+						break;
+
+                case CONTROL_RESOURCE_FALSE:
+						gDLL->getEngineIFace()->setResourceLayer(0);
+						break;
+
+				case CONTROL_UNIT_ICONS:
+						gDLL->getEngineIFace()->toggleUnitLayer();
+						break;
+
+				case CONTROL_GLOBELAYER:
+						gDLL->getEngineIFace()->toggleGlobeview();
+						break;
+
+				case CONTROL_SCORES:
+						gDLL->getInterfaceIFace()->toggleScoresVisible();
+						break;
+		}
+}

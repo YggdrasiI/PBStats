@@ -135,7 +135,7 @@ class CvModUpdaterScreen(CvPediaScreen.CvPediaScreen):
         # self.HEADLINE_HEIGHT = 55  # Main menu height
         # self.Y_TITLE = 8
         self.HEADLINE_HEIGHT = 40
-        self.Y_TITLE = 4
+        self.Y_TITLE = 8
 
         self.X_EXIT = 994
         self.Y_EXIT = 730
@@ -153,7 +153,7 @@ class CvModUpdaterScreen(CvPediaScreen.CvPediaScreen):
         self.mode_background_heights = {
             "start": 3 * 30,
             "info_none": 2 * 30,
-            "info_fail": 3 * 30,
+            "info_fail": 7 * 30,
             "info_up_to_date": 1 * 30,
         }
 
@@ -216,7 +216,12 @@ class CvModUpdaterScreen(CvPediaScreen.CvPediaScreen):
 
     def initScreen(self):
 
-        if self.bInit and self.DRAWING_COUNTER == 1:
+        global DELAYED_MS
+        if (self.bInit and (
+            (DELAYED_MS >= 0 and self.DRAWING_COUNTER == 1)
+            or
+            (DELAYED_MS < 0 and self.DRAWING_COUNTER == 0)
+        )):
             # Use second initialisation because first would blockade startup(?)
             if 0 != int(self.updater.get_config().get("check_at_startup", 0)):
                 if self.updater.check_for_updates():
@@ -232,7 +237,6 @@ class CvModUpdaterScreen(CvPediaScreen.CvPediaScreen):
 
         self.bInit = True
         self.updater = ModUpdater.ModUpdater()
-        global DELAYED_MS
         DELAYED_MS = self.updater.get_delayed_startup_seconds() * 1000
 
         self.MOD_NAME = u"<font=3>" + self.updater.get_mod_name() + "</font>"
@@ -288,7 +292,7 @@ class CvModUpdaterScreen(CvPediaScreen.CvPediaScreen):
         # Hintergrund-Höhe von Text unter der Headline.
         body_height = 0 * 30
         if self.mode == "info_avail_updates":
-            body_height = (nU + 1) * 30
+            body_height = (nU + 1) * 30 + 5 
         elif self.mode in self.mode_background_heights:
             body_height = self.mode_background_heights[self.mode]
 
@@ -335,7 +339,8 @@ class CvModUpdaterScreen(CvPediaScreen.CvPediaScreen):
                 self.MOD_MENU_DIM[0] + self.MOD_MENU_DIM[2]/2, self.MOD_MENU_DIM[1] + self.Y_TITLE, 0, FontTypes.TITLE_FONT,
                 WidgetTypes.WIDGET_PEDIA_DESCRIPTION_NO_HELP, self.ID_OFFSET+self.events["start"], -1)
 
-            textPos = [self.MOD_MENU_DIM[0] + 20, self.MOD_MENU_DIM[1] + self.HEADLINE_HEIGHT + 0*20]
+            textPos = [self.MOD_MENU_DIM[0] + 20, self.MOD_MENU_DIM[1] +
+                       self.HEADLINE_HEIGHT + 0*20 + 5 ]
             for u in self.updater.PendingUpdates:
                 u_text = u"<font=3>%s %s</font>" % (self.BULLET, u["name"])
                 screen.setLabel(self.getNextWidgetName(), "Background", u_text, CvUtil.FONT_LEFT_JUSTIFY,

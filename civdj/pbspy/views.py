@@ -124,6 +124,7 @@ class GameDetailView(FormMixin, DetailView):
     player_choices = tuple(zip(range(52), range(52)))
 
     # Default offset for turn filtering of log
+    # Note: Names confusing _min-value >= _max-value
     log_turn_filter = {'offset_max': 0, 'offset_min': 1}
 
     def player_list_setup(self, game, context):
@@ -766,10 +767,12 @@ def game_save_filter(request, game_id):
 
     if form.is_valid():
         filter_name = form.cleaned_data.get('log_filter_name','')
+        filter_bAbsolute = form.cleaned_data.get(
+            'log_filter_absolute_turns', False)
         if len(filter_name) == 0:
             date_joined = datetime.now()
             filter_name = formats.date_format(date_joined, "SHORT_DATETIME_FORMAT")
-        save_current_filter(request.session, game, filter_name )
+        save_current_filter(request.session, game, filter_name, filter_bAbsolute)
 
     return redirect('game_detail', pk=game_id)
 
@@ -781,10 +784,18 @@ def game_load_filter(request, game_id, filter_name=""):
         return HttpResponse('No filter with this name found.', status=200)
 
     fd = filterstore.get(filter_name)
-    log_turn_filter = {
-        'offset_max': game.turn - fd['turn_max'],
-        'offset_min': game.turn - fd['turn_min'],
-    }
+    if fd.get('bAbsolute', False):  # Interprets saved turns asbsolute values
+        log_turn_filter = {
+            'offset_max': game.turn - fd['turn_max'],
+            'offset_min': game.turn - fd['turn_min'],
+        }
+    else:  # Hold the relative offset
+        log_turn_filter = {
+            'offset_max': fd.get('offset_max',
+                                 game.turn - fd['turn_max']),
+            'offset_min': fd.get('offset_min',
+                                 game.turn - fd['turn_min']),
+        }
     request.session.setdefault('player_ids', {})[str(game.id)] = fd['player_ids']
     request.session['log_turn_filter'] = log_turn_filter
     request.session['log_type_filter'] = fd['log_type_filter']
@@ -812,6 +823,9 @@ def save_default_filter(session, game):
         'player_ids': player_ids,
         'turn_max': game.turn - 0,
         'turn_min': game.turn - 1,
+        'offset_max': 0,
+        'offset_min': 1,
+        'bAbsolute': False,
         'log_type_filter': log_keys,
     }
     session.setdefault('filterstore',{}).setdefault(
@@ -819,7 +833,7 @@ def save_default_filter(session, game):
     session.modified = True
 
 
-def save_current_filter(session, game, filter_name):
+def save_current_filter(session, game, filter_name, bAbsolute=False):
     filterstore = session.setdefault('filterstore',{}).setdefault(str(game.id),{})
     filter_name = str(filter_name)
     filter_name = escape(strip_tags(filter_name)).strip()
@@ -836,6 +850,9 @@ def save_current_filter(session, game, filter_name):
         'player_ids': player_ids,
         'turn_max': game.turn - turn_filter['offset_max'],
         'turn_min': game.turn - turn_filter['offset_min'],
+        'offset_max': turn_filter['offset_max'],
+        'offset_min': turn_filter['offset_min'],
+        'bAbsolute': bAbsolute,
         'log_type_filter': log_keys,
     }
     filterstore[filter_name] = filter_definition

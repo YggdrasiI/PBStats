@@ -195,19 +195,35 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MOD_CORP_FACTOR4</Tag>
-		<English>influence output of corporation.</English>
-		<French>influence output of corporation.</French>
+		<English>influence output of corporation</English>
+		<French>influence output of corporation</French>
 		<German>beinflusst den Ertrag der KG</German>
-		<Italian>influence output of corporation.</Italian>
-		<Spanish>influence output of corporation.</Spanish>
+		<Italian>influence output of corporation</Italian>
+		<Spanish>influence output of corporation</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MOD_CORP_FACTOR5</Tag>
-		<English>Cities with corp.</English>
-		<French>Cities with corp.</French>
+		<English>Cities with corp</English>
+		<French>Cities with corp</French>
 		<German>St&#228;dte mit KG</German>
-		<Italian>Cities with corp.</Italian>
-		<Spanish>Cities with corp.</Spanish>
+		<Italian>Cities with corp</Italian>
+		<Spanish>Cities with corp</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PLAYER_OPTION_MODDER_1</Tag>
+		<English>Show resource icons</English>
+		<French>Show resource icons</French>
+		<German>Ressourcensymbole automatisch einblenden</German>
+		<Italian>Show resource icons</Italian>
+		<Spanish>Show resource icons</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PLAYER_OPTION_MODDER_1_HELP</Tag>
+		<English>Show resource icons at each login</English>
+		<French>Show resource icons at each login</French>
+		<German>Aktiviert beim Login die Anzeige der Ressoucren-Icons</German>
+		<Italian>Show resource icons at each login</Italian>
+		<Spanish>Show resource icons at each login</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MOD_</Tag>

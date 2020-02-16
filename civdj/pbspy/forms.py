@@ -145,6 +145,11 @@ class GameLogSaveFilterForm(forms.Form):
         self.fields['log_filter_name'] = forms.CharField(label=_('Filter name'),
                                                          required=False,
                                                          min_length=0, max_length=50)
+        self.fields['log_filter_absolute_turns'] = forms.BooleanField(
+            label=_('Save Turn limits as absolute values'),
+            required=False,
+        )
+
 
 class GameManagementSetPlayerColorForm(Form):
     def __init__(self, players, num_colors, *args, **kwargs):
