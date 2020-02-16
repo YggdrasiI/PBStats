@@ -38,9 +38,9 @@
                 </p>
                 {% if game.timer %}
                 <p class="game_info">
-                <span style="text-align:right;display:inline-block;">{% trans "Timer:" %}
+                <span style="text-align:right;display:inline-block;">
                   {% blocktrans trimmed with end=game.timer_end|timeuntil end_rt=game.timer_end_realtime|timeuntil %}
-                  Turn ends in {{ end }} (ingame),<br //> {{ end_rt }} (realtime).{% endblocktrans %}
+                  Timer: Turn ends in {{ end }} (ingame),<br //> {{ end_rt }} (realtime).{% endblocktrans %}
                   <br/>
                 </span><br/>
                 {% trans "Turn timer" %}:

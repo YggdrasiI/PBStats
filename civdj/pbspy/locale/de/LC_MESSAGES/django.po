@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-16 22:54+0000\n"
+"POT-Creation-Date: 2020-02-16 23:15+0000\n"
 "PO-Revision-Date: 2020-02-16 15:40+0000\n"
 "Last-Translator: Olaf Schulz <olaf_schulz@posteo.de>\n"
 "Language-Team: None <LL@li.org>\n"
@@ -48,7 +48,7 @@ msgid ""
 "Update stored hostname/ip if Pitboss server sends an update with a new "
 "address."
 msgstr ""
-"Aktualisiere Hostename/IP, wenn der Pitboss-Server ein Update mit neuer "
+"Aktualisiere Hostnamen/IP, wenn der Pitboss-Server ein Update mit neuer "
 "Adresse sendet."
 
 #: pbspy/forms.py:82
@@ -65,7 +65,7 @@ msgstr "Neuer Timer (Stunden)"
 
 #: pbspy/forms.py:91 pbspy/forms.py:95
 msgid "Text message"
-msgstr "Textnachricht"
+msgstr "Nachricht"
 
 #: pbspy/forms.py:100
 msgid "New max. length of leader name"
@@ -94,7 +94,7 @@ msgstr "Neues Passwort"
 
 #: pbspy/forms.py:127
 msgid "Log entry filter"
-msgstr "Eintragstyp-Filter"
+msgstr "Filter-Typen"
 
 #: pbspy/forms.py:131
 msgid "Maximal turn"
@@ -122,7 +122,7 @@ msgstr "Neue Farbe"
 
 #: pbspy/forms.py:179
 msgid "victory type"
-msgstr "Siegart"
+msgstr "Art des Sieges"
 
 #: pbspy/forms.py:180
 msgid "victory message"
@@ -135,7 +135,7 @@ msgstr "Optionale Bild-URL"
 #: pbspy/forms.py:184
 msgid "Set type to NONE to disable victory paragraph."
 msgstr ""
-"Die Gewinn-Nachricht wird nicht angezeigt, wenn die Siegart auf NONE "
+"Die Gewinn-Nachricht wird nicht angezeigt, wenn die Art des Sieges auf NONE "
 "gestellt ist."
 
 #: pbspy/forms.py:185
@@ -472,13 +472,14 @@ msgid ""
 "You can control your email settings here: %(url_prefix)s%(manage_url)s\n"
 msgstr ""
 "\n"
-"Hello %(username)s,\n"
+"Hallo %(username)s,\n"
 "\n"
-"It begun a new turn, %(turn)s, in the Civilization 4 Pitboss game "
-"\"%(game_name)s\".\n"
+"Im PitBoss-Spiel \"%(game_name)s\" hat eine neue Runde begonnen.\n"
+"Es läuft nun Runde %(turn)s.It begun a new turn, %(turn)s.\n"
 "\n"
 "\n"
-"You can control your email settings here: %(url_prefix)s%(manage_url)s\n"
+"Hier kannst du die Benachrichtigungs-Einstellungen editieren: %(url_prefix)s"
+"%(manage_url)s\n"
 
 #: pbspy/templates/pbspy/email_new_turn_subject.txt:2
 #, python-format
@@ -552,7 +553,7 @@ msgstr "Update"
 
 #: pbspy/templates/pbspy/game_change.html:29
 msgid "Matching config in pbSettings.json"
-msgstr "Ausschnit der passenden Konfiguration in 'pbSettings.json'."
+msgstr "Ausschnitt der passenden Konfiguration in 'pbSettings.json'."
 
 #: pbspy/templates/pbspy/game_change.html:34
 msgid "edit victory information"
@@ -599,15 +600,11 @@ msgstr "Das Spiel ist pausiert."
 msgid "The game is not paused."
 msgstr "Das Spiel ist nicht pausiert."
 
-#: pbspy/templates/pbspy/game_detail.html:41
-msgid "Timer:"
-msgstr "Timer:"
-
 #: pbspy/templates/pbspy/game_detail.html:42
 #, python-format
-msgid "Turn ends in %(end)s (ingame),<br //> %(end_rt)s (realtime)."
+msgid "Timer: Turn ends in %(end)s (ingame),<br //> %(end_rt)s (realtime)."
 msgstr ""
-"Rundenende: %(end)s (Zähler innerhalb des Spiels),<br //> %(end_rt)s "
+"Rundenende: %(end)s (Zähler innerhalb des Spiels),<br //>%(end_rt)s "
 "(Ungefährer Wert in Echtzeit)."
 
 #: pbspy/templates/pbspy/game_detail.html:46
@@ -658,7 +655,7 @@ msgstr "Email-Benachrichtigung für Rundenwechsel aktivieren"
 
 #: pbspy/templates/pbspy/game_detail.html:93
 msgid "You are receiving new turn emails for this game"
-msgstr "Du wirdst bei Rundenwechseln per Email benachrichtigt"
+msgstr "Du wirst bei Rundenwechseln per Email benachrichtigt"
 
 #: pbspy/templates/pbspy/game_detail.html:94
 msgid "unsubscribe"
@@ -755,7 +752,7 @@ msgstr "Spiel pausieren"
 msgid ""
 "Toggles the ingame pause. Useful to free users in hanging diplomatic screens."
 msgstr ""
-"Ändert den Pausestatus im Spiel. Nützlich um Spieler aus dem Diplomatie-"
+"Ändert den Pausenstatus im Spiel. Nützlich um Spieler aus dem Diplomatie-"
 "Bildschirm zu befreien."
 
 #: pbspy/templates/pbspy/game_manage.html:16
@@ -805,7 +802,7 @@ msgid ""
 "Standard path: [Altroot]/Saves/multi. (Path is defined in pbSettings.json.). "
 "Overwrites existing files."
 msgstr ""
-"Standardverzeichnich: [Altroot]/Saves/multi. (Pfad kann in pbSettings.json "
+"Standardverzeichnis: [Altroot]/Saves/multi. (Pfad kann in pbSettings.json "
 "definiert werden). Bestehende Dateien werden überschrieben."
 
 #: pbspy/templates/pbspy/game_manage.html:64
@@ -956,7 +953,7 @@ msgid ""
 "Password protected saves can not be loaded with modified XML, Python or DLL "
 "files."
 msgstr ""
-"Passworgeschützte Spielstände können nicht mehr geladen werden, wenn man "
+"Passwortgeschützte Spielstände können nicht mehr geladen werden, wenn man "
 "XML-, Python-Dateien oder die DLL ändert."
 
 #: pbspy/templates/pbspy/game_manage.html:155
@@ -1124,11 +1121,11 @@ msgid ""
 msgstr ""
 "\n"
 "Der link ist für %(expiration_days)s Tage gültig.\n"
-"Falls du keine Regisrierung vorgenommen hast, ignoriere diese Email.\n"
+"Falls du keine Registrierung vorgenommen hast, ignoriere diese Email.\n"
 
 #: pbspy/templates/registration/activation_email_subject.txt:2
 msgid "Account activation on Civ4 pbspy."
-msgstr "Acount-Aktivierung auf PBSpy."
+msgstr "Account-Aktivierung auf PBSpy."
 
 #: pbspy/templates/registration/login.html:8
 #: pbspy/templates/registration/password_reset_complete.html:6
@@ -1219,6 +1216,9 @@ msgstr "Vorheriger Filter"
 #: pbspy/views.py:820
 msgid "Default"
 msgstr "Standardwerte"
+
+#~ msgid "Timer:"
+#~ msgstr "Timer:"
 
 #~ msgid "Note: The full functionality is not implemented yet!"
 #~ msgstr ""
