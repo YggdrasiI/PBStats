@@ -40,7 +40,7 @@
                 <p class="game_info">
                 <span style="text-align:right;display:inline-block;">{% trans "Timer:" %}
                   {% blocktrans trimmed with end=game.timer_end|timeuntil end_rt=game.timer_end_realtime|timeuntil %}
-									Turn ends in {{ end }} (ingame),<br //> {{ end_rt }} (realtime).{% endblocktrans %}
+                  Turn ends in {{ end }} (ingame),<br //> {{ end_rt }} (realtime).{% endblocktrans %}
                   <br/>
                 </span><br/>
                 {% trans "Turn timer" %}:
@@ -166,7 +166,7 @@
     <h2 id="log" class="anchor">{% trans "game log" %}</h2>
     <div id="game_log">
       <div id="game_log_filter">
-        <h3>Change game log filter</h3>
+        <h3>{% trans "Change game log filter" %}</h3>
 
         <form method="post" action="{% url 'game_detail' game.id %}?player_order={{ orders.current }}#game_log">
           {% csrf_token %}
