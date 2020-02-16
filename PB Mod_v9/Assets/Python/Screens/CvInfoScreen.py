@@ -85,6 +85,7 @@ class CvInfoScreen:
         self.iStatsID        =    3
 
         self.iActiveTab = self.iGraphID
+        self.iShrinkOnF4Selection = -1
 
         self.TOTAL_SCORE    = 0
         self.ECONOMY_SCORE    = 1
@@ -689,7 +690,8 @@ class CvInfoScreen:
                 , WidgetTypes.WIDGET_GENERAL
                 , LEGENDBUTTONS_ID, 1)
 
-        screen.addCheckBoxGFC("ShrinkOnF4Selection"
+        self.iShrinkOnF4Selection = self.getNextWidgetName()
+        screen.addCheckBoxGFC(self.iShrinkOnF4Selection
                 , ArtFileMgr.getInterfaceArtInfo("INTERFACE_BTN_FOREIGN").getPath()
                 , ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SQUARE").getPath()
                 , legendButtonsXPos + 1 * (legendButtonsW + 4)
@@ -701,7 +703,7 @@ class CvInfoScreen:
                 , ButtonStyles.BUTTON_STYLE_LABEL)
 
         if self.bReduceOnSelectedLeaders:
-            screen.setState("ShrinkOnF4Selection", True)
+            screen.setState(self.iShrinkOnF4Selection, True)
 
         screen.setImageButton(self.getNextWidgetName()
                 , ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_PLUS").getPath()
@@ -724,23 +726,27 @@ class CvInfoScreen:
             else:
                 next_page_str = page_str % (180, 180, 180, "&gt;")
 
-            screen.setText( self.getNextWidgetName(), ""
-                    , prev_page_str
-                    , CvUtil.FONT_LEFT_JUSTIFY
-                    , legendButtonsXPos + 1 * (legendButtonsW + 4)
-                    , legendButtonsYPos2
-                    , 0, FontTypes.TITLE_FONT
-                    , WidgetTypes.WIDGET_GENERAL
-                    , LEGENDBUTTONS_ID, 4)
+        else:
+            prev_page_str = ""
+            next_page_str = ""
 
-            screen.setText( self.getNextWidgetName(), ""
-                    , next_page_str
-                    , CvUtil.FONT_LEFT_JUSTIFY
-                    , legendButtonsXPos + 2 * (legendButtonsW + 4)
-                    , legendButtonsYPos2
-                    , 0, FontTypes.TITLE_FONT
-                    , WidgetTypes.WIDGET_GENERAL
-                    , LEGENDBUTTONS_ID, 5)
+        screen.setText( self.getNextWidgetName(), ""
+                , prev_page_str
+                , CvUtil.FONT_LEFT_JUSTIFY
+                , legendButtonsXPos + 1 * (legendButtonsW + 4)
+                , legendButtonsYPos2
+                , 0, FontTypes.TITLE_FONT
+                , WidgetTypes.WIDGET_GENERAL
+                , LEGENDBUTTONS_ID, 4)
+
+        screen.setText( self.getNextWidgetName(), ""
+                , next_page_str
+                , CvUtil.FONT_LEFT_JUSTIFY
+                , legendButtonsXPos + 2 * (legendButtonsW + 4)
+                , legendButtonsYPos2
+                , 0, FontTypes.TITLE_FONT
+                , WidgetTypes.WIDGET_GENERAL
+                , LEGENDBUTTONS_ID, 5)
 
         self.drawLegend()
 
@@ -2223,7 +2229,7 @@ class CvInfoScreen:
             i -= 1
 
         # Manual named widgets
-        # screen.deleteWidget("ShrinkOnF4Selection")
+        # screen.deleteWidget(self.iShrinkOnF4Selection)
 
         self.nWidgetCount = iNumPermanentWidgets
         self.yMessage = 5
@@ -2401,7 +2407,7 @@ class CvInfoScreen:
             if inputClass.getData1() == LEGENDBUTTONS_ID:
                 iBtn = inputClass.getData2()
                 if iBtn == 3:
-                    bF4State = screen.getCheckBoxState("ShrinkOnF4Selection")
+                    bF4State = screen.getCheckBoxState(self.iShrinkOnF4Selection)
                     self.bReduceOnSelectedLeaders = bF4State
                 elif iBtn == 2:
                     self.scoreDisplayFlag = [True for p in self.scoreDisplayFlag]
@@ -2413,13 +2419,15 @@ class CvInfoScreen:
                 elif iBtn == 5:
                     self.legend_page = min(self.legend_page+1, self.iNumPlayersMet/LEGEND_MAX_ENTRIES)
 
-                self.deleteAllWidgets()
+                # self.deleteAllWidgets() # EXIT-Button verschwindet...
+                self.deleteAllLines()
 
                 # Force recache of all scores
                 self.scoreCache = []
                 for t in self.RANGE_SCORES:
                     self.scoreCache.append(None)
 
+                self.reset()
                 self.redrawContents()
 
 
