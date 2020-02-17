@@ -1,0 +1,12 @@
+{% load i18n %}
+{% if skip != 0 %}
+<a href="{% url 'game_detail' game.id %}">{% trans "game overview" %}</a>
+{% endif %}
+{% if skip != 0 and skip != 1 %} | {% endif %}
+{% if skip != 1 %}
+<a href="{% url 'game_manage' game.id "" %}">{% trans "manage game" %}</a>
+{% else %} | {% endif %}
+{% if skip != 1 and skip != 2 %} | {% endif %}
+{% if skip != 2 %}
+<a href="{% url 'game_change' game.id %}">{% trans "edit game" %}</a>
+{% endif %}

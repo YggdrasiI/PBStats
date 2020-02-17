@@ -8,9 +8,7 @@
 
     <div id="game_summary">
     {% if can_manage %}
-    <a href="{% url 'game_manage' game.id "" %}">{% trans "manage game" %}</a>
-    | 
-    <a href="{% url 'game_change' game.id %}">{% trans "edit game" %}</a>
+    {% include "pbspy/navigation_line.html" with skip=0 %}
     {% endif %}
     <div id="game_metadata">
         {% if victory_info.is_display %}

@@ -4,9 +4,7 @@
 {% block content %}
     <div id="game_management">
         <h1 id="game_name">Management for {{ game.name }}</h1>
-        <a href="{% url 'game_detail' game.id %}">game overview</a>
-        | <a href="{% url 'game_manage' game.id "" %}">manage game</a>
-        | <a href="{% url 'game_change' game.id %}">edit game</a>
+        {% include "pbspy/navigation_line.html" with skip=-1 %}
         {% if set_color_message %}
             <div class="game_management_section">
                 <h2>{% trans "colorset changed" %}</h2>

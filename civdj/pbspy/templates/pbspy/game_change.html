@@ -4,8 +4,8 @@
 {% block content %}
     <div id="game_management">
         <h1 id="game_name">Edit connection details for {{ game.name }}</h1>
-        <a href="{% url 'game_detail' game.id %}">{% trans "game overview" %}</a>
-        | <a href="{% url 'game_manage' game.id "" %}">{% trans "manage game" %}</a>
+        {% include "pbspy/navigation_line.html" with skip=2 %}
+
         {% if game_no_connection %}
             <h2>{% trans "warning" %}</h2>
             <p>{% trans "Warning, connection to PB Server can not be etablished for this values." %}</p>
