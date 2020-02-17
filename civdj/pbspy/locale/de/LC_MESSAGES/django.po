@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-16 23:15+0000\n"
+"POT-Creation-Date: 2020-02-17 19:15+0000\n"
 "PO-Revision-Date: 2020-02-16 15:40+0000\n"
 "Last-Translator: Olaf Schulz <olaf_schulz@posteo.de>\n"
 "Language-Team: None <LL@li.org>\n"
@@ -777,8 +777,8 @@ msgstr "Rundentimer ändern"
 
 #: pbspy/templates/pbspy/game_manage.html:36
 msgid ""
-"Time for the next round. Note that the ingame clock runs slower as desired. "
-"A value of 20 correspond with 24 hours."
+"Time for the next round. Note that the ingame clock runs slower as expected. "
+"A value of 20 corresponds with 24 hours."
 msgstr ""
 "Zeit für die nächste Runde. Bitte beachten, dass die Uhr im Spiel langsamer "
 "vergeht als erwartet. 20 Stunden im Spiel entsprechen ungefähr 24 realen."
@@ -786,11 +786,11 @@ msgstr ""
 #: pbspy/templates/pbspy/game_manage.html:41
 #: pbspy/templates/pbspy/game_manage.html:50
 msgid "set timer"
-msgstr "Setze Timer für diese Runde"
+msgstr "Setze Timer"
 
 #: pbspy/templates/pbspy/game_manage.html:45
 msgid "set turn timer of current round"
-msgstr "Setze Timer für die nächste Runde"
+msgstr "Setze Timer für diese Runde"
 
 #: pbspy/templates/pbspy/game_manage.html:54
 #: pbspy/templates/pbspy/game_manage.html:60

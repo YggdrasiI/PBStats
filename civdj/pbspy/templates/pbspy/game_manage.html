@@ -33,7 +33,7 @@
     </div>
     <div class="game_management_section_imploded">
         <h2 id="set_turn_timer" class="anchor">{% trans "set turn timer" %}</h2>
-        <span class="description">{% trans "Time for the next round. Note that the ingame clock runs slower as desired. A value of 20 correspond with 24 hours." %}</span>
+        <span class="description">{% trans "Time for the next round. Note that the ingame clock runs slower as expected. A value of 20 corresponds with 24 hours." %}</span>
 
         <form method="post" action="{% url 'game_manage' game.id 'set_turn_timer' %}">
             {% csrf_token %}
