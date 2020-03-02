@@ -2,7 +2,7 @@
 {% blocktrans with username=username turn=turn game_name=game_name manage_url=manage_url url_prefix="http://civ.zulan.net" %}
 Hello {{username}},
 
-It begun a new turn, {{turn}}, in the Civilization 4 Pitboss game "{{game_name}}".
+a new round, {{turn}}, has started in '{{game_name}}'.
 
 
 You can control your email settings here: {{url_prefix}}{{manage_url}}
