@@ -1137,6 +1137,22 @@ else:
         else:
             self.automatic_print = not self.automatic_print
 
+    def do_unreveal(self, arg):
+        """Hide plots outside of view ranges."""
+        d = '''\
+__counter = 0
+for __iPl in xrange(CyMap().numPlots()):
+    __p = CyMap().plotByIndex(__iPl)
+    for __iP in xrange(gc.getMAX_CIV_PLAYERS()-1):
+        if __p.isRevealed(__iP, False) and __p.getVisibilityCount(__iP) == 0:
+            __counter += 1
+            __p.setRevealed(__iP, False, False, -1)
+
+print(__counter)
+'''
+        result = str(self.send("p:"+d)).strip()
+        print("Number of affected plots: '{}'".format(result))
+
     def verbose(self, line, print_input_line=True):
         """Print line and then send it as python command"""
         if print_input_line:

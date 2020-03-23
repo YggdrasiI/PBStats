@@ -179,8 +179,9 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         bShortNames = bool(shortnames["enable"])
         iMaxLenName = int(shortnames["maxLenName"])
         iMaxLenDesc = int(shortnames["maxLenDesc"])
-        gc.getGame().setPitbossShortNames(bShortNames,
-                                          iMaxLenName, iMaxLenDesc)
+        if hasattr(gc.getGame(), "setPitbossShortNames"):
+            gc.getGame().setPitbossShortNames(bShortNames,
+                                              iMaxLenName, iMaxLenDesc)
 
     # Cache value because the evaluation is an expensive operation
     wbsaveCache = None
