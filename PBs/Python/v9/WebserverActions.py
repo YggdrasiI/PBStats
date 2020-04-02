@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import sys
 import os
-# import time
+import time
 # import re
 # import glob
 # import md5
+from threading import Timer
 from cStringIO import StringIO
 import simplejson
 
@@ -387,11 +388,25 @@ def action_kick_player(inputdata, server, wfile):
 def action_end_player_turn(inputdata, server, wfile):
     playerId = int(inputdata.get("playerId", -1))
     if playerId > -1 and playerId < gc.getMAX_CIV_PLAYERS():
-        # gc.getGame().setActivePlayer(playerId, False)
-        # E.CyMessageControl().sendTurnComplete()
-        # gc.getGame().setActivePlayer(-1, False)
+        bPause = False
+        if E.CyGame().isPaused():
+            bPause = True
+            E.CyGame().setPausePlayer(-1)
+
         E.CyGame().sendTurnCompletePB(playerId)
         wfile.write(gen_answer("Turn of player %i finished." % (playerId,)))
+
+        # Restoring of pause needs to be done in non-blocking style.
+        if bPause:
+            def restore_pause():
+                E.CyGame().setPausePlayer(0)
+                global __timer
+                __timer = None
+
+            global __timer
+            __timer = Timer(1, restore_pause)
+            __timer.start()
+
     else:
         wfile.write(gen_answer("Invalid player id.", "fail"))
 

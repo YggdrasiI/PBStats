@@ -295,7 +295,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 
 class PerpetualTimer:
-    """Class to invoke request from to the 'client' side of webinterface.
+    """Class to invoke request from the 'client' side of webinterface.
 
     If reduceTraffic flag is set, only changed game states will be send.
     Moreover, every self.reduceFactor times an alive message will be send
@@ -362,7 +362,7 @@ class PerpetualTimer:
         newState = not webserver.compareGamedata(gamedata)
 
         # Check if CvGame::doTurn is currently running.
-        # Try ness for mods without the DLL changes for bGameTurnProcessing
+        # Try is necessary for mods without 'CvEventManager.bGameTurnProcessing'
         inconsistentState = False
         try:
             inconsistentState = CvEventInterface.getEventManager(
@@ -370,63 +370,52 @@ class PerpetualTimer:
         except AttributeError:
             for iPlayer in range(gc.getMAX_CIV_PLAYERS()):
                 if gc.getPlayer(iPlayer).isTurnActive():
-                    inconsistentState = True
                     break
+
+                # no Player active => game turn processing
+                inconsistentState = True
         except:
             pass
 
         # PB.consoleOut("Webupload request %i" % (self.requestCounter,))
         self.requestCounter += 1
 
-        if (not inconsistentState
-                and (newState or not self.reduceTraffic or
-                     self.requestCounter % self.reduceFactor == 0)
-           ):
-            params = urllib.urlencode(
-                {'action': 'update', 'id': self.gameId,
-                 'pwHash': self.pwHash, 'info':
-                 simplejson.dumps(
-                     {'return': 'ok', 'info': gamedata})})
-        else:
-            # Minimal alive message.
-            gamedataMinimal = {"turnTimer": gamedata.get("turnTimer")}
-            if gamedata["turnTimer"] == 1:
-                gamedataMinimal["turnTimerValue"] = gamedata.get(
-                    "turnTimerValue")
-            params = urllib.urlencode(
-                {'action': 'update', 'id': self.gameId, 'pwHash': self.pwHash, 'info':
-                 simplejson.dumps(
-                     {'return': 'ok', 'info': gamedataMinimal})})
+        try:
+            if (not inconsistentState
+                    and (newState or not self.reduceTraffic or
+                         self.requestCounter % self.reduceFactor == 0)
+               ):
+                params = urllib.urlencode(
+                    {'action': 'update', 'id': self.gameId,
+                     'pwHash': self.pwHash, 'info':
+                     simplejson.dumps(
+                         {'return': 'ok', 'info': gamedata})})
+            else:
+                # Minimal alive message.
+                gamedataMinimal = {"turnTimer": gamedata.get("turnTimer")}
+                if gamedata["turnTimer"] == 1:
+                    gamedataMinimal["turnTimerValue"] = gamedata.get(
+                        "turnTimerValue")
+                params = urllib.urlencode(
+                    {'action': 'update', 'id': self.gameId, 'pwHash': self.pwHash, 'info':
+                     simplejson.dumps(
+                         {'return': 'ok', 'info': gamedataMinimal})})
+
+        except Exception, e:
+            PB.consoleOut("Webupload failed (1). Error: '%s'" % (e,))
+            print("Webupload failed")
+            # print(gamedata)
+            return
 
         try:
             # f = urllib.urlopen("%s?%s" % (url,params) ) # GET method
             urllib.urlopen(self.url, params)  # POST method
 
-        except:
-            # PB.consoleOut("Webupload failed")
-            pass
+        except Exception, e:
+            PB.consoleOut("Webupload failed (2). Error: %s" % (e,))
 
 
 # =====================================================
-'''
-def getPbSettings():
-    # TODO
-    """Loads settings file and use default settings as fallback."""
-    if len(PbSettings) > 0:
-        return PbSettings
-
-    PbSettings.load(True)
-
-    # Convert old key names
-    if "noGui" in PbSettings:
-        # Old key overrides default key/new key
-        PbSettings["gui"] = 1 - int(PbSettings["noGui"])
-        del(PbSettings["noGui"])
-        PbSettings.save()
-
-    return PbSettings
-'''
-
 
 
 def searchMatchingPassword(filename, adminPwds=None):

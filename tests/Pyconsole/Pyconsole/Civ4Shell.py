@@ -88,9 +88,13 @@ class Client:
     def close(self):
         if self.s is not None:
             # print("Close Client")
-            self.s.shutdown(socket.SHUT_RDWR)
-            self.s.close()
-            self.s = None
+            try:
+                self.s.shutdown(socket.SHUT_RDWR)
+                self.s.close()
+                self.s = None
+            except OSError as e:
+                print("Shutdown failed. Error was {}".format(e))
+                # Catching error avoid skip of history file write.
 
     def send(self, msg, bRecv=True):
         self.s.send((msg + EOF).encode(ENCODING2))  # Python3: str->bytes
@@ -842,6 +846,19 @@ else:
             return
 
         self.webserver_action("kickPlayer", kick_args, 1)
+
+    def do_end_player_turn(self, arg):
+        """ Set turn status on done for player.
+
+        end_player_turn {player id}
+        """
+        try:
+            end_args = {"playerId": int(arg)}
+        except ValueError:
+            self.warn("Cannot parse player id.")
+            return
+
+        self.webserver_action("endPlayerTurn", end_args, 1)
 
     def do_chat(self, arg):
         """ Send chat message.
