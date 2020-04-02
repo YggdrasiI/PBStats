@@ -1011,9 +1011,7 @@ msgid ""
 "The colorsets are defined in Assets/XML/Interface/CIV4PlayerColorInfos.xml."
 msgstr ""
 "Die Farbkombinationen sind definiert in Assets/XML/Interface/"
-"CIV4PlayerColorInfos.xml.Achtung, die Werte sollten nicht modifiziert "
-"werden, wenn das Spiel passwortgeschützt ist.In dem Fall sollte man kurz das "
-"Admin-Passwort entfernen."
+"CIV4PlayerColorInfos.xml."
 
 #: pbspy/templates/pbspy/game_manage_color.html:25
 msgid "change player colorset"
