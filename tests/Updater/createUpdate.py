@@ -67,9 +67,30 @@ else:
         '| sed -n "s/--- a\/\(.*\)/\1/p"'
     ZIP = "echo '{files}' | zip -r \"{update_zip}\" -@"
 
+UPDATES_HTML_TEMPLATE = '''\
+<html>
+  <head><title>List of updates</title></head>
+  <body>
+    <!--
+      One line for each update. Insert new updates at the bottom of the list.
+      The client will search for it's latest update file \
+(identified by it's name) and 
+      download all files after this entry. 
+
+      Entries in one-line html-comments will be ignored.
+    -->
+    <!--<a href="https://raw.githubusercontent.com/YggdrasiI/PBStats/\
+master/tests/Updater/server/example_update001.zip" \
+checksum="9609a90227d4d10509f2dd68ed513837">Update 1.zip</a><br />-->
+  </body>
+</html>
+'''
 
 # End of environment setup
 # ===========================================================
+
+# Important if createUpdateEnv.py is symlink…
+sys.path.insert(0, ".")
 
 # Load further variables from Env file
 if os.path.isfile("createUpdateEnv.py"):
@@ -83,10 +104,10 @@ CONFIG=r'''{{
   "mod_files_to_remove": [{to_remove}]
 }}'''
 HTML_LINE = r'<a href="{update_name}" checksum="{checksum}">{update_name}</a><br />'
-
-
 # -----------------------------------------------------------
+
 TARGET_PATH = os.path.expanduser(TARGET_PATH)
+TARGET_PATH = os.path.expandvars(TARGET_PATH)
 EXTRA_LIST = [os.path.join(MOD_PATH_IN_REPO, UPDATE_INFO)]
 
 
@@ -102,6 +123,21 @@ def create_update_info(update_name, update_desc="", to_remove=[]):
     update_path = os.path.join(RELATIVE_MOD_PATH, UPDATE_INFO)  # Mod folder
     with open(update_path, "w") as f:
         f.write(config)
+
+
+# TODO: Some redundance between UPDATES_HTML_TEMPLATE 
+# and updates.template.html..
+def update_html__init_folder(target_path):
+    if not os.path.exists(target_path):
+        try:
+            os.mkdir(target_path)
+        except:
+            raise
+
+    updates_html = os.path.join(target_path, "updates.html")
+    if not os.path.exists(updates_html):
+        with open(updates_html, "w") as f:
+            f.write(UPDATES_HTML_TEMPLATE)
 
 
 def update_html(update_name, zip_file):
@@ -201,6 +237,8 @@ if __name__ == "__main__":
         if len(git_to_remove) > 0: print("\n".join(git_to_remove))
         else: print("None")
         print("=======================")
+
+        update_html__init_folder(TARGET_PATH)
 
         create_update_info(update_name, update_desc, git_to_remove)
         update_zip = os.path.join(TARGET_PATH, update_name)

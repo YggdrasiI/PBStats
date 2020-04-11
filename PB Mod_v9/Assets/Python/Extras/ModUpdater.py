@@ -38,7 +38,7 @@ try:
 except:
     IN_CIV4 = False
     DUMMY_MOD_PATH = os.path.join("/", "dev", "shm", _MOD_NAME_FALLBACK_)
-    #Note that __main__ overwrites this value, now.
+    #Note that __main__ overwrites DUMMY_MOD_PATH, now.
 
 # Because Python 2.4 version has no urllib.urlopen().getcode()
 class Urlopen_with_errcode(urllib.FancyURLopener):
@@ -533,6 +533,7 @@ if __name__ == "__main__":
         # => I.e. Z:\dev\shm\Updater
     else:
         DUMMY_MOD_PATH = script_folder[:iAssetsPos-1]
+        (_, _MOD_NAME_FALLBACK_) = os.path.split(DUMMY_MOD_PATH)
 
     print("Mod path: %s" %(DUMMY_MOD_PATH,))
 
