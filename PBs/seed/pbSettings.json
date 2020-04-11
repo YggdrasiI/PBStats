@@ -34,7 +34,7 @@
 	"save": {
 		"writefolder": "Saves\\multi\\", 
 		"folderIndex": 1, 
-		"filename": "Example_v8.CivBeyondSwordSave", 
+		"filename": "Example_v9.CivBeyondSwordSave", 
 		"adminpw": "optional; I recommend to collect them into PBs\/pbPasswords.json", 
 		"readfolders": [] 
 	}
