@@ -3044,7 +3044,7 @@ void CvPlayer::chooseTech(int iDiscover, CvWString szText, bool bFront)
 		//PB Mod
 		//For Oracle double tech bugfix. Store if this player is logged in.
 		if ( gDLL->IsPitbossHost() && isConnected() ){
-			pInfo->setFlags(1);
+			pInfo->setFlags(PBMOD_ADD_POPUP_FLAG(1));
 		}
 
 		pInfo->setData1(iDiscover);
