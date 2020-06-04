@@ -806,16 +806,16 @@ class Player(models.Model):
 
     def status(self):
         if not self.ingame_stack == 0:
-            return _('Error. Inactive player should not be displayed.')
+            return (-1,_('Error. Inactive player should not be displayed.'))
         if self.score == 0:
-            return _('eliminated')
+            return (0, _('eliminated'))
         if not self.is_claimed:
-            return _('unclaimed')
+            return (1, _('unclaimed'))
         if not self.is_human:
-            return _('AI')
+            return (2, _('AI'))
         if self.is_online:
-            return _('online')
-        return _('offline')
+            return (4, _('online'))
+        return (3, _('offline'))
 
     def set_from_dict(self, info, logargs, is_save=True, is_log=True):
         logargs['player'] = self

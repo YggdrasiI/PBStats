@@ -162,10 +162,10 @@ class GameDetailView(FormMixin, DetailView):
         # simple sql definitions.
         if player_order_str == "status":
             context['players'] = sorted(
-                context['players'], key=lambda pl: pl.status())
+                context['players'], key=lambda pl: pl.status()[0])
         if player_order_str == "-status":
             context['players'] = sorted(
-                context['players'], key=lambda pl: pl.status(), reverse=True)
+                context['players'], key=lambda pl: pl.status()[0], reverse=True)
 
     def log_setup(self, game, context):
         # 0. Define turn filter
