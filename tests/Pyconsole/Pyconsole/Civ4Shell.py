@@ -1154,7 +1154,7 @@ else:
         else:
             self.automatic_print = not self.automatic_print
 
-    def do_unreveal(self, arg):
+    def do_unreveal_map(self, arg):
         """Hide plots outside of view ranges."""
         d = '''\
 __counter = 0
@@ -1169,6 +1169,24 @@ print(__counter)
 '''
         result = str(self.send("p:"+d)).strip()
         print("Number of affected plots: '{}'".format(result))
+
+    def do_remove_ocean_forest(self, arg):
+        """Loops over map and remove forest and jungle feature on ocean plots."""
+
+        d = """\
+__num_changed_plots = 0
+for i in range(CyMap().numPlots()):
+    __plot = CyMap().plotByIndex(i)
+    if __plot.getPlotType() == PlotTypes.PLOT_OCEAN:
+        if (__plot.getFeatureType() in [gc.getInfoTypeForString("FEATURE_FOREST"),gc.getInfoTypeForString("FEATURE_JUNGLE")]):
+            __plot.setFeatureType(-1, -1)
+            __num_changed_plots += 1
+
+print(__num_changed_plots)
+"""
+        result = str(self.send("p:"+d))
+        print(result)
+
 
     def verbose(self, line, print_input_line=True):
         """Print line and then send it as python command"""
