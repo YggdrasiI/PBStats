@@ -20,6 +20,7 @@ import json
 import hashlib
 import os.path
 import glob
+from math import fmod  # modulo operator with sign preservation
 
 from six.moves.urllib.error import URLError
 from six.moves import urllib
@@ -974,12 +975,17 @@ class GameLogCurrentTimerChanged(GameLog):
             delta_time = datetime.timedelta(seconds=round((self.to_4s - self.from_4s) / 4))
             timeargs = {
                 "remaining_h": int(remaining_time.total_seconds()/3600),
-                "remaining_m": int((remaining_time.total_seconds() % 3600)/60),
+                "remaining_m": int( fmod(remaining_time.total_seconds(), 3600)/60),
                 "delta_h": int(delta_time.total_seconds()/3600),
-                "delta_m": int((delta_time.total_seconds() % 3600)/60),
+                "delta_m": int(fmod(delta_time.total_seconds(), 3600)/60),
             }
-            return _("current turn timer changed by {delta_h}h {delta_m}m "\
-                     "to {remaining_h}h {remaining_m}m.").\
+            # Shiftsign to convert '0:-1' into '-0:01'
+            if timeargs["delta_m"] < 0:
+                timeargs["delta_h"] = -abs(timeargs["delta_h"])
+                timeargs["delta_m"] = -timeargs["delta_m"]
+
+            return _("current turn timer changed by {delta_h:+}h {delta_m:02}m "\
+                     "to {remaining_h}h {remaining_m:02}m.").\
                 format(**timeargs)
         return _("remaining time of current turn has changed.")
 
