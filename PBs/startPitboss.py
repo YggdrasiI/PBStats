@@ -73,6 +73,10 @@ UNBUFFER = False
 START_LINUX_UNBUFFER = r'unbuffer wine "{CIV4BTS_EXE}" mod= "{MOD}"\\\" '\
     r'/ALTROOT="{ALTROOT_W}" | grep -v "^FTranslator::AddText\|fixme:\|err:"'
 
+# Automatic generation of symbolic links for BTS_Wrapper
+# The wrapper needs a http server which serves [ALTROOT]/Saves/pitboss/auto
+BTS_WRAPPER_WWW_DIR = None
+
 # (Linux only)Path for xvfb-run framebuffer.
 # Screenshot available via 'xwud --id $XVFB_DIR'
 XVFB = False
@@ -541,6 +545,9 @@ def setupGame(gameid, save_pat=None, password=None):
               "Copy 'seed' if you want create a new game.".format(altroot))
         return
 
+    if BTS_WRAPPER_WWW_DIR:
+        create_bts_wrapper_symlink(altroot, BTS_WRAPPER_WWW_DIR)
+
     if XVFB:
         xvfb_dir = XVFB_DIR.format(GAMEID=gameid)
         xvfb_mcookie = XVFB_MCOOKIE.format(GAMEID=gameid)
@@ -703,6 +710,28 @@ def prepare_update(gameid, pbSettings, mod_name):
 
     return 0
 
+def create_bts_wrapper_symlink(altroot, target_root):
+    pb_name = os.path.split(altroot)[-1]
+    game_path = os.path.join(target_root, pb_name)
+    saves_path = os.path.join(target_root, pb_name, "Saves")
+    symlink_path = os.path.join(target_root, pb_name, "Saves", "pitboss")
+    for p in [game_path, saves_path]:
+        if not os.path.exists(p):
+            try:
+                os.mkdir(p)
+            except:
+                print("create_bts_wrapper_symlink: Failed to create {}".format(p))
+                return -2
+
+    if not os.path.exists(symlink_path):
+        try:
+            os.symlink(os.path.join(altroot, "Saves", "pitboss"), symlink_path)
+            print("Symlink for BTS_Wrapper created: '{}'".format(symlink_path))
+        except:
+            print("create_bts_wrapper_symlink: Failed to create {}".format(symlink_path))
+            return -1
+
+    return 0
 
 if __name__ == "__main__":
     args = list(sys.argv[1:])

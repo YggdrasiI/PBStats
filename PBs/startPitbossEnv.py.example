@@ -13,3 +13,6 @@ GAMES = {
           "altroot": os.path.join(ALTROOT_BASEDIR, "PB2")},
     # [...]
 }
+
+# Other overrides
+BTS_WRAPPER_WWW_DIR = r"/var/www/html/PBs"
