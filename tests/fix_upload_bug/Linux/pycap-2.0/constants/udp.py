@@ -1,2 +1,0 @@
-HEADER_LENGTH = 0x08
-

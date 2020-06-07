@@ -1,0 +1,29 @@
+Metadata-Version: 2.1
+Name: pyip
+Version: 0.7
+Summary: pyip: assemble/disassemble raw ip packet
+Home-page: https://sourceforge.net/projects/pyip
+Maintainer: Kenneth Jiang
+Maintainer-email: kenneth.jiang@gmail.com
+License: Standard Python License
+Platform: any
+Classifier: License :: OSI Approved :: Python Software Foundation License
+Classifier: Intended Audience :: Developers
+Classifier: Development Status :: 3 - Alpha
+Classifier: Topic :: Internet
+Classifier: Topic :: System :: Networking
+Classifier: Programming Language :: Python
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX
+
+pyip is a Python package offering assembling/disassembling of raw ip packet,
+including ip, udp, and icmp. Also it includes 2 utilities based on raw ip, 
+traceroute and ping.
+
+The primary motivation for this project is to fill the blank in Python,
+i.e., handling raw ip packet. Meanwhile, the utility 'traceroute' is intended 
+to be port of Unix 'traceroute' to Windows platform, as Windows' tracert has 
+only very limited command line options compared with Unix 'traceroute'.
+
+
