@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/python3
 #
 # This script knocking on the port of your Pitboss games to
@@ -11,7 +12,7 @@
 # - python3 -m pip install scapy
 #
 # Notes:
-# - Script requires root/'sudo' to get access to the network traffici or… 
+# - Script requires root/'sudo' to get access to the network traffic or…
 # - … you can also use a copy of your python executable and run
 #   sudo setcap cap_net_raw=+ep python3
 # - If you get the following error message:
