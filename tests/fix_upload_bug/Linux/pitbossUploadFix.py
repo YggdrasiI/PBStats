@@ -12,9 +12,6 @@
 # - Script requires root/'sudo' to get access to the network traffici or… 
 # - … you can also use a copy of your python executable and run
 #   sudo setcap cap_net_raw=+ep python3
-# - If you get the following error message:
-#     '[...]ImportError: No module named sll'
-#   , then remove 'ssl' from list in pycap/constants/__init__.py.
 #
 #
 
@@ -27,6 +24,7 @@ import logging
 from collections import defaultdict
 import traceback
 import datetime
+from enum import Enum, unique
 
 ## Packets for sending fake client replies
 # Add subfolders to python paths for imports
@@ -72,23 +70,23 @@ class PBNetworkConnection:
         self.number_unanswered_outgoing_packets += 1
         self.time_last_outgoing_packet = now
 
-        # TODO Check if we can also use different payload sizes here, but we need to make sure the specific
-        # payload information "A, B" is available for this kind of packet!
-        if len(payload) != 25 and len(payload) != 37:
+        # need to make sure the specific information about the
+        # two 16bit numbers "A, B" is available.
+        if len(payload) not in [23, 35]:
             return
 
         # This package could be indicate an upload error. Add the payload
-        # for this client (destination ip) to an set. Force analysation
+        # for this client (destination IP) to an set. Force analysis
         # of the packages if an sufficient amount of packages reached.
         #
-        # The length 37 occours if the connections was aborted during the loading
+        # The length 35 occours if the connections was aborted during the loading
         # of a game.
 
         if self.number_unanswered_outgoing_packets < self.packet_limit:
             return
 
         # TODO We could also check the time here,
-        # but the packet count is a much better metric, because with the the packet rate is much higher than usually
+        # but the packet count seems do be the better metric.
         self.disconnect(payload)
 
     def handle_client_to_server(self, payload, now):
@@ -105,12 +103,19 @@ class PBNetworkConnection:
         # TODO Throttle disconnects!
         # Send fake packet to stop upload
         # Structure of content:
-        # 254 254 06 B (A+1) (7 bytes)
-        A = payload[3:5]  # String!
-        B = payload[5:7]
-        a1 = ord(A[0]) * 256 + ord(A[1]) + 1
-        A1 = chr(int(a1 / 256)) + chr(a1 % 256)
-        data = chr(254) + chr(254) + chr(6) + B + A1
+        #     254 254 06 B (A+1) (7 bytes)
+        #
+        # First 2 bytes marks it as udp paket(?!)
+        # Thrid bytes is command (close connection to client)
+        #   B and A+1 are to 16 bit numbers where A and B
+        #   are content of 'payload'
+
+        aHi, aLow = payload[1], payload[2]
+        bHi, bLow = payload[3], payload[4]
+        a_plus_1 = (aHi * 256 + aLow + 1) % 65536
+
+        data = bytes([254, 254, 6, bHi, bLow,
+                      int(a_plus_1/256), (a_plus_1%256)])
 
         logging.info('Disconnecting client at {!r}'.format(self))
         upacket = udp2.Packet()
@@ -156,9 +161,10 @@ class PBNetworkConnectionRegister:
         # Already exists
         connection_id = (client_ip, client_port, server_ip, server_port)
         if connection_id not in self.connections:
-            self.connections[connection_id] = PBNetworkConnection(client_ip=client_ip, client_port=client_port,
-                                                                  server_ip=server_ip, server_port=server_port,
-                                                                  packet_limit=self.packet_limit, now=now)
+            self.connections[connection_id] = PBNetworkConnection(
+                client_ip=client_ip, client_port=client_port,
+                server_ip=server_ip, server_port=server_port,
+                packet_limit=self.packet_limit, now=now)
         return self.connections[connection_id]
 
     def cleanup(self):
@@ -166,10 +172,15 @@ class PBNetworkConnectionRegister:
             return
 
         logging.debug('Starting cleanup for {} connections.'.format(len(self.connections)))
+        keys_to_del = []
         for (con_id, con) in self.connections.items():
             logging.debug('{!r}'.format(con))
             if not con.is_active():
                 del self.connections[con_id]
+                keys_to_del.append(con_id)
+
+        for con_id in keys_to_del:
+            del self.connections[con_id]
         self.last_cleanup = time.time()
 
 
@@ -201,28 +212,36 @@ def portlist_to_filter(portlist_str):
 
 # Ideally this function should run forever, but in case of odd errors we return outside to wait a bit
 def analyze_udp_traffic(device, ip_address, pcap_filter, connections, pcap_timeout):
-    def pb_traffic_monitor_callback(paket):
-        if packet is None:
-            # Rueckstand von altem pcap-Ansatz.
-            # Vllt jetzt bei Timeout ausgeloest.
-            # This is fine. Simply traffic. Don't need to wait, timeout does that
-            assert False, "Empty packet"
+    def pb_traffic_monitor_callback(pkt):
+
+        if not (IP in pkt and UDP in pkt):
+            # May be true if some port scanner knocks on PBServer port?!
+            # The current traffic filter prevent getting such packets here.
             return
 
-        ip = packet[1]
-        udp = packet[2]
-        payload = packet[3]
-        now = packet[4]
-        assert isinstance(ip, pycap.protocol.ip)
-        assert isinstance(udp, pycap.protocol.udp)
+        assert IP in pkt, "No IP packet"
+        assert UDP in pkt, "Packet is no UDP traffic"
+        # print(pkt.summary())
+        print("." if pkt[IP].src == ip_address else "c", end="", flush=True)
 
-        if ip.source == ip_address:
-            connections.get(ip.destination, udp.destinationport, ip.source, udp.sourceport, now).handle_server_to_client(payload, now)
-        elif ip.destination == ip_address:
-            connections.get(ip.source, udp.sourceport, ip.destination, udp.destinationport, now).handle_client_to_server(payload, now)
+        ip = pkt[IP]
+        udp = pkt[UDP]
+        payload = udp.load
+        now = time.time()  # In pycap already part of 'pkt' but not in scapy
+
+        if ip.src == ip_address:
+            game = games.get(udp.sport)
+            connections.get(ip.dst, udp.dport,
+                            ip.src, udp.sport,
+                            now).handle_server_to_client(payload, game, now)
+        elif ip.dst == ip_address:
+            game = games.get(udp.dport)
+            connections.get(ip.src, udp.sport,
+                            ip.dst, udp.dport,
+                            now).handle_client_to_server(payload, game, now)
         else:
             logging.warning('PB server matches neither source ({}) nor destination ({})'.
-                            format(ip.source, ip.destination))
+                            format(ip.src, ip.dst))
 
 
     continuous_capture_error_count = 0
@@ -233,7 +252,6 @@ def analyze_udp_traffic(device, ip_address, pcap_filter, connections, pcap_timeo
                 return
 
             sniff(prn=pb_traffic_monitor_callback
-                  # , filter="(port 8080 or port 8888)"
                   , filter=pcap_filter
                   , timeout=pcap_timeout
                   , store=0

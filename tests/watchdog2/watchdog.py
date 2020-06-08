@@ -15,10 +15,6 @@
 # - Script requires root/'sudo' to get access to the network traffic or…
 # - … you can also use a copy of your python executable and run
 #   sudo setcap cap_net_raw=+ep python3
-# - If you get the following error message:
-#     '[...]ImportError: No module named sll'
-#   , then remove 'ssl' from list in pycap/constants/__init__.py.
-#
 #
 
 import time
@@ -31,6 +27,7 @@ from collections import defaultdict
 import traceback
 import datetime
 import subprocess
+from enum import Enum, unique
 
 ## Packets for sending fake client replies
 # Add subfolders to python paths for imports
@@ -87,43 +84,47 @@ class PBNetworkConnection:
         self.number_unanswered_outgoing_packets += 1
         self.time_last_outgoing_packet = now
 
+        # logging.info("Package from Server, len={}".format( len(payload)))
+        # logging.info("Content: {}".format(payload.hex()))
+
         # == Watchdog functionality ==
         # If the game hangs with a "save error" popup only packages with
-        # payload length 5 or 10 will be send. Four examples:
-        # fefe640009
-        # fefe0000590009dcdc01
-        # fefe64000a
-        # fefe00005a000adcdc01
+        # payload length 3 or 8 will be send. For examples:
+        #     (fefe) 640009
+        #     (fefe) 0000590009dcdc01
+        #     (fefe) 64000a
+        #     (fefe) 00005a000adcdc01
+        # udp prefix
         #
         # If the game runs normal most idle packages has a
-        # payload length of 25, i. e
-        # fefe00023b000bfdffffff01ffffffff143f02003d02000001
+        # payload length of 23, i. e
+        # (fefe) 00023b000bfdffffff01ffffffff143f02003d02000001
         #
-        # Thus, if we ignore packages with length 5 and 10 we've
+        # Thus, if we ignore packages with length 3 and 8 we've
         # got an indicator for the server sanity.
-        #  logging.info("Package from Server, len={}".format(len(payload)))
-        if len(payload) not in [5, 10]:
+
+        if len(payload) not in [3, 8]:
             self.watchdog_last_active_server_ts = self.time_last_outgoing_packet
             game.network_reply()
 
         # TODO Check if we can also use different payload sizes here, but we
-        # need to make sure the specific
-        # payload information "A, B" is available for this kind of packet!
-        if len(payload) != 25 and len(payload) != 37:
+        # need to make sure the specific information about the
+        # two 16bit numbers "A, B" is available.
+        if len(payload) not in [23, 35]:
             return
 
         # This package could be indicate an upload error. Add the payload
-        # for this client (destination ip) to an set. Force analysation
+        # for this client (destination IP) to an set. Force analysis
         # of the packages if an sufficient amount of packages reached.
         #
-        # The length 37 occours if the connections was aborted during the loading
+        # The length 35 occurs if the connections was aborted during the loading
         # of a game.
 
         if self.number_unanswered_outgoing_packets < self.packet_limit:
             return
 
         # TODO We could also check the time here,
-        # but the packet count is a much better metric, because with the the packet rate is much higher than usually
+        # but the packet count seems do be the better metric.
         self.disconnect(payload)
 
     def handle_client_to_server(self, payload, game, now):
@@ -133,13 +134,14 @@ class PBNetworkConnection:
                                  self.number_unanswered_outgoing_packets,
                                  now - self.time_last_incoming_packet))
 
+        # logging.info("Package to Server, len={}".format(len(payload)))
+
         # Check if server is available. First check guarantee that
         # first package of new client do not produce false positives.
         #
         # Note: This simple approach does only work for periods > 20s!
         # If a single client try to join a blockaded game, at most
         # 20 seconds elapse between two packages.
-        # logging.info("Package to Server, len={}".format(len(payload)))
         if(now - self.time_last_incoming_packet < 22
            and now - self.watchdog_last_active_server_ts > 18):
             game.no_network_reply()
@@ -151,12 +153,19 @@ class PBNetworkConnection:
         # TODO Throttle disconnects!
         # Send fake packet to stop upload
         # Structure of content:
-        # 254 254 06 B (A+1) (7 bytes)
-        A = payload[3:5]  # String!
-        B = payload[5:7]
-        a1 = ord(A[0]) * 256 + ord(A[1]) + 1
-        A1 = chr(int(a1 / 256)) + chr(a1 % 256)
-        data = chr(254) + chr(254) + chr(6) + B + A1
+        #     254 254 06 B (A+1) (7 bytes)
+        #
+        # First 2 bytes marks it as udp paket(?!)
+        # Thrid bytes is command (close connection to client)
+        #   B and A+1 are to 16 bit numbers where A and B
+        #   are content of 'payload'
+
+        aHi, aLow = payload[1], payload[2]
+        bHi, bLow = payload[3], payload[4]
+        a_plus_1 = (aHi * 256 + aLow + 1) % 65536
+
+        data = bytes([254, 254, 6, bHi, bLow,
+                      int(a_plus_1/256), (a_plus_1%256)])
 
         logging.info('Disconnecting client at {!r}'.format(self))
         upacket = udp2.Packet()
@@ -203,9 +212,11 @@ class PBNetworkConnectionRegister:
         # Already exists
         connection_id = (client_ip, client_port, server_ip, server_port)
         if connection_id not in self.connections:
-            self.connections[connection_id] = PBNetworkConnection(client_ip=client_ip, client_port=client_port,
-                                                                  server_ip=server_ip, server_port=server_port,
-                                                                  packet_limit=self.packet_limit, now=now)
+            self.connections[connection_id] = PBNetworkConnection(
+                client_ip=client_ip, client_port=client_port,
+                server_ip=server_ip, server_port=server_port,
+                packet_limit=self.packet_limit,
+                now=now)
         return self.connections[connection_id]
 
     def cleanup(self):
@@ -213,10 +224,14 @@ class PBNetworkConnectionRegister:
             return
 
         logging.debug('Starting cleanup for {} connections.'.format(len(self.connections)))
+        keys_to_del = []
         for (con_id, con) in self.connections.items():
             logging.debug('{!r}'.format(con))
             if not con.is_active():
-                del self.connections[con_id]
+                keys_to_del.append(con_id)
+
+        for con_id in keys_to_del:
+            del self.connections[con_id]
         self.last_cleanup = time.time()
 
 
@@ -246,29 +261,38 @@ def portlist_to_filter(portlist_str):
 
 # === Analyse Traffic ===
 # Ideally this function should run forever, but in case of odd errors we return outside to wait a bit
-def analyze_udp_traffic(device, ip_address, pcap_filter, connections, pcap_timeout):
-    def pb_traffic_monitor_callback(paket):
-        if packet is None:
-            # Rueckstand von altem pcap-Ansatz.
-            # Vllt jetzt bei Timeout ausgeloest.
-            # This is fine. Simply traffic. Don't need to wait, timeout does that
-            assert False, "Empty packet"
+def analyze_udp_traffic(device, ip_address, pcap_filter, connections, games, pcap_timeout):
+    def pb_traffic_monitor_callback(pkt):
+
+        if not (IP in pkt and UDP in pkt):
+            # May be true if some port scanner knocks on PBServer port?!
+            # The current traffic filter prevent getting such packets here.
             return
 
-        ip = packet[1]
-        udp = packet[2]
-        payload = packet[3]
-        now = packet[4]
-        assert isinstance(ip, pycap.protocol.ip)
-        assert isinstance(udp, pycap.protocol.udp)
+        assert IP in pkt, "No IP packet"
+        assert UDP in pkt, "Packet is no UDP traffic"
+        # print(pkt.summary())
+        print("." if pkt[IP].src == ip_address else "c", end="", flush=True)
 
-        if ip.source == ip_address:
-            connections.get(ip.destination, udp.destinationport, ip.source, udp.sourceport, now).handle_server_to_client(payload, now)
-        elif ip.destination == ip_address:
-            connections.get(ip.source, udp.sourceport, ip.destination, udp.destinationport, now).handle_client_to_server(payload, now)
+        ip = pkt[IP]
+        udp = pkt[UDP]
+        payload = udp.load
+        now = time.time()  # In pycap already part of 'pkt' but not in scapy
+
+
+        if ip.src == ip_address:
+            game = games.get(udp.sport)
+            connections.get(ip.dst, udp.dport,
+                            ip.src, udp.sport,
+                            now).handle_server_to_client(payload, game, now)
+        elif ip.dst == ip_address:
+            game = games.get(udp.dport)
+            connections.get(ip.src, udp.sport,
+                            ip.dst, udp.dport,
+                            now).handle_client_to_server(payload, game, now)
         else:
             logging.warning('PB server matches neither source ({}) nor destination ({})'.
-                            format(ip.source, ip.destination))
+                            format(ip.src, ip.dst))
 
 
     continuous_capture_error_count = 0
@@ -279,7 +303,6 @@ def analyze_udp_traffic(device, ip_address, pcap_filter, connections, pcap_timeo
                 return
 
             sniff(prn=pb_traffic_monitor_callback
-                  # , filter="(port 8080 or port 8888)"
                   , filter=pcap_filter
                   , timeout=pcap_timeout
                   , store=0
@@ -295,12 +318,18 @@ def analyze_udp_traffic(device, ip_address, pcap_filter, connections, pcap_timeo
         # Capture looks good, lets reset error count
         continuous_capture_error_count = 0
 
+# Strategies of watchdog
+@unique
+class Strategies(Enum):
+    NO_STRATEGY = 0
+    POPUP_CONFIRM = 1
+    RESTART_SAVE = 2
+    RESTART_OLD_SAVE = 3
+    STOP_PB_SERVER = 4
 
-# Store data for watchdog functionalty
+
+# Store data for watchdog functionality
 class ServerStatus:
-    # Strategies of watchdog
-    # (No Enum class in Python 2.7 available)
-    NO_STRATEGY, POPUP_CONFIRM, RESTART_SAVE, RESTART_OLD_SAVE, STOP_PB_SERVER = range(5)
 
     def __init__(self, altroot_and_port_str):
         path_port = altroot_and_port_str.split('=')
@@ -310,7 +339,7 @@ class ServerStatus:
 
         # Waiting time until next strategy will be used.
         self.strategy_timeout_s = 30
-        self.latest_strategy = ServerStatus.NO_STRATEGY
+        self.latest_strategy = Strategies.NO_STRATEGY
         self.latest_strategy_ts = time.time()
 
         try:
@@ -336,9 +365,9 @@ class ServerStatus:
 
     # Server is active. Reset watchdog
     def network_reply(self):
-        if(self.latest_strategy != ServerStatus.NO_STRATEGY):
+        if(self.latest_strategy != Strategies.NO_STRATEGY):
             logging.info("Server of game {} is online again. Reset strategies.".format(str(self.game_id)))
-            self.latest_strategy = ServerStatus.NO_STRATEGY
+            self.latest_strategy = Strategies.NO_STRATEGY
             self.latest_strategy_ts = time.time()  # Reset on strategy changes only should be fine.
 
     # Server not responding. Try several awakening strategies.
@@ -348,20 +377,20 @@ class ServerStatus:
             return
         self.latest_strategy_ts = now
 
-        if self.latest_strategy == ServerStatus.NO_STRATEGY:
-            self.latest_strategy = ServerStatus.POPUP_CONFIRM
+        if self.latest_strategy == Strategies.NO_STRATEGY:
+            self.latest_strategy = Strategies.POPUP_CONFIRM
             logging.info("Simulate mouse click in game {}.".format(str(self.game_id)))
             self.popup_confirm()
-        elif self.latest_strategy == ServerStatus.POPUP_CONFIRM:
-            self.latest_strategy = ServerStatus.RESTART_SAVE
+        elif self.latest_strategy == Strategies.POPUP_CONFIRM:
+            self.latest_strategy = Strategies.RESTART_SAVE
             logging.info("Restart game {} with current save.".format(str(self.game_id)))
             self.restart_game(False)
-        elif self.latest_strategy == ServerStatus.RESTART_SAVE:
-            self.latest_strategy = ServerStatus.RESTART_OLD_SAVE
+        elif self.latest_strategy == Strategies.RESTART_SAVE:
+            self.latest_strategy = Strategies.RESTART_OLD_SAVE
             logging.info("Restart game {} with previous save.".format(str(self.game_id)))
             self.restart_game(True)
-        elif self.latest_strategy == ServerStatus.RESTART_OLD_SAVE:
-            self.latest_strategy = ServerStatus.STOP_PB_SERVER
+        elif self.latest_strategy == Strategies.RESTART_OLD_SAVE:
+            self.latest_strategy = Strategies.STOP_PB_SERVER
             logging.info("All restart strategies failed. Kill game {} and wait for manual recovery.".format(str(self.game_id)))
             self.stop_game()
 
@@ -425,7 +454,7 @@ def main():
         try:
             analyze_udp_traffic(args.network_interface, args.ip_address,
                                 portlist_to_filter(port_list),
-                                connections, pcap_timeout=500)
+                                connections, games, pcap_timeout=500)
         except Exception as e:
             logging.error("Caught exception {}".format(e))
             traceback.print_exc()

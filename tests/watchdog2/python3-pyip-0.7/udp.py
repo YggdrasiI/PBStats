@@ -54,7 +54,7 @@ class Packet:
     def _assemble(self, cksum=1):
         self.ulen = 8 + len(self.data)
         begin = struct.pack('HHH', self.sport, self.dport, self.ulen)
-        packet = begin + bytes('\000\000', 'utf-8') + bytes(self.data, 'utf-8')
+        packet = begin + bytes([0,0]) + self.data
         if cksum:
             self.sum = inetutils.cksum(packet)
             packet = begin + struct.pack('H', self.sum) + self.data

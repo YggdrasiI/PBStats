@@ -142,7 +142,7 @@ class Packet:
         self.__parse_addrs()
         # create the packet
         def bchr(i):
-            return bytes(chr(i), 'utf-8')
+            return bytes([i])
 
         header =  struct.pack('ccHHHcc',
                               bchr((self.v & 0x0f) << 4 
@@ -155,12 +155,12 @@ class Packet:
                               bchr(self.ttl & 0xff),
                               bchr(self.p & 0xff))
         if cksum:
-            self.sum = inetutils.cksum(header + bytes('\000\000', 'utf-8')
+            self.sum = inetutils.cksum(header + bytes([0,0])
                                        + self.__src + self.__dst)
             packet = header + struct.pack('H', self.sum) \
                      + self.__src + self.__dst
         else:
-            packet = header + bytes('\000\000', 'utf-8')
+            packet = header + bytes([0,0])
             + self.__src + self.__dst 
         packet = packet + self.data
 
