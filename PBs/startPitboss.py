@@ -525,7 +525,8 @@ def setupGame(gameid, save_pat=None, password=None):
                                "Civ4BeyondSword_PitBoss.exe")
 
     # Check if patched executable is available
-    better_executables = ["Civ4BeyondSword_PitBoss_Zulan.exe",
+    better_executables = ["Civ4BeyondSword_PitBoss_Zulan2.exe",
+                          "Civ4BeyondSword_PitBoss_Zulan.exe",
                           "Civ4BeyondSword_PitBoss2014.exe"]
     for e in better_executables:
         if os.path.exists(os.path.join(CIV4BTS_PATH, e)):
@@ -548,49 +549,49 @@ def setupGame(gameid, save_pat=None, password=None):
     if BTS_WRAPPER_WWW_DIR:
         create_bts_wrapper_symlink(altroot, BTS_WRAPPER_WWW_DIR)
 
-    if XVFB:
-        xvfb_dir = XVFB_DIR.format(GAMEID=gameid)
-        xvfb_mcookie = XVFB_MCOOKIE.format(GAMEID=gameid)
-        xvfb_cmd = XVFB_CMD.format(GAMEID=gameid,
-                                   COOKIE=xvfb_mcookie,
-                                   DIR=xvfb_dir, MOD=mod_name,
-                                   CIV4BTS_EXE=civ4bts_exe,
-                                   ALTROOT_WIN=altroot_w)
-        xvfb_pre_cmd = XVFB_PRE_CMD.format(COOKIE=xvfb_mcookie)
-        if not os.path.exists(xvfb_dir):
-            print("Create directory for XV framebuffer.")
-            from os import mkdir
-            mkdir(xvfb_dir)
-
-    # Generate start command pipe
-    pre_start_cmd = None
-    if os.path.sep == "\\":  # Windows
-        start_cmd = START_WINDOWS.format(
-            CIV4BTS_EXE=os.path.basename(civ4bts_exe),
-            MOD=mod_name,
-            ALTROOT=altroot)
-    else:
-        if XVFB:
-            pre_start_cmd = xvfb_pre_cmd
-            start_cmd = xvfb_cmd
-        elif UNBUFFER:
-            start_cmd = START_LINUX_UNBUFFER.format(
-                CIV4BTS_EXE=civ4bts_exe,
-                MOD=mod_name,
-                ALTROOT_W=altroot_w)
-        else:
-            start_cmd = START_LINUX.format(
-                CIV4BTS_EXE=civ4bts_exe,
-                MOD=mod_name,
-                ALTROOT_W=altroot_w)
-
-    print("Start Command:\n{}".format(start_cmd))
-
-    # Start infinite loop for the selected game
     os.chdir(CIV4BTS_PATH)
-
+    # Start infinite loop for the selected game
     try:
         while True:
+
+            if XVFB:
+                xvfb_dir = XVFB_DIR.format(GAMEID=gameid)
+                xvfb_mcookie = XVFB_MCOOKIE.format(GAMEID=gameid)
+                xvfb_cmd = XVFB_CMD.format(GAMEID=gameid,
+                                           COOKIE=xvfb_mcookie,
+                                           DIR=xvfb_dir, MOD=mod_name,
+                                           CIV4BTS_EXE=civ4bts_exe,
+                                           ALTROOT_WIN=altroot_w)
+                xvfb_pre_cmd = XVFB_PRE_CMD.format(COOKIE=xvfb_mcookie)
+                if not os.path.exists(xvfb_dir):
+                    print("Create directory for XV framebuffer.")
+                    from os import mkdir
+                    mkdir(xvfb_dir)
+
+            # Generate start command pipe
+            pre_start_cmd = None
+            if os.path.sep == "\\":  # Windows
+                start_cmd = START_WINDOWS.format(
+                    CIV4BTS_EXE=os.path.basename(civ4bts_exe),
+                    MOD=mod_name,
+                    ALTROOT=altroot)
+            else:
+                if XVFB:
+                    pre_start_cmd = xvfb_pre_cmd
+                    start_cmd = xvfb_cmd
+                elif UNBUFFER:
+                    start_cmd = START_LINUX_UNBUFFER.format(
+                        CIV4BTS_EXE=civ4bts_exe,
+                        MOD=mod_name,
+                        ALTROOT_W=altroot_w)
+                else:
+                    start_cmd = START_LINUX.format(
+                        CIV4BTS_EXE=civ4bts_exe,
+                        MOD=mod_name,
+                        ALTROOT_W=altroot_w)
+
+            print("Start Command:\n{}".format(start_cmd))
+
             if isUpdateFlag(pbSettings):
                 prepare_update(gameid, pbSettings, mod_name)
 
