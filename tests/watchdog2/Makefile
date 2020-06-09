@@ -1,6 +1,7 @@
 FOLDER=$(realpath .)
 USER=$(shell whoami)
 # USER=ramkhamhaeng
+GROUP=$(USER)
 PYTHON_BIN=$(shell which python3 || which python)
 
 SYSTEMD_INSTALL_DIR=/etc/systemd/system
@@ -39,6 +40,7 @@ run:
 %.service: %.service.template
 	@echo "Create systemd service file for startup."
 	sed -e "s#{USER}#$(USER)#g" \
+		-e "s#{GROUP}#$(GROUP)#g" \
 		-e "s#{FOLDER}#$(FOLDER)#g" \
 		-e "s#{PYTHON_BIN}#$(PYTHON_BIN)#g" \
 		-e "s#{SITE_PACKAGES}#$(SITE_PACKAGES)#g" \
@@ -47,7 +49,7 @@ run:
 
 %.sudoers: %.sudoers.template
 	@echo "Create sudoers file for unit control (start stop restart)"
-	sed -e "s#{GROUP}#$(USER)#g" \
+	sed -e "s#{GROUP}#$(GROUP)#g" \
 		-e "s#{SYSTEMCTL_BIN}#$(SYSTEMCTL_BIN)#g" \
 		$< > $(basename $<)
 

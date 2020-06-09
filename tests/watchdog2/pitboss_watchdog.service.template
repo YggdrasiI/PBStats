@@ -5,7 +5,7 @@ After=network.service
 [Service]
 Type=simple
 User={USER}
-Group={USER}
+Group={GROUP}
 WorkingDirectory={FOLDER}
 Environment="PYTHONPATH={SITE_PACKAGES}"
 ExecStart=/usr/bin/python3 pitboss_watchdog.py {WATCHDOG_ARGS}
