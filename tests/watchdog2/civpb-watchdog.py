@@ -39,7 +39,7 @@ import udp as pyip_udp
 ## Packet(s) for sniffing
 from scapy.all import *
 
-WATCHDOG_ARG_FILE = "pitboss_watchdog.args"
+WATCHDOG_ARG_FILE = "civpb-watchdog.args"
 
 
 class PBNetworkConnection:
@@ -487,7 +487,7 @@ def parse_arguments():
                         help='Number of stray packets after which the client is disconnected.')
 
     # Read args from stdin and fall back on content from
-    # from pitboss_watchdog.args. 
+    # from civpb-watchdog.args. 
     # The second variant will be used by the systemd unit.
     try:
         args = parser.parse_args(True, args=sys.argv[1:])

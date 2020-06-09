@@ -8,7 +8,7 @@ User={USER}
 Group={GROUP}
 WorkingDirectory={FOLDER}
 Environment="PYTHONPATH={SITE_PACKAGES}"
-ExecStart=/usr/bin/python3 pitboss_watchdog.py {WATCHDOG_ARGS}
+ExecStart=/usr/bin/python3 civpb-watchdog.py {WATCHDOG_ARGS}
 Restart=always
 RestartSec=60
 #TimeoutSec=60

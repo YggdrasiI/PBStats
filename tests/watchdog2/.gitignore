@@ -1,4 +1,4 @@
-pitboss_watchdog.service
-pitboss_watchdog.sudoers
-pitboss_watchdog.args
+civpb-watchdog.service
+civpb-watchdog.sudoers
+civpb-watchdog.args
 site-packages

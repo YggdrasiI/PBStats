@@ -1,0 +1,3 @@
+%{GROUP} ALL = (root) NOPASSWD: {SYSTEMCTL_BIN} start civpb-watchdog.service
+%{GROUP} ALL = (root) NOPASSWD: {SYSTEMCTL_BIN} stop civpb-watchdog.service
+%{GROUP} ALL = (root) NOPASSWD: {SYSTEMCTL_BIN} restart civpb-watchdog.service

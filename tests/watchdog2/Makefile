@@ -17,7 +17,7 @@ PIP_PACKAGES='scapy' \
 # Example:
 # WATCHDOG_ARGS=wls3 192.168.0.99 /home/$(USER)/PBs/PB1
 # 
-# Not required anymore! Set args in file 'pitboss_watchdog.args'!
+# Not required anymore! Set args in file 'civpb-watchdog.args'!
 WATCHDOG_ARGS=
 
 help:
@@ -35,7 +35,7 @@ help:
 		"" \
 
 run: 
-	sudo PYTHONPATH='$(SITE_PACKAGES)' $(PYTHON_BIN) pitboss_watchdog.py $(WATCHDOG_ARGS)
+	sudo PYTHONPATH='$(SITE_PACKAGES)' $(PYTHON_BIN) civpb-watchdog.py $(WATCHDOG_ARGS)
 
 %.service: %.service.template
 	@echo "Create systemd service file for startup."
@@ -53,9 +53,9 @@ run:
 		-e "s#{SYSTEMCTL_BIN}#$(SYSTEMCTL_BIN)#g" \
 		$< > $(basename $<)
 
-create_service_files: pitboss_watchdog.service
+create_service_files: civpb-watchdog.service
 
-pitboss_watchdog.argsx:
+civpb-watchdog.argsx:
 	@echo -e "   Before you install the systemd unit, create '$@'\n"\
 		"  and insert proper startup arguments for the script.\n"\
 		"\n" \
@@ -65,31 +65,31 @@ pitboss_watchdog.argsx:
 		"  You can edit this arguments later without re-installing the\n"\
 	  "  systemd unit file.\n"
 
-install_service: pitboss_watchdog.service pitboss_watchdog.sudoers pitboss_watchdog.args
+install_service: civpb-watchdog.service civpb-watchdog.sudoers civpb-watchdog.args
 	sudo cp "$(FOLDER)/$<" "$(SYSTEMD_INSTALL_DIR)/$<"
 	sudo systemctl daemon-reload
-	sudo systemctl enable "$<"
-	sudo install -m 0440 "pitboss_watchdog.sudoers" "/etc/sudoers.d/pitboss_watchdog.conf"
+	sudo systemctl enable $<
+	sudo install -m 0440 "civpb-watchdog.sudoers" "/etc/sudoers.d/civpb-watchdog"
 	@echo -e "Service enabled, but not started.\n" \
 		"Call 'sudo systemctl start $<' to start service."
 
-uninstall_service: pitboss_watchdog.service
-	sudo systemctl stop "$<"
-	sudo systemctl disable "$<"
-	sudo rm	"/etc/sudoers.d/pitboss_watchdog.conf"
+uninstall_service: civpb-watchdog.service
+	sudo systemctl stop $<
+	sudo systemctl disable $<
+	sudo rm	"/etc/sudoers.d/civpb-watchdog"
 	sudo rm "$(SYSTEMD_INSTALL_DIR)/$<"
 
-start: pitboss_watchdog.service
-	sudo systemctl start "$<"
+start: civpb-watchdog.service
+	sudo systemctl start $<
 
-stop: pitboss_watchdog.service
-	sudo systemctl stop "$<"
+stop: civpb-watchdog.service
+	sudo systemctl stop $<
 
-restart: pitboss_watchdog.service
-	sudo systemctl restart "$<"
+restart: civpb-watchdog.service
+	sudo systemctl restart $<
 
-log: pitboss_watchdog.service
-	journalctl -u "$<"
+log: civpb-watchdog.service
+	journalctl -u $<
 
 # ====================================================
 
