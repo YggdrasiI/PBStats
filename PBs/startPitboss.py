@@ -82,7 +82,7 @@ BTS_WRAPPER_WWW_DIR = None
 XVFB = False
 XVFB_DIR = "/run/shm/{GAMEID}"
 XVFB_MCOOKIE = "/tmp/{GAMEID}"
-XVFB_CMD = 'xvfb-run -a -e /dev/shm/xvfb.{GAMEID}.err --auth-file={COOKIE} '\
+XVFB_CMD = 'xvfb-run -a -e /run/shm/xvfb.{GAMEID}.err --auth-file={COOKIE} '\
     '-s "-fbdir {DIR} -screen 0 640x480x24"'\
     'wine "{CIV4BTS_EXE}" mod= "{MOD}"\\\" /ALTROOT="{ALTROOT_WIN}" &'
 XVFB_PRE_CMD = '$(sleep 3; xauth merge {COOKIE}) &'  # ; fg'
@@ -616,6 +616,13 @@ def setupGame(gameid, save_pat=None, password=None):
 
             # Refresh settings
             pbSettings = loadSettings(gameid)
+
+            # Update mod name
+            if isAutostart(pbSettings):
+                save_pat = pbSettings.get("save", {}).get("filename", "")
+                lSaves = findSaves(gameid, pbSettings, save_pat)
+                mod_name = parseModName(lSaves[0][0])
+
 
     except KeyboardInterrupt:
         print("\nQuit script")
