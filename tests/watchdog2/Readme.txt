@@ -12,7 +12,8 @@ Exit of programm:
   Long press(!) of Ctrl+C.
 
 Systemd service:
-  make install_service
+  make install_service|uninstall_service
+  make start|stop|restart|log
 
 
 

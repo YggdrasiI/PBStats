@@ -1,0 +1,3 @@
+%{GROUP} ALL = NOPASSWD: {SYSTEMCTL_BIN} start pitboss_watchdog.service
+%{GROUP} ALL = NOPASSWD: {SYSTEMCTL_BIN} stop pitboss_watchdog.service
+%{GROUP} ALL = NOPASSWD: {SYSTEMCTL_BIN} restart pitboss_watchdog.service

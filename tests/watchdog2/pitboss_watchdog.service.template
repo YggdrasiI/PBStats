@@ -12,7 +12,7 @@ ExecStart=/usr/bin/python3 pitboss_watchdog.py {WATCHDOG_ARGS}
 Restart=always
 RestartSec=60
 #TimeoutSec=60
-CapabilityBoundingSet=CAP_NET_RAW
+AmbientCapabilities=CAP_NET_RAW
 
 [Install]
 WantedBy=multi-user.target

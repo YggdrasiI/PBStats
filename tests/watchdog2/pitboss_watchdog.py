@@ -27,16 +27,19 @@ from collections import defaultdict
 import traceback
 import datetime
 import subprocess
+import shlex
 from enum import Enum, unique
 
 ## Packets for sending fake client replies
 # Add subfolders to python paths for imports
-sys.path.append(os.path.join(os.path.dirname(__file__), 'python3-pyip-0.7'))
-import ip as ip2
-import udp as udp2
+sys.path.append(os.path.join(os.path.dirname(__file__), 'site-packages'))
+import ip as pyip_ip
+import udp as pyip_udp
 
 ## Packet(s) for sniffing
 from scapy.all import *
+
+WATCHDOG_ARG_FILE = "pitboss_watchdog.args"
 
 
 class PBNetworkConnection:
@@ -168,20 +171,20 @@ class PBNetworkConnection:
                       int(a_plus_1/256), (a_plus_1%256)])
 
         logging.info('Disconnecting client at {!r}'.format(self))
-        upacket = udp2.Packet()
+        upacket = pyip_udp.Packet()
         upacket.sport = self.client_port
         upacket.dport = self.server_port
         upacket.data = data
 
-        ipacket = ip2.Packet()
+        ipacket = pyip_ip.Packet()
         ipacket.src = self.client_ip
         ipacket.dst = self.server_ip
         ipacket.df = 1
         ipacket.ttl = 64
         ipacket.p = 17
 
-        ipacket.data = udp2.assemble(upacket, False)
-        raw_ip = ip2.assemble(ipacket, 1)
+        ipacket.data = pyip_udp.assemble(upacket, False)
+        raw_ip = pyip_ip.assemble(ipacket, 1)
 
         # Send fake packet to the PB server that looks like its coming from the client
         try:
@@ -242,6 +245,11 @@ def portlist_to_filter(portlist_str):
     portlist_first = True
     portlist = str(portlist_str).split(',')
     for p in portlist:
+        if p == "-1":
+            logging.debug("Skip negative port number. "
+                          "Check given arguments for invalid port/game folder.")
+            continue
+
         portrange = p.split('-')
         if not portlist_first:
             port_str += " or "
@@ -253,9 +261,14 @@ def portlist_to_filter(portlist_str):
         elif len(portrange) == 1:
             port_str += "port {}".format(int(portrange[0]))
         else:
-            raise Exception("Failed to parse portlist '{}'".format(port_str))
+            raise Exception("Failed to parse portlist '{}'".format(portlist_str))
 
     port_str += " )"
+    
+    if portlist_first:
+        raise Exception("Failed to parse portlist '{}'. No valid ports given?!"
+                        "".format(portlist_str))
+
     return port_str
 
 
@@ -425,11 +438,44 @@ class ServerStatuses:
         return self.games[key]
 
 
-def main():
-    logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
+def read_watchdog_args():
+    try:
+        args = ""
+        with open(WATCHDOG_ARG_FILE, "r") as f:
+            args = f.read()
 
-    parser = argparse.ArgumentParser(
-        description='Tame the Civilization Pitboss Server to avoid spamming network packets to dead clients')
+        args = shlex.split(args)
+
+    except IOError as e:
+        logging.info("Can not read arguments from "
+                     "'{}'.".format(WATCHDOG_ARG_FILE))
+        args = sys.argv[1:]
+
+    return args
+
+class ErrorCatchingArgumentParser(argparse.ArgumentParser):
+    bNoExit = False
+    def exit(self, status=0, message=None):
+        if status and self.bNoExit:
+            raise Exception(message)
+            return
+        else:
+            super().exit(status, message)
+        exit(status)
+
+    def parse_args(self, bNoExit=False, *largs, **kwargs):
+        self.bNoExit = bNoExit
+        return super().parse_args(*largs, **kwargs)
+
+    def print_usage(self, *largs):
+        if self.bNoExit:
+            return
+        super().print_usage(*largs)
+
+def parse_arguments():    
+    parser = ErrorCatchingArgumentParser(
+        description='Tame the Civilization Pitboss Server to avoid spamming'
+        'network packets to dead clients')
 
     parser.add_argument('network_interface', metavar='INTERFACE', type=str, help='The interface to listen to, e.g. eth0.')
     parser.add_argument('ip_address', metavar='IP', type=str, help='The IP address used for the PB server.')
@@ -440,8 +486,28 @@ def main():
     parser.add_argument('-c', '--packet_limit', metavar='COUNT', type=int, default=2000,
                         help='Number of stray packets after which the client is disconnected.')
 
-    args = parser.parse_args()
+    # Read args from stdin and fall back on content from
+    # from pitboss_watchdog.args. 
+    # The second variant will be used by the systemd unit.
+    try:
+        args = parser.parse_args(True, args=sys.argv[1:])
+    except Exception as e:
+        args = None
+    else:
+        logging.debug("Parsing of input arguments succeeds.")
 
+    if not args:
+        logging.debug("Parsing of input arguments failed. "
+              "Fetch arguments from '{}'.".format(WATCHDOG_ARG_FILE))
+        args = parser.parse_args(args=read_watchdog_args())
+
+    return args
+
+
+def main():
+    logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
+
+    args = parse_arguments()
     games = ServerStatuses(args.game_list)
     port_list = games.get_ports()
 

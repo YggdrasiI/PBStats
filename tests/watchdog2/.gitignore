@@ -1,2 +1,4 @@
 pitboss_watchdog.service
+pitboss_watchdog.sudoers
+pitboss_watchdog.args
 site-packages
