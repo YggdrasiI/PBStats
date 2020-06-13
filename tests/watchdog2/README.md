@@ -1,27 +1,25 @@
-# Dependencies:
+# Installation:
+
 ```
 sudo apt install tcpdump
 pip install .
 ```
 
-## Example call:
-```
-sudo python3 pitboss_watchdog.py eth0 192.168.0.2 ~/PBs/PB1,~/PBs/PB2
-```
+# Usage
 
-## Exit of programm:
+see `civpb-watchdog --help`
+
+## Stopping the program:
   Long press(!) of Ctrl+C.
 
-## Systemd service:
-```
-  make install_service|uninstall_service
-  make start|stop|restart|log
-```
+## Sketch for usage of pitboss_watchdog without sudo:
 
+It runs with `AmbientCapabilities=CAP_NET_RAW`
 
-# Sketch for usage of pitboss_watchdog without sudo:
+## Alternatively
 
-  # Python3 Netzwerkzugriff geben (das ist noch wie beim letzten mal)
+Give Python3 network access
+
 ```
   cp /usr/bin/python3 .
   sudo setcap cap_net_raw=+ep ./python3
