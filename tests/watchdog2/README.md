@@ -6,7 +6,7 @@ pip install .
 
 ## Example call:
 ```
-sudo python3 pitboss_watchdog.py eth0 192.168.0.2 ~/PBs/PB1,~/PBs/PB2
+sudo python3 civpb_watchdog.py eth0 192.168.0.2 ~/PBs/PB1,~/PBs/PB2
 ```
 
 ## Exit of programm:
@@ -19,7 +19,7 @@ sudo python3 pitboss_watchdog.py eth0 192.168.0.2 ~/PBs/PB1,~/PBs/PB2
 ```
 
 
-# Sketch for usage of pitboss_watchdog without sudo:
+# Sketch for usage of civpb_watchdog without sudo:
 
   # Python3 Netzwerkzugriff geben (das ist noch wie beim letzten mal)
 ```
