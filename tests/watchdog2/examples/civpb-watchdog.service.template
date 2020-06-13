@@ -6,8 +6,6 @@ After=network.service
 Type=simple
 User={USER}
 Group={GROUP}
-WorkingDirectory={FOLDER}
-Environment="PYTHONPATH={SITE_PACKAGES}"
 ExecStart=/usr/bin/python3 civpb-watchdog.py {WATCHDOG_ARGS}
 Restart=always
 RestartSec=60

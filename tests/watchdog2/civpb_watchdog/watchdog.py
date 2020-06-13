@@ -9,10 +9,10 @@
 # 3. If 2. fails restart with the previous save game.
 #
 # Requirements:
-# - python3 -m pip install scapy
+# - pip install scapy
 #
 # Notes:
-# - Script requires root/'sudo' to get access to the network traffic or…
+# - Script requires root/"sudo" to get access to the network traffic or…
 # - … you can also use a copy of your python executable and run
 #   sudo setcap cap_net_raw=+ep python3
 #
@@ -21,7 +21,6 @@ import time
 import socket
 import sys
 import os
-import argparse
 import logging
 from collections import defaultdict
 import traceback
@@ -30,16 +29,21 @@ import subprocess
 import shlex
 from enum import Enum, unique
 
-## Packets for sending fake client replies
-# Add subfolders to python paths for imports
-sys.path.append(os.path.join(os.path.dirname(__file__), 'site-packages'))
-import ip as pyip_ip
-import udp as pyip_udp
+import click
+import click_log
+import click_config_file
 
-## Packet(s) for sniffing
-from scapy.all import *
+import toml
 
-WATCHDOG_ARG_FILE = "civpb-watchdog.args"
+# Packets for sending fake client replies
+from .pyip import ip as pyip_ip
+from .pyip import udp as pyip_udp
+
+# Packet(s) for sniffing
+from scapy.all import sniff, IP, UDP
+
+logger = logging.getLogger(__name__)
+click_log.basic_config(logger)
 
 
 class PBNetworkConnection:
@@ -66,10 +70,10 @@ class PBNetworkConnection:
         # to avoid false detection of inactivity.
         self.watchdog_last_active_server_ts = self.time_last_outgoing_packet
 
-        logging.debug("Detecting new connection {}".format(self))
+        logger.debug("Detecting new connection {}".format(self))
 
     def __str__(self):
-        return 'connection[{}:{}->{}:{}]'.format(
+        return "connection[{}:{}->{}:{}]".format(
             self.client_ip, self.client_port,
             self.server_ip, self.server_port)
 
@@ -80,15 +84,15 @@ class PBNetworkConnection:
             self.time_last_incoming_packet,
             self.time_last_outgoing_packet)
         if not self.is_active():
-            s += ' inactive'
+            s += " inactive"
         return s
 
     def handle_server_to_client(self, payload, game, now):
         self.number_unanswered_outgoing_packets += 1
         self.time_last_outgoing_packet = now
 
-        # logging.info("Package from Server, len={}".format( len(payload)))
-        # logging.info("Content: {}".format(payload.hex()))
+        # logger.info("Package from Server, len={}".format( len(payload)))
+        # logger.info("Content: {}".format(payload.hex()))
 
         # == Watchdog functionality ==
         # If the game hangs with a "save error" popup only packages with
@@ -103,7 +107,7 @@ class PBNetworkConnection:
         # payload length of 23, i. e
         # (fefe) 00023b000bfdffffff01ffffffff143f02003d02000001
         #
-        # Thus, if we ignore packages with length 3 and 8 we've
+        # Thus, if we ignore packages with length 3 and 8 we"ve
         # got an indicator for the server sanity.
 
         if len(payload) not in [3, 8]:
@@ -132,12 +136,12 @@ class PBNetworkConnection:
 
     def handle_client_to_server(self, payload, game, now):
         if self.number_unanswered_outgoing_packets > 100:
-            logging.debug('Received client data at {} after {} server packets / {} seconds.'.
+            logger.debug("Received client data at {} after {} server packets / {} seconds.".
                           format(self,
                                  self.number_unanswered_outgoing_packets,
                                  now - self.time_last_incoming_packet))
 
-        # logging.info("Package to Server, len={}".format(len(payload)))
+        # logger.info("Package to Server, len={}".format(len(payload)))
 
         # Check if server is available. First check guarantee that
         # first package of new client do not produce false positives.
@@ -161,7 +165,7 @@ class PBNetworkConnection:
         # First 2 bytes marks it as udp paket(?!)
         # Thrid bytes is command (close connection to client)
         #   B and A+1 are to 16 bit numbers where A and B
-        #   are content of 'payload'
+        #   are content of "payload"
 
         aHi, aLow = payload[1], payload[2]
         bHi, bLow = payload[3], payload[4]
@@ -170,7 +174,7 @@ class PBNetworkConnection:
         data = bytes([254, 254, 6, bHi, bLow,
                       int(a_plus_1/256), (a_plus_1%256)])
 
-        logging.info('Disconnecting client at {!r}'.format(self))
+        logger.info("Disconnecting client at {!r}".format(self))
         upacket = pyip_udp.Packet()
         upacket.sport = self.client_port
         upacket.dport = self.server_port
@@ -190,7 +194,7 @@ class PBNetworkConnection:
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
         except socket.error as e:
-            logging.error('Socket could not be created: {}'.format(e))
+            logger.error("Socket could not be created: {}".format(e))
 
         sock.sendto(raw_ip, (ipacket.dst, 0))
         self.time_disconnected = time.time()
@@ -203,7 +207,6 @@ class PBNetworkConnection:
 
 
 class PBNetworkConnectionRegister:
-
     def __init__(self, packet_limit):
         self.packet_limit = packet_limit
         self.connections = {}
@@ -211,7 +214,7 @@ class PBNetworkConnectionRegister:
         self.cleanup_interval = 2 * 60
 
     def get(self, client_ip, client_port, server_ip, server_port, now):
-        # This is more efficient than .get, because then we don't have to create a useless Client object if
+        # This is more efficient than .get, because then we don"t have to create a useless Client object if
         # Already exists
         connection_id = (client_ip, client_port, server_ip, server_port)
         if connection_id not in self.connections:
@@ -226,10 +229,10 @@ class PBNetworkConnectionRegister:
         if (time.time() - self.last_cleanup) < self.cleanup_interval:
             return
 
-        logging.debug('Starting cleanup for {} connections.'.format(len(self.connections)))
+        logger.debug("Starting cleanup for {} connections.".format(len(self.connections)))
         keys_to_del = []
         for (con_id, con) in self.connections.items():
-            logging.debug('{!r}'.format(con))
+            logger.debug("{!r}".format(con))
             if not con.is_active():
                 keys_to_del.append(con_id)
 
@@ -243,14 +246,14 @@ class PBNetworkConnectionRegister:
 def portlist_to_filter(portlist_str):
     port_str = "udp and ( "
     portlist_first = True
-    portlist = str(portlist_str).split(',')
+    portlist = str(portlist_str).split(",")
     for p in portlist:
         if p == "-1":
-            logging.debug("Skip negative port number. "
+            logger.debug("Skip negative port number. "
                           "Check given arguments for invalid port/game folder.")
             continue
 
-        portrange = p.split('-')
+        portrange = p.split("-")
         if not portlist_first:
             port_str += " or "
         else:
@@ -261,12 +264,12 @@ def portlist_to_filter(portlist_str):
         elif len(portrange) == 1:
             port_str += "port {}".format(int(portrange[0]))
         else:
-            raise Exception("Failed to parse portlist '{}'".format(portlist_str))
+            raise Exception('Failed to parse portlist "{}"'.format(portlist_str))
 
     port_str += " )"
     
     if portlist_first:
-        raise Exception("Failed to parse portlist '{}'. No valid ports given?!"
+        raise Exception('Failed to parse portlist "{}". No valid ports given?!'
                         "".format(portlist_str))
 
     return port_str
@@ -285,13 +288,12 @@ def analyze_udp_traffic(device, ip_address, pcap_filter, connections, games, pca
         assert IP in pkt, "No IP packet"
         assert UDP in pkt, "Packet is no UDP traffic"
         # print(pkt.summary())
-        print("." if pkt[IP].src == ip_address else "c", end="", flush=True)
+        # print("." if pkt[IP].src == ip_address else "c", end="", flush=True)
 
         ip = pkt[IP]
         udp = pkt[UDP]
         payload = udp.load
-        now = time.time()  # In pycap already part of 'pkt' but not in scapy
-
+        now = time.time()  # In pycap already part of "pkt" but not in scapy
 
         if ip.src == ip_address:
             game = games.get(udp.sport)
@@ -304,9 +306,8 @@ def analyze_udp_traffic(device, ip_address, pcap_filter, connections, games, pca
                             ip.dst, udp.dport,
                             now).handle_client_to_server(payload, game, now)
         else:
-            logging.warning('PB server matches neither source ({}) nor destination ({})'.
+            logger.warning("PB server matches neither source ({}) nor destination ({})".
                             format(ip.src, ip.dst))
-
 
     continuous_capture_error_count = 0
     while True:
@@ -324,14 +325,14 @@ def analyze_udp_traffic(device, ip_address, pcap_filter, connections, games, pca
                  )
 
         except Exception as e:
-            logging.info('Capture.error: {}'.format(e))
+            logger.info("Capture.error: {}".format(e))
             continuous_capture_error_count += 1
             continue
 
         # Capture looks good, lets reset error count
         continuous_capture_error_count = 0
 
-# Strategies of watchdog
+# Strategies of civpb_watchdog
 @unique
 class Strategies(Enum):
     NO_STRATEGY = 0
@@ -341,14 +342,14 @@ class Strategies(Enum):
     STOP_PB_SERVER = 4
 
 
-# Store data for watchdog functionality
+# Store data for civpb_watchdog functionality
 class ServerStatus:
-
-    def __init__(self, altroot_and_port_str):
-        path_port = altroot_and_port_str.split('=')
+    def __init__(self, altroot_and_port_str, script_path):
+        self.script_path = script_path
+        path_port = altroot_and_port_str.split("=")
 
         self.path = path_port[0]
-        self.game_id = os.path.basename(self.path)
+        self.game_id = os.path.basename(os.path.realpath(self.path))
 
         # Waiting time until next strategy will be used.
         self.strategy_timeout_s = 30
@@ -357,77 +358,74 @@ class ServerStatus:
 
         try:
             self.port = int(path_port[1])
-        except Exception as e:
+        except IndexError:
             self.port = self.get_port_from_ini(self.path)
+        logger.info(f"Setup ServerStatus game_id: {self.game_id} path: {self.path} port: {self.port}")
 
     @staticmethod
     def get_port_from_ini(path):
-        port = -1
+        port = None
         ini_path = os.path.join(path, "CivilizationIV.ini")
         try:
-            f = open(ini_path, 'r')
-            for line in f:
-                if "Port=" in line[:5]:
-                    port = int(line[5:])
-                    break
-            f.close()
-        except IOError as e:
-            logging.info("Can not read port from {}. Wrong altroot path?".format(ini_path))
-
+            with open(ini_path, "r") as f:
+                for line in f:
+                    if "Port=" in line[:5]:
+                        port = int(line[5:])
+                        break
+        except IOError:
+            logger.warning("Could not read port from {}. Wrong altroot path?".format(ini_path))
+        if port is None:
+            raise RuntimeError(f"No port found in ini file {ini_path}")
         return port
 
-    # Server is active. Reset watchdog
+    # Server is active. Reset civpb_watchdog
     def network_reply(self):
-        if(self.latest_strategy != Strategies.NO_STRATEGY):
-            logging.info("Server of game {} is online again. Reset strategies.".format(str(self.game_id)))
+        if self.latest_strategy != Strategies.NO_STRATEGY:
+            logger.info("Server of game {} is online again. Reset strategies.".format(str(self.game_id)))
             self.latest_strategy = Strategies.NO_STRATEGY
             self.latest_strategy_ts = time.time()  # Reset on strategy changes only should be fine.
 
     # Server not responding. Try several awakening strategies.
     def no_network_reply(self):
         now = time.time()
-        if(now - self.latest_strategy_ts < self.strategy_timeout_s):
+        if (now - self.latest_strategy_ts) < self.strategy_timeout_s:
             return
         self.latest_strategy_ts = now
 
         if self.latest_strategy == Strategies.NO_STRATEGY:
             self.latest_strategy = Strategies.POPUP_CONFIRM
-            logging.info("Simulate mouse click in game {}.".format(str(self.game_id)))
+            logger.info("Simulate mouse click in game {}.".format(str(self.game_id)))
             self.popup_confirm()
         elif self.latest_strategy == Strategies.POPUP_CONFIRM:
             self.latest_strategy = Strategies.RESTART_SAVE
-            logging.info("Restart game {} with current save.".format(str(self.game_id)))
+            logger.info("Restart game {} with current save.".format(str(self.game_id)))
             self.restart_game(False)
         elif self.latest_strategy == Strategies.RESTART_SAVE:
             self.latest_strategy = Strategies.RESTART_OLD_SAVE
-            logging.info("Restart game {} with previous save.".format(str(self.game_id)))
+            logger.info("Restart game {} with previous save.".format(str(self.game_id)))
             self.restart_game(True)
         elif self.latest_strategy == Strategies.RESTART_OLD_SAVE:
             self.latest_strategy = Strategies.STOP_PB_SERVER
-            logging.info("All restart strategies failed. Kill game {} and wait for manual recovery.".format(str(self.game_id)))
+            logger.info("All restart strategies failed. Kill game {} and wait for manual recovery.".format(str(self.game_id)))
             self.stop_game()
 
     def popup_confirm(self):
-        subprocess.call(os.path.join(os.path.dirname(__file__), ".",
-                                     "confirmPopup.sh {}".format(self.game_id)), shell=True)
+        subprocess.call([os.path.join(self.script_path, "civpb-confirm-popup"), str(self.game_id)])
 
     def restart_game(self, previous_save=False):
-        previous = "-p" if previous_save else ""
-        subprocess.call(os.path.join(os.path.dirname(__file__), ".",
-                                     "killPitboss.sh {} {}".format(previous, self.game_id)), shell=True)
+        args = ["-p"] if previous_save else []
+        args.append(str(self.game_id))
+        subprocess.call([os.path.join(self.script_path, "civpb-kill"), *args])
 
     def stop_game(self):
-        subprocess.call(os.path.join(os.path.dirname(__file__), ".",
-                                     "killPitboss.sh -s {}".format(self.game_id)), shell=True)
+        subprocess.call([os.path.join(self.script_path, "civpb-kill"), "-s", str(self.game_id)])
 
 
 class ServerStatuses:
-
-    def __init__(self, game_list):
+    def __init__(self, games_str, script_path):
         self.games = {}
-        games_str = str(game_list).split(',')
         for game_str in games_str:
-            game = ServerStatus(game_str)
+            game = ServerStatus(game_str, script_path)
             self.games[game.port] = game
 
     def get_ports(self):
@@ -438,94 +436,40 @@ class ServerStatuses:
         return self.games[key]
 
 
-def read_watchdog_args():
-    try:
-        args = ""
-        with open(WATCHDOG_ARG_FILE, "r") as f:
-            args = f.read()
-
-        args = shlex.split(args)
-
-    except IOError as e:
-        logging.info("Can not read arguments from "
-                     "'{}'.".format(WATCHDOG_ARG_FILE))
-        args = sys.argv[1:]
-
-    return args
-
-class ErrorCatchingArgumentParser(argparse.ArgumentParser):
-    bNoExit = False
-    def exit(self, status=0, message=None):
-        if status and self.bNoExit:
-            raise Exception(message)
-            return
-        else:
-            super().exit(status, message)
-        exit(status)
-
-    def parse_args(self, bNoExit=False, *largs, **kwargs):
-        self.bNoExit = bNoExit
-        return super().parse_args(*largs, **kwargs)
-
-    def print_usage(self, *largs):
-        if self.bNoExit:
-            return
-        super().print_usage(*largs)
-
-def parse_arguments():    
-    parser = ErrorCatchingArgumentParser(
-        description='Tame the Civilization Pitboss Server to avoid spamming'
-        'network packets to dead clients')
-
-    parser.add_argument('network_interface', metavar='INTERFACE', type=str, help='The interface to listen to, e.g. eth0.')
-    parser.add_argument('ip_address', metavar='IP', type=str, help='The IP address used for the PB server.')
-    # parser.add_argument('port_list', metavar='PORTS', type=str, default='2056',
-    #                    help='List of ports of the PB server, e.g. 2056-2060,2070.')
-    parser.add_argument('game_list', metavar='GAMES', type=str, default='~/PBs/PB1[=2056]',
-                        help='List of altroot directories. Syntax:\n Path[=Port][,...]\nThe port will read from CivilizationIV.ini if not given.')
-    parser.add_argument('-c', '--packet_limit', metavar='COUNT', type=int, default=2000,
-                        help='Number of stray packets after which the client is disconnected.')
-
-    # Read args from stdin and fall back on content from
-    # from civpb-watchdog.args. 
-    # The second variant will be used by the systemd unit.
-    try:
-        args = parser.parse_args(True, args=sys.argv[1:])
-    except Exception as e:
-        args = None
-    else:
-        logging.debug("Parsing of input arguments succeeds.")
-
-    if not args:
-        logging.debug("Parsing of input arguments failed. "
-              "Fetch arguments from '{}'.".format(WATCHDOG_ARG_FILE))
-        args = parser.parse_args(args=read_watchdog_args())
-
-    return args
+def toml_provider(file_path, cmd_name):
+    return toml.load(file_path)
 
 
-def main():
-    logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
+@click.command()
+@click.option("--interface", type=str, required=True, metavar="INTERFACE", help="The interface to listen to, e.g., eth0")
+@click.option("--address", type=str, required=True, metavar="IP", help="The IP address used for the PB server.")
+@click.option("-g", "--games", type=str, required=True, multiple=True, metavar="GAME",
+              help="Altroot directory to a Pitboss game, syntax:\n Path[=Port]\nIf omitted, the port will read from CivilizationIV.ini.")
+@click.option("-c", "--packet-limit", metavar="COUNT", type=int, default=2000,
+              help="Number of stray packets after which the client is disconnected.")
+@click.option("--script-path", default=sys.path[0], "path containing civpb-confirm-popup and civpb-kill scripts")
+@click_config_file.configuration_option(provider=toml_provider)
+@click_log.simple_verbosity_option()
+def main(interface, address, games, packet_limit, script_path):
+    print(games, script_path)
+    servers = ServerStatuses(games, script_path=script_path)
+    port_list = servers.get_ports()
 
-    args = parse_arguments()
-    games = ServerStatuses(args.game_list)
-    port_list = games.get_ports()
+    connections = PBNetworkConnectionRegister(packet_limit=packet_limit)
 
-    connections = PBNetworkConnectionRegister(packet_limit=args.packet_limit)
-
-    logging.info("Pitboss upload killer running.")
-    logging.info("Listening on: {} for ip: {}, ports: {}".format(args.network_interface, args.ip_address, port_list))
+    logger.info("Pitboss upload killer running.")
+    logger.info("Listening on: {} for ip: {}, ports: {}".format(interface, address, port_list))
 
     while True:
         try:
-            analyze_udp_traffic(args.network_interface, args.ip_address,
-                                portlist_to_filter(port_list),
-                                connections, games, pcap_timeout=500)
+            analyze_udp_traffic(interface, address, portlist_to_filter(port_list),
+                                connections, servers, pcap_timeout=500)
         except Exception as e:
-            logging.error("Caught exception {}".format(e))
+            logger.error("Caught exception {}".format(e))
             traceback.print_exc()
-        logging.warning("Taking a break before resuming analysis.")
+        logger.warning("Taking a break before resuming analysis.")
         time.sleep(10)
 
-main()
 
+if __name__ == "__main__":
+    main()

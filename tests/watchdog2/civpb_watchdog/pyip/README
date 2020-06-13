@@ -1,0 +1,4 @@
+This module is based on pyip 0.7 from
+https://pypi.org/project/pyip/#files
+
+It was stripped to only what we need and work with python3.

@@ -1,6 +1,0 @@
-icmp
-inetutils
-ip
-ping
-traceroute
-udp

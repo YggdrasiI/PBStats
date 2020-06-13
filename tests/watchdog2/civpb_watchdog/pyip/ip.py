@@ -10,7 +10,7 @@
 #
 
 
-import inetutils
+from . import inetutils
 import socket
 import struct
 import string

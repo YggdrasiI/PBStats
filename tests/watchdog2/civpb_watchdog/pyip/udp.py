@@ -10,7 +10,7 @@
 #
 
 
-import inetutils
+from . import inetutils
 import struct
 import string
 

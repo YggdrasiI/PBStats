@@ -1,26 +1,28 @@
-Dependencies:
-  sudo apt install tcpdump
-  sudo python3 -m pip install scapy
-  
-    (Call 'make install_deps_local' or 'make install_deps_global'
-     to install python dependencies.)
+# Dependencies:
+```
+sudo apt install tcpdump
+pip install .
+```
 
-Example call:
-  sudo python3 pitboss_watchdog.py eth0 192.168.0.2 ~/PBs/PB1,~/PBs/PB2
+## Example call:
+```
+sudo python3 pitboss_watchdog.py eth0 192.168.0.2 ~/PBs/PB1,~/PBs/PB2
+```
 
-Exit of programm:
+## Exit of programm:
   Long press(!) of Ctrl+C.
 
-Systemd service:
+## Systemd service:
+```
   make install_service|uninstall_service
   make start|stop|restart|log
+```
 
 
-
-==========================================================
-Sketch for usage of pitboss_watchdog without sudo:
+# Sketch for usage of pitboss_watchdog without sudo:
 
   # Python3 Netzwerkzugriff geben (das ist noch wie beim letzten mal)
+```
   cp /usr/bin/python3 .
   sudo setcap cap_net_raw=+ep ./python3
 
@@ -33,3 +35,4 @@ Sketch for usage of pitboss_watchdog without sudo:
   sudo chmod 750 /usr/sbin/tcpdump
 
   sudo setcap cap_net_raw=ep /usr/sbin/tcpdump
+```
