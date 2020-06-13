@@ -447,7 +447,7 @@ def toml_provider(file_path, cmd_name):
               help="Altroot directory to a Pitboss game, syntax:\n Path[=Port]\nIf omitted, the port will read from CivilizationIV.ini.")
 @click.option("-c", "--packet-limit", metavar="COUNT", type=int, default=2000,
               help="Number of stray packets after which the client is disconnected.")
-@click.option("--script-path", default=sys.path[0], "path containing civpb-confirm-popup and civpb-kill scripts")
+@click.option("--script-path", default=sys.path[0], help="path containing civpb-confirm-popup and civpb-kill scripts")
 @click_config_file.configuration_option(provider=toml_provider)
 @click_log.simple_verbosity_option()
 def main(interface, address, games, packet_limit, script_path):
