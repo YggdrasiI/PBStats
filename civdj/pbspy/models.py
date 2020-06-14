@@ -302,7 +302,8 @@ class Game(models.Model):
             if turn > self.turn:
                 if not reload_log_message_done:
                     mt = GameLogMissedTurn(**logargs)
-                    mt.set_missed_players(self.player_set.filter(ingame_stack=0))
+                    mt.set_missed_players(self.player_set.filter(
+                        ingame_stack=0).filter(is_online=0))
                     if mt.is_turn_incomplete():
                         mt.save()
 
