@@ -1,7 +1,0 @@
-interface = "ens1"
-address = "192.168.0.1"
-games = [
-       "/home/civpb/PBs/PB1/",
-       "/home/civpb/PBs/PB2/",
-]
-script_path = "/home/civpb/scripts"
