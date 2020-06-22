@@ -79,17 +79,38 @@
                 </p>
                 {% if user.is_authenticated %}
                 <p class="game_info">
-                {% if not user in game.subscribed_users.all %}
+                {% if subscription %}
+                    {% if subscription.watched_player_id > -1 %}
+                    <form method="post" action="{% url 'game_unsubscribe' game.id %}">
+                      {% csrf_token %}
+                      {% blocktrans with player_id=subscription.watched_player_id %}
+                      You will be informed by email if player
+                      {{ player_id }} finished his turn.
+                      {% endblocktrans %}
+                      <span><input type="submit" value="{% trans "unsubscribe" %}"/></span>
+                    </form>
+                    {% else %}
+                    <form method="post" action="{% url 'game_unsubscribe' game.id %}">
+                      {% csrf_token %}
+                      {% trans "You are receiving new turn emails for this game" %}
+                      <span><input type="submit" value="{% trans "unsubscribe" %}"/></span>
+                    </form>
+                    {% endif %}
+                {% else %}
                 <form method="post" action="{% url 'game_subscribe' game.id %}">
                   {% csrf_token %}
                   <span><input type="submit"
                                value="{% trans "subscribe to new turn emails for this game" %}"/></span>
-                </form>
-                {% else %}
-                <form method="post" action="{% url 'game_unsubscribe' game.id %}">
-                  {% csrf_token %}
-                  {% trans "You are receiving new turn emails for this game" %}
-                  <span><input type="submit" value="{% trans "unsubscribe" %}"/></span>
+                  <select name="watched_player_id">
+                    <option value="-1">{{ _("On new turn") }}</option>
+                    {# Note: Order of entries depends on sorting of players #}
+                    {% for player in players %}
+                    <option value="{{ player.ingame_id }}">
+                    {% blocktrans with name=player.name ingame_id=player.ingame_id %}
+                    After {{ name }} ({{ ingame_id }})
+                    {% endblocktrans %}</option>
+                    {% endfor %}
+                  </select>
                 </form>
                 {% endif %}
                 </p>

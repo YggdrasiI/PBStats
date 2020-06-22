@@ -1,0 +1,9 @@
+{% load i18n %}
+{% blocktrans with username=username turn=turn game_name=game_name manage_url=manage_url url_prefix="http://civ.zulan.net" %}
+Hello {{username}},
+
+the player {{prev_player}} finished his turn {{turn}} in '{{game_name}}'.
+
+
+You can control your email settings here: {{url_prefix}}{{manage_url}}
+{% endblocktrans %}

@@ -5,3 +5,4 @@ db.sqlite3
 civdj/settings_local.py
 /static
 /collectstatic_target
+pbspy/locale/*/LC_MESSAGES/django.mo
