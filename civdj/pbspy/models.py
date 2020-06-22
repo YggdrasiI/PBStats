@@ -143,7 +143,19 @@ class Game(models.Model):
     victory_image    = models.CharField(max_length=200, blank=True, null=True,
                                         validators=[URLValidator(regex="^.*[.](png|jpg|jpeg|gif|php[?].*)$")])
 
-    subscribed_users   = models.ManyToManyField(User, related_name='subscribed_games', blank=True)
+    # subscribed_users   = models.ManyToManyField(User, related_name='subscribed_games', blank=True)
+    subscribed_users   = models.ManyToManyField(
+        User,
+        related_name='subscribed_games', blank=True,
+        # through='MailSubscribing',
+        # through_fields=('game', 'user'),
+    )
+    subscribed_users_new   = models.ManyToManyField(
+        User,
+        related_name='subscribed_games_new', blank=True,
+        through='MailSubscribing',
+        through_fields=('game', 'user'),
+    )
 
     # Update hostname
     is_dynamic_ip      = models.BooleanField(default=False)
@@ -572,8 +584,12 @@ class Game(models.Model):
         except URLError:
             raise ValidationError("Could not connect to the pitboss management interface.")
 
-    def subscribe_user(self, user):
-        self.subscribed_users.add(user)
+    def subscribe_user(self, user, watched_player_id):
+        # self.subscribed_users.add(user)
+        self.subscribed_users.add(
+            user,
+        #    through_defaults={'watched_player_id': watched_player_id}
+        )
         email_helper(user, 'subscribed',
                      game_name=self.name, game_pb_name=self.pb_name,
                      manage_url=reverse('game_detail', args=[self.id]))
@@ -585,9 +601,21 @@ class Game(models.Model):
 
     def send_new_turn_info(self):
         for user in self.subscribed_users.all():
-            email_helper(user, 'new_turn',
-                         game_name=self.name, game_pb_name=self.pb_name, turn=(self.turn+1),
-                         manage_url=reverse('game_detail', args=[self.id]))
+            if True:
+            # if user.watched_player_id == -1:
+                email_helper(user, 'new_turn',
+                             game_name=self.name, game_pb_name=self.pb_name,
+                             turn=(self.turn+1),
+                             manage_url=reverse('game_detail', args=[self.id]))
+
+    def send_player_finished_info(self, ingame_player_id=-2):
+        for user in self.subscribed_users.all():
+            if False:
+            # if user.watched_player_id == ingame_player_id:
+                email_helper(user, 'previous_player_finished',
+                             game_name=self.name,
+                             game_pb_name=self.pb_name, turn=(self.turn+1),
+                             manage_url=reverse('game_detail', args=[self.id]))
 
     def search_old_matching_player(self, ingame_id, new_player):
         """
@@ -1143,3 +1171,11 @@ class GameLogMissedTurn(GameLog):
                 format_names.append(_("<li>{} (id={})</li>").format(html.escape(player_name), int(player_id)))
         return _("the following players did not finished their turn:") + "<ul>{players}</ul>".\
             format(players="\r\n".join(format_names))
+
+class MailSubscribing(models.Model):
+    # Mails for sequencial games need the information
+    # which player shoud be watched.
+    # An mail at the new turn is not useful in this case.
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    watched_player_id = models.IntegerField(blank=False, default=-1)

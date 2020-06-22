@@ -712,10 +712,10 @@ def game_change(request, game_id, action=""):
 
 @login_required()
 @require_http_methods(['POST'])
-def game_subscribe(request, game_id, subscribe=True):
+def game_subscribe(request, game_id, subscribe=True, watched_player_id=-1):
     game = Game.objects.get(id=game_id)
     if subscribe:
-        message = game.subscribe_user(request.user)
+        message = game.subscribe_user(request.user, watched_player_id)
     else:
         message = game.unsubscribe_user(request.user)
     # TODO, also pass message... not sure how to do that easily ina redirect, probably ending up in a GET on a regex url
