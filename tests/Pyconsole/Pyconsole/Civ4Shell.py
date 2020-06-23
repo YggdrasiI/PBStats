@@ -607,6 +607,13 @@ else:
         if mode == "pb_admin" and "players" in status:
 
             players = status.get("players", [])
+
+            if len(players) > 20 and not bAll:
+                # Reduce on currently active players, if any
+                players_online = [pl for pl in players if pl.get("ping","").strip().startswith("[")]
+                if len(players_online) > 0:
+                    players = players_online
+
             if sort_type == "conn":
                 players_sorted = sorted(players, key=lambda pl:
                                         hash(pl.get("ping", "")) & 0xFF00 + int(pl.get("id", 0)),
