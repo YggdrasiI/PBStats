@@ -428,7 +428,7 @@ class Game(models.Model):
         except AttributeError:
             name = 'unknown'
         text = "{}: {}".format(name, message)
-        return self.pb_action(action='chat', msg=text)
+        return self.pb_action(action='chat3', msg=text, sound=0)
 
     def pb_set_motd(self, message, user=None):
         return self.pb_action(action='setMotD', msg=str(message))

@@ -18,6 +18,11 @@ try:
 except ImportError:
     print("Import of simplejson failed. Several commands will not work.")
 
+# To avoid contamination with string 'load_module encodings.utf_8' due later implicit imports
+# we load it already now
+import encodings.ascii
+import encodings.utf_8
+
 TCP_IP = '127.0.0.1'
 TCP_PORT = 3333
 BUFFER_SIZE = 1024
@@ -99,7 +104,8 @@ class Server:
                 data += self.conn.recv(BUFFER_SIZE)
 
             data = data.rstrip(EOF)
-            self.code_store.append(data)
+            data_str_u = data.decode('utf-8')
+            self.code_store.append(data_str_u)
 
             # Wait until other thread had handled one slice (every 0.25s)
             sleep(0.35)
@@ -131,7 +137,7 @@ class Server:
         """ Should be called by game loop thread. """
 
         while len(self.code_store) > 0:
-            # type(data) = 'str/bytes'
+            # type(data) = 'unicode/str'
             data = self.code_store.pop(0)
             if data[0:2] in ["P:","p:"]:  # Call code
                 # Made some objects available for easier debugging
@@ -188,7 +194,8 @@ class Server:
                 ws = glob.get("Webserver")
                 tmp_str = StringIO()
                 try:
-                    s = json.loads(data[2:], encoding='utf-8')
+                    # s = json.loads(data[2:], encoding='utf-8')
+                    s = json.loads(data[2:])  # data is now unicode/str
                     action = s["action"]
                     args = s.get("args", None)
                     # ws.Action_Handlers[action](inputdata=args, wfile=tmp_str)
@@ -214,7 +221,7 @@ class Server:
 
         return True
 
-    def run_code(self, code, glob, loc):
+    def run_code(self, code_u, glob, loc):
         """ Should be called by game loop thread only. """
         orig_filehandler = (sys.stdin, sys.stdout, sys.stderr)
         new_filehandler = (None, StringIO(), StringIO())
@@ -223,13 +230,25 @@ class Server:
             sys.stdout = new_filehandler[1]
             sys.stderr = new_filehandler[2]
 
+        bTryExec = True
         try:
-            exec(code, glob, loc)
-        except:
-            orig_filehandler[2].write(str(sys.exc_info()[0]))
-            orig_filehandler[2].write('\n')
+            code = code_u.encode('cp1252')
+        except Exception, e:
+            orig_filehandler[2].write("Code not encodeable as cp1252. Error: ")
+            orig_filehandler[2].write(str(e) + '\n')
             orig_filehandler[2].flush()
-            new_filehandler[2].write('\n')
+            # bTryExec = False
+
+        if bTryExec:
+            try:
+                exec(code_u, glob, loc)
+                # code = code_u.encode('utf-8')
+                # exec(code, glob, loc)
+            except:
+                orig_filehandler[2].write(str(sys.exc_info()[0]))
+                orig_filehandler[2].write('\n')
+                orig_filehandler[2].flush()
+                new_filehandler[2].write('\n')
 
         ret = (new_filehandler[1].getvalue(), new_filehandler[2].getvalue())
 

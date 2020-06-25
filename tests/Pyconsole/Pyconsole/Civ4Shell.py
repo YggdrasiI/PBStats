@@ -868,16 +868,71 @@ else:
         self.webserver_action("endPlayerTurn", end_args, 1)
 
     def do_chat(self, arg):
+        """ Send chat message with optional sound.
+
+        Example usage: chat [-s soundid] My message
+
+        Type text without any quotes.
+        Avoid special charatcers, Civ4 can't print out. The
+        text will be encoded as windows-1252.
+
+        This variant of the chat command requires code changes
+        in CvEventManager.onModNetMessage.
+
+        Soundids:
+            0 - AS2D_CHAT
+            1 - AS2D_PING
+            2 - AS2D_WELOVEKING
+            3 - AS2D_DECLAREWAR
+        """
+
+        args = arg.split(" ")
+        if len(args) > 1 and args[0] == "-s":
+            try:
+                iSoundId = int(args[1])
+            except ValueError:
+                self.warn("Argument of -s is no integer.")
+            msg = " ".join(args[2:])
+        else:
+            msg = " ".join(args[0:])
+            iSoundId = 0
+
+        result = self.webserver_action("chat3", {"msg": msg, "sound": iSoundId}, 1)
+        if result.get('return') ==  'ok':
+            chat_log = result.get('log', [])
+            for chat_msg in chat_log:
+                self.feedback("|> {0}".format(chat_msg))
+
+    def do_chat_old(self, arg):
         """ Send chat message.
 
-        Example usage: chat My message
+        Example usage: chat_old My message
+
+        Attention, message will be stored in game log for long time!
+        Use 'chat' to avoid that.
 
         Type text without any quotes.
         Avoid special charatcers, Civ4 can't print out. The
         text will be encoded as windows-1252.
         """
         msg = arg
-        result = self.webserver_action("chat", {"msg": msg}, 1)
+        result = self.webserver_action("chat1", {"msg": msg}, 1)
+        if result.get('return') ==  'ok':
+            chat_log = result.get('log', [])
+            for chat_msg in chat_log:
+                self.feedback("|> {0}".format(chat_msg))
+
+    def do_chat_wip(self, arg):
+        """ Send chat message as barbarian player.
+
+        Example usage: chat_wip My message
+
+        Type text without any quotes.
+        Avoid special charatcers, Civ4 can't print out. The
+        text will be encoded as windows-1252.
+        """
+        msg = arg
+        result = self.webserver_action("chat2", {"msg": msg}, 1)
         if result.get('return') ==  'ok':
             chat_log = result.get('log', [])
             for chat_msg in chat_log:
@@ -1132,11 +1187,11 @@ else:
             else:
                 self.warn("Renaming of unit {0} failed. Server returns '{1}'".format(iUnit, result))
 
-    def do_enable_dark_mode(self, arg):
+    def do_set_dark_mode(self, arg):
         """ Swap used colors used by Pyconsole
 
             Useful for better readability in dark terminals.
-            Format: enable_dark_mode [0|1]
+            Format: set_dark_mode [0|1]
         """
         if len(arg) > 0:
             try:
@@ -1147,11 +1202,13 @@ else:
             self.term_background_dark = not self.term_background_dark
 
         self.setColors(self.term_background_dark)
+        self.feedback("Dark mode: {}".format(
+            "enabled" if self.term_background_dark else "disabled"))
 
-    def do_enable_expression_print(self, arg):
+    def do_set_expression_print(self, arg):
         """ Enable output printing of expressions.
 
-            Format: enable_expression_print [0|1]
+            Format: set_expression_print [0|1]
         """
         if len(arg) > 0:
             try:
@@ -1160,6 +1217,9 @@ else:
                 self.warn("Input no bool.")
         else:
             self.automatic_print = not self.automatic_print
+
+        self.feedback("Automatic print mode: {}".format(
+            "enabled" if self.automatic_print else "disabled"))
 
     def do_unreveal_map(self, arg):
         """Hide plots outside of view ranges."""
@@ -1209,10 +1269,15 @@ print(__num_changed_plots)
             line = line.replace('\\', '\\\\')
             line = line.replace("'", r"\'").replace('"', r'\"')
             # Wrap by expression detection
+            # We check if __to_print is unicode to avoid mix in unicode-strings
+            # where the shell expects utf-8 strings
             line = '''
 try:
     __to_print = eval('{0}')
-    print(__to_print)
+    if isinstance(__to_print, unicode):
+        print(__to_print.encode('utf-8'))
+    else:
+        print(__to_print)
 except SyntaxError:
     exec('{0}')
 '''.format(line)

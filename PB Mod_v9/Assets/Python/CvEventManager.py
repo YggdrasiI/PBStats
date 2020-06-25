@@ -37,6 +37,7 @@ iPlayerOptionCheck = 0  # Triggers for == 1, decrements for >= 0
 class CvEventManager:
     def __init__(self):
         self.bGameTurnProcessing = False
+        self.pbServerChatMessage = ""
         #################### ON EVENT MAP ######################
         #print "EVENTMANAGER INIT"
 
@@ -293,6 +294,71 @@ class CvEventManager:
         'Called whenever CyMessageControl().sendModNetMessage() is called - this is all for you modders!'
         iData1, iData2, iData3, iData4, iData5 = argsList
         CvUtil.pyPrint( 'onModNetMessage' )
+
+        # PB Mod, assemble chat message.
+        chatFlags = (iData5 >> 24) & 0x7F
+        if (chatFlags & 0x70) == 0x70:
+            try:
+                # Convert sign flags back into 32th bit
+                if iData1 < 0: iData1 = -iData1 | 0x80000000
+                if iData2 < 0: iData2 = -iData2 | 0x80000000
+                if iData3 < 0: iData3 = -iData3 | 0x80000000
+                if iData4 < 0: iData4 = -iData4 | 0x80000000
+
+                if (chatFlags & 0x04) == 0x04:
+                    # Begin of new message
+                    self.pbServerChatMessage = ""
+
+                if iData1 != 0:
+                    self.pbServerChatMessage += "%c%c%c%c" %(
+                        chr((iData1 >> 0) & 0xFF),
+                        chr((iData1 >> 8) & 0xFF),
+                        chr((iData1 >> 16) & 0xFF),
+                        chr((iData1 >> 24) & 0xFF))
+                if iData2 != 0:
+                    self.pbServerChatMessage += "%c%c%c%c" %(
+                        chr((iData2 >> 0) & 0xFF),
+                        chr((iData2 >> 8) & 0xFF),
+                        chr((iData2 >> 16) & 0xFF),
+                        chr((iData2 >> 24) & 0xFF))
+                if iData3 != 0:
+                    self.pbServerChatMessage += "%c%c%c%c" %(
+                        chr((iData3 >> 0) & 0xFF),
+                        chr((iData3 >> 8) & 0xFF),
+                        chr((iData3 >> 16) & 0xFF),
+                        chr((iData3 >> 24) & 0xFF))
+                if iData4 != 0:
+                    self.pbServerChatMessage += "%c%c%c%c" %(
+                        chr((iData4 >> 0) & 0xFF),
+                        chr((iData4 >> 8) & 0xFF),
+                        chr((iData4 >> 16) & 0xFF),
+                        chr((iData4 >> 24) & 0xFF))
+                if (iData5 & 0x00FFFFFF) != 0:
+                    self.pbServerChatMessage += "%c%c%c" %(
+                        chr((iData5 >> 0) & 0xFF),
+                        chr((iData5 >> 8) & 0xFF),
+                        chr((iData5 >> 16) & 0xFF))
+
+                if (chatFlags & 0x08) == 0x08:
+                    # End of message
+                    msg_u = self.pbServerChatMessage.rstrip().decode('utf-8')
+                    # CvUtil.pyPrint('Final chat message: ' + msg_u)
+                    self.pbServerChatMessage = ""
+
+                    sounds = ["AS2D_CHAT",
+                              "AS2D_PING",
+                              "AS2D_WELOVEKING",  # ^^
+                              "AS2D_DECLAREWAR"]
+                    sound = sounds[chatFlags & 0x03]
+
+                    if not CyGame().isPitbossHost():
+                        # Use unicode msg_u with cp1252 charset
+                        sColor = localText.getText("[COLOR_WARNING_TEXT]", ())
+                        color_msg = u"%sPitboss:</color> %s" % (sColor, msg_u)
+                        CyInterface().addImmediateMessage(color_msg, sound)
+
+            except Exception, e:
+                CvUtil.pyPrint("Chat message decoding failed. Error: %s" % (e,))
 
     def onInit(self, argsList):
         'Called when Civ starts up'
@@ -1116,7 +1182,6 @@ def check_stack_attack():
 
 def check_show_ressources():
     iPlayer = gc.getGame().getActivePlayer()
-    CvUtil.pyPrint('Foo')
     if (iPlayer != -1
         and gc.getPlayer(iPlayer).isOption(
             PlayerOptionTypes.PLAYEROPTION_MODDER_1)

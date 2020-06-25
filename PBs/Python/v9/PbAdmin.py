@@ -682,6 +682,89 @@ class AdminIFace(wx.App):
         outMsg = title + ":\n" + desc
         PB.consoleOut(outMsg)
 
+    def sendChatMessage(self, message, sound_variant=0):
+        # Use multiple modNetMessages to propagate text to users
+        # Encoding:
+        #  • Send utf-8-encoded string, but restrict
+        #  • Propagate unicode string to addChatMessage
+        # Function returns True or error message
+
+        if isinstance(message, unicode):
+            message = message.encode('utf-8')
+
+        # 1. split messages into 4*4 + 3 Bytes
+        first = True
+        n_bytes = 4*4 + 3
+        msg__ = message + " " * ((n_bytes - len(message)) % (n_bytes))
+
+        def bytes_to_signed_int(b1, b2, b3, b4):
+            # Little endian
+
+            # Converts numbers into 0-255 (negatives =>255)
+            b1, b2, b3, b4 = b1 & 0xFF, b2 & 0xFF, b3 & 0xFF, b4 & 0xFF
+
+            if b4 > 127:
+                x = (b1 << 0) | (b2 << 8) | (b3 << 16) | ((b4-128) << 24)
+                x = -x
+            else:
+                x = (b1 << 0) | (b2 << 8) | (b3 << 16) | (b4 << 24)
+
+            # Alternative:
+            # bit_len = 32-1
+            # u = (b1 << 0) | (b2 << 8) | (b3 << 16) | (b4 << 24)
+            # x = (u & ((1 << bit_len) - 1)) - (u & (1 << bit_len))
+
+            return x
+
+        while len(msg__) > 0:
+            # Grab first 18 bytes and shorten message
+            c = [ord(c) for c in msg__[:n_bytes] ]
+            msg__ = msg__[n_bytes:]
+
+            # 2. Mark with flags as chat text
+            flag = 0x70 # Mark as chat messages in iData5
+            if first:  # First part, set bx01110100 flag
+                first = False
+                flag |= 0x04
+            if len(msg__) == 0:  # Last part, set bx01111000 flag
+                flag |= 0x08
+
+            # Add sound flags (0-3)
+            flag |= min(3, abs(sound_variant))
+
+            # 3. Convert text chunk into signed integers
+            words = [bytes_to_signed_int(c[0], c[1], c[2], c[3]),
+                     bytes_to_signed_int(c[4], c[5], c[6], c[7]),
+                     bytes_to_signed_int(c[8], c[9], c[10], c[11]),
+                     bytes_to_signed_int(c[12], c[13], c[14], c[15]),
+                     bytes_to_signed_int(c[16], c[17], c[18], flag)]
+                     # Last entry set lower 3 bytes + flags
+
+            CyMessageControl().sendModNetMessage(
+                words[0], words[1], words[2], words[3], words[4])
+
+        # 5. Store message in textbox.
+        # Add message directly to chat because method is not easly reachable
+        # by CvEventManager's onModNetMessage call
+        try:
+            self.addChatMessage(message.decode('utf-8'))
+        except Exception, e:
+            return "Message send, but addChatMessage failed. Error: " + str(e)
+
+        if gc.getGame().isPaused():
+            return "Warning: Message delayed until game is unpaused."
+
+        return True
+
+    # Short, but not working variant. Added for reference.
+    def modChatMessage2(self, message, sound_variant=0):
+        # Test of direct way: (Fails if triggered in this thread?!)
+        gc.getGame().setActivePlayer(gc.getBARBARIAN_PLAYER(), False)
+        gc.sendChat(message, -1)  # Requires active player > -1
+        gc.getGame().setActivePlayer(-1, False)
+
+        return True
+
 
 # ================ PB Mod ===================
 def start_shell(shell_settings, mode=""):

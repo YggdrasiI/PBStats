@@ -89,7 +89,58 @@ def action_gamedata(inputdata, server, wfile):
 
 
 @action_args_decorator
+def action_chat_over_modNetMsg(inputdata, server, wfile):
+    # This variant of the chat command requires code changes
+    # in CvEventManager.onModNetMessage.
+    msg_in = inputdata.get("msg", u"")
+    iSoundId = inputdata.get("sound", 0)
+    try:
+        # type(msg_in) is unicode, but we need a bytestr with
+        # an encoding which can Civ4 handle.
+        msg_cp1252 = msg_in.encode('cp1252', 'replace')
+
+        # Convert text back to unicode. This will used to
+        # store the text in pbSettings.json which is utf-8 encoded.
+        # Moreover, msg is without critical chars, msg_in not.
+        msg = msg_cp1252.decode('cp1252')
+
+        if len(msg_in) > 0:
+            if server.adminApp is not None:
+                info = server.adminApp.sendChatMessage(msg, iSoundId)
+                if info is True:
+                    info = 'Chat message send. '
+                msg = msg.replace('&', '&amp;')
+                msg = msg.replace('<', '&lt;')
+                msg = msg.replace('>', '&gt;')
+                wfile.write(gen_answer({'info': info,
+                                        'msg': msg}))
+            else:
+                wfile.write(gen_answer("adminApp object missing", "fail"))
+
+        else:  # Empty chat message: Return latest chat messages.
+            if server.adminApp is not None:
+                chat_log = server.adminApp.chat_log
+            else:
+                chat_log = []
+
+            wfile.write(gen_answer({
+                'info': 'Latest %i chat messages' % (len(chat_log),),
+                'log': chat_log}))
+
+            chat_log[:] = []  # Don't print messages twice
+
+    except Exception, e:  # Old Python 2.4 syntax!
+        wfile.write(gen_answer(
+            'Some error occured trying to send the message. '
+            'Probably a character that cannot be encoded. ' +
+            str(e) + '\n' +
+            str([ord(c) for c in msg_in]), "fail"))
+
+
+@action_args_decorator
 def action_chat(inputdata, server, wfile):
+    # This simple way produce annoying long term msg's
+    # in the GameLog.
     msg_in = inputdata.get("msg", u"")
     try:
         # type(msg_in) is unicode, but we need a bytestr with
@@ -103,6 +154,60 @@ def action_chat(inputdata, server, wfile):
 
         if len(msg_in) > 0:
             PB.sendChat(msg_cp1252)
+
+            msg = msg.replace('&', '&amp;')
+            msg = msg.replace('<', '&lt;')
+            msg = msg.replace('>', '&gt;')
+            wfile.write(gen_answer({'info': 'Chat message send.',
+                                    'msg': msg}))
+        else:  # Empty chat message: Return latest chat messages.
+            if server.adminApp is not None:
+                chat_log = server.adminApp.chat_log
+            else:
+                chat_log = []
+
+            wfile.write(gen_answer({
+                'info': 'Latest %i chat messages' % (len(chat_log),),
+                'log': chat_log}))
+
+            chat_log[:] = []  # Don't print messages twice
+
+    except Exception, e:  # Old Python 2.4 syntax!
+        wfile.write(gen_answer(
+            'Some error occured trying to send the message. '
+            'Probably a character that cannot be encoded. ' +
+            str(e) + '\n' +
+            str([ord(c) for c in msg_in]), "fail"))
+
+
+@action_args_decorator
+def action_chat_as_barb(inputdata, server, wfile):
+    # This variant produces less permament messages (not 'visible for weeks').
+    msg_in = inputdata.get("msg", u"")
+    try:
+        # type(msg_in) is unicode, but we need a bytestr with
+        # an encoding which can Civ4 handle.
+        msg_cp1252 = msg_in.encode('cp1252', 'replace')
+
+        # Convert text back to unicode. This will used to
+        # store the text in pbSettings.json which is utf-8 encoded.
+        # Moreover, msg is without critical chars, msg_in not.
+        msg = msg_cp1252.decode('cp1252')
+
+        if len(msg_in) > 0:
+            barb = gc.getPlayer(gc.getBARBARIAN_PLAYER())
+            key_back = barb.getNameKey()
+            active_back = gc.getGame().getActivePlayer()  # -1
+
+            # TODO: Useless because change is local
+            # and Barbarian name is restored before message is rendered…
+            # barb.setName("Pitboss")
+            gc.getGame().setActivePlayer(gc.getBARBARIAN_PLAYER(), False)
+            gc.sendChat(msg_cp1252, -1)  # Requires active player > -1
+
+            gc.getGame().setActivePlayer(active_back, False)
+            barb.setName(key_back)
+
             msg = msg.replace('&', '&amp;')
             msg = msg.replace('<', '&lt;')
             msg = msg.replace('>', '&gt;')
@@ -750,7 +855,10 @@ def action_unknown(inputdata, server, wfile):
         }, "fail"))
 
 Action_Handlers = {
-    "chat": action_chat,
+    "chat": action_chat,  # deprecated name, TODO: Update PBSpy to chat3
+    "chat1": action_chat,
+    "chat2": action_chat_as_barb,
+    "chat3": action_chat_over_modNetMsg,
     "setAutostart": action_autostart,
     "setHeadless": action_headless,
     "save": action_save,
