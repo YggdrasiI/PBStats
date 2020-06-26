@@ -1,0 +1,4 @@
+{% load i18n %}
+{% blocktrans %}
+[{{game_name}}] subscribed to player notification
+{% endblocktrans %}

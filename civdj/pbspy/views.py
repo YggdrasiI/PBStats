@@ -14,6 +14,7 @@ from django.views.generic import View, DetailView, ListView
 from django.views.generic.edit import FormMixin
 from django.views.generic.list import MultipleObjectMixin, MultipleObjectTemplateResponseMixin
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count, Q, F
@@ -29,8 +30,7 @@ from django.utils import timezone
 from django.utils import formats
 
 from pbspy.models import Game, GameLog, Player,\
-        InvalidPBResponse, InvalidCharacterError,\
-        MailSubscribing
+        InvalidPBResponse, InvalidCharacterError
 from pbspy.forms import GameForm, GameManagementChatForm, GameManagementMotDForm,\
         GameManagementTimerForm, GameManagementCurrentTimerForm, GameManagementLoadForm, GameManagementSetPlayerPasswordForm,\
         GameManagementSaveForm, GameLogTypesForm, GameLogSaveFilterForm, GameManagementShortNamesForm,\
@@ -264,9 +264,12 @@ class GameDetailView(FormMixin, DetailView):
             sum(1 for p in context['players'] if p.finished_turn)
         game.player_count = len(context['players'])
 
-        # context['subscriptions'] = game.subscribed_users.all().filter(username=self.request.user.username)
-        context['subscription'] = MailSubscribing.objects.filter(
-             game=game, user=self.request.user).first()  # None or value
+        context['subscription'] = game.player_set.filter(
+            ingame_stack=0, subscribed_users=self.request.user).\
+                first()
+        subscript_players = game.player_set.filter(
+            ingame_stack=0, subscribed_users=self.request.user)
+        context['subscription'] = [pl.ingame_id for pl in subscript_players]
 
         self.log_setup(game, context)
 
@@ -722,17 +725,35 @@ def game_subscribe(request, game_id, subscribe=True):
 
     if subscribe:
         try:
-            watched_player_id = int(request.POST.get('watched_player_id', -1))
+            player_id = int(request.POST.get('player_id', -1))
         except (MultiValueDictKeyError):
             # Currently, only one watched player is allowed
-            watched_player_id = int(request.POST.get('watched_player_id', [-1])[0])
+            player_id = int(request.POST.get('player_id', [-1])[0])
         except (KeyError, ValueError):
-            watched_player_id = -1
-        message = game.subscribe_user(request.user, watched_player_id)
+            player_id = -1
+
+        if player_id > -1:
+            player = game.player_set.filter(ingame_stack=0,
+                                   ingame_id=player_id).first()
+            if player is None:
+                return _("Cannot subscribe: Player {player_id} not found.").\
+                        format( email=user.email, player_id=player_id)
+
+            message = player.subscribe_user(request.user)
+        else:
+            message = game.subscribe_user(request.user)
+
     else:
+        # Here, we remove all subscribtions for this (user,game)
         message = game.unsubscribe_user(request.user)
+        for player in game.player_set.filter(ingame_stack=0):
+            message_pl = player.unsubscribe_user(request.user)
+            if message_pl:
+                message += " \n" + message_pl
+
     # TODO, also pass message... not sure how to do that easily ina redirect, probably ending up in a GET on a regex url
-    return redirect('game_detail', pk=game_id)
+    return HttpResponse(message, status=200)
+    # return redirect('game_detail', pk=game_id)
 
 
 @csrf_exempt

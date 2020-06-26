@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-23 17:13+0200\n"
+"POT-Creation-Date: 2020-06-26 13:12+0200\n"
 "PO-Revision-Date: 2020-02-16 15:40+0000\n"
 "Last-Translator: Olaf Schulz <olaf_schulz@posteo.de>\n"
 "Language-Team: None <LL@li.org>\n"
@@ -84,7 +84,7 @@ msgid "Savegame"
 msgstr "Spielstand"
 
 #: pbspy/forms.py:119 pbspy/forms.py:157 pbspy/forms.py:193
-#: pbspy/templates/pbspy/game_detail.html:226 pbspy/templates/pbspy/log.html:16
+#: pbspy/templates/pbspy/game_detail.html:227 pbspy/templates/pbspy/log.html:16
 msgid "Player"
 msgstr "Spieler"
 
@@ -161,86 +161,77 @@ msgstr "{year} n. Chr."
 msgid "{year} BC"
 msgstr "{year} v. Chr."
 
-#: pbspy/models.py:411
+#: pbspy/models.py:406
 msgid "Failed to connect to server."
 msgstr "Konnte keine Verbindung zum Server aufbauen."
 
-#: pbspy/models.py:522
+#: pbspy/models.py:517
 msgid "No valid player given."
 msgstr "Spieler-Id ungültig."
 
-#: pbspy/models.py:589
-#, python-brace-format
-msgid ""
-"You will now receive emails for this game on {email} if player {player_id} "
-"finished his turn."
-msgstr ""
-"sie erhalten nun EMail-Benachrichtungen für dieses Spiel an {email} wenn "
-"Spieler {player_id} seine Runde beendet hat."
-
-#: pbspy/models.py:596
+#: pbspy/models.py:580
 #, python-brace-format
 msgid "You will now receive turn emails for this game at {email}."
 msgstr ""
 "Sie erhalten bei neuen Runden ab jetzt eine EMail-Benachrichtigung an "
 "{email}."
 
-#: pbspy/models.py:600
+#: pbspy/models.py:585
 #, python-brace-format
-msgid "You will no longer receive new turn emails for this game at {email}"
+msgid "You will no longer receive new turn emails for this game at {email}."
 msgstr ""
 "Sie erhalten ab nun bei neuen Runden keine EMail-Benachrichtigungen mehr an "
 "{email}."
 
-#: pbspy/models.py:691
+#: pbspy/models.py:676
 msgid "NONE"
 msgstr ""
 
-#: pbspy/models.py:692
+#: pbspy/models.py:677
 msgid "victory by score"
 msgstr "Punkte-Sieg"
 
-#: pbspy/models.py:693
+#: pbspy/models.py:678
 msgid "victory by time"
 msgstr "Sieg nach Zeit"
 
-#: pbspy/models.py:694
+#: pbspy/models.py:679
 msgid "conquest victory"
 msgstr "Eroberungs-Sieg"
 
-#: pbspy/models.py:695
+#: pbspy/models.py:680
 msgid "domination victory"
 msgstr "Sieg durch Dominanz"
 
-#: pbspy/models.py:696
+#: pbspy/models.py:681
 msgid "cultural victory"
 msgstr "Kultur-Sieg"
 
-#: pbspy/models.py:697
+#: pbspy/models.py:682
 msgid "space race victory"
 msgstr "Weltraum-Sieg"
 
-#: pbspy/models.py:698
+#: pbspy/models.py:683
 msgid "diplomatic victory"
 msgstr "Diplomatie-Sieg"
 
-#: pbspy/models.py:699
+#: pbspy/models.py:684
 msgid "other victory type"
 msgstr "Sieg"
 
-#: pbspy/models.py:700
+#: pbspy/models.py:685
 msgid "no winner"
 msgstr "Spiel ohne Gewinner"
 
-#: pbspy/models.py:701
+#: pbspy/models.py:686
 msgid "game aborted"
 msgstr "Spiel abgebrochen"
 
-#: pbspy/models.py:704
+#: pbspy/models.py:689
 msgid "Game not determined."
 msgstr "Spiel noch nicht entschieden"
 
-#: pbspy/models.py:705 pbspy/models.py:708
+#: pbspy/models.py:690 pbspy/models.py:693
 #, python-brace-format
 msgid ""
 "In the year {year}, {name} led the {civ} people to a {victory_type}, and "
@@ -249,7 +240,7 @@ msgstr ""
 "Im Jahr {year} führte {name} die {civ} zu einem {victory_type}. Man wird "
 "sich an ihn/sie als größten Herrscher der Menschheitsgeschichte erinnern!"
 
-#: pbspy/models.py:711
+#: pbspy/models.py:696
 #, python-brace-format
 msgid ""
 "In the year {year}, {name} led the {civ} people to a victory, and will be "
@@ -258,77 +249,94 @@ msgstr ""
 "Im Jahr {year} führte {name} die {civ} zum Sieg. Man wird sich an ihn/sie "
 "als größten Herrscher der Menschheitsgeschichte erinnern!"
 
-#: pbspy/models.py:714
+#: pbspy/models.py:699
 msgid "This game finished without a winner."
 msgstr "Das Spiel endete ohne Sieger."
 
-#: pbspy/models.py:715
+#: pbspy/models.py:700
 msgid "This game was aborted."
 msgstr "Das Spiel wurde abgebrochen."
 
-#: pbspy/models.py:760
+#: pbspy/models.py:745
 msgid "Congratulations to {} of the {}"
 msgstr "Gratulation an {} von den {}"
 
-#: pbspy/models.py:842
+#: pbspy/models.py:831
 msgid "Error. Inactive player should not be displayed."
 msgstr "Fehler. Inaktive Spieler-Slots sollten nicht angezeigt werden."
 
-#: pbspy/models.py:844 pbspy/models.py:1085
+#: pbspy/models.py:833 pbspy/models.py:1096
 msgid "eliminated"
 msgstr "besiegt"
 
-#: pbspy/models.py:846
+#: pbspy/models.py:835
 msgid "unclaimed"
 msgstr "nicht reserviert"
 
-#: pbspy/models.py:848
+#: pbspy/models.py:837
 msgid "AI"
 msgstr "KI"
 
-#: pbspy/models.py:850
+#: pbspy/models.py:839
 msgid "online"
 msgstr "verbunden"
 
-#: pbspy/models.py:851
+#: pbspy/models.py:840
 msgid "offline"
 msgstr "offline"
 
-#: pbspy/models.py:916 pbspy/models.py:922
+#: pbspy/models.py:905 pbspy/models.py:911
 #, python-brace-format
 msgid "{name} ({leader} of {civilization})"
 msgstr "{name} ({leader} / {civilization})"
 
-#: pbspy/models.py:939
+#: pbspy/models.py:924
+#, python-brace-format
+msgid ""
+"You will now receive emails for this game on {email} if player {player_id} "
+"finished his turn."
+msgstr ""
+"sie erhalten nun EMail-Benachrichtungen für dieses Spiel an {email} wenn "
+"Spieler {player_id} seine Runde beendet hat."
+
+#: pbspy/models.py:931
+#, python-brace-format
+msgid ""
+"You will no longer receive new turn emails for player {player} of {game}."
+msgstr ""
+"Sie erhalten ab nun für Spieler {player} aus \"{game}\" keine EMail-"
+"Benachrichtigungen mehr."
+
+#: pbspy/models.py:950
 #, python-brace-format
 msgid "{date}/{year}/turn {turn}: "
 msgstr ""
 
-#: pbspy/models.py:960
+#: pbspy/models.py:971
 #, python-brace-format
 msgid "a new turn has begun. It is now {year}"
 msgstr "Eine neue Runde beginnt. Es ist jetzt {year}"
 
-#: pbspy/models.py:975
+#: pbspy/models.py:986
 #, python-brace-format
 msgid "the game was reloaded on year {year}"
 msgstr "Das Spiel wurde im Jahr {year} neu geladen"
 
-#: pbspy/models.py:986
+#: pbspy/models.py:997
 #, python-brace-format
 msgid "a game named {name} was started with {num_players} players."
 msgstr "Ein Spiel namens {name} wurde mit {num_players} Spielern gestartet."
 
-#: pbspy/models.py:995
+#: pbspy/models.py:1006
 #, python-brace-format
 msgid "turn timer changed to {timer} hours."
 msgstr "Der Rundentimer wurde auf {timer} Stunden gesetzt."
 
-#: pbspy/models.py:997
+#: pbspy/models.py:1008
 msgid "turn timer disabled."
 msgstr "Der Rundentimer wurde deaktiviert."
 
-#: pbspy/models.py:1020
+#: pbspy/models.py:1031
 #, python-brace-format
 msgid ""
 "current turn timer changed by {delta_h:+}h {delta_m:02}m to {remaining_h}h "
@@ -337,104 +345,104 @@ msgstr ""
 "Aktueller Rundentimer wurde um {delta_h:+}:{delta_m:02} geändert auf "
 "{remaining_h}:{remaining_m:02}"
 
-#: pbspy/models.py:1023
+#: pbspy/models.py:1034
 msgid "remaining time of current turn has changed."
 msgstr "Verbleibende Zeit der aktuellen Runde hat sich geändert."
 
-#: pbspy/models.py:1031
+#: pbspy/models.py:1042
 msgid "game paused by player."
 msgstr "Das Spiel wurde pausiert."
 
-#: pbspy/models.py:1033
+#: pbspy/models.py:1044
 msgid "game resumed by player."
 msgstr "Das Spiel wurde fortgesetzt."
 
-#: pbspy/models.py:1038
+#: pbspy/models.py:1049
 msgid "server timed out."
 msgstr "Verbindung zum Server verloren."
 
-#: pbspy/models.py:1046
+#: pbspy/models.py:1057
 #, python-brace-format
 msgid "{date}/{year}/turn {turn}, {player}: "
 msgstr ""
 
-#: pbspy/models.py:1053
+#: pbspy/models.py:1064
 msgid "logged in"
 msgstr "Spiel betreten"
 
-#: pbspy/models.py:1057
+#: pbspy/models.py:1068
 msgid "logged out"
 msgstr "Spiel verlassen"
 
-#: pbspy/models.py:1061
+#: pbspy/models.py:1072
 msgid "finished turn"
 msgstr "Zug beendet"
 
-#: pbspy/models.py:1070
+#: pbspy/models.py:1081
 #, python-brace-format
 msgid "score increased to {score} ({delta:+})"
 msgstr "Punkte erhöht auf {score} ({delta:+})"
 
-#: pbspy/models.py:1072
+#: pbspy/models.py:1083
 #, python-brace-format
 msgid "score decreased to {score} ({delta})"
 msgstr "Punkte verringert auf {score} ({delta})"
 
-#: pbspy/models.py:1074
+#: pbspy/models.py:1085
 #, python-brace-format
 msgid "score changed to {score}"
 msgstr "Punkte geändert auf {score}"
 
-#: pbspy/models.py:1081
+#: pbspy/models.py:1092
 #, python-brace-format
 msgid "changed name to {new_name}"
 msgstr "Name geändert zu {new_name}"
 
-#: pbspy/models.py:1089
+#: pbspy/models.py:1100
 msgid "converted to AI"
 msgstr "Spieler zu KI konvertiert"
 
-#: pbspy/models.py:1093
+#: pbspy/models.py:1104
 msgid "claimed"
 msgstr "nicht reserviert"
 
-#: pbspy/models.py:1103
+#: pbspy/models.py:1114
 msgid "unknown user"
 msgstr "unbekannter Nutzer"
 
-#: pbspy/models.py:1111
+#: pbspy/models.py:1122
 #, python-brace-format
 msgid "game saved by {username}"
 msgstr "Spiel gespeichert durch {username}"
 
-#: pbspy/models.py:1119
+#: pbspy/models.py:1130
 #, python-brace-format
 msgid "pause activated by {username}"
 msgstr "Spiel pausiert durch {username}"
 
-#: pbspy/models.py:1122
+#: pbspy/models.py:1133
 #, python-brace-format
 msgid "pause deactivated by {username}"
 msgstr "Spiel fortgesetzt durch {username}"
 
-#: pbspy/models.py:1128
+#: pbspy/models.py:1139
 #, python-brace-format
 msgid "turn ended by {username}"
 msgstr "Runde beendet durch {username}"
 
-#: pbspy/models.py:1133
+#: pbspy/models.py:1144
 msgid "a player was disconnected due to the upload-bug."
 msgstr "Ein Spieler wurde aufgrund des Upload-Bugfixes gekickt."
 
-#: pbspy/models.py:1173
+#: pbspy/models.py:1184
 msgid "<li>(id={})</li>"
 msgstr ""
 
-#: pbspy/models.py:1175
+#: pbspy/models.py:1186
 msgid "<li>{} (id={})</li>"
 msgstr ""
 
-#: pbspy/models.py:1176
+#: pbspy/models.py:1187
 msgid "the following players did not finished their turn:"
 msgstr "Die folgenden Spieler haben ihre Runde nicht beendet:"
 
@@ -530,13 +538,14 @@ msgstr ""
 "[%(game_name)s] Dein Spielzug %(turn)s hat begonnen\n"
 
 #: pbspy/templates/pbspy/email_subscribed.txt:2
-#, python-format
 msgid ""
 "\n"
 "Hello %(username)s,\n"
 "\n"
 "you have subscribed to the Civilization 4 Pitboss game \"%(game_name)s\".\n"
 "You will now receive an email whenever there is a new turn in the game.\n"
+"\n"
+"\n"
 "You can control this setting at http://civ.zulan.net%(manage_url)s.\n"
 msgstr ""
 "\n"
@@ -545,6 +554,7 @@ msgstr ""
 "Du hast dich beim EMail-Verteiler des Civilization 4 Pitboss-Spiels "
 "\"%(game_name)s angemeldet.\".\n"
 "Du erhälst ab jetzt eine EMail sobald im Spiel eine neue Runde beginnt.\n"
+"\n"
 "\n"
 "Diese Einstellung kann auf http://civ.zulan.net%(manage_url)s angepasst "
 "werden.\n"
@@ -557,6 +567,38 @@ msgid ""
 msgstr ""
 "\n"
 "[%(game_name)s] den Rundenwechsel-Benachrichtigungen hinzugefügt\n"
+
+#: pbspy/templates/pbspy/email_subscribed_to_player.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(username)s,\n"
+"\n"
+"you have subscribed to the Civilization 4 Pitboss game \"%(game_name)s\".\n"
+"You will now receive an email whenever %(player)s ends they turn.\n"
+"\n"
+"\n"
+"You can control this setting at http://civ.zulan.net%(manage_url)s.\n"
+msgstr ""
+"\n"
+"Hallo %(username)s,\n"
+"\n"
+"\n"
+"Du hast dich beim EMail-Verteiler des Civilization 4 Pitboss-Spiels "
+"\"%(game_name)s angemeldet.\".\n"
+"Du erhälst ab jetzt eine EMail sobald %(player)s seinen Zug beendet.\n"
+"\n"
+"Diese Einstellung kann auf http://civ.zulan.net%(manage_url)s angepasst "
+"werden.\n"
+
+#: pbspy/templates/pbspy/email_subscribed_to_player_subject.txt:2
+#, python-format
+msgid ""
+"\n"
+"[%(game_name)s] subscribed to player notification\n"
+msgstr ""
+"\n"
+"[%(game_name)s] Spieler-Benachrichtigung hinzugefügt\n"
 
 #: pbspy/templates/pbspy/game_change.html:10
 #: pbspy/templates/pbspy/game_change.html:14
@@ -597,7 +639,7 @@ msgid "game status"
 msgstr "Spielstatus"
 
 #: pbspy/templates/pbspy/game_detail.html:21
-#: pbspy/templates/pbspy/game_detail.html:225 pbspy/templates/pbspy/log.html:15
+#: pbspy/templates/pbspy/game_detail.html:226 pbspy/templates/pbspy/log.html:15
 msgid "Turn"
 msgstr "Runde"
 
@@ -673,33 +715,39 @@ msgstr "PB-Server offline"
 msgid "(Last connection attempt to PB Server: %(last_activity)s)"
 msgstr "(Letzter Verbindungsversuch zum PB-Server: %(last_activity)s)"
 
-#: pbspy/templates/pbspy/game_detail.html:86
+#: pbspy/templates/pbspy/game_detail.html:85
 #, python-format
 msgid ""
 "\n"
-"                      You will be informed by email if player\n"
-"                      %(player_id)s finished his turn.\n"
-"                      "
-msgstr ""
+"                  You will be informed by email if player\n"
+"                  %(player_ids)s finished they turn.\n"
+"                  "
+msgid_plural ""
+"\n"
+"                  You will be informed by email if players\n"
+"                  %(player_ids)s finished their turns.\n"
+"                  "
+msgstr[0] ""
+msgstr[1] ""
 
-#: pbspy/templates/pbspy/game_detail.html:90
-#: pbspy/templates/pbspy/game_detail.html:96
+#: pbspy/templates/pbspy/game_detail.html:92
+#: pbspy/templates/pbspy/game_detail.html:98
 msgid "unsubscribe"
 msgstr "abbestellen"
 
-#: pbspy/templates/pbspy/game_detail.html:95
+#: pbspy/templates/pbspy/game_detail.html:97
 msgid "You are receiving new turn emails for this game"
 msgstr "Du wirst bei Rundenwechseln per EMail benachrichtigt"
 
-#: pbspy/templates/pbspy/game_detail.html:103
+#: pbspy/templates/pbspy/game_detail.html:104
 msgid "subscribe to new turn emails for this game"
 msgstr "EMail-Benachrichtigung für Rundenwechsel aktivieren"
 
-#: pbspy/templates/pbspy/game_detail.html:105
+#: pbspy/templates/pbspy/game_detail.html:106
 msgid "On new turn"
 msgstr "Bei Rundenbeginn"
 
-#: pbspy/templates/pbspy/game_detail.html:109
+#: pbspy/templates/pbspy/game_detail.html:110
 #, python-format
 msgid ""
 "\n"
@@ -707,85 +755,85 @@ msgid ""
 "                    "
 msgstr ""
 
-#: pbspy/templates/pbspy/game_detail.html:124
+#: pbspy/templates/pbspy/game_detail.html:125
 msgid "game description"
 msgstr "Beschreibung des Spiels"
 
-#: pbspy/templates/pbspy/game_detail.html:134
+#: pbspy/templates/pbspy/game_detail.html:135
 msgid "player summary"
 msgstr "Liste der Spieler"
 
-#: pbspy/templates/pbspy/game_detail.html:146
+#: pbspy/templates/pbspy/game_detail.html:147
 msgid "Name"
 msgstr "Name"
 
-#: pbspy/templates/pbspy/game_detail.html:149
+#: pbspy/templates/pbspy/game_detail.html:150
 msgid "Leader"
 msgstr "Anführer"
 
-#: pbspy/templates/pbspy/game_detail.html:153
+#: pbspy/templates/pbspy/game_detail.html:154
 msgid "Nation"
 msgstr "Zivilisation"
 
-#: pbspy/templates/pbspy/game_detail.html:156
+#: pbspy/templates/pbspy/game_detail.html:157
 msgid "Score"
 msgstr "Punkte"
 
-#: pbspy/templates/pbspy/game_detail.html:159
+#: pbspy/templates/pbspy/game_detail.html:160
 #: pbspy/templates/pbspy/game_manage_player_states.html:29
 #: pbspy/templates/pbspy/game_manage_player_states.html:59
 msgid "Status"
 msgstr "Status"
 
-#: pbspy/templates/pbspy/game_detail.html:181
+#: pbspy/templates/pbspy/game_detail.html:182
 msgid "No players available yet."
 msgstr "Bisher keine Spieler verfügbar."
 
-#: pbspy/templates/pbspy/game_detail.html:185 pbspy/templates/pbspy/log.html:2
+#: pbspy/templates/pbspy/game_detail.html:186 pbspy/templates/pbspy/log.html:2
 msgid "game log"
 msgstr "Protokoll"
 
-#: pbspy/templates/pbspy/game_detail.html:188
+#: pbspy/templates/pbspy/game_detail.html:189
 msgid "Change game log filter"
 msgstr "Filtereinstellungen des Logs"
 
-#: pbspy/templates/pbspy/game_detail.html:193 pbspy/templates/pbspy/log.html:8
+#: pbspy/templates/pbspy/game_detail.html:194 pbspy/templates/pbspy/log.html:8
 msgid "Change filter"
 msgstr "Filter ändern"
 
-#: pbspy/templates/pbspy/game_detail.html:195
+#: pbspy/templates/pbspy/game_detail.html:196
 msgid "Save current filter"
 msgstr "Speichere derzeit aktiven Filter"
 
-#: pbspy/templates/pbspy/game_detail.html:200
+#: pbspy/templates/pbspy/game_detail.html:201
 msgid "Save"
 msgstr "Speichern"
 
-#: pbspy/templates/pbspy/game_detail.html:202
+#: pbspy/templates/pbspy/game_detail.html:203
 msgid "Saved filters"
 msgstr "Gespeicherte Filter"
 
-#: pbspy/templates/pbspy/game_detail.html:212
+#: pbspy/templates/pbspy/game_detail.html:213
 msgid "Timezone"
 msgstr "Zeitzone"
 
-#: pbspy/templates/pbspy/game_detail.html:217
+#: pbspy/templates/pbspy/game_detail.html:218
 msgid "Actual timezone"
 msgstr "Derzeitige Zeitzone"
 
-#: pbspy/templates/pbspy/game_detail.html:219
+#: pbspy/templates/pbspy/game_detail.html:220
 msgid "Server time"
 msgstr "Uhrzeit auf dem PBSpy-Server"
 
-#: pbspy/templates/pbspy/game_detail.html:224 pbspy/templates/pbspy/log.html:14
+#: pbspy/templates/pbspy/game_detail.html:225 pbspy/templates/pbspy/log.html:14
 msgid "Time"
 msgstr "Zeit"
 
-#: pbspy/templates/pbspy/game_detail.html:227 pbspy/templates/pbspy/log.html:17
+#: pbspy/templates/pbspy/game_detail.html:228 pbspy/templates/pbspy/log.html:17
 msgid "Event"
 msgstr "Ereignis"
 
-#: pbspy/templates/pbspy/game_detail.html:241 pbspy/templates/pbspy/log.html:31
+#: pbspy/templates/pbspy/game_detail.html:242 pbspy/templates/pbspy/log.html:31
 msgid "No game log entry available yet."
 msgstr "Bisher keine Log-Einträge verfügbar"
 
@@ -1265,11 +1313,16 @@ msgstr ""
 "Spieler können den Status deiner Spiel einsehen und sich per EMail über neue "
 "Züge benachrichtigen lassen."
 
-#: pbspy/views.py:302
+#: pbspy/views.py:305
 msgid "Previous"
 msgstr "Vorheriger Filter"
 
-#: pbspy/views.py:833
+#: pbspy/views.py:739
+#, python-brace-format
+msgid "Cannot subscribe: Player {player_id} not found."
+msgstr ""
+
+#: pbspy/views.py:854
 msgid "Default"
 msgstr "Standardwerte"
 

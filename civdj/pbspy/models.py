@@ -143,12 +143,7 @@ class Game(models.Model):
     victory_image    = models.CharField(max_length=200, blank=True, null=True,
                                         validators=[URLValidator(regex="^.*[.](png|jpg|jpeg|gif|php[?].*)$")])
 
-    subscribed_users   = models.ManyToManyField(
-        User,
-        related_name='subscribed_games', blank=True,
-        through='MailSubscribing',
-        through_fields=('game', 'user'),
-    )
+    subscribed_users   = models.ManyToManyField(User, related_name='subscribed_games', blank=True)
 
     # Update hostname
     is_dynamic_ip      = models.BooleanField(default=False)
@@ -577,46 +572,36 @@ class Game(models.Model):
         except URLError:
             raise ValidationError("Could not connect to the pitboss management interface.")
 
-    def subscribe_user(self, user, watched_player_id):
-        self.subscribed_users.add(
-            user,
-            through_defaults={'watched_player_id': watched_player_id}
-        )
-        if watched_player_id > -1:
-            email_helper(user, 'subscribed',
-                         game_name=self.name, game_pb_name=self.pb_name,
-                         manage_url=reverse('game_detail', args=[self.id]))
-            return _("You will now receive emails for this game on {email} if "
-                     "player {player_id} finished his turn.").format(
-                         email=user.email, player_id=watched_player_id)
-        else:
-            email_helper(user, 'subscribed',
-                         game_name=self.name, game_pb_name=self.pb_name,
-                         manage_url=reverse('game_detail', args=[self.id]))
-            return _("You will now receive turn emails for this game at {email}.").format(email=user.email)
+    def subscribe_user(self, user):
+        self.subscribed_users.add(user)
+        email_helper(user, 'subscribed',
+                     game_name=self.name, game_pb_name=self.pb_name,
+                     manage_url=reverse('game_detail', args=[self.id]))
+        return _("You will now receive turn emails for this game at {email}.").format(email=user.email)
 
     def unsubscribe_user(self, user):
-        self.subscribed_users.remove(user)
-        return _("You will no longer receive new turn emails for this game at {email}").format(email=user.email)
+        if user in self.subscribed_users.all():
+            self.subscribed_users.remove(user)
+            return _("You will no longer receive new turn emails for this "
+                     "game at {email}.").format(email=user.email)
+        else:
+            return ""
 
     def send_new_turn_info(self):
         for user in self.subscribed_users.all():
-            subscription = MailSubscribing.objects.filter(
-                game=self, user=user).first()
-            if subscription and subscription.watched_player_id == -1:
-                email_helper(user, 'new_turn',
-                             game_name=self.name, game_pb_name=self.pb_name,
-                             turn=(self.turn+1),
-                             manage_url=reverse('game_detail', args=[self.id]))
+            email_helper(user, 'new_turn',
+                         game_name=self.name, game_pb_name=self.pb_name,
+                         turn=(self.turn+1),
+                         manage_url=reverse('game_detail', args=[self.id]))
 
-    def send_player_finished_info(self, ingame_player_id=-2):
-        for user in self.subscribed_users.all():
-            subscription = MailSubscribing.objects.filter(
-                game=self, user=user, watched_player_id=ingame_player_id).first()
-            if subscription:  # and subscription.watched_player_id == ingame_player_id:
+    def send_player_finished_info(self, ingame_player_id=-1):
+        for player in self.player_set.filter(
+            ingame_stack=0, ingame_id=ingame_player_id):
+
+            for user in player.subscribed_users.all():
                 email_helper(user, 'player_finished',
                              game_name=self.name,
-                             game_pb_name=self.pb_name, turn=(self.turn+1),
+                             game_pb_name=self.pb_name, turn=(self.turn),
                              prev_player=ingame_player_id,
                              manage_url=reverse('game_detail', args=[self.id]))
 
@@ -837,6 +822,10 @@ class Player(models.Model):
     # active is index 0, inactive get index 1, 2, ...
     ingame_stack  = models.SmallIntegerField(default=0)
 
+    # For Mail notification if this player finishs they round.
+    subscribed_users = models.ManyToManyField(
+        User, related_name='subscribed_players', blank=True)
+
     def status(self):
         if not self.ingame_stack == 0:
             return (-1,_('Error. Inactive player should not be displayed.'))
@@ -922,6 +911,28 @@ class Player(models.Model):
         return _("{name} ({leader} of {civilization})").format(name=self.name,
                                                                leader=self.leader,
                                                                civilization=self.civilization)
+
+    def subscribe_user(self, user):
+        # Optional: Remove previous subscription.
+        # self.unsubscribe_user(user)
+
+        self.subscribed_users.add(user)
+        email_helper(user, 'subscribed_to_player',
+                     game_name=self.game.name, game_pb_name=self.game.pb_name,
+                     player=self.name,
+                     manage_url=reverse('game_detail', args=[self.id]))
+        return _("You will now receive emails for this game on {email} if "
+                 "player {player_id} finished his turn.").format(
+                     email=user.email, player_id=self.ingame_id)
+
+    def unsubscribe_user(self, user):
+        if user in self.subscribed_users.all():
+            self.subscribed_users.remove(user)
+            return _("You will no longer receive new turn emails for player "
+                     "{player} of {game}.").format(player=self.ingame_id,
+                                                   game=self.game.pb_name)
+        else:
+            return ""
 
 
 class GameLog(PolymorphicModel):
@@ -1175,11 +1186,3 @@ class GameLogMissedTurn(GameLog):
                 format_names.append(_("<li>{} (id={})</li>").format(html.escape(player_name), int(player_id)))
         return _("the following players did not finished their turn:") + "<ul>{players}</ul>".\
             format(players="\r\n".join(format_names))
-
-class MailSubscribing(models.Model):
-    # Mails for sequencial games need the information
-    # which player should be watched.
-    # An mail at the new turn is not useful in this case.
-    game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    watched_player_id = models.IntegerField(blank=False, default=-1)
