@@ -728,7 +728,15 @@ msgid_plural ""
 "                  %(player_ids)s finished their turns.\n"
 "                  "
 msgstr[0] ""
+"\n"
+"                  Du wirst per EMail informiert wenn \n"
+"                  Spieler %(player_ids)s seinen Zug beendet.\n"
+"                  "
 msgstr[1] ""
+"\n"
+"                  Du wirst per EMail informiert wenn die \n"
+"                  Spieler %(player_ids)s ihre Züge beenden.\n"
+"                  "
 
 #: pbspy/templates/pbspy/game_detail.html:92
 #: pbspy/templates/pbspy/game_detail.html:98
@@ -754,6 +762,9 @@ msgid ""
 "                    After %(name)s (%(ingame_id)s)\n"
 "                    "
 msgstr ""
+"\n"
+"                    Nach %(name)s (%(ingame_id)s)\n"
+"                    "
 
 #: pbspy/templates/pbspy/game_detail.html:125
 msgid "game description"
@@ -991,6 +1002,10 @@ msgid ""
 "It omits problems with strictly/badly configured network. Truncate both "
 "strings to reduce the size of a critical UDP packet."
 msgstr ""
+"Kürzt die Anführernamen und deren Zivilisationsbeschreibung im Login-Screen. "
+"Das vermeidet Netzwerkprobleme bei schlecht konfigurierten Umgebungen."
+"Durch die Änderung wird ein bestimmtes UDP-Paket gekürzt und damit "
+"vermieden, dass es bei der Übertragung in zwei Teile gesplittet wird."
 
 #: pbspy/templates/pbspy/game_manage.html:130
 msgid "The sum of both values should not exceed 5 (for 52 players)."
@@ -1139,6 +1154,12 @@ msgid ""
 "in the configuration file 'pbSettings.json' and can not be modified over the "
 "webinterface. Thus, you should only load saves with same password."
 msgstr ""
+"Die meisten Spielstände sind durch ein Admin-Passwort geschützt. "
+"Das Passwort ist in der Konfigurationsdatei 'pbSettings.json' hinterlegt "
+"und kann nicht über das Webinterface geändert werden. "
+"Man sollte vermeiden Spielstände zu laden, die ein anderes Passwort besitzen. "
+"(Das ist nur möglich, wenn in 'PBs/pbPasswords.json' alle relevanten "
+"Passwörter eingetragen sind."
 
 #: pbspy/templates/pbspy/game_manage_motd.html:11
 msgid ""
@@ -1320,7 +1341,7 @@ msgstr "Vorheriger Filter"
 #: pbspy/views.py:739
 #, python-brace-format
 msgid "Cannot subscribe: Player {player_id} not found."
-msgstr ""
+msgstr "Kann Spiel nicht abonnieren: Spieler {player_id} nicht gefunden."
 
 #: pbspy/views.py:854
 msgid "Default"
