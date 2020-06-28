@@ -494,8 +494,7 @@ msgstr ""
 "Es läuft nun Runde %(turn)s.\n"
 "\n"
 "\n"
-"Hier kannst du die Benachrichtigungs-Einstellungen editieren: %(base_url)s%(url_prefix)s"
-"%(manage_url)s\n"
+"Hier kannst du die Benachrichtigungs-Einstellungen editieren: %(base_url)s%(manage_url)s\n"
 
 #: templates/pbspy/email_new_turn_subject.txt:2
 #, python-format
