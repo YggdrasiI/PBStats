@@ -740,7 +740,7 @@ def game_subscribe(request, game_id, subscribe=True):
                                    ingame_id=player_id).first()
             if player is None:
                 return _("Cannot subscribe: Player {player_id} not found.").\
-                        format( email=user.email, player_id=player_id)
+                        format(player_id=player_id)
 
             message = player.subscribe_user(request.user)
         else:
