@@ -2,7 +2,7 @@
 {% blocktrans %}
 Hello {{username}},
 
-a new round, {{turn}}, has started in '{{game_name}}'.
+turn {{turn}}, has started in '{{game_name}}'.
 
 
 You can control your email settings at {{base_url}}{{manage_url}}

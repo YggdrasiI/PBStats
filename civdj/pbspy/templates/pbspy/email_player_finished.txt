@@ -2,7 +2,7 @@
 {% blocktrans %}
 Hello {{username}},
 
-the player {{prev_player}} finished his turn {{turn}} in '{{game_name}}'.
+the player {{prev_player}} finished their turn {{turn}} in '{{game_name}}'.
 
 
 You can control your email settings at {{base_url}}{{manage_url}}

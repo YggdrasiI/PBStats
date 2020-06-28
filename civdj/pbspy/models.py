@@ -833,7 +833,7 @@ class Player(models.Model):
 
     def status(self):
         if not self.ingame_stack == 0:
-            return PlayerStatus(-1, 'unkown', _(''))
+            return PlayerStatus(-1, 'unkown', _('unknown'))
         if self.score == 0:
             return PlayerStatus(0, 'eliminated', _('eliminated')
         if not self.is_claimed:
