@@ -296,7 +296,7 @@ msgid ""
 "You will now receive emails for this game on {email} if player {player_id} "
 "finished his turn."
 msgstr ""
-"sie erhalten nun EMail-Benachrichtungen für dieses Spiel an {email} wenn "
+"Sie erhalten nun EMail-Benachrichtungen für dieses Spiel an {email}, wenn "
 "Spieler {player_id} seine Runde beendet hat."
 
 #: models.py:936

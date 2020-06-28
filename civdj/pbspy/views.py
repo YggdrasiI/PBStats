@@ -712,7 +712,7 @@ def game_change(request, game_id, action=""):
   }},
  [...]
  """.format(gameid=game.id,
-            # old Oython version in Civ4 does not support modern https
+            # old Python version in Civ4 does not support modern https
             pbspy_url=settings.BASE_URL.replace("https", "http") + reverse(game_update),
             pb_remote_password=game.pb_remote_password,
             pb_manage_port=game.manage_port
