@@ -226,6 +226,14 @@
 		<Spanish>Show resource icons at each login</Spanish>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_GLOBELAYER_STRATEGY_NEW_LINE</Tag>
+		<English>New line</English>
+		<French>Nouvelle ligne</French>
+		<German>Neue Freihandlinie</German>
+		<Italian>Nuova linea</Italian>
+		<Spanish>Nueva l&#237;nea</Spanish>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_MOD_</Tag>
 		<English></English>
 		<French></French>

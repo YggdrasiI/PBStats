@@ -3305,10 +3305,16 @@ class CvMainInterface:
 ## Score Board ##
 		if inputClass.getNotifyCode() == NotifyCode.NOTIFY_CLICKED:
 			if inputClass.getFunctionName() == "ScoreRowPlus":
-				self.iScoreRows += 5
+				if inputClass.getData1() > 0:
+					self.iScoreRows += inputClass.getData1()
+				else:
+					self.iScoreRows += 5
 				self.updateScoreStrings()
 			elif inputClass.getFunctionName() == "ScoreRowMinus":
-				self.iScoreRows -= 5
+				if inputClass.getData1() > 0:
+					self.iScoreRows -= inputClass.getData1()
+				else:
+					self.iScoreRows -= 5
 				self.updateScoreStrings()
 			elif inputClass.getFunctionName() == "ScoreWidthPlus":
 				self.iScoreWidth += 10
