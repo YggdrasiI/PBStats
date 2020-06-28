@@ -28,6 +28,7 @@ from django.utils.translation import ugettext as _
 from django.utils.html import escape, strip_tags
 from django.utils import timezone
 from django.utils import formats
+from django.utils.datastructures import MultiValueDictKeyError
 from django.conf import settings
 
 from pbspy.models import Game, GameLog, Player,\
@@ -728,7 +729,7 @@ def game_subscribe(request, game_id, subscribe=True):
     if subscribe:
         try:
             player_id = int(request.POST.get('player_id', -1))
-        except (MultiValueDictKeyError):
+        except MultiValueDictKeyError:
             # Currently, only one watched player is allowed
             player_id = int(request.POST.get('player_id', [-1])[0])
         except (KeyError, ValueError):
