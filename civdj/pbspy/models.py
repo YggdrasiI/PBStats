@@ -829,7 +829,7 @@ class Player(models.Model):
     subscribed_users = models.ManyToManyField(
         User, related_name='subscribed_players', blank=True)
 
-    _Status = namedtuple('PlayerStatus', ('order', 'class', 'message'))
+    _Status = namedtuple('_Status', ('order', 'css_class', 'message'))
 
     def status(self):
         if not self.ingame_stack == 0:

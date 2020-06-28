@@ -174,7 +174,7 @@
           <td class="colColor" style="color:rgb({{ player.color_rgb }});">✖</td>
           <td class="colNation">{{ player.civilization }}</td>
           <td class="colScore">{{ player.score }}</td>
-          <td class="colStatus player_{{ player.status.class }}">{{ player.status.message }}</td>
+          <td class="colStatus player_{{ player.status.css_class }}">{{ player.status.message }}</td>
         </tr>
         {% endfor %}
       </table>
