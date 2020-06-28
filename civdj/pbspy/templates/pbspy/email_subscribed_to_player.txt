@@ -6,5 +6,5 @@ you have subscribed to the Civilization 4 Pitboss game "{{game_name}}".
 You will now receive an email whenever {{player}} ends they turn.
 
 
-You can control this setting at http://civ.zulan.net{{manage_url}}.
+You can control this setting at {{base_url}}{{manage_url}}.
 {% endblocktrans %}

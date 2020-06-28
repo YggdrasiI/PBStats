@@ -12,6 +12,7 @@ from django.utils import timezone, html
 from django.contrib.auth.models import User
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.conf import settings
 
 import socket
 import datetime
@@ -43,6 +44,7 @@ class InvalidPBResponse(Exception):
 
 def email_helper(user, tag, **context):
     context['username'] = user.username
+    context['base_url'] = settings.BASE_URL
     subject = render_to_string('pbspy/email_{tag}_subject.txt'.format(tag=tag), context)
     # Email subject *must not* contain newlines
     subject = ''.join(subject.splitlines())
@@ -828,6 +830,7 @@ class Player(models.Model):
         User, related_name='subscribed_players', blank=True)
 
     PlayerStatus = namedtuple('PlayerStatus', ('order', 'class', 'message'))
+
     def status(self):
         if not self.ingame_stack == 0:
             return PlayerStatus(-1, 'unkown', _(''))

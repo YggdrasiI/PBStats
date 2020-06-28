@@ -1,9 +1,9 @@
 {% load i18n %}
-{% blocktrans with username=username turn=turn game_name=game_name manage_url=manage_url url_prefix="http://civ.zulan.net" %}
+{% blocktrans %}
 Hello {{username}},
 
 a new round, {{turn}}, has started in '{{game_name}}'.
 
 
-You can control your email settings here: {{url_prefix}}{{manage_url}}
+You can control your email settings at {{base_url}}{{manage_url}}
 {% endblocktrans %}

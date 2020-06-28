@@ -22,6 +22,8 @@ if not DEBUG:
     STATIC_ROOT = '/var/www/html/pbspy/static/'
     STATIC_URL = 'http://localhost/pbspy/static/'
 
+BASE_URL = 'https://localhost/'
+
 # Look into django docs for setup
 DATABASES = {
     'default': {
