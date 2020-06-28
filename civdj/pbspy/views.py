@@ -28,6 +28,7 @@ from django.utils.translation import ugettext as _
 from django.utils.html import escape, strip_tags
 from django.utils import timezone
 from django.utils import formats
+from django.conf import settings
 
 from pbspy.models import Game, GameLog, Player,\
         InvalidPBResponse, InvalidCharacterError
@@ -709,7 +710,8 @@ def game_change(request, game_id, action=""):
   }},
  [...]
  """.format(gameid=game.id,
-            pbspy_url=r"http:\/\/"+request.get_host()+r"\/pbspy\/update",
+            # old Oython version in Civ4 does not support modern https
+            pbspy_url=settings.BASE_URL.replace("https", "http") + reverse(game_update),
             pb_remote_password=game.pb_remote_password,
             pb_manage_port=game.manage_port
            )
