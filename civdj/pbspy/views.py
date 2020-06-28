@@ -266,11 +266,12 @@ class GameDetailView(FormMixin, DetailView):
             sum(1 for p in context['players'] if p.finished_turn)
         game.player_count = len(context['players'])
 
-        context['subscription'] = game.player_set.filter(
-            ingame_stack=0, subscribed_users=self.request.user).\
-                first()
-        subscript_players = game.player_set.filter(
-            ingame_stack=0, subscribed_users=self.request.user)
+        if self.request.user.is_authenticated:
+            # above check avoids 'AnonymousUser' object is not iterable
+            subscript_players = game.player_set.filter(
+                ingame_stack=0, subscribed_users=self.request.user)
+        else:
+            subscript_players = []
         context['subscription'] = [pl.ingame_id for pl in subscript_players]
 
         self.log_setup(game, context)
