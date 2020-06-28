@@ -20,6 +20,7 @@ import json
 import hashlib
 import os.path
 import glob
+from collections import namedtuple
 from math import fmod  # modulo operator with sign preservation
 
 from six.moves.urllib.error import URLError
@@ -826,18 +827,19 @@ class Player(models.Model):
     subscribed_users = models.ManyToManyField(
         User, related_name='subscribed_players', blank=True)
 
+    PlayerStatus = namedtuple('PlayerStatus', ('order', 'class', 'message'))
     def status(self):
         if not self.ingame_stack == 0:
-            return (-1,_('Error. Inactive player should not be displayed.'))
+            return PlayerStatus(-1, 'unkown', _(''))
         if self.score == 0:
-            return (0, _('eliminated'))
+            return PlayerStatus(0, 'eliminated', _('eliminated')
         if not self.is_claimed:
-            return (1, _('unclaimed'))
+            return PlayerStatus(1, 'unclaimed', _('unclaimed'))
         if not self.is_human:
-            return (2, _('AI'))
+            return PlayerStatus(2, 'AI', _('AI'))
         if self.is_online:
-            return (4, _('online'))
-        return (3, _('offline'))
+            return PlayerStatus(4, 'online', _('online'))
+        return PlayerStatus(3, 'offline', _('offline'))
 
     def set_from_dict(self, info, logargs, is_save=True, is_log=True):
         logargs['player'] = self
