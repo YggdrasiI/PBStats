@@ -925,7 +925,7 @@ class Player(models.Model):
         email_helper(user, 'subscribed_to_player',
                      game_name=self.game.name, game_pb_name=self.game.pb_name,
                      player=self.name,
-                     manage_url=reverse('game_detail', args=[self.id]))
+                     manage_url=reverse('game_detail', args=[self.game.id]))
         return _("You will now receive emails for this game on {email} if "
                  "player {player_id} finished his turn.").format(
                      email=user.email, player_id=self.ingame_id)
