@@ -829,20 +829,20 @@ class Player(models.Model):
     subscribed_users = models.ManyToManyField(
         User, related_name='subscribed_players', blank=True)
 
-    PlayerStatus = namedtuple('PlayerStatus', ('order', 'class', 'message'))
+    _Status = namedtuple('PlayerStatus', ('order', 'class', 'message'))
 
     def status(self):
         if not self.ingame_stack == 0:
-            return PlayerStatus(-1, 'unkown', _('unknown'))
+            return self._Status(-1, 'unkown', _('unknown'))
         if self.score == 0:
-            return PlayerStatus(0, 'eliminated', _('eliminated')
+            return self._Status(0, 'eliminated', _('eliminated'))
         if not self.is_claimed:
-            return PlayerStatus(1, 'unclaimed', _('unclaimed'))
+            return self._Status(1, 'unclaimed', _('unclaimed'))
         if not self.is_human:
-            return PlayerStatus(2, 'AI', _('AI'))
+            return self._Status(2, 'AI', _('AI'))
         if self.is_online:
-            return PlayerStatus(4, 'online', _('online'))
-        return PlayerStatus(3, 'offline', _('offline'))
+            return self._Status(4, 'online', _('online'))
+        return self._Status(3, 'offline', _('offline'))
 
     def set_from_dict(self, info, logargs, is_save=True, is_log=True):
         logargs['player'] = self
