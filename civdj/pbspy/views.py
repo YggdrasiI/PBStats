@@ -266,11 +266,12 @@ class GameDetailView(FormMixin, DetailView):
             sum(1 for p in context['players'] if p.finished_turn)
         game.player_count = len(context['players'])
 
-        context['subscription'] = game.player_set.filter(
-            ingame_stack=0, subscribed_users=self.request.user).\
-                first()
-        subscript_players = game.player_set.filter(
-            ingame_stack=0, subscribed_users=self.request.user)
+        if self.request.user.is_authenticated:
+            # above check avoids 'AnonymousUser' object is not iterable
+            subscript_players = game.player_set.filter(
+                ingame_stack=0, subscribed_users=self.request.user)
+        else:
+            subscript_players = []
         context['subscription'] = [pl.ingame_id for pl in subscript_players]
 
         self.log_setup(game, context)
@@ -711,7 +712,7 @@ def game_change(request, game_id, action=""):
   }},
  [...]
  """.format(gameid=game.id,
-            # old Oython version in Civ4 does not support modern https
+            # old Python version in Civ4 does not support modern https
             pbspy_url=settings.BASE_URL.replace("https", "http") + reverse(game_update),
             pb_remote_password=game.pb_remote_password,
             pb_manage_port=game.manage_port
