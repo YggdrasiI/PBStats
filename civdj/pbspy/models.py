@@ -591,17 +591,13 @@ class Game(models.Model):
             return ""
 
     def send_new_turn_info(self):
-        affected_users = []  # Collect first to omit duplicaties
-        for user in self.subscribed_users.all():
-            affected_users.append(user)
+        affected_users = set(self.subscribed_users.all())
 
         # Also send notifications for subscriptions of players who didn't
         # finishes their turns. Otherwise, some turn ends where missed.
         for player in self.player_set.filter(
             ingame_stack=0, finished_turn=False):
-            for user in player.subscribed_users.all():
-                if not user in affected_users:
-                    affected_users.append(user)
+            affected_users = affected_users.union(player.subscribed_users.all())
 
         for user in affected_users:
             email_helper(user, 'new_turn',
