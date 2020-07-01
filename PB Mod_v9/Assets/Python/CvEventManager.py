@@ -20,6 +20,9 @@ import sys
 import CvWorldBuilderScreen
 import CvAdvisorUtils
 import CvTechChooser
+import CvScreenUtilsInterface
+from ScreenInput import ScreenInput
+import CvScreenEnums
 
 # Updater Mod
 import CvModUpdaterScreen
@@ -472,9 +475,22 @@ class CvEventManager:
     def onFirstContact(self, argsList):
         'Contact'
         iTeamX,iHasMetTeamY = argsList
-        if (not self.__LOG_CONTACT):
-            return
-        CvUtil.pyPrint('Team %d has met Team %d' %(iTeamX, iHasMetTeamY))
+
+        if self.__LOG_CONTACT:
+            CvUtil.pyPrint('Team %d has met Team %d' %(iTeamX, iHasMetTeamY))
+
+
+        if gc.getGame().getActiveTeam() == iTeamX:
+            inputClass = ScreenInput([NotifyCode.NOTIFY_CLICKED, 0, 0, 0, "",
+                                    "ScoreRowPlus",
+                                    False, False, False,
+                                    -1, -1, -1,
+                                    1, -1, False])  # iData1, iData2, bOption
+
+            main = CvScreensInterface.HandleInputMap[CvScreenEnums.MAIN_INTERFACE]
+            main.handleInput(inputClass)
+            CyInterface().setDirty(InterfaceDirtyBits.Score_DIRTY_BIT, False)
+
 
     def onCombatResult(self, argsList):
         'Combat Result'
