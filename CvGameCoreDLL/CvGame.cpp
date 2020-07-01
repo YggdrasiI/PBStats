@@ -5788,9 +5788,12 @@ void CvGame::doTurn()
 			{
 				kTeam.setTurnActive(true);
 				FAssert(getNumGameTurnActive() == kTeam.getAliveCount());
+
+				// PB Mod: Fix immediate turn flip in PBs with simultaneous rounds.
+				// This break was accidental after the if-branch.
+				break;
 			}
 
-			break;
 		}
 	}
 	else
