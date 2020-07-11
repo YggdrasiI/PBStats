@@ -47,6 +47,9 @@ def integrate():
 
     CvScreensInterface.modUpdaterScreen = CvModUpdaterScreen()
     def _showModUpdaterScreen():
+        if CvScreensInterface.modUpdaterScreen.other_screen_open:
+            return
+
         if CyGame().getActivePlayer() == -1 and not CyGame().isPitbossHost():
             CvScreensInterface.modUpdaterScreen.showScreen(True)
 
@@ -70,6 +73,21 @@ def integrate():
         CvScreensInterface.modUpdaterScreen
     CvScreensInterface.HandleNavigationMap[CvScreenEnums.MODUPDATER_SCREEN] = \
         CvScreensInterface.modUpdaterScreen
+
+    _pediaShow = CvScreensInterface.pediaShow
+    _optionShow = CvScreensInterface.showOptionsScreen
+    def pediaShow():
+        CvScreensInterface.modUpdaterScreen.hideAllWidgets()
+        CvScreensInterface.modUpdaterScreen.other_screen_open = True
+        return _pediaShow()
+
+    def optionShow():
+        CvScreensInterface.modUpdaterScreen.hideAllWidgets()
+        CvScreensInterface.modUpdaterScreen.other_screen_open = True
+        return _optionShow()
+
+    CvScreensInterface.pediaShow = pediaShow
+    CvScreensInterface.showOptionsScreen = optionShow
 
     def _delayedPythonCall(argsList):
         return CvGameInterface.gameUtils().delayedPythonCall(argsList)
@@ -123,6 +141,10 @@ class CvModUpdaterScreen(CvPediaScreen.CvPediaScreen):
         # No super() required
         self.bInit = False
         self.mode = "start"
+
+        # Do not show updater window if pedia or option screen
+        # were open in main menu
+        self.other_screen_open = False
 
         self.MOD_UPDATER_SCREEN_NAME = "ModUpdaterScreen"
         self.INTERFACE_ART_INFO = "SCREEN_BG_OPAQUE"
