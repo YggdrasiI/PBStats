@@ -899,6 +899,11 @@ def createGameData():
         gamedata["turnTimer"] = 1
         gamedata['turnTimerMax'] = gc.getGame().getPitbossTurnTime()
         gamedata['turnTimerValue'] = PB.getTurnTimeLeft()
+
+        # During advanced start the game is negative. Set dummy value
+        if gamedata['turnTimerValue'] < 0:
+            gamedata['turnTimerValue'] = 4*60*60*24*7 + 1
+
     else:
         gamedata["turnTimer"] = 0
 
