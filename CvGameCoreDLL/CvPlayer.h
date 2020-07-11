@@ -1158,6 +1158,8 @@ protected:
 	PlayerTypes m_eParent;
 	TeamTypes m_eTeamType;
 
+	bool m_bConfirmAdvancedStartEnd;
+
 	int* m_aiSeaPlotYield;
 	int* m_aiYieldRateModifier;
 	int* m_aiCapitalYieldRateModifier;

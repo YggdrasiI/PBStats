@@ -35,6 +35,7 @@
 // Public Functions...
 
 CvPlayer::CvPlayer()
+	:m_bConfirmAdvancedStartEnd(false)
 {
 	m_aiSeaPlotYield = new int[NUM_YIELD_TYPES];
 	m_aiYieldRateModifier = new int[NUM_YIELD_TYPES];
@@ -370,6 +371,8 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	//--------------------------------
 	// Uninit class
 	uninit();
+
+	m_bConfirmAdvancedStartEnd = false;
 
 	m_iStartingX = INVALID_PLOT_COORD;
 	m_iStartingY = INVALID_PLOT_COORD;
@@ -13962,12 +13965,17 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 		switch (eAction)
 		{
 		case ADVANCEDSTARTACTION_EXIT:
+			// PB Mod
+			if ((GC.getGameINLINE().isPitboss() || true) && isHuman()){
+				return;
+			}
+
 			//Try to build this player's empire
 			if (getID() == GC.getGameINLINE().getActivePlayer())
 			{
 				gDLL->getInterfaceIFace()->setBusy(true);
 			}
-			AI_doAdvancedStart(true);			
+			AI_doAdvancedStart(true);
 			if (getID() == GC.getGameINLINE().getActivePlayer())
 			{
 				gDLL->getInterfaceIFace()->setBusy(false);
@@ -13985,7 +13993,20 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 
 	switch (eAction)
 	{
+	case ADVANCEDSTARTACTION_EXIT_CONFIRM:
+		m_bConfirmAdvancedStartEnd = true;
+		break;
 	case ADVANCEDSTARTACTION_EXIT:
+		{
+		if ((GC.getGameINLINE().isPitboss() || true) && isHuman()){
+
+			if (m_bConfirmAdvancedStartEnd){
+				; // Player had confirmed end manually.
+			}else{
+				break; // Skip automatic generated event at logoff
+			}
+		}
+
 		changeGold(getAdvancedStartPoints());
 		setAdvancedStartPoints(-1);
 		if (GC.getGameINLINE().getActivePlayer() == getID())
@@ -14013,6 +14034,7 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 			}
 		}
 		break;
+		}
 	case ADVANCEDSTARTACTION_AUTOMATE:
 		if (getID() == GC.getGameINLINE().getActivePlayer())
 		{

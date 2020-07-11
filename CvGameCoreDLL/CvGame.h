@@ -55,6 +55,7 @@ public:
 	DllExport void initDiplomacy();
 	DllExport void initFreeState();
 	DllExport void initFreeUnits();
+	void initFreeUnitsMod(bool bIgnoreExistingUnits = false, bool bIgnoreExistingCities = false);
 
 	DllExport void assignStartingPlots();
 	DllExport void normalizeStartingPlots();
@@ -248,6 +249,7 @@ public:
 	int getInitLand() const;																			// Exposed to Python
 	int getInitTech() const;																			// Exposed to Python
 	int getInitWonders() const;																		// Exposed to Python
+	void initMissingAdvancedStarts();
 	DllExport void initScoreCalculation();
 
 	int getAIAutoPlay();																				// Exposed to Python

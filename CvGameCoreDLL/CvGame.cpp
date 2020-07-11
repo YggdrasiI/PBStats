@@ -877,6 +877,23 @@ void CvGame::initFreeUnits()
 	}
 }
 
+void CvGame::initFreeUnitsMod(bool bIgnoreExistingUnits, bool bIgnoreExistingCities)
+{
+	int iI;
+
+	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	{
+		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		{
+			if (( bIgnoreExistingUnits || (GET_PLAYER((PlayerTypes)iI).getNumUnits() == 0)) &&
+					( bIgnoreExistingCities || (GET_PLAYER((PlayerTypes)iI).getNumCities() == 0)))
+			{
+				GET_PLAYER((PlayerTypes)iI).initFreeUnits();
+			}
+		}
+	}
+}
+
 
 void CvGame::assignStartingPlots()
 {
@@ -3943,9 +3960,26 @@ int CvGame::getInitWonders() const
 	return m_iInitWonders;
 }
 
+void CvGame::initMissingAdvancedStarts(){
+	// Normally initFreeUnits is only called for map scripts but not WBSaves
+
+	if (isOption(GAMEOPTION_ADVANCED_START)){
+		CvWString szMapName = GC.getInitCore().getMapScriptName();
+		CvWString szExtension("CivBeyondSwordWBSave");
+		if (szMapName.length() >= szExtension.length() && 0 ==
+				szMapName.compare(szMapName.length() - szExtension.length(),
+					szExtension.length(), szExtension)){
+			// This game was started by szenario file
+			initFreeUnitsMod(true, true);
+		}
+	}
+}
+
 
 void CvGame::initScoreCalculation()
 {
+	initMissingAdvancedStarts(); // PB Mod
+
 	// initialize score calculation
 	int iMaxFood = 0;
 	for (int i = 0; i < GC.getMapINLINE().numPlotsINLINE(); i++)
@@ -5790,10 +5824,9 @@ void CvGame::doTurn()
 				FAssert(getNumGameTurnActive() == kTeam.getAliveCount());
 
 				// PB Mod: Fix immediate turn flip in PBs with simultaneous rounds.
-				// This break was accidental after the if-branch.
+				// This break was accidential after the if-branch.
 				break;
 			}
-
 		}
 	}
 	else

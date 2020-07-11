@@ -14,4 +14,52 @@
 		<DefineName>USE_MODDERS_PLAYEROPTION_1</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
+	<Define>
+		<DefineName>ADVANCED_START_ALLOW_UNITS_OUTSIDE_CITIES</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>ADVANCED_START_MAX_UNITS_PER_CITY</DefineName>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>ADVANCED_START_SIGHT_RANGE</DefineName>
+		<iDefineIntVal>3</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>ADVANCED_START_CITY_COST</DefineName>
+		<iDefineIntVal>67</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>ADVANCED_START_CITY_COST_INCREASE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>ADVANCED_START_POPULATION_COST</DefineName>
+		<iDefineIntVal>150</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>ADVANCED_START_POPULATION_COST_INCREASE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>ADVANCED_START_CULTURE_COST</DefineName>
+		<iDefineIntVal>25</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>ADVANCED_START_CULTURE_COST_INCREASE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>ADVANCED_START_VISIBILITY_COST</DefineName>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>ADVANCED_START_VISIBILITY_COST_INCREASE</DefineName>
+		<iDefineIntVal>3</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>ADVANCED_START_CITY_PLACEMENT_MAX_RANGE</DefineName>
+		<iDefineIntVal>4</iDefineIntVal>
+	</Define>
 </Civ4Defines>
