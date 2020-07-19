@@ -272,6 +272,22 @@ class Civ4Shell(cmd.Cmd):
         self.close()
         return True
 
+    def do_remove_landmarks(self, arg):
+        self.verbose("for i in range(CyMap().numPlots()):" \
+                     " CyEngine().removeLandmark(CyMap().plotByIndex(i))")
+
+    def do_remove_signs(self, arg):
+        d = """\
+__num_removed = 0
+for i in range(CyEngine().getNumSigns()):
+    __sign = CyEngine().getSignByIndex(i)
+    CyEngine().removeSign(__sign.getPlot(), __sign.getPlayerType())
+    __num_removed += 1
+print("Removed %i signs" %(__num_removed,) )
+"""
+        result = str(self.send("p:"+d))
+        print(result)
+
     def do_test(self, arg):
         """Send test commands to backend."""
         print(" Change amount of gold (Player 0):")
