@@ -13967,7 +13967,12 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 			{
 				gDLL->getInterfaceIFace()->setBusy(true);
 			}
-			AI_doAdvancedStart(true);			
+			// PB Mod: Omit AI spending points at logoff.
+			if( !GC.getGameINLINE().isPitboss()){
+				AI_doAdvancedStart(true);			
+			}else{
+				return; // Allow player to login again
+			}
 			if (getID() == GC.getGameINLINE().getActivePlayer())
 			{
 				gDLL->getInterfaceIFace()->setBusy(false);
@@ -13986,6 +13991,12 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 	switch (eAction)
 	{
 	case ADVANCEDSTARTACTION_EXIT:
+		// PB Mod: Omit AI spending points at logoff.
+		if( GC.getGameINLINE().isPitboss()){
+			// hm, we need to distinct two cases here...
+			// Logoff and clicking exit...
+			break; // Allow player to login again
+		}
 		changeGold(getAdvancedStartPoints());
 		setAdvancedStartPoints(-1);
 		if (GC.getGameINLINE().getActivePlayer() == getID())
