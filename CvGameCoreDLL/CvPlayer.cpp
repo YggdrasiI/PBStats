@@ -35,6 +35,7 @@
 // Public Functions...
 
 CvPlayer::CvPlayer()
+	:m_bConfirmAdvancedStartEnd(false)
 {
 	m_aiSeaPlotYield = new int[NUM_YIELD_TYPES];
 	m_aiYieldRateModifier = new int[NUM_YIELD_TYPES];
@@ -370,6 +371,8 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	//--------------------------------
 	// Uninit class
 	uninit();
+
+	m_bConfirmAdvancedStartEnd = false;
 
 	m_iStartingX = INVALID_PLOT_COORD;
 	m_iStartingY = INVALID_PLOT_COORD;
@@ -13962,17 +13965,17 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 		switch (eAction)
 		{
 		case ADVANCEDSTARTACTION_EXIT:
+			// PB Mod: Omit AI spending points at logoff.
+			if ((GC.getGameINLINE().isPitboss()) && isHuman()){
+				return; // Allows player to login again
+			}
+
 			//Try to build this player's empire
 			if (getID() == GC.getGameINLINE().getActivePlayer())
 			{
 				gDLL->getInterfaceIFace()->setBusy(true);
 			}
-			// PB Mod: Omit AI spending points at logoff.
-			if( !GC.getGameINLINE().isPitboss()){
-				AI_doAdvancedStart(true);			
-			}else{
-				return; // Allow player to login again
-			}
+			AI_doAdvancedStart(true);
 			if (getID() == GC.getGameINLINE().getActivePlayer())
 			{
 				gDLL->getInterfaceIFace()->setBusy(false);
@@ -13990,13 +13993,29 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 
 	switch (eAction)
 	{
+	case ADVANCEDSTARTACTION_EXIT_CONFIRM:
+		m_bConfirmAdvancedStartEnd = true;
+		break;
 	case ADVANCEDSTARTACTION_EXIT:
+<<<<<<< HEAD
 		// PB Mod: Omit AI spending points at logoff.
 		if( GC.getGameINLINE().isPitboss()){
 			// hm, we need to distinct two cases here...
 			// Logoff and clicking exit...
 			break; // Allow player to login again
 		}
+=======
+		{
+		if ((GC.getGameINLINE().isPitboss() || true) && isHuman()){
+
+			if (m_bConfirmAdvancedStartEnd){
+				; // Player had confirmed end manually.
+			}else{
+				break; // Skip automatic generated event at logoff
+			}
+		}
+
+>>>>>>> origin/unstable
 		changeGold(getAdvancedStartPoints());
 		setAdvancedStartPoints(-1);
 		if (GC.getGameINLINE().getActivePlayer() == getID())
@@ -14024,6 +14043,7 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 			}
 		}
 		break;
+		}
 	case ADVANCEDSTARTACTION_AUTOMATE:
 		if (getID() == GC.getGameINLINE().getActivePlayer())
 		{
