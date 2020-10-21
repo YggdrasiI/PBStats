@@ -464,6 +464,12 @@ class LoadSelectPage(wx.wizard.PyWizardPage):
                                     event.Veto()
                                 else:
                                     bSaved = True
+
+                                # Update saved password in PBSettings.json,
+                                # if not already contained in pbPasswords.json.
+                                if adminPwd not in PbSettings.getPbPasswords():
+                                    PbSettings.get("save", {})["adminpw"] = adminPwd
+                                    PbSettings.save()
                         else:
                             # User cancelled admin password
                             PB.reset()
@@ -1770,7 +1776,7 @@ def loadSavegame(filename, folderIndex=0, adminPwd=""):
         iResult = -1
     else:
         pbPasswords = PbSettings.getPbPasswords()
-        # pbPasswords.append(adminPwd)
+        pbPasswords.append(adminPwd)  # To respect pw in GUI dialog
         matchingPwd = Webserver.searchMatchingPassword(filepath, pbPasswords)
         if matchingPwd is None:
             iResult = -2
