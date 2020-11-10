@@ -392,6 +392,9 @@ class CvEventManager:
     def onUnInit(self, argsList):
         'Called when Civ shuts down'
         CvUtil.pyPrint('OnUnInit')
+        if "__ee_whip_handle" in self.__dict__:
+            CyAudioGame().Destroy2DSound(self.__ee_whip_handle)
+            del self.__dict__["__ee_whip_handle"]
 
     def onPreSave(self, argsList):
         "called before a game is actually saved"
@@ -408,6 +411,10 @@ class CvEventManager:
         # Attention, for iPlayerOptionCheck = 1 you will check aggainst
         # the option values stored in the save file, but not the current one!
         iPlayerOptionCheck = 8   # 1 = 1/4 sec
+
+        if "__ee_whip_handle" in self.__dict__:
+            CyAudioGame().Destroy2DSound(self.__ee_whip_handle)
+            del self.__dict__["__ee_whip_handle"]
 
         return 0
 
@@ -1006,6 +1013,31 @@ class CvEventManager:
         'City is renamed'
         pCity = argsList[0]
         iHurryType = argsList[1]
+
+        # EE
+        if (pCity.getOwner() == gc.getGame().getActivePlayer()
+            and iHurryType == 0):
+            if "__ee_whip_played" not in self.__dict__:
+                # Check if previous instance is running
+                bPlay = True
+                if "__ee_whip_handle" in self.__dict__:
+                    if CyAudioGame().Is2DSoundPlaying(self.__ee_whip_handle):
+                        bPlay = False
+                    else:
+                        CyAudioGame().Destroy2DSound(self.__ee_whip_handle)
+                        del self.__dict__["__ee_whip_handle"]
+
+                if bPlay:
+                    r = gc.getASyncRand().get(500, "Whip ASYNC")
+                    # CvUtil.pyPrint("EE_WHIP random val: %i" % (r,))
+                    if r == 0:
+                        self.__ee_whip_played = True
+                        self.__ee_whip_handle = CyAudioGame().Play2DSound("AS2D_MOD_EE_WHIP")
+
+                    elif r <= 5:
+                        # can trigger more than once
+                        # self.__ee_whip_played = True
+                        self.__ee_whip_handle = CyAudioGame().Play2DSound("AS2D_MOD_EE_WHIP_SHORT")
 
     def onVictory(self, argsList):
         'Victory'
