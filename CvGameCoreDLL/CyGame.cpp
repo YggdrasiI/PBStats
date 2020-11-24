@@ -772,6 +772,15 @@ bool CyGame::isMPOption(int /*MultiplayerOptionTypes*/ eIndex)
 	return m_pGame ? m_pGame->isMPOption((MultiplayerOptionTypes)eIndex) : -1;
 }
 
+void CyGame::setMPOption(int /*MultiplayerOptionTypes*/ eIndex, bool bEnabled)
+{
+  if( !isPitbossHost() ){
+		return;
+	}
+	if (m_pGame)
+		m_pGame->setMPOption((MultiplayerOptionTypes)eIndex, bEnabled);
+}
+
 bool CyGame::isForcedControl(int /*ForceControlTypes*/ eIndex)
 {
 	return m_pGame ? m_pGame->isForcedControl((ForceControlTypes)eIndex) : -1;
