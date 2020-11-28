@@ -104,3 +104,18 @@ New in version 9 (PB Mod_v9)
   • Pyconsole feature improved
   • Add improved szenario loader (pyWB). It can now handle szenario files
     for different number of players.
+
+New in version 9.3 (PB Mod_v9)
+• Made 'Advanced Start' available for Pitboss games.
+• Fix infinite turn loop for sequential (non-simultaneous) PBs
+• Raise scoreboard height on new contact.
+• Fix password handling in startPitboss.py. Value in password prompts will not ignored, now.
+• Allow change of Multiplayer Options after the game has started.
+• Disable AI conversion if MPOPTION_TAKEOVER_AI is false.
+• Improve chat support for Pitboss host (sound notifications, chat messages not stored as longterm log message)
+• PBSpy supports now notification mails if other players finishes
+their turns.
+• Add several commands to Pyconsole:
+list_cities, list_units, unreveal_map, remove_ocean_forrest, etc
+• Fix startup crash if Pyconsole is enabled.
+• Fix scroll bug in score list during contact attempt of other human player.
