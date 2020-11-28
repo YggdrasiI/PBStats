@@ -189,6 +189,7 @@ public:
 	bool isOption(int /*GameOptionTypes*/ eIndex);
 	void setOption(int /*GameOptionTypes*/ eIndex, bool bEnabled);
 	bool isMPOption(int /*MultiplayerOptionTypes*/ eIndex);
+	void setMPOption(int /*MultiplayerOptionTypes*/ eIndex, bool bEnabled);
 	bool isForcedControl(int /*ForceControlTypes*/ eIndex);
 	int getUnitCreatedCount(int /*UnitTypes*/ eIndex);
 	int getUnitClassCreatedCount(int /*UnitClassTypes*/ eIndex);

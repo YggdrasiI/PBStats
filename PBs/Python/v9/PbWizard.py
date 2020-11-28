@@ -2,6 +2,7 @@
 import sys
 import time
 import string
+import os
 import os.path
 import wx
 import wx.wizard
@@ -464,6 +465,12 @@ class LoadSelectPage(wx.wizard.PyWizardPage):
                                     event.Veto()
                                 else:
                                     bSaved = True
+
+                                # Update saved password in PBSettings.json,
+                                # if not already contained in pbPasswords.json.
+                                if adminPwd not in PbSettings.getPbPasswords():
+                                    PbSettings.get("save", {})["adminpw"] = adminPwd
+                                    PbSettings.save()
                         else:
                             # User cancelled admin password
                             PB.reset()
@@ -1443,9 +1450,11 @@ class StartupIFace(wx.App):
         self.bGui = (int(PbSettings.get("gui", 1)) != 0)
         self.bAutostart = (int(PbSettings.get("autostart", 0)) != 0)
         self.bShell = (int(PbSettings.get("shell", {}).get("enable", 0)) != 0)
-        # self.bShell = False  # This prevents startup of shell in
-                               # twice, Wizard window and Admin window.
-                               # Useful if socket.accept() hangs... (Windows)
+        self.bShell = (os.environ.get("WINEUSERNAME") is not None)
+        # This prevents startup of shell in
+        # twice, Wizard window and Admin window.
+        # Useful if socket.accept() hangs... (Windows)
+
         self.civ4Shell = {}  #  Holds shell object and some extra variables
 
         self.bQuitWizard = False
@@ -1770,7 +1779,7 @@ def loadSavegame(filename, folderIndex=0, adminPwd=""):
         iResult = -1
     else:
         pbPasswords = PbSettings.getPbPasswords()
-        # pbPasswords.append(adminPwd)
+        pbPasswords.append(adminPwd)  # To respect pw in GUI dialog
         matchingPwd = Webserver.searchMatchingPassword(filepath, pbPasswords)
         if matchingPwd is None:
             iResult = -2
@@ -1795,7 +1804,7 @@ def start_shell(shell_settings, mode=""):
         return None
 
 def stop_shell(civ4Shell):
-    if "shell" in civ4Shell:
+    if civ4Shell.get("shell"):
         PB.consoleOut("Stop shell and wait on join")
         civ4Shell["shell"].close()
         # self.civ4Shell["shell"].t.join()  # TODO: Hangs if shell sends "pb_start"

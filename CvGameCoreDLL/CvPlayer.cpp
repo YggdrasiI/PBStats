@@ -13965,9 +13965,9 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 		switch (eAction)
 		{
 		case ADVANCEDSTARTACTION_EXIT:
-			// PB Mod
-			if ((GC.getGameINLINE().isPitboss() || true) && isHuman()){
-				return;
+			// PB Mod: Omit AI spending points at logoff.
+			if ((GC.getGameINLINE().isPitboss()) && isHuman()){
+				return; // Allows player to login again
 			}
 
 			//Try to build this player's empire
@@ -13997,6 +13997,14 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 		m_bConfirmAdvancedStartEnd = true;
 		break;
 	case ADVANCEDSTARTACTION_EXIT:
+<<<<<<< HEAD
+		// PB Mod: Omit AI spending points at logoff.
+		if( GC.getGameINLINE().isPitboss()){
+			// hm, we need to distinct two cases here...
+			// Logoff and clicking exit...
+			break; // Allow player to login again
+		}
+=======
 		{
 		if ((GC.getGameINLINE().isPitboss() || true) && isHuman()){
 
@@ -14007,6 +14015,7 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 			}
 		}
 
+>>>>>>> origin/unstable
 		changeGold(getAdvancedStartPoints());
 		setAdvancedStartPoints(-1);
 		if (GC.getGameINLINE().getActivePlayer() == getID())

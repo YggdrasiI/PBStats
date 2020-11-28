@@ -2653,7 +2653,9 @@ bool CvDLLButtonPopup::launchConfirmMenuKI(CvPopup *pPopup, CvPopupInfo &info)
 	}
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_MOD_NO_BUT_EXIT").c_str(), NULL, 0, WIDGET_GENERAL);
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_NO").c_str(), NULL, 1, WIDGET_GENERAL);
-	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_MOD_YES_KI").c_str(), NULL, 2, WIDGET_GENERAL);
+	if( bTakeoverAI ){
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_MOD_YES_KI").c_str(), NULL, 2, WIDGET_GENERAL);
+	}
 	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);
 
 	return true;
