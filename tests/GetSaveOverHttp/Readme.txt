@@ -21,6 +21,8 @@ Civ4:BTS installation folder. Do not delete/move the normal executable. It's sti
 
 • If MSVCP100.dll is missing, see http://answers.microsoft.com/en-us/windows/forum/windows_other-performance/msvcp100dll-missing/9a687c31-0619-4ee9-b511-020985e29b5f
 
+• On Linux+Wine: If the vcruntime140.dll file can not be loaded: Delete local vcruntime140.dll and run 'winetricks vcrun2015' to install other(?) version.
+
 2a) As Direct IP host (new in version 3 of BTS_Wrapper.exe)
 • Add '-P [port number, i.e. 2055]' argument to the start arguments of BTS_Wrapper.exe.
 	This port will be used to transfer the save game.
@@ -75,5 +77,5 @@ Benefits of this setup:
 1. A BTS_Wrapper.exe user profits from the '_http_'-syntax of the folder. Civ4 will download the save over http.
 2. If a user maps the Z:-drive to http://{server}/{prefix} both, server and client, uses the same path syntax! Thus, Civ4 will read the saves from Z:.
 
-Olaf Schulz, 2015-18
+Olaf Schulz, 2015-20
 
