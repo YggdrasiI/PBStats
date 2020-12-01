@@ -1,3 +1,8 @@
+== Project moved ==
+
+This part of PBStats has a new home:
+https://github.com/civ4-mp/pyconsole
+
 == Shell for Civ4 ==
 
 This extensions expands the Civ4 by a local TCP interface.
