@@ -1,3 +1,8 @@
+== New project home ==
+
+This component of PBStats has now its own repository:
+https://github.com/civ4-mp/pbspy
+
 === PBSpy — A Civ4 Pitboss webinterface based on Django ===
 
 This software communicates with the PB Mod component of PBStats and provides

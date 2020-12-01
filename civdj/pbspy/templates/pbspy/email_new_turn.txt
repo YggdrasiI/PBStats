@@ -1,9 +1,0 @@
-{% load i18n %}
-{% blocktrans %}
-Hello {{username}},
-
-turn {{turn}}, has started in '{{game_name}}'.
-
-
-You can control your email settings at {{base_url}}{{manage_url}}
-{% endblocktrans %}
