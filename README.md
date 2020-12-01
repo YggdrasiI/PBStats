@@ -1,3 +1,18 @@
+Project in transition
+=======
+
+The project is grown over the years and we decided to split it up
+into several smaller projects. Visit *https://github.com/civ4-mp*
+for an overview.
+
+The main projects there are
+1. https://github.com/civ4-mp/pbmod
+Civ4 mod compoment with the multiplayer improvements and bug fixes.
+
+2. https://github.com/civ4-mp/pbspy
+Web interface which can control PB games with the PB Mod.
+
+
 PBStats
 =======
 
