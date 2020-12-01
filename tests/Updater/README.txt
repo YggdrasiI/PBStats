@@ -1,3 +1,8 @@
+== Mod updater moved ==
+
+The updater mod has now its own repository:
+https://github.com/civ4-mp/mod-updater
+
 === Information about Civ4 mod updater component ===
 
 Features:
