@@ -83,10 +83,14 @@ def action_template(inputdata, server, wfile):
 
 
 @action_args_decorator
+def action_ping(inputdata, server, wfile):
+    wfile.write(gen_answer({'info': 'pong'}))
+
+
+@action_args_decorator
 def action_gamedata(inputdata, server, wfile):
     gamedata = createGameData()
     wfile.write(gen_answer({'info': gamedata}))
-
 
 @action_args_decorator
 def action_chat_over_modNetMsg(inputdata, server, wfile):
@@ -848,13 +852,14 @@ def action_mod_update(inputdata, server, wfile):
 def action_unknown(inputdata, server, wfile):
     wfile.write(gen_answer(
         {'info':
-         'Unknown action. Available actions are %s.'
-         'For security reasons some commands require an explicit'
-         'activation, see "allow*"-keys in pbSettings.json'
+         'Unknown action. Available actions are: %s.\n\n'
+         'For security reasons some commands require an explicit '
+         'activation, see "allow*"-keys in pbSettings.json.'
          '' % (', '.join(Action_Handlers.keys()),)
         }, "fail"))
 
 Action_Handlers = {
+    "ping": action_ping,
     "chat": action_chat,  # deprecated name, TODO: Update PBSpy to chat3
     "chat1": action_chat,
     "chat2": action_chat_as_barb,
