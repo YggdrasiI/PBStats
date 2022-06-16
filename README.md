@@ -1,3 +1,8 @@
+Project moved
+======
+Newer development take place at https://github.com/civ4-mp
+PBStats was split into multiple repositories: *pbmod*, *pbspy*, *pyconsole*, etc.
+
 PBStats
 =======
 
